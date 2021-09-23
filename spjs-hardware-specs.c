@@ -19,6 +19,7 @@ int     main(int argc,char *argv[])
 
 {
     unsigned int    cpus = 0;
+    unsigned long   user_mem = 0;
 
     /*
      *  hwloc is extremely complex and we don't need most of its functionality
@@ -28,7 +29,6 @@ int     main(int argc,char *argv[])
     cpus = sysconf(_SC_NPROCESSORS_ONLN);
 #if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__APPLE__)
     // Linux _SC_AVPHYS_PAGES is about the same as BSD hw.usermem sysctl
-    unsigned long   user_mem = 0;
     size_t          user_mem_size = 8;
     sysctlbyname("hw.usermem", &user_mem, &user_mem_size, NULL, 0);
 #else
