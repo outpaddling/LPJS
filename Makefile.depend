@@ -1,0 +1,3 @@
+spjs-hardware-specs.o: spjs-hardware-specs.c
+	${CC} -c ${CFLAGS} spjs-hardware-specs.c
+
