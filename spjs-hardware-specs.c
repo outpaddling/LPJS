@@ -34,7 +34,6 @@ int     main(int argc,char *argv[])
 #else
     user_mem = sysconf(_SC_PAGE_SIZE) * sysconf(_SC_AVPHYS_PAGES);
 #endif
-    printf("sizeof(int) = %zu\n", sizeof(int));
     printf("CPUs\t%u\n", cpus);
     printf("Usermem\t%lu\n", user_mem);
     return EX_OK;
