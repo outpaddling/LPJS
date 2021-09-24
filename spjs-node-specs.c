@@ -8,6 +8,7 @@
  ***************************************************************************/
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <sysexits.h>
 #include <unistd.h>
 
@@ -30,6 +31,6 @@ int     main(int argc,char *argv[])
      *  Report 1 if ZFS filesystem found, so that additional memory
      *  can be reserved on compute nodes.
      */
-    printf("ZFS\t0\n");
+    printf("ZFS\t%u\n", ! system("mount | fgrep zfs"));
     return EX_OK;
 }

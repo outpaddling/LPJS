@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <sysexits.h>
 #include <string.h>
-#include <xtend/dsv.h>
+#include <xtend/dsv.h>      // dsv_read_field()
+#include <xtend/string.h>   // strtrim()
 #include "node-list.h"
 #include "spjs.h"
 
@@ -40,11 +41,11 @@ int     node_list_populate(node_list_t *node_list, const char *conf_file)
     }
     if ( delim != EOF )
     {
-	puts("Found nodes.");
 	while ( ((delim = dsv_read_field(fp, field, SPJS_FIELD_MAX+1,
 					 ",", &len)) != '\n') &&
 		(delim != EOF) )
 	{
+	    strtrim(field, " ");
 	    node_set_hostname(&node_list->nodes[node_list->count], strdup(field));
 	    node_get_specs(&node_list->nodes[node_list->count]);
 	    node_print_specs(&node_list->nodes[node_list->count]);
@@ -55,6 +56,7 @@ int     node_list_populate(node_list_t *node_list, const char *conf_file)
 	    fprintf(stderr, "Unexpected EOF reading %s.\n", conf_file);
 	    exit(EX_DATAERR);
 	}
+	strtrim(field, " ");
 	node_set_hostname(&node_list->nodes[node_list->count], strdup(field));
 	node_get_specs(&node_list->nodes[node_list->count]);
 	node_print_specs(&node_list->nodes[node_list->count]);
