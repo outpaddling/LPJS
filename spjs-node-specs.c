@@ -30,7 +30,8 @@ int     main(int argc,char *argv[])
     /*
      *  Report 1 if ZFS filesystem found, so that additional memory
      *  can be reserved on compute nodes.
+     *  FIXME: There should be a better approach to this.
      */
-    printf("ZFS\t%u\n", ! system("mount | fgrep zfs"));
+    printf("ZFS\t%u\n", ! system("mount | fgrep -q zfs"));
     return EX_OK;
 }
