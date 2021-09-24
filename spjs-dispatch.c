@@ -20,6 +20,7 @@ int     main(int argc,char *argv[])
     node_list_t nodes;
     
     node_list_init(&nodes);
+    node_list_populate(&nodes, "spjs.conf");
     return EX_OK;
 }
 

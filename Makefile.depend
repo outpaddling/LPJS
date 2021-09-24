@@ -1,5 +1,9 @@
-node-list.o: node-list.c node-list.h node.h
+node-list.o: node-list.c ../local/include/xtend/dsv.h node-list.h node.h \
+  spjs.h
 	${CC} -c ${CFLAGS} node-list.c
+
+node-mutators.o: node-mutators.c ../local/include/xtend/string.h node.h
+	${CC} -c ${CFLAGS} node-mutators.c
 
 node.o: node.c node.h
 	${CC} -c ${CFLAGS} node.c
