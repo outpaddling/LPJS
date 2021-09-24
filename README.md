@@ -40,6 +40,11 @@ information that is difficult to determine automatically.  E.g. compute node
 hardware specifications shall be automatically detected on all platforms.
 Most configuration parameters will simply be overrides of reasonable defaults.
 
+Note that THERE IS NOTHING INHERENTLY COMPLICATED ABOUT AN HPC CLUSTER.
+In its most basic form, it's just a LAN with some software to manage
+computing resources.  One can make a cluster as complicated as they want,
+but simple HPC clusters are both possible and useful.
+
 SPJS makes it easy to build and maintain small HPC clusters on minimal
 hardware or cloud resources for independent research groups using open
 source software, or experiment with alternative operating systems or
