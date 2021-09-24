@@ -85,13 +85,7 @@ MANDIR      ?= ${MANPREFIX}/man
 # Defaults that should work with GCC and Clang.
 CC          ?= cc
 CFLAGS      ?= -Wall -g -O
-
-CXX         ?= c++
-CXXFLAGS    ?= -Wall -g -O
-
-F77         ?= gfortran
-FC          ?= gfortran
-FFLAGS      ?= -Wall -g -O
+CFLAGS      += -DLOCALBASE='"${LOCALBASE}"'
 
 # Link command:
 # Use ${FC} to link when mixing C and Fortran
@@ -106,8 +100,6 @@ RANLIB      ?= ranlib
 
 INCLUDES    += -I${LOCALBASE}/include
 CFLAGS      += ${INCLUDES}
-CXXFLAGS    += ${INCLUDES}
-FFLAGS      += ${INCLUDES}
 LDFLAGS     += -L${LOCALBASE}/lib
 
 ############################################################################
@@ -197,4 +189,3 @@ help:
 	@printf "\tFC        [currently ${FC}]\n"
 	@printf "\tFFLAGS    [currently ${FFLAGS}]\n\n"
 	@printf "View Makefile for more tunable variables.\n\n"
-

@@ -1,11 +1,11 @@
-node-list.o: node-list.c ../local/include/xtend/dsv.h node-list.h node.h \
-  spjs.h
+node-list.o: node-list.c ../local/include/xtend/dsv.h \
+  ../local/include/xtend/string.h node-list.h node.h spjs.h
 	${CC} -c ${CFLAGS} node-list.c
 
 node-mutators.o: node-mutators.c ../local/include/xtend/string.h node.h
 	${CC} -c ${CFLAGS} node-mutators.c
 
-node.o: node.c node.h
+node.o: node.c ../local/include/xtend/dsv.h node.h spjs.h
 	${CC} -c ${CFLAGS} node.c
 
 spjs-dispatch.o: spjs-dispatch.c node-list.h node.h
