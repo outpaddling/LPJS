@@ -48,14 +48,14 @@
 ############################################################################
 # Installed targets
 
-BIN1    = spjs-hardware-specs
+BIN1    = spjs-node-specs
 BIN2    = spjs-dispatch
 BINS    = ${BIN1} ${BIN2}
 
 ############################################################################
 # List object files that comprise BIN.
 
-OBJS1   = spjs-hardware-specs.o
+OBJS1   = spjs-node-specs.o
 OBJS2   = spjs-dispatch.o node.o node-list.o
 OBJS    = ${OBJS1} ${OBJS2}
 

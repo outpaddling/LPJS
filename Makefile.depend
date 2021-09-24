@@ -7,6 +7,6 @@ node.o: node.c node.h
 spjs-dispatch.o: spjs-dispatch.c node-list.h node.h
 	${CC} -c ${CFLAGS} spjs-dispatch.c
 
-spjs-hardware-specs.o: spjs-hardware-specs.c
-	${CC} -c ${CFLAGS} spjs-hardware-specs.c
+spjs-node-specs.o: spjs-node-specs.c
+	${CC} -c ${CFLAGS} spjs-node-specs.c
 
