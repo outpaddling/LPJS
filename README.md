@@ -10,13 +10,11 @@ and portable to any
 POSIX platform.  Other existing batch systems are extremely complex (including
 our long-time favorite SLURM, which originally stood for "Simple Linux Utility
 for Resource Management", but is no longer simple by any stretch of the
-imagination).  For example, recent versions of SLURM require complex database
-setup to enable job accounting.
+imagination).
 
-As such, other batch systems present a major barrier to learning and
-implementing small-scale HPC, which is crucial for research groups that have
-no ready access to centralized HPC resources.
-
+As such, overly complex HPC tools present a barrier to learning and implementing
+small-scale HPC, which is crucial for research groups that have no ready
+access to centralized HPC resources.
 In some venues, centralizing HPC into one massive cluster improves utilization
 of resources and reduces cost.  In many other venues, maintaining a large
 cluster is simply not feasible.
@@ -25,8 +23,8 @@ Large HPC clusters are dominated by Redhat Enterprise Linux and its derivatives
 for good reasons, such as commercial support for the operating system and
 support for commercial science and engineering applications such as
 ANSYS, Fluent, Abacus, etc.  The need to support a wide range of commercial
-and open source software on very large-scale clusters has led to the
-prohibitive complexity of most existing batch systems.
+and open source software on very large clusters has led to the
+prohibitive complexity of mainstream existing batch systems.
 
 In contrast, the SPJS project is committed to the following design principals:
 
@@ -34,16 +32,18 @@ In contrast, the SPJS project is committed to the following design principals:
 creeping feature syndrome.
 
 - Complete portability.  Our primary intention is to foster research and
-development of HPC clusters using any POSIX operating system on any hardware.
+development of HPC clusters using any POSIX operating system on any hardware
+or cloud platform.
 
 - Minimal configuration.  HPC sysadmins should only be required to provide
-information that is not easily attained automatically.  E.g. compute node
+information that is difficult to determine automatically.  E.g. compute node
 hardware specifications shall be automatically detected on all platforms.
 Most configuration parameters will simply be overrides of reasonable defaults.
 
-As such, SPJS makes it easy to build and maintain small HPC clusters for
-independent research groups using open source software, or experiment
-with alternative operating systems or hardware platforms.
+SPJS makes it easy to build and maintain small HPC clusters on minimal
+hardware or cloud resources for independent research groups using open
+source software, or experiment with alternative operating systems or
+hardware platforms.
 
 SPJS will require only functionality that can be implemented with reasonable
 effort on all POSIX platforms, including but not limited to:
@@ -60,7 +60,7 @@ effort on all POSIX platforms, including but not limited to:
 
 This does not preclude support for operating system specific features such
 as cgroups, but all such features will be optional, implemented and
-installed separately as plugins.
+installed separately as 3rd-party plugins.
 
 ## Design and Implementation
 
