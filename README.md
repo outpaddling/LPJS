@@ -1,5 +1,11 @@
 # SPJS
 
+## Status
+
+We're just getting started here, laying out the framework and prioritizing
+development phases.  We anticipate having a minimal working batch system in
+place sometime in 2022.  Stay tuned...
+
 ## Description
 
 SPJS (Simple, Portable Job Scheduler) is a batch system, i.e. a job scheduler
