@@ -3,8 +3,14 @@
 ## Status
 
 We're just getting started here, laying out the framework and prioritizing
-development phases.  We anticipate having a minimal working batch system in
-place sometime in 2022.  Stay tuned...
+development phases.  
+
+Development will not proceed quickly as we're carefully deliberating the
+design and implementation of each new feature to ensure the highest possible
+code quality.
+
+We anticipate having a minimal working batch system in place sometime in
+2022.  Stay tuned...
 
 ## Description
 
