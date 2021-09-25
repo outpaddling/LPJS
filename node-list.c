@@ -5,7 +5,7 @@
 #include <xtend/dsv.h>      // dsv_read_field()
 #include <xtend/string.h>   // strtrim()
 #include "node-list.h"
-#include "spjs.h"
+#include "lpjs.h"
 
 /*
  *  Constructor for node_list_t
@@ -22,7 +22,7 @@ int     node_list_populate(node_list_t *node_list, const char *conf_file)
 
 {
     FILE    *fp;
-    char    field[SPJS_FIELD_MAX+1];
+    char    field[LPJS_FIELD_MAX+1];
     int     delim;
     size_t  len;
     
@@ -32,7 +32,7 @@ int     node_list_populate(node_list_t *node_list, const char *conf_file)
 	exit(EX_NOINPUT);
     }
     node_list->count = 0;
-    while ( ((delim = dsv_read_field(fp, field, SPJS_FIELD_MAX+1,
+    while ( ((delim = dsv_read_field(fp, field, LPJS_FIELD_MAX+1,
 				     " \t", &len)) != EOF) &&
 	    (strcmp(field, "nodes") != 0) )
     {
@@ -41,7 +41,7 @@ int     node_list_populate(node_list_t *node_list, const char *conf_file)
     }
     if ( delim != EOF )
     {
-	while ( ((delim = dsv_read_field(fp, field, SPJS_FIELD_MAX+1,
+	while ( ((delim = dsv_read_field(fp, field, LPJS_FIELD_MAX+1,
 					 ",", &len)) != '\n') &&
 		(delim != EOF) )
 	{

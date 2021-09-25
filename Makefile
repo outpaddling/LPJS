@@ -48,15 +48,15 @@
 ############################################################################
 # Installed targets
 
-BIN1    = spjs-node-specs
-BIN2    = spjs-dispatch
+BIN1    = lpjs-node-specs
+BIN2    = lpjs-dispatch
 BINS    = ${BIN1} ${BIN2}
 
 ############################################################################
 # List object files that comprise BIN.
 
-OBJS1   = spjs-node-specs.o
-OBJS2   = spjs-dispatch.o node.o node-list.o node-mutators.o
+OBJS1   = lpjs-node-specs.o
+OBJS2   = lpjs-dispatch.o node.o node-list.o node-mutators.o
 OBJS    = ${OBJS1} ${OBJS2}
 
 ############################################################################
@@ -173,9 +173,9 @@ realclean: clean
 install: all
 	${MKDIR} -p ${DESTDIR}${PREFIX}/bin \
 		    ${DESTDIR}${MANDIR}/man1 \
-		    ${DESTDIR}${PREFIX}/etc/spjs
+		    ${DESTDIR}${PREFIX}/etc/lpjs
 	${INSTALL} -s -m 0755 ${BINS} ${DESTDIR}${PREFIX}/bin
-	${INSTALL} -m 0644 config.sample ${DESTDIR}${PREFIX}/etc/spjs
+	${INSTALL} -m 0644 config.sample ${DESTDIR}${PREFIX}/etc/lpjs
 	# ${INSTALL} -m 0444 ${MAN} ${DESTDIR}${MANDIR}/man1
 
 install-strip: install

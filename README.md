@@ -1,4 +1,4 @@
-# SPJS
+# LPJS
 
 ## Status
 
@@ -8,10 +8,10 @@ place sometime in 2022.  Stay tuned...
 
 ## Description
 
-SPJS (Simple, Portable Job Scheduler) is a batch system, i.e. a job scheduler
+LPJS (Lightweight, Portable Job Scheduler) is a batch system, i.e. a job scheduler
 and resource manager for HPC (High Performance Computing) clusters.
 
-Unlike other batch systems, SPJS is designed to be easy to deploy and manage,
+Unlike other batch systems, LPJS is designed to be easy to deploy and manage,
 and portable to any
 POSIX platform.  Other existing batch systems are extremely complex (including
 our long-time favorite SLURM, which originally stood for "Simple Linux Utility
@@ -32,9 +32,9 @@ ANSYS, Fluent, Abacus, etc.  The need to support a wide range of commercial
 and open source software on very large clusters has led to the
 prohibitive complexity of mainstream existing batch systems.
 
-In contrast, the SPJS project is committed to the following design principals:
+In contrast, the LPJS project is committed to the following design principals:
 
-- KISS (Keep it simple, stupid).  We will not allow SPJS to fall victim to
+- KISS (Keep it simple, stupid).  We will not allow LPJS to fall victim to
 creeping feature syndrome.
 
 - Complete portability.  Our primary intention is to foster research and
@@ -51,12 +51,12 @@ In its most basic form, it's just a LAN with some software to manage
 computing resources.  One can make a cluster as complicated as they want,
 but simple HPC clusters are both possible and useful.
 
-SPJS makes it easy to build and maintain small HPC clusters on minimal
+LPJS makes it easy to build and maintain small HPC clusters on minimal
 hardware or cloud resources for independent research groups using open
 source software, or experiment with alternative operating systems or
 hardware platforms.
 
-SPJS will require only functionality that can be implemented with reasonable
+LPJS will require only functionality that can be implemented with reasonable
 effort on all POSIX platforms, including but not limited to:
 
 - Queuing of batch jobs
@@ -89,7 +89,7 @@ https://github.com/outpaddling/Coding-Standards/.
 
 ## Building and installing
 
-SPJS is intended to build cleanly in any POSIX environment on any CPU
+LPJS is intended to build cleanly in any POSIX environment on any CPU
 architecture.  Please don't hesitate to open an issue if you encounter
 problems on any Unix-like system.
 
@@ -109,7 +109,7 @@ package in another package manager, please consider creating a package
 yourself.  This will be one of the easiest packages in the collection and
 hence a good vehicle to learn how to create packages.
 
-### Installing SPJS on FreeBSD:
+### Installing LPJS on FreeBSD:
 
 FreeBSD is a highly underrated platform for scientific computing, with over
 1,900 scientific libraries and applications in the FreeBSD ports collection
@@ -126,7 +126,7 @@ graphical installer and management tools.  GhostBSD does not offer as many
 options as desktop-installer, but it may be more comfortable for Unix novices.
 
 ```
-pkg install SPJS
+pkg install LPJS
 ```
 
 ### Installing via pkgsrc
@@ -146,7 +146,7 @@ First bootstrap pkgsrc using auto-pkgsrc-setup or any
 other method.  Then run the following commands:
 
 ```
-cd pkgsrc-dir/sysutils/SPJS
+cd pkgsrc-dir/sysutils/LPJS
 bmake install clean
 ```
 
@@ -154,13 +154,13 @@ There may also be binary packages available for your platform.  If this is
 the case, you can install by running:
 
 ```
-pkgin install SPJS
+pkgin install LPJS
 ```
 
 See the [Joyent Cloud Services Site](https://pkgsrc.joyent.com/) for
 available package sets.
 
-### Building SPJS locally
+### Building LPJS locally
 
 Below are cave man install instructions for development purposes, not
 recommended for regular use.
@@ -169,7 +169,7 @@ recommended for regular use.
 2. Run "make depend" to update Makefile.depend
 3. Run "make install"
 
-The default install prefix is ../local.  Clone SPJS,  and dependent
+The default install prefix is ../local.  Clone LPJS,  and dependent
 apps into sibling directories so that ../local represents a common path to all
 of them.
 

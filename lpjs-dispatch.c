@@ -23,7 +23,7 @@ int     main(int argc,char *argv[])
     node_list_t nodes;
     
     node_list_init(&nodes);
-    snprintf(config_file, PATH_MAX+1, "%s/etc/spjs/config", LOCALBASE);
+    snprintf(config_file, PATH_MAX+1, "%s/etc/lpjs/config", LOCALBASE);
     node_list_populate(&nodes, config_file);
     return EX_OK;
 }

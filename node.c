@@ -4,7 +4,7 @@
 #include <sysexits.h>
 #include <xtend/dsv.h>
 #include "node.h"
-#include "spjs.h"
+#include "lpjs.h"
 
 /*
  *  Constructor for node_t
@@ -25,8 +25,8 @@ int     node_get_specs(node_t *node)
 
 {
     FILE    *fp;
-    char    field[SPJS_FIELD_MAX],
-	    cmd[SPJS_CMD_MAX],
+    char    field[LPJS_FIELD_MAX],
+	    cmd[LPJS_CMD_MAX],
 	    *end;
     size_t  len;
 
@@ -35,33 +35,33 @@ int     node_get_specs(node_t *node)
      *  Will likely use munge at a future date.
      */
     
-    snprintf(cmd, SPJS_CMD_MAX, "ssh %s spjs-node-specs", node->hostname);
+    snprintf(cmd, LPJS_CMD_MAX, "ssh %s lpjs-node-specs", node->hostname);
     fp = popen(cmd, "r");
-    dsv_read_field(fp, field, SPJS_FIELD_MAX, "\t", &len);
+    dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
     if ( strcmp(field, "CPUs") != 0 )
     {
 	fprintf(stderr, "Expected CPUs, got %s.\n", field);
 	exit(EX_DATAERR);
     }
-    dsv_read_field(fp, field, SPJS_FIELD_MAX, "\t", &len);
+    dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
     node->cores = strtoul(field, &end, 10);
     
-    dsv_read_field(fp, field, SPJS_FIELD_MAX, "\t", &len);
+    dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
     if ( strcmp(field, "Physmem") != 0 )
     {
 	fprintf(stderr, "Expected Phsymem, got %s.\n", field);
 	exit(EX_DATAERR);
     }
-    dsv_read_field(fp, field, SPJS_FIELD_MAX, "\t", &len);
+    dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
     node->mem = strtoul(field, &end, 10);
     
-    dsv_read_field(fp, field, SPJS_FIELD_MAX, "\t", &len);
+    dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
     if ( strcmp(field, "ZFS") != 0 )
     {
 	fprintf(stderr, "Expected ZFS, got %s.\n", field);
 	exit(EX_DATAERR);
     }
-    dsv_read_field(fp, field, SPJS_FIELD_MAX, "\t", &len);
+    dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
     node->zfs = strtoul(field, &end, 10);
 
     fclose(fp);

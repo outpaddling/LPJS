@@ -5,12 +5,12 @@
 #include "node.h"
 #endif
 
-#define SPJS_MAX_NODES  1024
+#define LPJS_MAX_NODES  1024
 
 typedef struct
 {
     unsigned    count;
-    node_t      nodes[SPJS_MAX_NODES];
+    node_t      nodes[LPJS_MAX_NODES];
 }   node_list_t;
 
 void    node_list_init(node_list_t *node_list);

@@ -1,0 +1,3 @@
+
+#define LPJS_FIELD_MAX  1024
+#define LPJS_CMD_MAX    4096

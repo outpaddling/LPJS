@@ -1,3 +1,0 @@
-
-#define SPJS_FIELD_MAX  1024
-#define SPJS_CMD_MAX    4096
