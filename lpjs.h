@@ -7,5 +7,6 @@
 #define LPJS_CMD_MAX        4096
 #define LPJS_IP_MSG_MAX     4096
 #define LPJS_MSG_QUEUE_MAX  10
+#define LPJS_TCP_PORT       3000
 
 int process_events(node_list_t *nodes);

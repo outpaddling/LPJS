@@ -1,0 +1,12 @@
+#!/bin/sh -e
+
+# https://www.freebsd.org/doc/en_US.ISO8859-1/articles/committers-guide/subversion-primer.html
+if ! fgrep -q ControlMaster ~/.ssh/config 2> /dev/null; then
+    cat << EOM >> ~/.ssh/config
+Host *
+ControlPath ~/.ssh/sockets/master-%l-%r@%h:%p
+ControlMaster auto
+ControlPersist 3600
+EOM
+fi
+mkdir -p ~/.ssh/sockets

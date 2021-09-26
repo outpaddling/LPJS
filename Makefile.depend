@@ -1,8 +1,11 @@
-lpjs-dispatch.o: lpjs-dispatch.c node-list.h node.h
+lpjs-dispatch.o: lpjs-dispatch.c node-list.h node.h lpjs.h
 	${CC} -c ${CFLAGS} lpjs-dispatch.c
 
 lpjs-node-specs.o: lpjs-node-specs.c
 	${CC} -c ${CFLAGS} lpjs-node-specs.c
+
+lpjs-node-status.o: lpjs-node-status.c lpjs.h node-list.h node.h
+	${CC} -c ${CFLAGS} lpjs-node-status.c
 
 node-list.o: node-list.c ../local/include/xtend/dsv.h \
   ../local/include/xtend/string.h node-list.h node.h lpjs.h
@@ -11,6 +14,12 @@ node-list.o: node-list.c ../local/include/xtend/dsv.h \
 node-mutators.o: node-mutators.c ../local/include/xtend/string.h node.h
 	${CC} -c ${CFLAGS} node-mutators.c
 
-node.o: node.c ../local/include/xtend/dsv.h node.h lpjs.h
+node.o: node.c ../local/include/xtend/dsv.h node.h lpjs.h node-list.h
 	${CC} -c ${CFLAGS} node.c
+
+sockclient1.o: sockclient1.c
+	${CC} -c ${CFLAGS} sockclient1.c
+
+sockserver1.o: sockserver1.c
+	${CC} -c ${CFLAGS} sockserver1.c
 
