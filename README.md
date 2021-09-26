@@ -24,7 +24,7 @@ our long-time favorite SLURM, which originally stood for "Simple Linux Utility
 for Resource Management", but is no longer simple by any stretch of the
 imagination).
 
-As such, overly complex HPC tools present a barrier to learning and implementing
+Overly complex HPC tools present a barrier to learning and implementing
 small-scale HPC, which is crucial for research groups that have no ready
 access to centralized HPC resources.
 In some venues, centralizing HPC into one massive cluster improves utilization
@@ -33,24 +33,28 @@ cluster is simply not feasible.
 
 Large HPC clusters are dominated by Redhat Enterprise Linux and its derivatives
 for good reasons, such as commercial support for the operating system and
-support for commercial science and engineering applications such as
-ANSYS, Fluent, Abacus, etc.  The need to support a wide range of commercial
-and open source software on very large clusters has led to the
-prohibitive complexity of mainstream existing batch systems.
+support for commercial science and engineering applications such as ANSYS,
+Fluent, Abacus, etc.  The need to support a wide range of commercial and open
+source software on very large clusters has led to the prohibitive complexity
+of most existing batch systems.
 
 In contrast, the LPJS project is committed to the following design principals:
 
-- KISS (Keep it simple, stupid).  We will not allow LPJS to fall victim to
+- KISS (Keep it simple, stupid): We will not allow LPJS to fall victim to
 creeping feature syndrome.
 
-- Complete portability.  Our primary intention is to foster research and
+- Complete portability: Our primary intention is to foster research and
 development of HPC clusters using any POSIX operating system on any hardware
 or cloud platform.
 
-- Minimal configuration.  HPC sysadmins should only be required to provide
+- Minimal configuration: HPC sysadmins should only be required to provide
 information that is difficult to determine automatically.  E.g. compute node
 hardware specifications shall be automatically detected on all platforms.
 Most configuration parameters will simply be overrides of reasonable defaults.
+
+- Unambiguous and intuitive user interface: Commands and options are
+spelled out in a way that is easy to remember and won't be confused with
+others.
 
 Note that THERE IS NOTHING INHERENTLY COMPLICATED ABOUT AN HPC CLUSTER.
 In its most basic form, it's just a LAN with some software to manage
