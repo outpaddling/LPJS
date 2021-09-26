@@ -72,6 +72,7 @@ int     process_events(node_list_t *nodes)
 	return EX_UNAVAILABLE;
     }
 
+    printf("Listening on port %d...\n", tcp_port);
     while ( 1 )
     {
 	/* Listen for connection requests */

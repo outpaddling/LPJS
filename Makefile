@@ -48,8 +48,8 @@
 ############################################################################
 # Installed targets
 
-BIN1    = lpjs-node-specs
-BIN2    = lpjs-dispatch
+BIN1    = lpjs-dispatch
+BIN2    = lpjs-node-specs
 BINS    = ${BIN1} ${BIN2}
 
 ############################################################################
