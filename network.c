@@ -50,18 +50,18 @@ int     connect_to_dispatch(node_list_t *node_list)
     server_address.sin_port = htons (tcp_port);
 
     /* Create a socket */
-    if ((msg_fd = socket (AF_INET, SOCK_STREAM, 0)) < 0)
+    if ((msg_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
-	herror("connect_to_dispatch(): Error opening socket");
-	exit(EX_IOERR);
+	perror("connect_to_dispatch(): socket() failed");
+	return -1;
     }
 
     /* Attempt to connect to server */
-    if (connect (msg_fd, (struct sockaddr *)&server_address,
-		 sizeof (server_address)) < 0)
+    if (connect(msg_fd, (struct sockaddr *)&server_address,
+		 sizeof(server_address)) < 0)
     {
-	herror("Error connecting");
-	exit(EX_IOERR);
+	perror("connect_to_dispatch(): connect() failed");
+	return -1;
     }
 
     return msg_fd;

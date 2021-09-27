@@ -44,6 +44,7 @@ int     process_events(node_list_t *node_list)
 {
     int         listen_fd,
 		msg_fd;
+    ssize_t     bytes;
     short       tcp_port;   /* Need short for htons() */
     socklen_t   address_len = sizeof (struct sockaddr_in);
     char        buff[LPJS_IP_MSG_MAX + 1];
@@ -59,6 +60,14 @@ int     process_events(node_list_t *node_list)
     }
     printf("listen_fd = %d\n", listen_fd);
 
+    /*
+     *  FIXME
+     *  Set handler so that listen_fd is properly closed before termination
+     *  so that we don't get bind(): address alread in use during testing
+     *  with its frequent restarts
+     *  https://hea-www.harvard.edu/~fine/Tech/addrinuse.html
+     */
+    
     server_address.sin_family = AF_INET;
     server_address.sin_addr.s_addr = htonl(INADDR_ANY);
     server_address.sin_port = htons(tcp_port);
@@ -93,19 +102,20 @@ int     process_events(node_list_t *node_list)
 	printf ("Accepted connection. fd = %d\n", msg_fd);
     
 	/* Read a message through the socket */
-	if ( read (msg_fd, buff, 100) == - 1)
+	if ( (bytes = read(msg_fd, buff, 100)) == - 1)
 	{
 	    perror("read() failed");
 	    return EX_IOERR;
 	}
-	puts (buff);
+	printf("%zu %s\n", bytes, buff);
+	
+	/* Process request */
 	if ( strcmp(buff, "nodes") == 0 )
 	    node_list_send_specs(msg_fd, node_list);
 	else if ( strcmp(buff, "jobs") == 0 )
-	{
-	    char    *msg = "jobs not yet implemented\n";
-	    write(msg_fd, msg, strlen(msg));
-	}
+	    dprintf(msg_fd, "jobs not yet implemented\n");
+	else if ( strcmp(buff, "submit") == 0 )
+	    dprintf(msg_fd, "submit not yet implemented\n");
 	close(msg_fd);
     }
     close (listen_fd);

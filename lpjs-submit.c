@@ -26,22 +26,22 @@ int     main (int argc, char *argv[])
 
     if ( (msg_fd = connect_to_dispatch(&node_list)) == -1 )
     {
-	perror("lpjs-nodes: Failed to connect to dispatch");
+	perror("lpjs-submit: Failed to connect to dispatch");
 	return EX_IOERR;
     }
 
     /* Send a message to the server */
     /* Need to send \0, so dprintf() doesn't work here */
-    if ( write(msg_fd, "nodes", 6) == -1 )
+    if ( write(msg_fd, "submit", 7) == -1 )
     {
-	perror("lpjs-nodes: Failed to send message to dispatch");
+	perror("lpjs-submit: Failed to send message to dispatch");
 	close(msg_fd);
 	return EX_IOERR;
     }
     
     if ( (bytes = read(msg_fd, buff, LPJS_MSG_MAX+1)) == -1 )
     {
-	perror("lpjs-nodes: Failed to read response from dispatch");
+	perror("lpjs-submit: Failed to read response from dispatch");
 	close(msg_fd);
 	return EX_IOERR;
     }

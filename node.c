@@ -73,18 +73,15 @@ int     node_get_specs(node_t *node)
 void    node_print_specs(node_t *node)
 
 {
-    printf("%s %u %lu %d\n", node->hostname, node->cores, node->mem, node->zfs);
+    printf(NODE_SPEC_FORMAT, node->hostname, node->cores, node->mem, node->zfs);
 }
 
 
 void    node_send_specs(int fd, node_t *node)
 
 {
-    char    buff[LPJS_MSG_MAX+1];
-    
-    snprintf(buff, LPJS_MSG_MAX+1, "%s %u %lu %d\n",
-	    node->hostname, node->cores, node->mem, node->zfs);
-    if ( write(fd, buff, strlen(buff)) == -1 )
+    if ( dprintf(fd, NODE_SPEC_FORMAT,
+		 node->hostname, node->cores, node->mem, node->zfs) < 0 )
     {
 	perror("send_node_specs(): write() failed");
 	exit(EX_IOERR);

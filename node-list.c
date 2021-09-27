@@ -33,7 +33,7 @@ int     node_list_add_compute(node_list_t *node_list, FILE *fp,
 	strtrim(field, " ");
 	node_set_hostname(&node_list->compute_nodes[node_list->count], strdup(field));
 	node_get_specs(&node_list->compute_nodes[node_list->count]);
-	node_print_specs(&node_list->compute_nodes[node_list->count]);
+	// node_print_specs(&node_list->compute_nodes[node_list->count]);
 	++node_list->count;
     }
     if ( delim == EOF )
@@ -44,7 +44,7 @@ int     node_list_add_compute(node_list_t *node_list, FILE *fp,
     strtrim(field, " ");
     node_set_hostname(&node_list->compute_nodes[node_list->count], strdup(field));
     node_get_specs(&node_list->compute_nodes[node_list->count]);
-    node_print_specs(&node_list->compute_nodes[node_list->count]);
+    // node_print_specs(&node_list->compute_nodes[node_list->count]);
     ++node_list->count;
     return 0;   // NL_OK?
 }
@@ -55,6 +55,7 @@ void    node_list_send_specs(int msg_fd, node_list_t *node_list)
 {
     unsigned    c;
     
+    dprintf(msg_fd, NODE_SPEC_HEADER_FORMAT, "Host", "Cores", "Physmem", "ZFS");
     for (c = 0; c < node_list->count; ++c)
 	node_send_specs(msg_fd, &node_list->compute_nodes[c]);
 }

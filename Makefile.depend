@@ -2,10 +2,13 @@ config.o: config.c ../local/include/xtend/dsv.h node-list.h node.h \
   config.h lpjs.h
 	${CC} -c ${CFLAGS} config.c
 
+lpjs-chaperone.o: lpjs-chaperone.c
+	${CC} -c ${CFLAGS} lpjs-chaperone.c
+
 lpjs-dispatch.o: lpjs-dispatch.c node-list.h node.h config.h lpjs.h
 	${CC} -c ${CFLAGS} lpjs-dispatch.c
 
-lpjs-jobs.o: lpjs-jobs.c
+lpjs-jobs.o: lpjs-jobs.c node-list.h node.h config.h network.h lpjs.h
 	${CC} -c ${CFLAGS} lpjs-jobs.c
 
 lpjs-node-specs.o: lpjs-node-specs.c
@@ -13,6 +16,9 @@ lpjs-node-specs.o: lpjs-node-specs.c
 
 lpjs-nodes.o: lpjs-nodes.c node-list.h node.h config.h network.h lpjs.h
 	${CC} -c ${CFLAGS} lpjs-nodes.c
+
+lpjs-submit.o: lpjs-submit.c node-list.h node.h config.h network.h lpjs.h
+	${CC} -c ${CFLAGS} lpjs-submit.c
 
 network.o: network.c ../local/include/xtend/string.h node-list.h node.h \
   network.h

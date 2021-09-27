@@ -18,7 +18,7 @@ int     lpjs_load_config(node_list_t *node_list)
     size_t  len;
     
     snprintf(config_file, PATH_MAX+1, "%s/etc/lpjs/config", LOCALBASE);
-    printf("Loading config file %s...\n", config_file);
+    // printf("Loading config file %s...\n", config_file);
     if ( (fp = fopen(config_file, "r")) == NULL )
     {
 	fprintf(stderr, "Cannot open %s.\n", config_file);
@@ -36,13 +36,15 @@ int     lpjs_load_config(node_list_t *node_list)
 		fprintf(stderr, "load_config(): 'head' must be followed by a single hostname.\n");
 		exit(EX_DATAERR);
 	    }
-	    node_list_set_head_node(node_list, strdup(field));
-	    printf("Head node = %s\n", field);
+
 	    // FIXME: Check malloc() and sanity
+	    node_list_set_head_node(node_list, strdup(field));
+	    
+	    // printf("Head node = %s\n", field);
 	}
 	else if ( strcmp(field, "compute") == 0 )
 	{
-	    puts("Reading compute nodes...");
+	    // puts("Reading compute nodes...");
 	    if ( delim != EOF )
 		node_list_add_compute(node_list, fp, config_file);
 	}
@@ -52,7 +54,7 @@ int     lpjs_load_config(node_list_t *node_list)
 	    dsv_skip_rest_of_line(fp);
 	}
     }
-    printf("%u nodes found.\n", node_list->count);
+    // printf("%u nodes found.\n", node_list->count);
     fclose(fp);
     return delim;
 }

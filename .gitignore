@@ -1,7 +1,9 @@
-lpjs-nodes
-lpjs-jobs
 lpjs-dispatch
 lpjs-node-specs
+lpjs-nodes
+lpjs-jobs
+lpjs-submit
+lpjs-chaperone
 .*.bak
 *.o
 README.html

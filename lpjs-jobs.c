@@ -25,8 +25,7 @@ int     main(int argc,char *argv[])
 {
     int     msg_fd;
     ssize_t bytes;
-    char    *message,
-	    buff[LPJS_MSG_MAX+1];
+    char    buff[LPJS_MSG_MAX+1];
     node_list_t node_list;
     
     if (argc != 1)
@@ -35,31 +34,33 @@ int     main(int argc,char *argv[])
 	return EX_USAGE;
     }
 
+    // Get hostname of head node
     lpjs_load_config(&node_list);
 
-    // Does not return if connection files
-    msg_fd = connect_to_dispatch(&node_list);
+    if ( (msg_fd = connect_to_dispatch(&node_list)) == -1 )
+    {
+	perror("lpjs-jobs: Failed to connect to dispatch");
+	return EX_IOERR;
+    }
 
     /* Send a message to the server */
-    message = "jobs";
-    if ( write (msg_fd, message, strlen (message) + 1) == -1 )
+    /* Need to send \0, so dprintf() doesn't work here */
+    if ( write(msg_fd, "jobs", 5) == -1 )
     {
-	perror("write() failed");
+	perror("lpjs-jobs: Failed to send message to dispatch");
 	close(msg_fd);
 	return EX_IOERR;
     }
     
     if ( (bytes = read(msg_fd, buff, LPJS_MSG_MAX+1)) == -1 )
     {
-	perror("read() failed");
+	perror("lpjs-jobs: Failed to read response from dispatch");
 	close(msg_fd);
 	return EX_IOERR;
     }
-    printf("%zu bytes read.\n", bytes);
     buff[bytes] = '\0';
     puts(buff);
-
     close (msg_fd);
+
     return EX_OK;
 }
-
