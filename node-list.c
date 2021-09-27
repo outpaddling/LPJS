@@ -18,52 +18,34 @@ void    node_list_init(node_list_t *node_list)
 }
 
 
-int     node_list_populate(node_list_t *node_list, const char *conf_file)
+int     node_list_add_compute(node_list_t *node_list, FILE *fp,
+				const char *conf_file)
 
 {
-    FILE    *fp;
-    char    field[LPJS_FIELD_MAX+1];
     int     delim;
+    char    field[LPJS_FIELD_MAX+1];
     size_t  len;
     
-    if ( (fp = fopen(conf_file, "r")) == NULL )
-    {
-	fprintf(stderr, "Cannot open %s.\n", conf_file);
-	exit(EX_NOINPUT);
-    }
-    node_list->count = 0;
     while ( ((delim = dsv_read_field(fp, field, LPJS_FIELD_MAX+1,
-				     " \t", &len)) != EOF) &&
-	    (strcmp(field, "nodes") != 0) )
+				     ",", &len)) != '\n') &&
+	    (delim != EOF) )
     {
-	puts("Skipping...");
-	dsv_skip_rest_of_line(fp);
-    }
-    if ( delim != EOF )
-    {
-	while ( ((delim = dsv_read_field(fp, field, LPJS_FIELD_MAX+1,
-					 ",", &len)) != '\n') &&
-		(delim != EOF) )
-	{
-	    strtrim(field, " ");
-	    node_set_hostname(&node_list->nodes[node_list->count], strdup(field));
-	    node_get_specs(&node_list->nodes[node_list->count]);
-	    node_print_specs(&node_list->nodes[node_list->count]);
-	    ++node_list->count;
-	}
-	if ( delim == EOF )
-	{
-	    fprintf(stderr, "Unexpected EOF reading %s.\n", conf_file);
-	    exit(EX_DATAERR);
-	}
 	strtrim(field, " ");
-	node_set_hostname(&node_list->nodes[node_list->count], strdup(field));
-	node_get_specs(&node_list->nodes[node_list->count]);
-	node_print_specs(&node_list->nodes[node_list->count]);
+	node_set_hostname(&node_list->compute_nodes[node_list->count], strdup(field));
+	node_get_specs(&node_list->compute_nodes[node_list->count]);
+	node_print_specs(&node_list->compute_nodes[node_list->count]);
 	++node_list->count;
     }
-    printf("%u nodes found.\n", node_list->count);
-    fclose(fp);
+    if ( delim == EOF )
+    {
+	fprintf(stderr, "Unexpected EOF reading %s.\n", conf_file);
+	exit(EX_DATAERR);
+    }
+    strtrim(field, " ");
+    node_set_hostname(&node_list->compute_nodes[node_list->count], strdup(field));
+    node_get_specs(&node_list->compute_nodes[node_list->count]);
+    node_print_specs(&node_list->compute_nodes[node_list->count]);
+    ++node_list->count;
     return 0;   // NL_OK?
 }
 
@@ -74,5 +56,5 @@ void    node_list_send_specs(int msg_fd, node_list_t *node_list)
     unsigned    c;
     
     for (c = 0; c < node_list->count; ++c)
-	node_send_specs(msg_fd, &node_list->nodes[c]);
+	node_send_specs(msg_fd, &node_list->compute_nodes[c]);
 }

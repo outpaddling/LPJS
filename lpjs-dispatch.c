@@ -13,23 +13,19 @@
 #include <stdio.h>
 #include <string.h>
 #include <sysexits.h>
-#include <limits.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include "node-list.h"
+#include "config.h"
 #include "lpjs.h"
 
 int     main(int argc,char *argv[])
 
 {
-    char    config_file[PATH_MAX+1];
-    
     node_list_t node_list;
     
-    node_list_init(&node_list);
-    snprintf(config_file, PATH_MAX+1, "%s/etc/lpjs/config", LOCALBASE);
-    node_list_populate(&node_list, config_file);
+    lpjs_load_config(&node_list);
     return process_events(&node_list);
 }
 
@@ -103,8 +99,13 @@ int     process_events(node_list_t *node_list)
 	    return EX_IOERR;
 	}
 	puts (buff);
-	if ( strcmp(buff, "node status") == 0 )
+	if ( strcmp(buff, "nodes") == 0 )
 	    node_list_send_specs(msg_fd, node_list);
+	else if ( strcmp(buff, "jobs") == 0 )
+	{
+	    char    *msg = "jobs not yet implemented\n";
+	    write(msg_fd, msg, strlen(msg));
+	}
 	close(msg_fd);
     }
     close (listen_fd);
