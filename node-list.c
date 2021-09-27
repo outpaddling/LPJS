@@ -55,7 +55,8 @@ void    node_list_send_specs(int msg_fd, node_list_t *node_list)
 {
     unsigned    c;
     
-    dprintf(msg_fd, NODE_SPEC_HEADER_FORMAT, "Host", "Cores", "Physmem", "ZFS");
+    dprintf(msg_fd, NODE_SPEC_HEADER_FORMAT, "Hostname",
+	    "Cores", "Used", "Physmem", "Used", "ZFS");
     for (c = 0; c < node_list->count; ++c)
 	node_send_specs(msg_fd, &node_list->compute_nodes[c]);
 }

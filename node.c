@@ -73,15 +73,18 @@ int     node_get_specs(node_t *node)
 void    node_print_specs(node_t *node)
 
 {
-    printf(NODE_SPEC_FORMAT, node->hostname, node->cores, node->mem, node->zfs);
+    printf(NODE_SPEC_FORMAT, node->hostname,
+	   node->cores, node->cores_used,
+	   node->mem, node->mem_used, NODE_ZFS_STR(node));
 }
 
 
 void    node_send_specs(int fd, node_t *node)
 
 {
-    if ( dprintf(fd, NODE_SPEC_FORMAT,
-		 node->hostname, node->cores, node->mem, node->zfs) < 0 )
+    if ( dprintf(fd, NODE_SPEC_FORMAT, node->hostname,
+		 node->cores, node->cores_used,
+		 node->mem, node->mem_used, NODE_ZFS_STR(node)) < 0 )
     {
 	perror("send_node_specs(): write() failed");
 	exit(EX_IOERR);

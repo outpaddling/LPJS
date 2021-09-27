@@ -56,9 +56,10 @@ BINS    = lpjs-dispatch lpjs-node-specs lpjs-chaperone \
 # List object files that comprise BIN.
 
 DISPATCH_OBJS   = lpjs-dispatch.o config.o node.o node-list.o \
-		  node-list-mutators.o node-mutators.o
+		  node-list-mutators.o node-mutators.o scheduler.o
 NODE_SPECS_OBJS = lpjs-node-specs.o
 CHAPERONE_OBJS  = lpjs-chaperone.o
+SCHEDULER_OBJS  = scheduler.o
 NODES_OBJS      = lpjs-nodes.o config.o node-list.o node-list-mutators.o \
 		  node.o node-mutators.o network.o
 JOBS_OBJS       = lpjs-jobs.o config.o node-list.o node-list-mutators.o \
@@ -66,7 +67,7 @@ JOBS_OBJS       = lpjs-jobs.o config.o node-list.o node-list-mutators.o \
 SUBMIT_OBJS     = lpjs-submit.o config.o node-list.o node-list-mutators.o \
 		  node.o node-mutators.o network.o
 OBJS    = ${DISPATCH_OBJS} ${NODE_SPECS_OBJS} ${NODES_OBJS} ${JOBS_OBJS} \
-	  ${SUBMIT_OBJS}
+	  ${SUBMIT_OBJS} ${SCHEDULER_OBJS}
 
 ############################################################################
 # Compile, link, and install options

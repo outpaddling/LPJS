@@ -12,6 +12,7 @@
 
 // Move this to ipc.h
 #define LPJS_MSG_MAX        4096
+#define LPJS_CMD_MAX        4096
 
 int process_events(node_list_t *nodes);
 

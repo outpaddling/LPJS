@@ -5,7 +5,8 @@ config.o: config.c ../local/include/xtend/dsv.h node-list.h node.h \
 lpjs-chaperone.o: lpjs-chaperone.c
 	${CC} -c ${CFLAGS} lpjs-chaperone.c
 
-lpjs-dispatch.o: lpjs-dispatch.c node-list.h node.h config.h lpjs.h
+lpjs-dispatch.o: lpjs-dispatch.c node-list.h node.h config.h scheduler.h \
+  lpjs.h
 	${CC} -c ${CFLAGS} lpjs-dispatch.c
 
 lpjs-jobs.o: lpjs-jobs.c node-list.h node.h config.h network.h lpjs.h
@@ -37,4 +38,7 @@ node-mutators.o: node-mutators.c ../local/include/xtend/string.h node.h
 
 node.o: node.c ../local/include/xtend/dsv.h node.h lpjs.h node-list.h
 	${CC} -c ${CFLAGS} node.c
+
+scheduler.o: scheduler.c node-list.h node.h
+	${CC} -c ${CFLAGS} scheduler.c
 

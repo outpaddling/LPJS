@@ -12,12 +12,16 @@ int     main (int argc, char *argv[])
 {
     int     msg_fd;
     ssize_t bytes;
-    char    buff[LPJS_MSG_MAX+1];
+    char    buff[LPJS_MSG_MAX+1],
+	    cmd[LPJS_CMD_MAX + 50],
+	    remote_cmd[LPJS_CMD_MAX + 1],
+	    host[128];
+    unsigned cores;
     node_list_t node_list;
     
-    if (argc != 1)
+    if (argc < 2)
     {
-	fprintf (stderr, "Usage: %s\n", argv[0]);
+	fprintf (stderr, "Usage: %s command [args]\n", argv[0]);
 	return EX_USAGE;
     }
 
@@ -47,6 +51,17 @@ int     main (int argc, char *argv[])
     }
     buff[bytes] = '\0';
     puts(buff);
+    
+    /*
+     *  Temporarily run 1 process interactively via ssh to test
+     *  remote execution under lpjs-chaperone
+     */
+    
+    sscanf(buff, "%s %u", host, &cores);
+    strlcpy(remote_cmd, argv[1], LPJS_CMD_MAX + 1);
+    snprintf(cmd, LPJS_CMD_MAX + 50, "ssh %s %s\n", host, remote_cmd);
+    puts(cmd);
+    system(cmd);
     close (msg_fd);
 
     return EX_OK;

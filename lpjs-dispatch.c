@@ -18,6 +18,7 @@
 #include <netinet/in.h>
 #include "node-list.h"
 #include "config.h"
+#include "scheduler.h"
 #include "lpjs.h"
 
 int     main(int argc,char *argv[])
@@ -47,7 +48,7 @@ int     process_events(node_list_t *node_list)
     ssize_t     bytes;
     short       tcp_port;   /* Need short for htons() */
     socklen_t   address_len = sizeof (struct sockaddr_in);
-    char        buff[LPJS_IP_MSG_MAX + 1];
+    char        incoming_msg[LPJS_IP_MSG_MAX + 1];
     // FIXME: Support IPV6
     struct sockaddr_in server_address = { 0 };
 
@@ -102,20 +103,20 @@ int     process_events(node_list_t *node_list)
 	printf ("Accepted connection. fd = %d\n", msg_fd);
     
 	/* Read a message through the socket */
-	if ( (bytes = read(msg_fd, buff, 100)) == - 1)
+	if ( (bytes = read(msg_fd, incoming_msg, 100)) == - 1)
 	{
 	    perror("read() failed");
 	    return EX_IOERR;
 	}
-	printf("%zu %s\n", bytes, buff);
+	// printf("%zu %s\n", bytes, incoming_msg);
 	
 	/* Process request */
-	if ( strcmp(buff, "nodes") == 0 )
+	if ( strcmp(incoming_msg, "nodes") == 0 )
 	    node_list_send_specs(msg_fd, node_list);
-	else if ( strcmp(buff, "jobs") == 0 )
+	else if ( strcmp(incoming_msg, "jobs") == 0 )
 	    dprintf(msg_fd, "jobs not yet implemented\n");
-	else if ( strcmp(buff, "submit") == 0 )
-	    dprintf(msg_fd, "submit not yet implemented\n");
+	else if ( memcmp(incoming_msg, "submit", 6) == 0 )
+	    queue_job(msg_fd, incoming_msg, node_list);
 	close(msg_fd);
     }
     close (listen_fd);
