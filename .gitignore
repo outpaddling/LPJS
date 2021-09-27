@@ -1,5 +1,6 @@
 lpjs-node-specs
 lpjs-dispatch
+lpjs-node-status
 .*.bak
 *.o
 README.html

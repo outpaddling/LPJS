@@ -66,3 +66,13 @@ int     node_list_populate(node_list_t *node_list, const char *conf_file)
     fclose(fp);
     return 0;   // NL_OK?
 }
+
+
+void    node_list_send_specs(int msg_fd, node_list_t *node_list)
+
+{
+    unsigned    c;
+    
+    for (c = 0; c < node_list->count; ++c)
+	node_send_specs(msg_fd, &node_list->nodes[c]);
+}

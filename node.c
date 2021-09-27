@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <sysexits.h>
 #include <xtend/dsv.h>
 #include "node.h"
@@ -73,4 +74,19 @@ void    node_print_specs(node_t *node)
 
 {
     printf("%s %u %lu %d\n", node->hostname, node->cores, node->mem, node->zfs);
+}
+
+
+void    node_send_specs(int fd, node_t *node)
+
+{
+    char    buff[LPJS_MSG_MAX+1];
+    
+    snprintf(buff, LPJS_MSG_MAX+1, "%s %u %lu %d\n",
+	    node->hostname, node->cores, node->mem, node->zfs);
+    if ( write(fd, buff, strlen(buff)) == -1 )
+    {
+	perror("send_node_specs(): write() failed");
+	exit(EX_IOERR);
+    }
 }

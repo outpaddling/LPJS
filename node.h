@@ -59,6 +59,7 @@ typedef struct
 void    node_init(node_t *node);
 int     node_get_specs(node_t *node);
 void    node_print_specs(node_t *node);
+void    node_send_specs(int fd, node_t *node);
 
 /* node-mutators.c */
 int node_set_hostname(node_t *node_ptr, char *new_hostname);

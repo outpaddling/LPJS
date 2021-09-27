@@ -11,6 +11,7 @@
  ***************************************************************************/
 
 #include <stdio.h>
+#include <string.h>
 #include <sysexits.h>
 #include <limits.h>
 #include <unistd.h>
@@ -24,12 +25,12 @@ int     main(int argc,char *argv[])
 {
     char    config_file[PATH_MAX+1];
     
-    node_list_t nodes;
+    node_list_t node_list;
     
-    node_list_init(&nodes);
+    node_list_init(&node_list);
     snprintf(config_file, PATH_MAX+1, "%s/etc/lpjs/config", LOCALBASE);
-    node_list_populate(&nodes, config_file);
-    return process_events(&nodes);
+    node_list_populate(&node_list, config_file);
+    return process_events(&node_list);
 }
 
 
@@ -42,11 +43,11 @@ int     main(int argc,char *argv[])
  *  2021-09-25  Jason Bacon Begin
  ***************************************************************************/
 
-int     process_events(node_list_t *nodes)
+int     process_events(node_list_t *node_list)
 
 {
     int         listen_fd,
-		connect_fd;
+		msg_fd;
     short       tcp_port;   /* Need short for htons() */
     socklen_t   address_len = sizeof (struct sockaddr_in);
     char        buff[LPJS_IP_MSG_MAX + 1];
@@ -87,22 +88,24 @@ int     process_events(node_list_t *nodes)
 	}
     
 	/* Accept a connection request */
-	if ((connect_fd = accept(listen_fd,
+	if ((msg_fd = accept(listen_fd,
 		(struct sockaddr *)&server_address, &address_len)) == -1)
 	{
 	    fputs ("accept() failed.\n", stderr);
 	    return EX_UNAVAILABLE;
 	}
-	printf ("Accepted connection. fd = %d\n", connect_fd);
+	printf ("Accepted connection. fd = %d\n", msg_fd);
     
 	/* Read a message through the socket */
-	if ( read (connect_fd, buff, 100) == - 1)
+	if ( read (msg_fd, buff, 100) == - 1)
 	{
 	    perror("read() failed");
 	    return EX_IOERR;
 	}
 	puts (buff);
-	close(connect_fd);
+	if ( strcmp(buff, "node status") == 0 )
+	    node_list_send_specs(msg_fd, node_list);
+	close(msg_fd);
     }
     close (listen_fd);
     return EX_OK;

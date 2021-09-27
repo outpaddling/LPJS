@@ -15,5 +15,6 @@ typedef struct
 
 void    node_list_init(node_list_t *node_list);
 int     node_list_populate(node_list_t *node_list, const char *filename);
+void    node_list_send_specs(int msg_fd, node_list_t *node_list);
 
 #endif  // _NODE_LIST_H_

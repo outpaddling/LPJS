@@ -11,9 +11,12 @@
 int     main (int argc, char *argv[])
 {
     short   tcp_port;   /* Need short for htons() */
-    int     fd;
+    int     msg_fd;
+    ssize_t bytes;
     struct sockaddr_in server_address;
-    char   *machine_address, *message;
+    char    *machine_address,
+	    *message,
+	    buff[LPJS_MSG_MAX+1];
 
     if (argc != 1)
     {
@@ -31,14 +34,14 @@ int     main (int argc, char *argv[])
     server_address.sin_port = htons (tcp_port);
 
     /* Create a socket */
-    if ((fd = socket (AF_INET, SOCK_STREAM, 0)) < 0)
+    if ((msg_fd = socket (AF_INET, SOCK_STREAM, 0)) < 0)
     {
 	fprintf (stderr, "Error open socket of client\n");
 	exit (0);
     }
 
     /* Attempt to connect to server */
-    if (connect (fd, (struct sockaddr *)&server_address,
+    if (connect (msg_fd, (struct sockaddr *)&server_address,
 		 sizeof (server_address)) < 0)
     {
 	fprintf (stderr, "Error connecting to client\n");
@@ -46,10 +49,25 @@ int     main (int argc, char *argv[])
     }
 
     /* Send a message to the server */
-    message = "Hello, TCP world!\n";
-    write (fd, message, strlen (message) + 1);
+    message = "node status";
+    if ( write (msg_fd, message, strlen (message) + 1) == -1 )
+    {
+	perror("write() failed");
+	close(msg_fd);
+	return EX_IOERR;
+    }
+    
+    if ( (bytes = read(msg_fd, buff, LPJS_MSG_MAX+1)) == -1 )
+    {
+	perror("read() failed");
+	close(msg_fd);
+	return EX_IOERR;
+    }
+    printf("%zu bytes read.\n", bytes);
+    buff[bytes] = '\0';
+    puts(buff);
 
-    close (fd);
+    close (msg_fd);
     return EX_OK;
 }
 
