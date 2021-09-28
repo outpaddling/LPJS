@@ -56,7 +56,8 @@ BINS    = lpjs-dispatch lpjs-node-specs lpjs-chaperone \
 # List object files that comprise BIN.
 
 DISPATCH_OBJS   = lpjs-dispatch.o config.o node.o node-list.o misc.o \
-		  node-list-mutators.o node-mutators.o scheduler.o network.o
+		  node-list-mutators.o node-mutators.o scheduler.o network.o \
+		  job.o job-list.o
 NODE_SPECS_OBJS = lpjs-node-specs.o
 SCHEDULER_OBJS  = scheduler.o
 CHAPERONE_OBJS  = lpjs-chaperone.o config.o node-list.o node-list-mutators.o \

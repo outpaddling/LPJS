@@ -19,12 +19,13 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <signal.h>
+#include "lpjs.h"
 #include "node-list.h"
+#include "job-list.h"
 #include "config.h"
 #include "scheduler.h"
 #include "network.h"
 #include "misc.h"
-#include "lpjs.h"
 
 int     Listen_fd;  // Must be global for signal handler
 
@@ -32,9 +33,11 @@ int     main(int argc,char *argv[])
 
 {
     node_list_t node_list;
+    job_list_t  job_list;
     
     lpjs_load_config(&node_list, LPJS_CONFIG_ALL);
-    return process_events(&node_list);
+    job_list_init(&job_list);
+    return process_events(&node_list, &job_list);
 }
 
 
@@ -65,7 +68,7 @@ void    terminate_daemon(int s2)
  *  2021-09-25  Jason Bacon Begin
  ***************************************************************************/
 
-int     process_events(node_list_t *node_list)
+int     process_events(node_list_t *node_list, job_list_t *job_list)
 
 {
     int         msg_fd;
@@ -73,8 +76,7 @@ int     process_events(node_list_t *node_list)
     short       tcp_port;   /* Need short for htons() */
     socklen_t   address_len = sizeof (struct sockaddr_in);
     char        incoming_msg[LPJS_IP_MSG_MAX + 1];
-    // FIXME: Support IPV6
-    struct sockaddr_in server_address = { 0 };
+    struct sockaddr_in server_address = { 0 };  // FIXME: Support IPV6
 
     /*
      *  Set handler so that Listen_fd is properly closed before termination.
@@ -141,7 +143,8 @@ int     process_events(node_list_t *node_list)
 	else if ( strcmp(incoming_msg, "jobs") == 0 )
 	{
 	    lpjs_log("Request for job status.\n");
-	    dprintf(msg_fd, "Job status not yet implemented\n");
+	    //dprintf(msg_fd, "Job status not yet implemented\n");
+	    job_list_send_params(msg_fd, job_list);
 	}
 	else if ( memcmp(incoming_msg, "submit", 6) == 0 )
 	{
