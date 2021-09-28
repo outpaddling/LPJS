@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sysexits.h>
+#include <unistd.h>
+#include <errno.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -65,4 +67,26 @@ int     connect_to_dispatch(node_list_t *node_list)
     }
 
     return msg_fd;
+}
+
+
+int     print_response(int msg_fd, const char *caller_name)
+
+{
+    ssize_t bytes;
+    char    buff[LPJS_MSG_MAX+1];
+    
+    while ( (bytes = read(msg_fd, buff, LPJS_MSG_MAX + 1)) > 0 )
+    {
+	buff[bytes] = '\0';
+	printf("%s", buff);
+    }
+    
+    if ( bytes == -1 )
+    {
+	fprintf(stderr, "%s: Failed to read response from dispatch",
+		strerror(errno));
+	return EX_IOERR;
+    }
+    return EX_OK;
 }

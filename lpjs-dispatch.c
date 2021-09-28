@@ -26,7 +26,7 @@ int     main(int argc,char *argv[])
 {
     node_list_t node_list;
     
-    lpjs_load_config(&node_list);
+    lpjs_load_config(&node_list, LPJS_CONFIG_ALL);
     return process_events(&node_list);
 }
 

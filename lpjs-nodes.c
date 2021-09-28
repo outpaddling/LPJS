@@ -10,9 +10,7 @@
 
 int     main (int argc, char *argv[])
 {
-    int     msg_fd;
-    ssize_t bytes;
-    char    buff[LPJS_MSG_MAX+1];
+    int         msg_fd;
     node_list_t node_list;
     
     if (argc != 1)
@@ -22,7 +20,7 @@ int     main (int argc, char *argv[])
     }
 
     // Get hostname of head node
-    lpjs_load_config(&node_list);
+    lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY);
 
     if ( (msg_fd = connect_to_dispatch(&node_list)) == -1 )
     {
@@ -38,15 +36,8 @@ int     main (int argc, char *argv[])
 	close(msg_fd);
 	return EX_IOERR;
     }
-    
-    if ( (bytes = read(msg_fd, buff, LPJS_MSG_MAX+1)) == -1 )
-    {
-	perror("lpjs-nodes: Failed to read response from dispatch");
-	close(msg_fd);
-	return EX_IOERR;
-    }
-    buff[bytes] = '\0';
-    puts(buff);
+
+    print_response(msg_fd, "lpjs-nodes");
     close (msg_fd);
 
     return EX_OK;

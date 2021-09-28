@@ -5,6 +5,9 @@
 #include "node-list.h"
 #endif
 
-int     lpjs_load_config(node_list_t *node_list);
+#define LPJS_CONFIG_ALL         0
+#define LPJS_CONFIG_HEAD_ONLY   1
+
+int     lpjs_load_config(node_list_t *node_list, int flags);
 
 #endif

@@ -26,7 +26,7 @@ int     main (int argc, char *argv[])
     }
 
     // Get hostname of head node
-    lpjs_load_config(&node_list);
+    lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY);
 
     if ( (msg_fd = connect_to_dispatch(&node_list)) == -1 )
     {

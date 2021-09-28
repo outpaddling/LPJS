@@ -8,10 +8,10 @@
 #include "config.h"
 #include "lpjs.h"
 
-int     lpjs_load_config(node_list_t *node_list)
+int     lpjs_load_config(node_list_t *node_list, int flags)
 
 {
-    FILE    *fp;
+    FILE    *config_fp;
     char    field[LPJS_FIELD_MAX+1];
     char    config_file[PATH_MAX+1];
     int     delim;
@@ -19,18 +19,18 @@ int     lpjs_load_config(node_list_t *node_list)
     
     snprintf(config_file, PATH_MAX+1, "%s/etc/lpjs/config", LOCALBASE);
     // printf("Loading config file %s...\n", config_file);
-    if ( (fp = fopen(config_file, "r")) == NULL )
+    if ( (config_fp = fopen(config_file, "r")) == NULL )
     {
 	fprintf(stderr, "Cannot open %s.\n", config_file);
 	exit(EX_NOINPUT);
     }
     node_list_init(node_list);
-    while ( ((delim = dsv_read_field(fp, field, LPJS_FIELD_MAX+1,
+    while ( ((delim = dsv_read_field(config_fp, field, LPJS_FIELD_MAX+1,
 				     " \t", &len)) != EOF) )
     {
 	if ( strcmp(field, "head") == 0 )
 	{
-	    if ( dsv_read_field(fp, field, LPJS_FIELD_MAX + 1, " \t", &len)
+	    if ( dsv_read_field(config_fp, field, LPJS_FIELD_MAX + 1, " \t", &len)
 		 != '\n' )
 	    {
 		fprintf(stderr, "load_config(): 'head' must be followed by a single hostname.\n");
@@ -44,17 +44,26 @@ int     lpjs_load_config(node_list_t *node_list)
 	}
 	else if ( strcmp(field, "compute") == 0 )
 	{
+	    /*
+	     *  Only dispatch daemon needs to query compute nodes for specs
+	     *  Most other programs just need the head node hostname
+	     */
 	    // puts("Reading compute nodes...");
 	    if ( delim != EOF )
-		node_list_add_compute(node_list, fp, config_file);
+	    {
+		if ( flags & LPJS_CONFIG_ALL )
+		    node_list_add_compute(node_list, config_fp, config_file);
+		else
+		    dsv_skip_rest_of_line(config_fp);
+	    }
 	}
 	else
 	{
 	    printf("Skipping unknown tag %s...", field);
-	    dsv_skip_rest_of_line(fp);
+	    dsv_skip_rest_of_line(config_fp);
 	}
     }
     // printf("%u nodes found.\n", node_list->count);
-    fclose(fp);
+    fclose(config_fp);
     return delim;
 }
