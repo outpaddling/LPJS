@@ -13,5 +13,7 @@
 #define LPJS_CMD_MAX        4096
 
 int process_events(node_list_t *nodes);
+void terminate_daemon(int signal);
+void log_job(const char *incoming_msg);
 
 #endif
