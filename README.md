@@ -40,7 +40,8 @@ older Linux kernels, compilers, and other tools, which makes it difficult to
 run the latest open source software.
 
 The LPJS project does not aim to compete for market share on top 500
-clusters.  In contrast, we are committed to filling the niche that other
+clusters.  In contrast, we are committed to serving the small-scale HPC
+niche that other
 HPC software has abandoned by adhering to the following design principals:
 
 - KISS (Keep it simple, stupid): We will not allow LPJS to fall victim to
