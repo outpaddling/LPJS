@@ -2,7 +2,8 @@ config.o: config.c ../local/include/xtend/dsv.h node-list.h node.h \
   config.h lpjs.h
 	${CC} -c ${CFLAGS} config.c
 
-lpjs-chaperone.o: lpjs-chaperone.c
+lpjs-chaperone.o: lpjs-chaperone.c node-list.h node.h config.h network.h \
+  lpjs.h
 	${CC} -c ${CFLAGS} lpjs-chaperone.c
 
 lpjs-dispatch.o: lpjs-dispatch.c node-list.h node.h config.h scheduler.h \
@@ -20,6 +21,9 @@ lpjs-nodes.o: lpjs-nodes.c node-list.h node.h config.h network.h lpjs.h
 
 lpjs-submit.o: lpjs-submit.c node-list.h node.h config.h network.h lpjs.h
 	${CC} -c ${CFLAGS} lpjs-submit.c
+
+misc.o: misc.c
+	${CC} -c ${CFLAGS} misc.c
 
 network.o: network.c ../local/include/xtend/string.h node-list.h node.h \
   network.h
