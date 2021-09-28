@@ -45,7 +45,8 @@ niche that other
 HPC software has abandoned by adhering to the following design principals:
 
 - KISS (Keep it simple, stupid): We will not allow LPJS to fall victim to
-creeping feature syndrome.
+creeping feature syndrome. We focus on maintaining high quality in essential
+features, not implementing every feature someone thinks would be cool.
 
 - Complete portability: Our primary intention is to foster research and
 development of HPC clusters using any POSIX operating system on any hardware
@@ -62,6 +63,9 @@ Most configuration parameters will simply be overrides of reasonable defaults.
 - Unambiguous and intuitive user interface: Commands and options are
 spelled out in a way that is easy to remember and won't be confused with
 others.
+
+- User-friendliness: We do our best to maintain good documentation, but
+also to make it unnecessary via meaningful error messages and help features.
 
 - Flexibility: Run on dedicated hardware for maximum performance, or
 utilize lab PCs as an HPC cluster during off hours for maximum cost
