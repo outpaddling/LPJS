@@ -14,7 +14,7 @@ int     main (int argc, char *argv[])
     int     msg_fd;
     ssize_t bytes;
     char    buff[LPJS_MSG_MAX+1],
-	    cmd[LPJS_CMD_MAX + 50],
+	    cmd[LPJS_CMD_MAX + 150],
 	    remote_cmd[LPJS_CMD_MAX + 1] = "",
 	    host[128];
     unsigned cores;
@@ -61,7 +61,7 @@ int     main (int argc, char *argv[])
     sscanf(buff, "%s %u", host, &cores);
     argv_to_cmd(remote_cmd, argv, LPJS_CMD_MAX + 1);
     puts(remote_cmd);
-    snprintf(cmd, LPJS_CMD_MAX + 50, "ssh %s lpjs-chaperone %s\n",
+    snprintf(cmd, LPJS_CMD_MAX + 150, "ssh %s lpjs-chaperone %s\n",
 	     host, remote_cmd);
     puts(cmd);
     system(cmd);

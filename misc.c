@@ -4,6 +4,7 @@
 #include <sysexits.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include <xtend/string.h>   // strlcat() on Linux
 
 // Make this a libxtend function?
 void    argv_to_cmd(char *cmd, char *argv[], size_t buff_size)
