@@ -30,7 +30,6 @@ int     main (int argc, char *argv[])
     node_list_t node_list;
     char        cmd[LPJS_CMD_MAX + 1] = "",
 		msg[LPJS_MSG_MAX + 1];
-    size_t      c;
     
     if (argc < 2)
     {

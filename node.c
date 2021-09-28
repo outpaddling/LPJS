@@ -5,6 +5,7 @@
 #include <sysexits.h>
 #include <xtend/dsv.h>
 #include "node.h"
+#include "network.h"
 #include "lpjs.h"
 
 /*

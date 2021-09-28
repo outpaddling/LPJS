@@ -59,7 +59,8 @@ int     main (int argc, char *argv[])
     
     sscanf(buff, "%s %u", host, &cores);
     strlcpy(remote_cmd, argv[1], LPJS_CMD_MAX + 1);
-    snprintf(cmd, LPJS_CMD_MAX + 50, "ssh %s %s\n", host, remote_cmd);
+    snprintf(cmd, LPJS_CMD_MAX + 50, "ssh %s lpjs-chaperone %s\n",
+	     host, remote_cmd);
     puts(cmd);
     system(cmd);
     close (msg_fd);

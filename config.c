@@ -51,7 +51,7 @@ int     lpjs_load_config(node_list_t *node_list, int flags)
 	    // puts("Reading compute nodes...");
 	    if ( delim != EOF )
 	    {
-		if ( flags & LPJS_CONFIG_ALL )
+		if ( flags == LPJS_CONFIG_ALL )
 		    node_list_add_compute(node_list, config_fp, config_file);
 		else
 		    dsv_skip_rest_of_line(config_fp);

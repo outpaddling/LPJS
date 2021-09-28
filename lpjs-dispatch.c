@@ -108,7 +108,7 @@ int     process_events(node_list_t *node_list)
 	    perror("read() failed");
 	    return EX_IOERR;
 	}
-	// printf("%zu %s\n", bytes, incoming_msg);
+	printf("%zu %s\n", bytes, incoming_msg);
 	
 	/* Process request */
 	if ( strcmp(incoming_msg, "nodes") == 0 )
