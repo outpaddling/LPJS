@@ -6,6 +6,7 @@
 #include "node-list.h"
 #include "config.h"
 #include "network.h"
+#include "misc.h"
 #include "lpjs.h"
 
 int     main (int argc, char *argv[])
@@ -14,7 +15,7 @@ int     main (int argc, char *argv[])
     ssize_t bytes;
     char    buff[LPJS_MSG_MAX+1],
 	    cmd[LPJS_CMD_MAX + 50],
-	    remote_cmd[LPJS_CMD_MAX + 1],
+	    remote_cmd[LPJS_CMD_MAX + 1] = "",
 	    host[128];
     unsigned cores;
     node_list_t node_list;
@@ -58,7 +59,8 @@ int     main (int argc, char *argv[])
      */
     
     sscanf(buff, "%s %u", host, &cores);
-    strlcpy(remote_cmd, argv[1], LPJS_CMD_MAX + 1);
+    argv_to_cmd(remote_cmd, argv, LPJS_CMD_MAX + 1);
+    puts(remote_cmd);
     snprintf(cmd, LPJS_CMD_MAX + 50, "ssh %s lpjs-chaperone %s\n",
 	     host, remote_cmd);
     puts(cmd);
