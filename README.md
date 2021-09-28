@@ -1,11 +1,11 @@
-# LPJS
+# LPJS - High Performance Computing for Everyone...
 
 ## Status
 
 We're just getting started here, laying out the framework and prioritizing
-development phases.  
+development phases.
 
-Development will not proceed quickly as we're carefully deliberating the
+Development will move slowly as we're carefully deliberating the
 design and implementation of each new feature to ensure the highest possible
 code quality.
 
@@ -14,38 +14,44 @@ We anticipate having a minimal working batch system in place sometime in
 
 ## Description
 
-LPJS (Lightweight, Portable Job Scheduler) is a batch system, i.e. a job scheduler
-and resource manager for HPC (High Performance Computing) clusters.
+LPJS (Lightweight, Portable Job Scheduler) is a batch system, i.e. a job
+scheduler and resource manager for HPC (High Performance Computing) clusters.
 
-Unlike other batch systems, LPJS is designed to be easy to deploy and manage,
-and portable to any
-POSIX platform.  Other existing batch systems are extremely complex (including
+Unlike other batch systems, LPJS is designed to be small, easy to deploy and
+manage, and portable to any
+POSIX platform.  Most existing batch systems are extremely complex (including
 our long-time favorite SLURM, which originally stood for "Simple Linux Utility
 for Resource Management", but is no longer simple by any stretch of the
 imagination).
 
 Overly complex HPC tools present a barrier to learning and implementing
-small-scale HPC, which is crucial for research groups that have no ready
+small-scale HPC, which is crucial for research groups who have no ready
 access to centralized HPC resources.
-In some venues, centralizing HPC into one massive cluster improves utilization
-of resources and reduces cost.  In many other venues, maintaining a large
-cluster is simply not feasible.
+In major research institutions, centralizing HPC into one massive cluster
+can improve utilization of resources and reduce overall costs.  In many
+other venues, building a large cluster and staffing a support group is
+simply not feasible.
 
-Large HPC clusters are dominated by Redhat Enterprise Linux and its derivatives
-for good reasons, such as commercial support for the operating system and
-support for commercial science and engineering applications such as ANSYS,
-Fluent, Abacus, etc.  The need to support a wide range of commercial and open
-source software on very large clusters has led to the prohibitive complexity
-of most existing batch systems.
+Large HPC clusters are dominated by Redhat Enterprise Linux (RHEL) and its
+derivatives for good reasons.  For one thing, RHEL is the only platform
+besides Windows supported by many commercial science and engineering
+applications such as ANSYS, Fluent, Abacus, etc.  Unfortunately, RHEL uses
+older Linux kernels, compilers, and other tools, which makes it difficult to
+run the latest open source software.
 
-In contrast, the LPJS project is committed to the following design principals:
+The LPJS project does not aim to compete for market share on top 500
+clusters.  In contrast, we are committed to filling the niche that other
+HPC software has abandoned by adhering to the following design principals:
 
 - KISS (Keep it simple, stupid): We will not allow LPJS to fall victim to
 creeping feature syndrome.
 
 - Complete portability: Our primary intention is to foster research and
 development of HPC clusters using any POSIX operating system on any hardware
-or cloud platform.
+or cloud platform.  You can run it on RHEL if you like, but you can also use
+Debian Linux, Dragonfly BSD, FreeBSD, MacOS, NetBSD, OpenBSD, Ubuntu, or
+any of the other dozens of Unix-like systems available.  In fact, you can
+run a hybrid cluster with multiple different operating systems.
 
 - Minimal configuration: HPC sysadmins should only be required to provide
 information that is difficult to determine automatically.  E.g. compute node
@@ -56,9 +62,15 @@ Most configuration parameters will simply be overrides of reasonable defaults.
 spelled out in a way that is easy to remember and won't be confused with
 others.
 
+- Flexibility: Run on dedicated hardware for maximum performance, or
+utilize lab PCs as an HPC cluster during off hours for maximum cost
+efficiency.  Link together multiple laptops in the field for quick and
+dirty data analysis.  Quickly deploy on as many cloud instances as you need
+for this week's computations.
+
 Note that THERE IS NOTHING INHERENTLY COMPLICATED ABOUT AN HPC CLUSTER.
 In its most basic form, it's just a LAN with some software to manage
-computing resources.  One can make a cluster as complicated as they want,
+computing resources.  One can make a cluster as complicated as they wish,
 but simple HPC clusters are both possible and useful.
 
 LPJS makes it easy to build and maintain small HPC clusters on minimal
