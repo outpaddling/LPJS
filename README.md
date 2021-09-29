@@ -54,7 +54,7 @@ or cloud platform.  You can run it on RHEL if you like, but you can also use
 Debian Linux, Dragonfly BSD, FreeBSD, MacOS, NetBSD, OpenBSD, Ubuntu, or
 any of the other dozens of Unix-like systems available.  In fact, you can
 run a hybrid cluster with multiple different operating systems.  Our test
-environment include 4 different operating systems + a Rock64 running FreeBSD:
+environment includes 4 different operating systems + a Rock64 running FreeBSD:
 
 ```
 FreeBSD moray.acadix  bacon ~/Prog/Src/LPJS 1029: lpjs-nodes 
