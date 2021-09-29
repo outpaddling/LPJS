@@ -25,6 +25,7 @@ void    resolve_hostname(const char *hostname, char *ip, size_t ip_buff_len)
     if ( (ent = gethostbyname(hostname)) == NULL )
     {
 	herror("resolve_hostname(): gethostbyname() failed");
+	fprintf(stderr, "hostname = %s\n", hostname);
 	fputs("Check /etc/hosts and /etc/resolv.conf.\n", stderr);
 	exit(EX_OSERR);
     }
