@@ -21,8 +21,9 @@ void    node_init(node_t *node)
     node->cores = 0;
     node->cores_used = 0;
     node->zfs = 0;
-    node->os = NULL;
-    node->arch = NULL;
+    node->os = "Unknown";
+    node->arch = "Unknown";
+    node->state = "Down";
 }
 
 
@@ -40,54 +41,67 @@ int     node_get_specs(node_t *node)
      *  Will likely use munge at a future date.
      */
     
-    snprintf(cmd, LPJS_CMD_MAX, "ssh %s lpjs-node-specs", node->hostname);
+    snprintf(cmd, LPJS_CMD_MAX, "ssh -o ConnectTimeout=2 %s lpjs-node-specs",
+	     node->hostname);
     fp = popen(cmd, "r");
-    dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
-    if ( strcmp(field, "CPUs") != 0 )
-    {
-	fprintf(stderr, "Expected CPUs, got %s.\n", field);
-	exit(EX_DATAERR);
-    }
-    dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
-    node->cores = strtoul(field, &end, 10);
     
     dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
-    if ( strcmp(field, "Physmem") != 0 )
+    // FIXME: This is not such a reliable test
+    if ( *field == '\0' )
     {
-	fprintf(stderr, "Expected Phsymem, got %s.\n", field);
-	exit(EX_DATAERR);
+	node->state = "Down";
+	node->os = "Unknown";
+	node->arch = "Unknown";
     }
-    dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
-    node->mem = strtoul(field, &end, 10);
+    else
+    {
+	node->state = "Up";
+	if ( strcmp(field, "CPUs") != 0 )
+	{
+	    fprintf(stderr, "Expected CPUs, got %s.\n", field);
+	    exit(EX_DATAERR);
+	}
+	dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+	node->cores = strtoul(field, &end, 10);
+	
+	dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+	if ( strcmp(field, "Physmem") != 0 )
+	{
+	    fprintf(stderr, "Expected Phsymem, got %s.\n", field);
+	    exit(EX_DATAERR);
+	}
+	dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+	node->mem = strtoul(field, &end, 10);
+	
+	dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+	if ( strcmp(field, "ZFS") != 0 )
+	{
+	    fprintf(stderr, "Expected ZFS, got %s.\n", field);
+	    exit(EX_DATAERR);
+	}
+	dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+	node->zfs = strtoul(field, &end, 10);
     
-    dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
-    if ( strcmp(field, "ZFS") != 0 )
-    {
-	fprintf(stderr, "Expected ZFS, got %s.\n", field);
-	exit(EX_DATAERR);
+	dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+	if ( strcmp(field, "OS") != 0 )
+	{
+	    fprintf(stderr, "Expected OS, got %s.\n", field);
+	    exit(EX_DATAERR);
+	}
+	dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+	node->os = strdup(field);
+    
+	dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+	if ( strcmp(field, "Arch") != 0 )
+	{
+	    fprintf(stderr, "Expected Arch, got %s.\n", field);
+	    exit(EX_DATAERR);
+	}
+	dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+	node->arch = strdup(field);
+    
+	fclose(fp);
     }
-    dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
-    node->zfs = strtoul(field, &end, 10);
-
-    dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
-    if ( strcmp(field, "OS") != 0 )
-    {
-	fprintf(stderr, "Expected OS, got %s.\n", field);
-	exit(EX_DATAERR);
-    }
-    dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
-    node->os = strdup(field);
-
-    dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
-    if ( strcmp(field, "Arch") != 0 )
-    {
-	fprintf(stderr, "Expected Arch, got %s.\n", field);
-	exit(EX_DATAERR);
-    }
-    dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
-    node->arch = strdup(field);
-
-    fclose(fp);
     return 0;
 }
 
@@ -95,7 +109,7 @@ int     node_get_specs(node_t *node)
 void    node_print_specs(node_t *node)
 
 {
-    printf(NODE_SPEC_FORMAT, node->hostname,
+    printf(NODE_SPEC_FORMAT, node->hostname, node->state,
 	   node->cores, node->cores_used,
 	   node->mem, node->mem_used, node->os, node->arch);
 }
@@ -104,7 +118,7 @@ void    node_print_specs(node_t *node)
 void    node_send_specs(int fd, node_t *node)
 
 {
-    if ( dprintf(fd, NODE_SPEC_FORMAT, node->hostname,
+    if ( dprintf(fd, NODE_SPEC_FORMAT, node->hostname, node->state,
 		 node->cores, node->cores_used,
 		 node->mem, node->mem_used, node->os, node->arch) < 0 )
     {

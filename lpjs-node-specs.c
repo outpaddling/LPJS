@@ -1,6 +1,7 @@
 /***************************************************************************
  *  Description:
- *      Gather resource availability for a compute node
+ *      Gather resource availability for a compute node.  Output is meant
+ *      to be parsed by lpjs-dispatch in order to build a node list.
  *
  *  History: 
  *  Date        Name        Modification

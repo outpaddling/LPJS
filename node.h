@@ -11,10 +11,11 @@ typedef struct
     int             zfs;        // 0 or 1
     char            *os;
     char            *arch;
+    char            *state;
 }   node_t;
 
-#define NODE_SPEC_HEADER_FORMAT "%-30s %5s %5s %7s %7s %-7s %-9s\n"
-#define NODE_SPEC_FORMAT        "%-30s %5u %5u %7lu %7lu %-7s %-9s\n"
+#define NODE_SPEC_HEADER_FORMAT "%-12s %-8s %5s %4s %7s %7s %-7s %-9s\n"
+#define NODE_SPEC_FORMAT        "%-12s %-8s %5u %4u %7lu %7lu %-7s %-9s\n"
 
 /* Return values for mutator functions */
 #define NODE_DATA_OK            0

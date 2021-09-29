@@ -65,6 +65,8 @@ int     connect_to_dispatch(node_list_t *node_list)
 		 sizeof(server_address)) < 0)
     {
 	perror("connect_to_dispatch(): connect() failed");
+	fprintf(stderr, "hostname %s, ip = %s\n", 
+		NODE_LIST_HEAD_NODE(node_list), head_ip);
 	return -1;
     }
 
