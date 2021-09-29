@@ -11,13 +11,15 @@
 #include <stdlib.h>
 #include <sysexits.h>
 #include <unistd.h>
+#include <sys/utsname.h>
 
 int     main(int argc,char *argv[])
 
 {
     unsigned int    cpus = 0;
     unsigned long   user_mem = 0;
-
+    struct utsname  u_name;
+    
     /*
      *  hwloc is extremely complex and we don't need most of its functionality
      *  here, so just gather info the simple way
@@ -33,5 +35,7 @@ int     main(int argc,char *argv[])
      *  FIXME: There should be a better approach to this.
      */
     printf("ZFS\t%u\n", ! system("mount | fgrep -q zfs"));
+    uname(&u_name);
+    printf("OS\t%s\nArch\t%s\n", u_name.sysname, u_name.machine);
     return EX_OK;
 }

@@ -20,6 +20,9 @@ void    node_init(node_t *node)
     node->mem_used = 0;
     node->cores = 0;
     node->cores_used = 0;
+    node->zfs = 0;
+    node->os = NULL;
+    node->arch = NULL;
 }
 
 
@@ -66,6 +69,24 @@ int     node_get_specs(node_t *node)
     dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
     node->zfs = strtoul(field, &end, 10);
 
+    dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+    if ( strcmp(field, "OS") != 0 )
+    {
+	fprintf(stderr, "Expected OS, got %s.\n", field);
+	exit(EX_DATAERR);
+    }
+    dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+    node->os = strdup(field);
+
+    dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+    if ( strcmp(field, "Arch") != 0 )
+    {
+	fprintf(stderr, "Expected Arch, got %s.\n", field);
+	exit(EX_DATAERR);
+    }
+    dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+    node->arch = strdup(field);
+
     fclose(fp);
     return 0;
 }
@@ -76,7 +97,7 @@ void    node_print_specs(node_t *node)
 {
     printf(NODE_SPEC_FORMAT, node->hostname,
 	   node->cores, node->cores_used,
-	   node->mem, node->mem_used, NODE_ZFS_STR(node));
+	   node->mem, node->mem_used, node->os, node->arch);
 }
 
 
@@ -85,7 +106,7 @@ void    node_send_specs(int fd, node_t *node)
 {
     if ( dprintf(fd, NODE_SPEC_FORMAT, node->hostname,
 		 node->cores, node->cores_used,
-		 node->mem, node->mem_used, NODE_ZFS_STR(node)) < 0 )
+		 node->mem, node->mem_used, node->os, node->arch) < 0 )
     {
 	perror("send_node_specs(): write() failed");
 	exit(EX_IOERR);

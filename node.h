@@ -9,10 +9,12 @@ typedef struct
     unsigned long   mem;
     unsigned long   mem_used;
     int             zfs;        // 0 or 1
+    char            *os;
+    char            *arch;
 }   node_t;
 
-#define NODE_SPEC_HEADER_FORMAT "%-30s %5s %5s %7s %7s %3s\n"
-#define NODE_SPEC_FORMAT        "%-30s %5u %5u %7lu %7lu %3s\n"
+#define NODE_SPEC_HEADER_FORMAT "%-30s %5s %5s %7s %7s %-7s %-9s\n"
+#define NODE_SPEC_FORMAT        "%-30s %5u %5u %7lu %7lu %-7s %-9s\n"
 
 /* Return values for mutator functions */
 #define NODE_DATA_OK            0
