@@ -3,14 +3,17 @@
 
 typedef struct
 {
+    unsigned long   jobid;
     char            *jobname;
     char            *username;
+    char            *working_directory;
+    char            *command;
     unsigned        cores;
     unsigned long   mem_per_core;
 }   job_t;
 
-#define JOB_SPEC_HEADER_FORMAT  "%-20s %12s %4s %10s\n"
-#define JOB_SPEC_FORMAT         "%-20s %12s %4u %10lu\n"
+#define JOB_SPEC_HEADER_FORMAT  "%7s %-20s %12s %4s %10s\n"
+#define JOB_SPEC_FORMAT         "%-7lu %-20s %12s %4u %10lu\n"
 
 /* job.c */
 void    job_init(job_t *job);

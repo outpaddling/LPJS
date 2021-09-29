@@ -30,7 +30,7 @@ void    job_list_send_params(int msg_fd, job_list_t *job_list)
 {
     unsigned    c;
     
-    dprintf(msg_fd, JOB_SPEC_HEADER_FORMAT, "Jobname",
+    dprintf(msg_fd, JOB_SPEC_HEADER_FORMAT, "JobID", "Jobname",
 	    "Username", "Cores", "Mem-per-core");
     for (c = 0; c < job_list->count; ++c)
 	job_send_params(msg_fd, &job_list->jobs[c]);

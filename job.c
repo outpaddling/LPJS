@@ -25,7 +25,7 @@ void    job_init(job_t *job)
 void    job_print_params(job_t *job)
 
 {
-    printf(JOB_SPEC_FORMAT, job->jobname, job->username,
+    printf(JOB_SPEC_FORMAT, job->jobid, job->jobname, job->username,
 	   job->cores, job->mem_per_core);
 }
 
@@ -33,7 +33,7 @@ void    job_print_params(job_t *job)
 void    job_send_params(int fd, job_t *job)
 
 {
-    if ( dprintf(fd, JOB_SPEC_FORMAT, job->jobname, job->username,
+    if ( dprintf(fd, JOB_SPEC_FORMAT, job->jobid, job->jobname, job->username,
 		 job->cores, job->mem_per_core) < 0 )
     {
 	perror("send_job_params(): write() failed");
