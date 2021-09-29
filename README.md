@@ -53,7 +53,18 @@ development of HPC clusters using any POSIX operating system on any hardware
 or cloud platform.  You can run it on RHEL if you like, but you can also use
 Debian Linux, Dragonfly BSD, FreeBSD, MacOS, NetBSD, OpenBSD, Ubuntu, or
 any of the other dozens of Unix-like systems available.  In fact, you can
-run a hybrid cluster with multiple different operating systems.
+run a hybrid cluster with multiple different operating systems.  Our test
+environment include 4 different operating systems + a Rock64 running FreeBSD:
+
+```
+FreeBSD moray.acadix  bacon ~/Prog/Src/LPJS 1029: lpjs-nodes 
+Hostname                       Cores  Used Physmem    Used OS      Arch     
+coral                              4     0    7962       0 FreeBSD amd64    
+herring                            4     0    1000       0 FreeBSD arm64    
+netbsd9                            2     0    1023       0 NetBSD  amd64    
+debian11                           1     0     976       0 Linux   x86_64
+abalone                            4     0    8192       0 Darwin  x86_64
+```
 
 - Minimal configuration: HPC sysadmins should only be required to provide
 information that is difficult to determine automatically.  E.g. compute node
