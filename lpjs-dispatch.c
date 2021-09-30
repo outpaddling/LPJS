@@ -20,6 +20,7 @@
 #include <netinet/in.h>
 #include <signal.h>
 #include <errno.h>
+#include <munge.h>
 #include "lpjs.h"
 #include "node-list.h"
 #include "job-list.h"
@@ -79,6 +80,9 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
     socklen_t   address_len = sizeof (struct sockaddr_in);
     char        incoming_msg[LPJS_IP_MSG_MAX + 1];
     struct sockaddr_in server_address = { 0 };  // FIXME: Support IPV6
+    uid_t       uid;
+    gid_t       gid;
+    munge_err_t munge_status;
 
     /*
      *  Set handler so that Listen_fd is properly closed before termination.
@@ -148,6 +152,19 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	else if ( memcmp(incoming_msg, "submit", 6) == 0 )
 	{
 	    lpjs_log("Request for job submission.\n");
+	    
+	    /* Get munge credential */
+	    // FIXME: What is the maximum cred length?
+	    if ( (bytes = read(msg_fd, incoming_msg, 4096)) == - 1)
+	    {
+		lpjs_log("read() failed: %s", strerror(errno));
+		return EX_IOERR;
+	    }
+	    munge_status = munge_decode(incoming_msg, NULL, NULL, 0, &uid, &gid);
+	    if ( munge_status != EMUNGE_SUCCESS )
+		lpjs_log("munge_decode() failed.  Error = %s\n",
+			 munge_strerror(munge_status));
+	    lpjs_log("Submit from %d, %d\n", uid, gid);
 	    queue_job(msg_fd, incoming_msg, node_list);
 	}
 	else if ( memcmp(incoming_msg, "job-complete", 12) == 0 )
