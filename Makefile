@@ -58,7 +58,8 @@ USER_BINS   = lpjs-node-specs lpjs-chaperone lpjs-nodes lpjs-jobs lpjs-submit
 DISPATCH_OBJS   = lpjs_dispatchd.o config.o node.o node-list.o misc.o \
 		  node-list-mutators.o node-mutators.o scheduler.o network.o \
 		  job.o job-list.o
-COMPD_OBJS      = lpjs_compd.o
+COMPD_OBJS      = lpjs_compd.o network.o config.o misc.o node-list.o node.o \
+		  node-mutators.o node-list-mutators.o
 NODE_SPECS_OBJS = lpjs-node-specs.o
 SCHEDULER_OBJS  = scheduler.o
 CHAPERONE_OBJS  = lpjs-chaperone.o config.o node-list.o node-list-mutators.o \

@@ -172,6 +172,10 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	    lpjs_log("Job completion report.\n");
 	    log_job(incoming_msg);
 	}
+	else if ( memcmp(incoming_msg, "compd-checkin", 13) == 0 )
+	{
+	    lpjs_log("compd checkin.\n");
+	}
 	close(msg_fd);
     }
     close(Listen_fd);
