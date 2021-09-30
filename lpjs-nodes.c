@@ -28,9 +28,7 @@ int     main (int argc, char *argv[])
 	return EX_IOERR;
     }
 
-    /* Send a message to the server */
-    /* Need to send \0, so dprintf() doesn't work here */
-    if ( write(msg_fd, "nodes", 6) == -1 )
+    if ( send_msg(msg_fd, "nodes") < 0 )
     {
 	perror("lpjs-nodes: Failed to send message to dispatch");
 	close(msg_fd);

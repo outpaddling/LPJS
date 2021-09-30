@@ -28,8 +28,7 @@ int     main (int argc, char *argv[])
     int         msg_fd,
 		status;
     node_list_t node_list;
-    char        cmd[LPJS_CMD_MAX + 1] = "",
-		msg[LPJS_MSG_MAX + 1];
+    char        cmd[LPJS_CMD_MAX + 1] = "";
     
     if (argc < 2)
     {

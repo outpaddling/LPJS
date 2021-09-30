@@ -97,16 +97,27 @@ int     print_response(int msg_fd, const char *caller_name)
 }
 
 
+/***************************************************************************
+ *  Description:
+ *      Construct and send a message through a socket.  The entire message
+ *      + a null byte are sent in a single write().  Basically the same as
+ *      dprintf(), except that it null-terminates the message.
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2021-09-29  Jason Bacon Begin
+ ***************************************************************************/
+
 int     send_msg(int msg_fd, const char *format, ...)
 
 {
     va_list     ap;
     int         status;
-    char        zero = '\0';
+    char        buff[LPJS_MSG_MAX + 1];
     
     va_start(ap, format);
-    status = vdprintf(msg_fd, format, ap);
-    write(msg_fd, &zero, 1);
+    status = vsnprintf(buff, LPJS_MSG_MAX + 1, format, ap);
+    write(msg_fd, buff, strlen(buff) + 1);
     va_end(ap);
     
     return status;

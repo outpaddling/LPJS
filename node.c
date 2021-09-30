@@ -115,14 +115,18 @@ void    node_print_specs(node_t *node)
 }
 
 
-void    node_send_specs(int fd, node_t *node)
+void    node_send_specs(int msg_fd, node_t *node)
 
 {
-    if ( dprintf(fd, NODE_SPEC_FORMAT, node->hostname, node->state,
+    /*
+     *  Don't use send_msg() here, since there will be more text to send
+     *  and send_msg() terminates the message.
+     */
+    if ( dprintf(msg_fd, NODE_SPEC_FORMAT, node->hostname, node->state,
 		 node->cores, node->cores_used,
 		 node->mem, node->mem_used, node->os, node->arch) < 0 )
     {
-	perror("send_node_specs(): write() failed");
+	perror("send_node_specs(): dprintf() failed");
 	exit(EX_IOERR);
     }
 }

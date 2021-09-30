@@ -30,13 +30,17 @@ void    job_print_params(job_t *job)
 }
 
 
-void    job_send_params(int fd, job_t *job)
+void    job_send_params(int msg_fd, job_t *job)
 
 {
-    if ( dprintf(fd, JOB_SPEC_FORMAT, job->jobid, job->jobname, job->username,
+    /*
+     *  Don't use send_msg() here, since there will be more text to send
+     *  and send_msg() terminates the message.
+     */
+    if ( dprintf(msg_fd, JOB_SPEC_FORMAT, job->jobid, job->jobname, job->username,
 		 job->cores, job->mem_per_core) < 0 )
     {
-	perror("send_job_params(): write() failed");
+	perror("send_job_params(): dprintf() failed");
 	exit(EX_IOERR);
     }
 }

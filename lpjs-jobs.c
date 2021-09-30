@@ -41,9 +41,7 @@ int     main(int argc,char *argv[])
 	return EX_IOERR;
     }
 
-    /* Send a message to the server */
-    /* Need to send \0, so dprintf() doesn't work here */
-    if ( write(msg_fd, "jobs", 5) == -1 )
+    if ( send_msg(msg_fd, "jobs") < 0 )
     {
 	perror("lpjs-jobs: Failed to send message to dispatch");
 	close(msg_fd);

@@ -19,6 +19,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <signal.h>
+#include <errno.h>
 #include "lpjs.h"
 #include "node-list.h"
 #include "job-list.h"
@@ -53,7 +54,7 @@ int     main(int argc,char *argv[])
 void    terminate_daemon(int s2)
 
 {
-    puts("Shutting down...");
+    lpjs_log("lpjs-dispatch shutting down...\n");
     close(Listen_fd);
     exit(0);
 }
@@ -61,7 +62,8 @@ void    terminate_daemon(int s2)
 
 /***************************************************************************
  *  Description:
- *      Listen for messages on LPJS_TCP_PORT.
+ *      Listen for messages on LPJS_TCP_PORT and respond with either info
+ *      (lpjs-nodes, lpjs-jobs, etc.) or actions (lpjs-submit).
  *
  *  History: 
  *  Date        Name        Modification
@@ -93,7 +95,6 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
     }
     lpjs_log("Listen_fd = %d\n", Listen_fd);
 
-    // FIXME: Pick a good default and check config file for override
     tcp_port = LPJS_TCP_PORT;
     server_address.sin_port = htons(tcp_port);
     server_address.sin_family = AF_INET;
@@ -103,7 +104,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
     if (bind(Listen_fd, (struct sockaddr *) &server_address,
 	      sizeof (server_address)) < 0)
     {
-	perror("bind() failed");
+	lpjs_log("bind() failed: %s", strerror(errno));
 	return EX_UNAVAILABLE;
     }
     lpjs_log("Bound to port %d...\n", tcp_port);
@@ -113,7 +114,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	/* Listen for connection requests */
 	if (listen (Listen_fd, LPJS_MSG_QUEUE_MAX) != 0)
 	{
-	    fputs ("listen() failed.\n", stderr);
+	    lpjs_log("listen() failed.\n", stderr);
 	    return EX_UNAVAILABLE;
 	}
     
@@ -121,7 +122,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	if ((msg_fd = accept(Listen_fd,
 		(struct sockaddr *)&server_address, &address_len)) == -1)
 	{
-	    fputs ("accept() failed.\n", stderr);
+	    lpjs_log("accept() failed.\n", stderr);
 	    return EX_UNAVAILABLE;
 	}
 	lpjs_log("Accepted connection. fd = %d\n", msg_fd);
@@ -129,11 +130,10 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	/* Read a message through the socket */
 	if ( (bytes = read(msg_fd, incoming_msg, 100)) == - 1)
 	{
-	    perror("read() failed");
+	    lpjs_log("read() failed: %s", strerror(errno));
 	    return EX_IOERR;
 	}
-	// lpjs_log("%zu %s\n", bytes, incoming_msg);
-	
+
 	/* Process request */
 	if ( strcmp(incoming_msg, "nodes") == 0 )
 	{
@@ -143,7 +143,6 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	else if ( strcmp(incoming_msg, "jobs") == 0 )
 	{
 	    lpjs_log("Request for job status.\n");
-	    //dprintf(msg_fd, "Job status not yet implemented\n");
 	    job_list_send_params(msg_fd, job_list);
 	}
 	else if ( memcmp(incoming_msg, "submit", 6) == 0 )
@@ -158,7 +157,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	}
 	close(msg_fd);
     }
-    close (Listen_fd);
+    close(Listen_fd);
     return EX_OK;
 }
 
@@ -166,6 +165,8 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 /***************************************************************************
  *  Description:
  *      Record job info such as command, exit status, run time, etc.
+ *      Incoming message is sent by lpjs-chaperone when its child
+ *      (a dispatched computational process) terminates.
  *
  *  History: 
  *  Date        Name        Modification
@@ -175,5 +176,5 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 void    log_job(const char *incoming_msg)
 
 {
-    puts(incoming_msg);
+    lpjs_log(incoming_msg);
 }

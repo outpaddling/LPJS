@@ -5,6 +5,7 @@
 #include <xtend/dsv.h>      // dsv_read_field()
 #include <xtend/string.h>   // strtrim()
 #include "node-list.h"
+#include "network.h"
 #include "lpjs.h"
 
 /*

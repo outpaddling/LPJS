@@ -1,7 +1,8 @@
 #ifndef _LPJS_NETWORK_H_
 #define _LPJS_NETWORK_H_
 
-#define LPJS_IP_MAX     64  // IPv6 max is 39
+#define LPJS_IP_MAX     64  // IPv6 max address size is 39
+// FIXME: Pick a good default and check config file for override
 #define LPJS_TCP_PORT   3000
 #define LPJS_MSG_MAX    4096
 
