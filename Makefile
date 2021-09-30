@@ -48,16 +48,17 @@
 ############################################################################
 # Installed targets
 
-BIN     = lpjs-dispatch
-BINS    = lpjs-dispatch lpjs-node-specs lpjs-chaperone \
-	  lpjs-nodes lpjs-jobs lpjs-submit
+BIN         = lpjs-dispatchd
+SYS_BINS    = lpjs-dispatchd lpjs-compd
+USER_BINS   = lpjs-node-specs lpjs-chaperone lpjs-nodes lpjs-jobs lpjs-submit
 
 ############################################################################
 # List object files that comprise BIN.
 
-DISPATCH_OBJS   = lpjs-dispatch.o config.o node.o node-list.o misc.o \
+DISPATCH_OBJS   = lpjs-dispatchd.o config.o node.o node-list.o misc.o \
 		  node-list-mutators.o node-mutators.o scheduler.o network.o \
 		  job.o job-list.o
+COMPD_OBJS      = lpjs-compd.o
 NODE_SPECS_OBJS = lpjs-node-specs.o
 SCHEDULER_OBJS  = scheduler.o
 CHAPERONE_OBJS  = lpjs-chaperone.o config.o node-list.o node-list-mutators.o \
@@ -69,7 +70,7 @@ JOBS_OBJS       = lpjs-jobs.o config.o node-list.o node-list-mutators.o \
 SUBMIT_OBJS     = lpjs-submit.o config.o node-list.o node-list-mutators.o \
 		  node.o node-mutators.o network.o misc.o
 OBJS    = ${DISPATCH_OBJS} ${NODE_SPECS_OBJS} ${NODES_OBJS} ${JOBS_OBJS} \
-	  ${SUBMIT_OBJS} ${SCHEDULER_OBJS}
+	  ${SUBMIT_OBJS} ${SCHEDULER_OBJS} ${COMPD_OBJS}
 
 ############################################################################
 # Compile, link, and install options
@@ -137,10 +138,13 @@ STRIP   ?= strip
 
 .PHONY: all depend clean realclean install install-strip help
 
-all:    ${BINS}
+all:    ${USER_BINS} ${SYS_BINS}
 
-lpjs-dispatch: ${DISPATCH_OBJS}
-	${LD} -o lpjs-dispatch ${DISPATCH_OBJS} ${LDFLAGS}
+lpjs-dispatchd: ${DISPATCH_OBJS}
+	${LD} -o lpjs-dispatchd ${DISPATCH_OBJS} ${LDFLAGS}
+
+lpjs-compd: ${COMPD_OBJS}
+	${LD} -o lpjs-compd ${COMPD_OBJS} ${LDFLAGS}
 
 lpjs-node-specs: ${NODE_SPECS_OBJS}
 	${LD} -o lpjs-node-specs ${NODE_SPECS_OBJS} ${LDFLAGS}
@@ -185,7 +189,7 @@ depend:
 # Remove generated files (objs and nroff output from man pages)
 
 clean:
-	rm -f ${OBJS} ${BINS} *.nr
+	rm -f ${OBJS} ${USER_BINS} ${SYS_BINS} *.nr
 
 # Keep backup files during normal clean, but provide an option to remove them
 realclean: clean
@@ -196,14 +200,21 @@ realclean: clean
 
 install: all
 	${MKDIR} -p ${DESTDIR}${PREFIX}/bin \
+		    ${DESTDIR}${PREFIX}/sbin \
 		    ${DESTDIR}${MANDIR}/man1 \
 		    ${DESTDIR}${PREFIX}/etc/lpjs
-	${INSTALL} -s -m 0755 ${BINS} ${DESTDIR}${PREFIX}/bin
+	${INSTALL} -s -m 0755 ${USER_BINS} ${DESTDIR}${PREFIX}/bin
+	${INSTALL} -s -m 0755 ${SYS_BINS} ${DESTDIR}${PREFIX}/sbin
 	${INSTALL} -m 0644 config.sample ${DESTDIR}${PREFIX}/etc/lpjs
 	# ${INSTALL} -m 0444 ${MAN} ${DESTDIR}${MANDIR}/man1
 
 install-strip: install
-	${STRIP} ${DESTDIR}${PREFIX}/bin/${BIN}
+	for f in ${USER_BINS}; do \
+	    ${STRIP} ${DESTDIR}${PREFIX}/bin/$${f}; \
+	done
+	for f in ${SYS_BINS}; do \
+	    ${STRIP} ${DESTDIR}${PREFIX}/sbin/$${f}; \
+	done
 
 help:
 	@printf "Usage: make [VARIABLE=value ...] all\n\n"

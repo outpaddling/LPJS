@@ -1,57 +1,64 @@
-config.o: config.c ../local/include/xtend/dsv.h node-list.h node.h \
-  config.h lpjs.h
+config.o: config.c /usr/local/include/xtend/dsv.h node-list.h node.h \
+  config.h lpjs.h job-list.h job.h
 	${CC} -c ${CFLAGS} config.c
 
-job-list.o: job-list.c ../local/include/xtend/dsv.h \
-  ../local/include/xtend/string.h job-list.h job.h lpjs.h node-list.h \
+job-list.o: job-list.c /usr/local/include/xtend/dsv.h \
+  /usr/local/include/xtend/string.h job-list.h job.h lpjs.h node-list.h \
   node.h
 	${CC} -c ${CFLAGS} job-list.c
 
-job.o: job.c ../local/include/xtend/dsv.h job.h network.h node-list.h \
-  node.h lpjs.h
+job.o: job.c /usr/local/include/xtend/dsv.h job.h network.h node-list.h \
+  node.h lpjs.h job-list.h
 	${CC} -c ${CFLAGS} job.c
 
 lpjs-chaperone.o: lpjs-chaperone.c node-list.h node.h config.h network.h \
-  misc.h lpjs.h
+  misc.h lpjs.h job-list.h job.h
 	${CC} -c ${CFLAGS} lpjs-chaperone.c
 
-lpjs-dispatch.o: lpjs-dispatch.c node-list.h node.h config.h scheduler.h \
-  network.h misc.h lpjs.h
-	${CC} -c ${CFLAGS} lpjs-dispatch.c
+lpjs-compd.o: lpjs-compd.c
+	${CC} -c ${CFLAGS} lpjs-compd.c
 
-lpjs-jobs.o: lpjs-jobs.c node-list.h node.h config.h network.h lpjs.h
+lpjs-dispatchd.o: lpjs-dispatchd.c /usr/local/include/munge.h lpjs.h \
+  node-list.h node.h job-list.h job.h config.h scheduler.h network.h \
+  misc.h
+	${CC} -c ${CFLAGS} lpjs-dispatchd.c
+
+lpjs-jobs.o: lpjs-jobs.c node-list.h node.h config.h network.h lpjs.h \
+  job-list.h job.h
 	${CC} -c ${CFLAGS} lpjs-jobs.c
 
 lpjs-node-specs.o: lpjs-node-specs.c
 	${CC} -c ${CFLAGS} lpjs-node-specs.c
 
-lpjs-nodes.o: lpjs-nodes.c node-list.h node.h config.h network.h lpjs.h
+lpjs-nodes.o: lpjs-nodes.c node-list.h node.h config.h network.h lpjs.h \
+  job-list.h job.h
 	${CC} -c ${CFLAGS} lpjs-nodes.c
 
-lpjs-submit.o: lpjs-submit.c node-list.h node.h config.h network.h misc.h \
-  lpjs.h
+lpjs-submit.o: lpjs-submit.c /usr/local/include/munge.h node-list.h \
+  node.h config.h network.h misc.h lpjs.h job-list.h job.h
 	${CC} -c ${CFLAGS} lpjs-submit.c
 
-misc.o: misc.c
+misc.o: misc.c /usr/local/include/xtend/string.h
 	${CC} -c ${CFLAGS} misc.c
 
-network.o: network.c ../local/include/xtend/string.h node-list.h node.h \
+network.o: network.c /usr/local/include/xtend/string.h node-list.h node.h \
   network.h
 	${CC} -c ${CFLAGS} network.c
 
 node-list-mutators.o: node-list-mutators.c \
-  ../local/include/xtend/string.h node-list.h node.h
+  /usr/local/include/xtend/string.h node-list.h node.h
 	${CC} -c ${CFLAGS} node-list-mutators.c
 
-node-list.o: node-list.c ../local/include/xtend/dsv.h \
-  ../local/include/xtend/string.h node-list.h node.h lpjs.h
+node-list.o: node-list.c /usr/local/include/xtend/dsv.h \
+  /usr/local/include/xtend/string.h node-list.h node.h network.h lpjs.h \
+  job-list.h job.h
 	${CC} -c ${CFLAGS} node-list.c
 
-node-mutators.o: node-mutators.c ../local/include/xtend/string.h node.h
+node-mutators.o: node-mutators.c /usr/local/include/xtend/string.h node.h
 	${CC} -c ${CFLAGS} node-mutators.c
 
-node.o: node.c ../local/include/xtend/dsv.h node.h network.h node-list.h \
-  lpjs.h
+node.o: node.c /usr/local/include/xtend/dsv.h node.h network.h \
+  node-list.h lpjs.h job-list.h job.h
 	${CC} -c ${CFLAGS} node.c
 
 scheduler.o: scheduler.c node-list.h node.h
