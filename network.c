@@ -7,6 +7,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <stdarg.h>
 #include "xtend/string.h"   // strlcpy() on Linux
 #include "node-list.h"
 #include "network.h"
@@ -93,4 +94,20 @@ int     print_response(int msg_fd, const char *caller_name)
 	return EX_IOERR;
     }
     return EX_OK;
+}
+
+
+int     send_msg(int msg_fd, const char *format, ...)
+
+{
+    va_list     ap;
+    int         status;
+    char        zero = '\0';
+    
+    va_start(ap, format);
+    status = vdprintf(msg_fd, format, ap);
+    write(msg_fd, &zero, 1);
+    va_end(ap);
+    
+    return status;
 }

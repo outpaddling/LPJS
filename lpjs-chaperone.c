@@ -50,19 +50,13 @@ int     main (int argc, char *argv[])
     /* Need to send \0, so dprintf() doesn't work here */
     argv_to_cmd(cmd, argv, LPJS_CMD_MAX + 1);
     status = system(cmd);
-    snprintf(msg, LPJS_MSG_MAX + 1,
-	     "job-complete\n"
-	     "cmd: %s\n"
-	     "status: %d",
-	     cmd, status);
-    if ( write(msg_fd, msg, strlen(msg) + 1) == -1 )
+    if ( send_msg(msg_fd, "job-complete\ncmd: %s\nstatus: %d\n",
+		  cmd, status) < 0 )
     {
 	perror("lpjs-nodes: Failed to send message to dispatch");
 	close(msg_fd);
 	return EX_IOERR;
     }
-
-    // print_response(msg_fd, "lpjs-nodes");
     close (msg_fd);
 
     return EX_OK;
