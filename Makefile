@@ -48,17 +48,17 @@
 ############################################################################
 # Installed targets
 
-BIN         = lpjs-dispatchd
-SYS_BINS    = lpjs-dispatchd lpjs-compd
+BIN         = lpjs_dispatchd
+SYS_BINS    = lpjs_dispatchd lpjs_compd
 USER_BINS   = lpjs-node-specs lpjs-chaperone lpjs-nodes lpjs-jobs lpjs-submit
 
 ############################################################################
 # List object files that comprise BIN.
 
-DISPATCH_OBJS   = lpjs-dispatchd.o config.o node.o node-list.o misc.o \
+DISPATCH_OBJS   = lpjs_dispatchd.o config.o node.o node-list.o misc.o \
 		  node-list-mutators.o node-mutators.o scheduler.o network.o \
 		  job.o job-list.o
-COMPD_OBJS      = lpjs-compd.o
+COMPD_OBJS      = lpjs_compd.o
 NODE_SPECS_OBJS = lpjs-node-specs.o
 SCHEDULER_OBJS  = scheduler.o
 CHAPERONE_OBJS  = lpjs-chaperone.o config.o node-list.o node-list-mutators.o \
@@ -140,11 +140,11 @@ STRIP   ?= strip
 
 all:    ${USER_BINS} ${SYS_BINS}
 
-lpjs-dispatchd: ${DISPATCH_OBJS}
-	${LD} -o lpjs-dispatchd ${DISPATCH_OBJS} ${LDFLAGS}
+lpjs_dispatchd: ${DISPATCH_OBJS}
+	${LD} -o lpjs_dispatchd ${DISPATCH_OBJS} ${LDFLAGS}
 
-lpjs-compd: ${COMPD_OBJS}
-	${LD} -o lpjs-compd ${COMPD_OBJS} ${LDFLAGS}
+lpjs_compd: ${COMPD_OBJS}
+	${LD} -o lpjs_compd ${COMPD_OBJS} ${LDFLAGS}
 
 lpjs-node-specs: ${NODE_SPECS_OBJS}
 	${LD} -o lpjs-node-specs ${NODE_SPECS_OBJS} ${LDFLAGS}
