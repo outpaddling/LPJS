@@ -76,11 +76,11 @@ OBJS    = ${DISPATCH_OBJS} ${NODE_SPECS_OBJS} ${NODES_OBJS} ${JOBS_OBJS} \
 
 # Where to find local libraries and headers.  For MacPorts, override
 # with LOCALBASE=/opt/local.
-LOCALBASE   ?= ../local
+LOCALBASE   ?= /usr/local
 
 # Install in ../local, unless defined by the parent Makefile, the
 # environment, or a command line option such as PREFIX=/opt/local.
-PREFIX      ?= ${LOCALBASE}
+PREFIX      ?= ../local
 
 # Allow caller to override either MANPREFIX or MANDIR
 MANPREFIX   ?= ${PREFIX}
@@ -110,9 +110,9 @@ CPP         ?= cpp
 AR          ?= ar
 RANLIB      ?= ranlib
 
-INCLUDES    += -I${LOCALBASE}/include
+INCLUDES    += -I${LOCALBASE}/include -I${PREFIX}/include
 CFLAGS      += ${INCLUDES}
-LDFLAGS     += -L${LOCALBASE}/lib -lxtend
+LDFLAGS     += -L${LOCALBASE}/lib -lmunge -L${PREFIX}/lib -lxtend
 
 ############################################################################
 # Assume first command in PATH.  Override with full pathnames if necessary.

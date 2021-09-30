@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sysexits.h>
+#include <munge.h>
 #include "node-list.h"
 #include "config.h"
 #include "network.h"
@@ -16,9 +17,11 @@ int     main (int argc, char *argv[])
     char    buff[LPJS_MSG_MAX+1],
 	    cmd[LPJS_CMD_MAX + 150],
 	    remote_cmd[LPJS_CMD_MAX + 1] = "",
-	    host[128];
+	    host[128],
+	    *cred;
     unsigned cores;
     node_list_t node_list;
+    munge_err_t munge_status;
     
     if (argc < 2)
     {
@@ -37,10 +40,26 @@ int     main (int argc, char *argv[])
 
     if ( send_msg(msg_fd, "submit") < 0 )
     {
-	perror("lpjs-submit: Failed to send message to dispatch");
+	perror("lpjs-submit: Failed to send submit request to dispatch");
 	close(msg_fd);
 	return EX_IOERR;
     }
+    
+    if ( (munge_status = munge_encode(&cred, NULL, NULL, 0)) != EMUNGE_SUCCESS )
+    {
+	fputs("lpjs-submit: munge_encode() failed.\n", stderr);
+	fprintf(stderr, "Return code = %s\n", munge_strerror(munge_status));
+	return EX_UNAVAILABLE; // FIXME: Check actual error
+    }
+
+    if ( send_msg(msg_fd, cred) < 0 )
+    {
+	perror("lpjs-submit: Failed to send credential to dispatch");
+	close(msg_fd);
+	free(cred);
+	return EX_IOERR;
+    }
+    free(cred);
     
     if ( (bytes = read(msg_fd, buff, LPJS_MSG_MAX+1)) == -1 )
     {
