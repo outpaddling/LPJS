@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sysexits.h>
+#include <munge.h>
 #include "node-list.h"
 #include "config.h"
 #include "network.h"
@@ -24,7 +25,11 @@ int     main (int argc, char *argv[])
     int         msg_fd,
 		status;
     node_list_t node_list;
-    char        cmd[LPJS_CMD_MAX + 1] = "";
+    char        cmd[LPJS_CMD_MAX + 1] = "",
+		buff[LPJS_MSG_MAX + 1],
+		*cred;
+    munge_err_t munge_status;
+    ssize_t     bytes;
     
     if (argc != 1)
     {
@@ -51,6 +56,37 @@ int     main (int argc, char *argv[])
 	close(msg_fd);
 	return EX_IOERR;
     }
+
+    if ( (munge_status = munge_encode(&cred, NULL, NULL, 0)) != EMUNGE_SUCCESS )
+    {
+	fputs("lpjs-submit: munge_encode() failed.\n", stderr);
+	fprintf(stderr, "Return code = %s\n", munge_strerror(munge_status));
+	return EX_UNAVAILABLE; // FIXME: Check actual error
+    }
+
+    if ( send_msg(msg_fd, cred) < 0 )
+    {
+	perror("lpjs-submit: Failed to send credential to dispatch");
+	close(msg_fd);
+	free(cred);
+	return EX_IOERR;
+    }
+    free(cred);
+    
+    // Now keep daemon running, awaiting jobs
+    // FIXME: Block read until message received instead of sleep
+    while ( (bytes = read(msg_fd, buff, LPJS_MSG_MAX+1)) == 0 )
+	sleep(10);
+    
+    if ( bytes == -1 )
+    {
+	perror("lpjs-submit: Failed to read response from dispatch");
+	close(msg_fd);
+	return EX_IOERR;
+    }
+    // FIXME: null-terminate in sender
+    buff[bytes] = '\0';
+    puts(buff);
     close (msg_fd);
 
     return EX_OK;

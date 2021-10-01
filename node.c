@@ -24,6 +24,7 @@ void    node_init(node_t *node)
     node->os = "Unknown";
     node->arch = "Unknown";
     node->state = "Down";
+    node->socket_fd = -1;
 }
 
 

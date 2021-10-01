@@ -139,7 +139,35 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	}
 
 	/* Process request */
-	if ( strcmp(incoming_msg, "nodes") == 0 )
+	// FIXME: Check for duplicate checkins.  We should not get
+	// a checkin request while one is already open
+	if ( memcmp(incoming_msg, "compd-checkin", 13) == 0 )
+	{
+	    lpjs_log("compd checkin.\n");
+	    /* Get munge credential */
+	    // FIXME: What is the maximum cred length?
+	    if ( (bytes = read(msg_fd, incoming_msg, 4096)) == - 1)
+	    {
+		lpjs_log("read() failed: %s", strerror(errno));
+		return EX_IOERR;
+	    }
+	    munge_status = munge_decode(incoming_msg, NULL, NULL, 0, &uid, &gid);
+	    if ( munge_status != EMUNGE_SUCCESS )
+		lpjs_log("munge_decode() failed.  Error = %s\n",
+			 munge_strerror(munge_status));
+	    lpjs_log("Checkin from %d, %d\n", uid, gid);
+	    
+	    // FIXME: Only accept connections from root
+
+	    /*
+	     *  Get specs from node and add msg_fd
+	     */
+	    
+	    // get_node_specs(msg_fd);
+	    // node_set_socket_fd(node, msg_fd);
+	    // Acknoledge checkin
+	}
+	else if ( strcmp(incoming_msg, "nodes") == 0 )
 	{
 	    lpjs_log("Request for node status.\n");
 	    node_list_send_specs(msg_fd, node_list);
@@ -171,10 +199,6 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	{
 	    lpjs_log("Job completion report.\n");
 	    log_job(incoming_msg);
-	}
-	else if ( memcmp(incoming_msg, "compd-checkin", 13) == 0 )
-	{
-	    lpjs_log("compd checkin.\n");
 	}
 	close(msg_fd);
     }
