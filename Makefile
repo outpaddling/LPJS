@@ -49,8 +49,8 @@
 # Installed targets
 
 BIN         = lpjs_dispatchd
-SYS_BINS    = lpjs_dispatchd lpjs_compd
-USER_BINS   = lpjs-node-specs lpjs-chaperone lpjs-nodes lpjs-jobs lpjs-submit
+SYS_BINS    = lpjs_dispatchd lpjs_compd lpjs-chaperone lpjs-node-specs
+USER_BINS   = lpjs-nodes lpjs-jobs lpjs-submit
 
 ############################################################################
 # List object files that comprise BIN.
@@ -70,8 +70,8 @@ JOBS_OBJS       = lpjs-jobs.o config.o node-list.o node-list-mutators.o \
 		  node.o node-mutators.o network.o
 SUBMIT_OBJS     = lpjs-submit.o config.o node-list.o node-list-mutators.o \
 		  node.o node-mutators.o network.o misc.o
-OBJS    = ${DISPATCH_OBJS} ${NODE_SPECS_OBJS} ${NODES_OBJS} ${JOBS_OBJS} \
-	  ${SUBMIT_OBJS} ${SCHEDULER_OBJS} ${COMPD_OBJS}
+OBJS    = ${DISPATCH_OBJS} ${COMPD_OBJS} ${NODE_SPECS_OBJS} ${SCHEDULER_OBJS} \
+	  ${CHAPERONE_OBJS} ${NODES_OBJS} ${JOBS_OBJS} ${SUBMIT_OBJS}
 
 ############################################################################
 # Compile, link, and install options

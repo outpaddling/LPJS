@@ -30,7 +30,8 @@ lpjs-submit.o: lpjs-submit.c /usr/local/include/munge.h node-list.h \
   node.h config.h network.h misc.h lpjs.h job-list.h job.h
 	${CC} -c ${CFLAGS} lpjs-submit.c
 
-lpjs_compd.o: lpjs_compd.c
+lpjs_compd.o: lpjs_compd.c node-list.h node.h config.h network.h misc.h \
+  lpjs.h job-list.h job.h
 	${CC} -c ${CFLAGS} lpjs_compd.c
 
 lpjs_dispatchd.o: lpjs_dispatchd.c /usr/local/include/munge.h lpjs.h \
