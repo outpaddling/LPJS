@@ -65,9 +65,9 @@ SCHEDULER_OBJS  = scheduler.o
 CHAPERONE_OBJS  = lpjs-chaperone.o config.o node-list.o node-list-mutators.o \
 		  node.o node-mutators.o network.o misc.o
 NODES_OBJS      = lpjs-nodes.o config.o node-list.o node-list-mutators.o \
-		  node.o node-mutators.o network.o
+		  node.o node-mutators.o network.o misc.o
 JOBS_OBJS       = lpjs-jobs.o config.o node-list.o node-list-mutators.o \
-		  node.o node-mutators.o network.o
+		  node.o node-mutators.o network.o misc.o
 SUBMIT_OBJS     = lpjs-submit.o config.o node-list.o node-list-mutators.o \
 		  node.o node-mutators.o network.o misc.o
 OBJS    = ${DISPATCH_OBJS} ${COMPD_OBJS} ${NODE_SPECS_OBJS} ${SCHEDULER_OBJS} \
@@ -99,7 +99,7 @@ MANDIR      ?= ${MANPREFIX}/man
 # Defaults that should work with GCC and Clang.
 CC          ?= cc
 CFLAGS      ?= -Wall -g -O
-CFLAGS      += -DLOCALBASE='"${LOCALBASE}"'
+CFLAGS      += -DPREFIX='"${PREFIX}"'
 
 # Link command:
 # Use ${FC} to link when mixing C and Fortran

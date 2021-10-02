@@ -6,6 +6,7 @@
 #include <xtend/dsv.h>
 #include "node-list.h"
 #include "config.h"
+#include "misc.h"
 #include "lpjs.h"
 
 int     lpjs_load_config(node_list_t *node_list, int flags)
@@ -17,7 +18,7 @@ int     lpjs_load_config(node_list_t *node_list, int flags)
     int     delim;
     size_t  len;
     
-    snprintf(config_file, PATH_MAX+1, "%s/etc/lpjs/config", LOCALBASE);
+    snprintf(config_file, PATH_MAX+1, "%s/etc/lpjs/config", PREFIX);
     // printf("Loading config file %s...\n", config_file);
     if ( (config_fp = fopen(config_file, "r")) == NULL )
     {
@@ -63,7 +64,8 @@ int     lpjs_load_config(node_list_t *node_list, int flags)
 	    dsv_skip_rest_of_line(config_fp);
 	}
     }
-    // printf("%u nodes found.\n", node_list->count);
+    if ( flags == LPJS_CONFIG_ALL )
+	lpjs_log("%u compute nodes found.\n", node_list->count);
     fclose(config_fp);
     return delim;
 }

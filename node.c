@@ -23,7 +23,7 @@ void    node_init(node_t *node)
     node->zfs = 0;
     node->os = "Unknown";
     node->arch = "Unknown";
-    node->state = "Down";
+    node->state = "Unknown";
     node->socket_fd = -1;
 }
 
@@ -50,7 +50,7 @@ int     node_get_specs(node_t *node)
     // FIXME: This is not such a reliable test
     if ( *field == '\0' )
     {
-	node->state = "Down";
+	node->state = "Unknown";
 	node->os = "Unknown";
 	node->arch = "Unknown";
     }

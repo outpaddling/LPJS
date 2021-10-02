@@ -32,9 +32,8 @@ int     node_list_add_compute(node_list_t *node_list, FILE *fp,
 	    (delim != EOF) )
     {
 	strtrim(field, " ");
+	node_init(&node_list->compute_nodes[node_list->count]);
 	node_set_hostname(&node_list->compute_nodes[node_list->count], strdup(field));
-	node_get_specs(&node_list->compute_nodes[node_list->count]);
-	// node_print_specs(&node_list->compute_nodes[node_list->count]);
 	++node_list->count;
     }
     if ( delim == EOF )
@@ -42,10 +41,11 @@ int     node_list_add_compute(node_list_t *node_list, FILE *fp,
 	fprintf(stderr, "Unexpected EOF reading %s.\n", conf_file);
 	exit(EX_DATAERR);
     }
+    
+    // Add last node read by while condition
     strtrim(field, " ");
+    node_init(&node_list->compute_nodes[node_list->count]);
     node_set_hostname(&node_list->compute_nodes[node_list->count], strdup(field));
-    node_get_specs(&node_list->compute_nodes[node_list->count]);
-    // node_print_specs(&node_list->compute_nodes[node_list->count]);
     ++node_list->count;
     return 0;   // NL_OK?
 }
