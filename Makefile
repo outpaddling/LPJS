@@ -49,7 +49,7 @@
 # Installed targets
 
 BIN         = lpjs_dispatchd
-SYS_BINS    = lpjs_dispatchd lpjs_compd lpjs-chaperone lpjs-node-specs
+SYS_BINS    = lpjs_dispatchd lpjs_compd lpjs-chaperone
 USER_BINS   = lpjs-nodes lpjs-jobs lpjs-submit
 
 ############################################################################
@@ -60,7 +60,6 @@ DISPATCH_OBJS   = lpjs_dispatchd.o config.o node.o node-list.o misc.o \
 		  job.o job-list.o
 COMPD_OBJS      = lpjs_compd.o network.o config.o misc.o node-list.o node.o \
 		  node-mutators.o node-list-mutators.o
-NODE_SPECS_OBJS = lpjs-node-specs.o
 SCHEDULER_OBJS  = scheduler.o
 CHAPERONE_OBJS  = lpjs-chaperone.o config.o node-list.o node-list-mutators.o \
 		  node.o node-mutators.o network.o misc.o
@@ -146,9 +145,6 @@ lpjs_dispatchd: ${DISPATCH_OBJS}
 
 lpjs_compd: ${COMPD_OBJS}
 	${LD} -o lpjs_compd ${COMPD_OBJS} ${LDFLAGS}
-
-lpjs-node-specs: ${NODE_SPECS_OBJS}
-	${LD} -o lpjs-node-specs ${NODE_SPECS_OBJS} ${LDFLAGS}
 
 lpjs-chaperone: ${CHAPERONE_OBJS}
 	${LD} -o lpjs-chaperone ${CHAPERONE_OBJS} ${LDFLAGS}

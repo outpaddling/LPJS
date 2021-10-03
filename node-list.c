@@ -59,5 +59,5 @@ void    node_list_send_specs(int msg_fd, node_list_t *node_list)
     dprintf(msg_fd, NODE_SPEC_HEADER_FORMAT, "Hostname", "State",
 	    "Cores", "Used", "Physmem", "Used", "OS", "Arch");
     for (c = 0; c < node_list->count; ++c)
-	node_send_specs(msg_fd, &node_list->compute_nodes[c]);
+	node_send_specs(&node_list->compute_nodes[c], msg_fd);
 }

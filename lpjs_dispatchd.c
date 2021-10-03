@@ -163,6 +163,8 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	     *  Get specs from node and add msg_fd
 	     */
 	    
+	    send_msg(msg_fd, "Ident verified.\n");
+	    print_response(msg_fd, "lpjs_dispatchd");
 	    // get_node_specs(msg_fd);
 	    // node_set_socket_fd(node, msg_fd);
 	    // Acknoledge checkin

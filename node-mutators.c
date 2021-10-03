@@ -350,7 +350,7 @@ int     node_set_mem(node_t *node_ptr, unsigned long new_mem)
 	return LPSC_NODE_DATA_OUT_OF_RANGE;
     else
     {
-	node_ptr->mem = new_mem;
+	node_ptr->phys_mem = new_mem;
 	return LPSC_NODE_DATA_OK;
     }
 }
@@ -408,7 +408,7 @@ int     node_set_mem_used(node_t *node_ptr, unsigned long new_mem_used)
 	return LPSC_NODE_DATA_OUT_OF_RANGE;
     else
     {
-	node_ptr->mem_used = new_mem_used;
+	node_ptr->phys_mem_used = new_mem_used;
 	return LPSC_NODE_DATA_OK;
     }
 }

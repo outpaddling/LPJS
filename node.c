@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sysexits.h>
+#include <sys/utsname.h>
 #include <xtend/dsv.h>
 #include "node.h"
 #include "network.h"
@@ -16,8 +17,8 @@ void    node_init(node_t *node)
 
 {
     node->hostname = NULL;
-    node->mem = 0;
-    node->mem_used = 0;
+    node->phys_mem = 0;
+    node->phys_mem_used = 0;
     node->cores = 0;
     node->cores_used = 0;
     node->zfs = 0;
@@ -72,7 +73,7 @@ int     node_get_specs(node_t *node)
 	    exit(EX_DATAERR);
 	}
 	dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
-	node->mem = strtoul(field, &end, 10);
+	node->phys_mem = strtoul(field, &end, 10);
 	
 	dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
 	if ( strcmp(field, "ZFS") != 0 )
@@ -112,11 +113,11 @@ void    node_print_specs(node_t *node)
 {
     printf(NODE_SPEC_FORMAT, node->hostname, node->state,
 	   node->cores, node->cores_used,
-	   node->mem, node->mem_used, node->os, node->arch);
+	   node->phys_mem, node->phys_mem_used, node->os, node->arch);
 }
 
 
-void    node_send_specs(int msg_fd, node_t *node)
+void    node_send_specs(node_t *node, int msg_fd)
 
 {
     /*
@@ -125,9 +126,45 @@ void    node_send_specs(int msg_fd, node_t *node)
      */
     if ( dprintf(msg_fd, NODE_SPEC_FORMAT, node->hostname, node->state,
 		 node->cores, node->cores_used,
-		 node->mem, node->mem_used, node->os, node->arch) < 0 )
+		 node->phys_mem, node->phys_mem_used, node->os, node->arch) < 0 )
     {
 	perror("send_node_specs(): dprintf() failed");
 	exit(EX_IOERR);
     }
+}
+
+
+void    node_detect_specs(node_t *node)
+
+{
+    struct utsname  u_name;
+    char            temp_hostname[sysconf(_SC_HOST_NAME_MAX)+1];
+    
+    /*
+     *  hwloc is extremely complex and we don't need most of its functionality
+     *  here, so just gather info the simple way
+     */
+
+    node_init(node);
+    
+    // FIXME: Verify malloc() success
+    gethostname(temp_hostname, sysconf(_SC_HOST_NAME_MAX));
+    node->hostname = strdup(temp_hostname);
+    node->cores = sysconf(_SC_NPROCESSORS_ONLN);
+    node->phys_mem = sysconf(_SC_PAGESIZE) * sysconf(_SC_PHYS_PAGES)
+		     / 1024 / 1024;
+    printf("CPUs\t%u\n", node->cores);
+    printf("Physmem\t%lu\n", node->phys_mem);
+    /*
+     *  Report 1 if ZFS filesystem found, so that additional memory
+     *  can be reserved on compute nodes.
+     *  FIXME: There should be a better approach to this.
+     */
+    node->zfs = ! system("mount | fgrep -q zfs");
+    printf("ZFS\t%u\n", node->zfs);
+    uname(&u_name);
+    // FIXME: Verify malloc() success
+    node->os = strdup(u_name.sysname);
+    node->arch = strdup(u_name.machine);
+    printf("OS\t%s\nArch\t%s\n", node->os, node->arch);
 }

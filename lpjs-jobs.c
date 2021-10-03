@@ -48,7 +48,7 @@ int     main(int argc,char *argv[])
 	return EX_IOERR;
     }
     
-    print_response(msg_fd, "lpjs-nodes");
+    print_response(msg_fd, "lpjs-jobs");
     close (msg_fd);
 
     return EX_OK;

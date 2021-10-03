@@ -6,8 +6,8 @@ typedef struct
     char            *hostname;
     unsigned        cores;
     unsigned        cores_used;
-    unsigned long   mem;
-    unsigned long   mem_used;
+    unsigned long   phys_mem;
+    unsigned long   phys_mem_used;
     int             zfs;        // 0 or 1
     char            *os;
     char            *arch;
@@ -85,7 +85,8 @@ typedef struct
 void    node_init(node_t *node);
 int     node_get_specs(node_t *node);
 void    node_print_specs(node_t *node);
-void    node_send_specs(int fd, node_t *node);
+void    node_send_specs(node_t *node, int fd);
+void    node_detect_specs(node_t *node);
 
 /* node-mutators.c */
 int node_set_hostname(node_t *node_ptr, char *new_hostname);
