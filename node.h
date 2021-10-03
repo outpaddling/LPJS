@@ -15,8 +15,8 @@ typedef struct
     int             socket_fd;
 }   node_t;
 
-#define NODE_SPEC_HEADER_FORMAT "%-12s %-8s %5s %4s %7s %7s %-7s %-9s\n"
-#define NODE_SPEC_FORMAT        "%-12s %-8s %5u %4u %7lu %7lu %-7s %-9s\n"
+#define NODE_STATUS_HEADER_FORMAT "%-12s %-8s %5s %4s %7s %7s %-7s %-9s\n"
+#define NODE_STATUS_FORMAT        "%-12s %-8s %5u %4u %7lu %7lu %-7s %-9s\n"
 
 /* Return values for mutator functions */
 #define LPSC_NODE_DATA_OK              0
@@ -37,8 +37,8 @@ typedef struct
 #define NODE_HOSTNAME_AE(ptr,c)         ((ptr)->hostname[c])
 #define NODE_CORES(ptr)                 ((ptr)->cores)
 #define NODE_CORES_USED(ptr)            ((ptr)->cores_used)
-#define NODE_MEM(ptr)                   ((ptr)->mem)
-#define NODE_MEM_USED(ptr)              ((ptr)->mem_used)
+#define NODE_PHYS_MEM(ptr)              ((ptr)->phys_mem)
+#define NODE_PHYS_MEM_USED(ptr)         ((ptr)->phys_mem_used)
 #define NODE_ZFS(ptr)                   ((ptr)->zfs)
 #define NODE_OS(ptr)                    ((ptr)->os)
 #define NODE_OS_AE(ptr,c)               ((ptr)->os[c])
@@ -67,8 +67,8 @@ typedef struct
 #define NODE_SET_HOSTNAME_AE(ptr,c,val)         ((ptr)->hostname[c] = (val))
 #define NODE_SET_CORES(ptr,val)                 ((ptr)->cores = (val))
 #define NODE_SET_CORES_USED(ptr,val)            ((ptr)->cores_used = (val))
-#define NODE_SET_MEM(ptr,val)                   ((ptr)->mem = (val))
-#define NODE_SET_MEM_USED(ptr,val)              ((ptr)->mem_used = (val))
+#define NODE_SET_PHYS_MEM(ptr,val)              ((ptr)->mem = (val))
+#define NODE_SET_PHYS_MEM_USED(ptr,val)         ((ptr)->mem_used = (val))
 #define NODE_SET_ZFS(ptr,val)                   ((ptr)->zfs = (val))
 #define NODE_SET_OS(ptr,val)                    ((ptr)->os = (val))
 #define NODE_SET_OS_CPY(ptr,val,array_size)     strlcpy((ptr)->os,val,array_size)
@@ -83,10 +83,11 @@ typedef struct
 
 /* node.c */
 void    node_init(node_t *node);
-int     node_get_specs(node_t *node);
-void    node_print_specs(node_t *node);
+void    node_print_status(node_t *node);
 void    node_send_specs(node_t *node, int fd);
+void    node_send_status(node_t *node, int fd);
 void    node_detect_specs(node_t *node);
+int     node_receive_specs(node_t *node, int msg_fd);
 
 /* node-mutators.c */
 int node_set_hostname(node_t *node_ptr, char *new_hostname);
@@ -94,8 +95,8 @@ int node_set_hostname_ae(node_t *node_ptr, size_t c, char new_hostname_element);
 int node_set_hostname_cpy(node_t *node_ptr, char *new_hostname, size_t array_size);
 int node_set_cores(node_t *node_ptr, unsigned new_cores);
 int node_set_cores_used(node_t *node_ptr, unsigned new_cores_used);
-int node_set_mem(node_t *node_ptr, unsigned long new_mem);
-int node_set_mem_used(node_t *node_ptr, unsigned long new_mem_used);
+int node_set_phys_mem(node_t *node_ptr, unsigned long new_phys_mem);
+int node_set_phys_mem_used(node_t *node_ptr, unsigned long new_phys_mem_used);
 int node_set_zfs(node_t *node_ptr, int new_zfs);
 int node_set_os(node_t *node_ptr, char *new_os);
 int node_set_os_ae(node_t *node_ptr, size_t c, char new_os_element);

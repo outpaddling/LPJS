@@ -342,7 +342,7 @@ int     node_set_cores_used(node_t *node_ptr, unsigned new_cores_used)
  *  2021-10-01  gen-get-set Auto-generated from node.h
  ***************************************************************************/
 
-int     node_set_mem(node_t *node_ptr, unsigned long new_mem)
+int     node_set_phys_mem(node_t *node_ptr, unsigned long new_mem)
 
 {
     /* FIXME: Replace this with a proper sanity check */

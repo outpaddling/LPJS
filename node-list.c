@@ -51,13 +51,41 @@ int     node_list_add_compute(node_list_t *node_list, FILE *fp,
 }
 
 
-void    node_list_send_specs(int msg_fd, node_list_t *node_list)
+void    node_list_update_compute(node_list_t *node_list, node_t *node)
+
+{
+    size_t  c;
+    char    short_hostname[64],
+	    *first_dot;
+    
+    strlcpy(short_hostname, NODE_HOSTNAME(node), 64);
+    if ( (first_dot = strchr(short_hostname, '.')) != NULL )
+	*first_dot = '\0';
+    for (c = 0; c < node_list->count; ++c)
+    {
+	puts(NODE_HOSTNAME(&node_list->compute_nodes[c]));
+	if ( strcmp(NODE_HOSTNAME(&node_list->compute_nodes[c]), short_hostname) == 0 )
+	{
+	    printf("Updating compute node %zu %s\n", c, NODE_HOSTNAME(&node_list->compute_nodes[c]));
+	    node_set_state(&node_list->compute_nodes[c], "Up");
+	    node_set_cores(&node_list->compute_nodes[c], NODE_CORES(node));
+	    node_set_phys_mem(&node_list->compute_nodes[c], NODE_PHYS_MEM(node));
+	    node_set_zfs(&node_list->compute_nodes[c], NODE_ZFS(node));
+	    node_set_os(&node_list->compute_nodes[c], strdup(NODE_OS(node)));
+	    node_set_arch(&node_list->compute_nodes[c], strdup(NODE_ARCH(node)));
+	    return;
+	}
+    }
+}
+
+
+void    node_list_send_status(int msg_fd, node_list_t *node_list)
 
 {
     unsigned    c;
     
-    dprintf(msg_fd, NODE_SPEC_HEADER_FORMAT, "Hostname", "State",
+    dprintf(msg_fd, NODE_STATUS_HEADER_FORMAT, "Hostname", "State",
 	    "Cores", "Used", "Physmem", "Used", "OS", "Arch");
     for (c = 0; c < node_list->count; ++c)
-	node_send_specs(&node_list->compute_nodes[c], msg_fd);
+	node_send_status(&node_list->compute_nodes[c], msg_fd);
 }

@@ -83,6 +83,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
     uid_t       uid;
     gid_t       gid;
     munge_err_t munge_status;
+    node_t      new_node;
 
     /*
      *  Set handler so that Listen_fd is properly closed before termination.
@@ -163,16 +164,20 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	     *  Get specs from node and add msg_fd
 	     */
 	    
+	    // Debug
 	    send_msg(msg_fd, "Ident verified.\n");
-	    print_response(msg_fd, "lpjs_dispatchd");
-	    // get_node_specs(msg_fd);
+	    
+	    node_receive_specs(&new_node, msg_fd);
+	    node_print_status(&new_node);
+	    node_list_update_compute(node_list, &new_node);
+	    
 	    // node_set_socket_fd(node, msg_fd);
 	    // Acknoledge checkin
 	}
 	else if ( strcmp(incoming_msg, "nodes") == 0 )
 	{
 	    lpjs_log("Request for node status.\n");
-	    node_list_send_specs(msg_fd, node_list);
+	    node_list_send_status(msg_fd, node_list);
 	}
 	else if ( strcmp(incoming_msg, "jobs") == 0 )
 	{
