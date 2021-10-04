@@ -9,7 +9,7 @@
 #include "misc.h"
 #include "lpjs.h"
 
-int     lpjs_load_config(node_list_t *node_list, int flags)
+int     lpjs_load_config(node_list_t *node_list, int flags, FILE *error_stream)
 
 {
     FILE    *config_fp;
@@ -22,7 +22,7 @@ int     lpjs_load_config(node_list_t *node_list, int flags)
     // printf("Loading config file %s...\n", config_file);
     if ( (config_fp = fopen(config_file, "r")) == NULL )
     {
-	fprintf(stderr, "Cannot open %s.\n", config_file);
+	fprintf(error_stream, "Cannot open %s.\n", config_file);
 	exit(EX_NOINPUT);
     }
     node_list_init(node_list);
@@ -34,7 +34,7 @@ int     lpjs_load_config(node_list_t *node_list, int flags)
 	    if ( dsv_read_field(config_fp, field, LPJS_FIELD_MAX + 1, " \t", &len)
 		 != '\n' )
 	    {
-		fprintf(stderr, "load_config(): 'head' must be followed by a single hostname.\n");
+		fprintf(error_stream, "load_config(): 'head' must be followed by a single hostname.\n");
 		exit(EX_DATAERR);
 	    }
 
@@ -53,19 +53,20 @@ int     lpjs_load_config(node_list_t *node_list, int flags)
 	    if ( delim != EOF )
 	    {
 		if ( flags == LPJS_CONFIG_ALL )
-		    node_list_add_compute(node_list, config_fp, config_file);
+		    node_list_add_compute(node_list, config_fp, config_file,
+					  error_stream);
 		else
 		    dsv_skip_rest_of_line(config_fp);
 	    }
 	}
 	else
 	{
-	    printf("Skipping unknown tag %s...", field);
+	    fprintf(error_stream, "Skipping unknown tag %s...", field);
 	    dsv_skip_rest_of_line(config_fp);
 	}
     }
     if ( flags == LPJS_CONFIG_ALL )
-	fprintf(stderr, "%u compute nodes found.\n", node_list->count);
+	fprintf(error_stream, "%u compute nodes found.\n", node_list->count);
     fclose(config_fp);
     return delim;
 }

@@ -20,6 +20,9 @@
 #include "misc.h"
 #include "lpjs.h"
 
+// Must be global for signal handler
+FILE    *Log_stream;
+
 int     main (int argc, char *argv[])
 {
     int         msg_fd,
@@ -31,15 +34,32 @@ int     main (int argc, char *argv[])
 		*cred;
     munge_err_t munge_status;
     ssize_t     bytes;
-    
-    if (argc != 1)
+
+    if ( argc > 2 )
     {
-	fprintf (stderr, "Usage: %s\n", argv[0]);
+	fprintf (stderr, "Usage: %s [--daemonize]\n", argv[0]);
 	return EX_USAGE;
     }
-
+    else if ( (argc == 2) && (strcmp(argv[1],"--daemonize") == 0 ) )
+    {
+	/*
+	 *  Code run after this must not attempt to write to stdout or stderr
+	 *  since they will be closed.  Use lpjs_log() for all informative
+	 *  messages.
+	 */
+	Log_stream = fopen("/var/log/lpjs_compd", "a");
+	if ( Log_stream == NULL )
+	{
+	    perror("Cannot open /var/log/lpjs_compd");
+	    return EX_CANTCREAT;
+	}
+	daemon(0, 0);
+    }
+    else
+	Log_stream = stderr;
+    
     // Get hostname of head node
-    lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY);
+    lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, Log_stream);
 
     if ( (msg_fd = connect_to_dispatch(&node_list)) == -1 )
     {
@@ -60,8 +80,8 @@ int     main (int argc, char *argv[])
 
     if ( (munge_status = munge_encode(&cred, NULL, NULL, 0)) != EMUNGE_SUCCESS )
     {
-	fputs("lpjs-submit: munge_encode() failed.\n", stderr);
-	fprintf(stderr, "Return code = %s\n", munge_strerror(munge_status));
+	fputs("lpjs-submit: munge_encode() failed.\n", Log_stream);
+	fprintf(Log_stream, "Return code = %s\n", munge_strerror(munge_status));
 	return EX_UNAVAILABLE; // FIXME: Check actual error
     }
 
@@ -76,7 +96,7 @@ int     main (int argc, char *argv[])
     
     // Debug
     bytes = read(msg_fd, buff, LPJS_MSG_MAX+1);
-    puts(buff);
+    fprintf(Log_stream, "%s\n", buff);
     
     node_detect_specs(&node);
     node_send_specs(&node, msg_fd);
@@ -91,9 +111,10 @@ int     main (int argc, char *argv[])
 	close(msg_fd);
 	return EX_IOERR;
     }
-    puts(buff);
+    fprintf(Log_stream, "%s\n", buff);
 
-    close (msg_fd);
+    close(msg_fd);
+    fclose(Log_stream);
 
     return EX_OK;
 }

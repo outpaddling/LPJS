@@ -1,2 +1,2 @@
-head    moray
-compute coral
+head    coral
+compute herring,netbsd9,debian11

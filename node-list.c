@@ -19,15 +19,15 @@ void    node_list_init(node_list_t *node_list)
 }
 
 
-int     node_list_add_compute(node_list_t *node_list, FILE *fp,
-				const char *conf_file)
+int     node_list_add_compute(node_list_t *node_list, FILE *input_stream,
+			      const char *conf_file, FILE *error_stream)
 
 {
     int     delim;
     char    field[LPJS_FIELD_MAX+1];
     size_t  len;
     
-    while ( ((delim = dsv_read_field(fp, field, LPJS_FIELD_MAX+1,
+    while ( ((delim = dsv_read_field(input_stream, field, LPJS_FIELD_MAX+1,
 				     ",", &len)) != '\n') &&
 	    (delim != EOF) )
     {
@@ -38,7 +38,7 @@ int     node_list_add_compute(node_list_t *node_list, FILE *fp,
     }
     if ( delim == EOF )
     {
-	fprintf(stderr, "Unexpected EOF reading %s.\n", conf_file);
+	fprintf(error_stream, "Unexpected EOF reading %s.\n", conf_file);
 	exit(EX_DATAERR);
     }
     
@@ -51,7 +51,8 @@ int     node_list_add_compute(node_list_t *node_list, FILE *fp,
 }
 
 
-void    node_list_update_compute(node_list_t *node_list, node_t *node)
+void    node_list_update_compute(node_list_t *node_list, node_t *node,
+				 FILE *error_stream)
 
 {
     size_t  c;
@@ -63,10 +64,11 @@ void    node_list_update_compute(node_list_t *node_list, node_t *node)
 	*first_dot = '\0';
     for (c = 0; c < node_list->count; ++c)
     {
-	puts(NODE_HOSTNAME(&node_list->compute_nodes[c]));
+	fprintf(error_stream, "%s\n",
+		NODE_HOSTNAME(&node_list->compute_nodes[c]));
 	if ( strcmp(NODE_HOSTNAME(&node_list->compute_nodes[c]), short_hostname) == 0 )
 	{
-	    printf("Updating compute node %zu %s\n", c, NODE_HOSTNAME(&node_list->compute_nodes[c]));
+	    fprintf(error_stream, "Updating compute node %zu %s\n", c, NODE_HOSTNAME(&node_list->compute_nodes[c]));
 	    node_set_state(&node_list->compute_nodes[c], "Up");
 	    node_set_cores(&node_list->compute_nodes[c], NODE_CORES(node));
 	    node_set_phys_mem(&node_list->compute_nodes[c], NODE_PHYS_MEM(node));

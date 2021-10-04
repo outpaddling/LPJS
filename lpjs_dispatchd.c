@@ -29,7 +29,8 @@
 #include "network.h"
 #include "misc.h"
 
-int     Listen_fd;  // Must be global for signal handler
+// Must be global for signal handler
+int     Listen_fd;
 FILE    *Log_stream;
 
 int     main(int argc,char *argv[])
@@ -38,17 +39,18 @@ int     main(int argc,char *argv[])
     node_list_t node_list;
     job_list_t  job_list;
     
-    lpjs_load_config(&node_list, LPJS_CONFIG_ALL);
-    job_list_init(&job_list);
-
-    /*
-     *  Code run after this must not attempt to write to stdout or stderr
-     *  since they will be closed.  Use lpjs_log() for all informative
-     *  messages.
-     */
-    
-    if ( (argc == 2) && (strcmp(argv[1],"--daemonize") == 0 ) )
+    if ( argc > 2 )
     {
+	fprintf (stderr, "Usage: %s [--daemonize]\n", argv[0]);
+	return EX_USAGE;
+    }
+    else if ( (argc == 2) && (strcmp(argv[1],"--daemonize") == 0 ) )
+    {
+	/*
+	 *  Code run after this must not attempt to write to stdout or stderr
+	 *  since they will be closed.  Use lpjs_log() for all informative
+	 *  messages.
+	 */
 	Log_stream = fopen("/var/log/lpjs_dispatchd", "a");
 	if ( Log_stream == NULL )
 	{
@@ -60,6 +62,9 @@ int     main(int argc,char *argv[])
     else
 	Log_stream = stderr;
     
+    lpjs_load_config(&node_list, LPJS_CONFIG_ALL, Log_stream);
+    job_list_init(&job_list);
+
     return process_events(&node_list, &job_list);
 }
 
@@ -191,7 +196,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	    
 	    node_receive_specs(&new_node, msg_fd);
 	    node_print_status(&new_node);
-	    node_list_update_compute(node_list, &new_node);
+	    node_list_update_compute(node_list, &new_node, Log_stream);
 	    
 	    // node_set_socket_fd(node, msg_fd);
 	    // Acknoledge checkin
