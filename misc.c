@@ -20,27 +20,16 @@ void    argv_to_cmd(char *cmd, char *argv[], size_t buff_size)
 }
 
 
-int     lpjs_log(const char *format, ...)
+int     lpjs_log(FILE *stream, const char *format, ...)
 
 {
-    static FILE *stream = NULL;
     int         status;
     va_list     ap;
     
-    if ( isatty(fileno(stderr)) )
-	stream = stderr;
-    else if ( stream == NULL )
-    {
-	stream = fopen("/var/log/lpjs", "a");
-	if ( stream == NULL )
-	{
-	    perror("lpjs_log(): Cannot append /var/log/lpjs");
-	    exit(EX_CANTCREAT);
-	}
-    }
-    
     va_start(ap, format);
     status = vfprintf(stream, format, ap);
+    fflush(stream);
+    fsync(fileno(stream));
     va_end(ap);
     
     return status;
