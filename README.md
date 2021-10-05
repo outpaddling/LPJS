@@ -54,8 +54,9 @@ features, not implementing every feature someone thinks would be cool.
 - Complete portability: One of our primary goals is to foster research and
 development of HPC clusters using any POSIX operating system on any hardware
 or cloud platform.  You can run it on RHEL if you like, but you can also use
-Debian Linux, Dragonfly BSD, FreeBSD, MacOS, NetBSD, OpenBSD, Ubuntu, or
-any of the other dozens of Unix-like systems available.  In fact, you can
+Debian Linux, Dragonfly BSD, FreeBSD, Illumos, MacOS, NetBSD, OpenBSD,
+Ubuntu, or any of the other dozens of Unix-like systems available.  In fact,
+one can
 easily run a hybrid cluster with multiple different operating systems.  Our
 test environment includes 4 different operating systems + a Rock64 running
 FreeBSD:
@@ -69,6 +70,11 @@ netbsd9                            2     0    1023       0 NetBSD  amd64
 debian11                           1     0     976       0 Linux   x86_64
 abalone                            4     0    8192       0 Darwin  x86_64
 ```
+
+Windows machines can be utilized with some sort of POSIX compatibility
+layer, such as Cygwin, MSYS2, or WSL.  These systems have limitations and
+performance issues, however, so a virtual machine running a lightweight BSD
+or Linux system under Windows may be preferable.
 
 - Minimal configuration: HPC sysadmins should only be required to provide
 information that is difficult to determine automatically.  E.g. compute node
