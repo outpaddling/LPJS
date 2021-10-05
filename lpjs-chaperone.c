@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sysexits.h>
+#include <xtend/string.h>
 #include "node-list.h"
 #include "config.h"
 #include "network.h"
@@ -48,7 +49,7 @@ int     main (int argc, char *argv[])
 
     /* Send a message to the server */
     /* Need to send \0, so dprintf() doesn't work here */
-    str_argv_cat(cmd, argv, LPJS_CMD_MAX + 1);
+    str_argv_cat(cmd, argv, 1, LPJS_CMD_MAX + 1);
     status = system(cmd);
     if ( send_msg(msg_fd, "job-complete\ncmd: %s\nstatus: %d\n",
 		  cmd, status) < 0 )

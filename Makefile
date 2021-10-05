@@ -111,7 +111,7 @@ CPP         ?= cpp
 AR          ?= ar
 RANLIB      ?= ranlib
 
-INCLUDES    += -I${LOCALBASE}/include -I${PREFIX}/include
+INCLUDES    += -I${PREFIX}/include -I${LOCALBASE}/include
 CFLAGS      += ${INCLUDES}
 LDFLAGS     += -L${PREFIX}/lib -L${LOCALBASE}/lib -lmunge -lxtend
 
