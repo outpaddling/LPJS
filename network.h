@@ -10,7 +10,6 @@
 #include "node-list.h"
 #endif
 
-void resolve_hostname(const char *hostname, char *ip, size_t ip_buff_len);
 int connect_to_dispatch(node_list_t *node_list);
 int print_response(int msg_fd, const char *caller_name);
 int send_msg(int msg_fd, const char *format, ...);

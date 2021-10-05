@@ -113,7 +113,7 @@ RANLIB      ?= ranlib
 
 INCLUDES    += -I${LOCALBASE}/include -I${PREFIX}/include
 CFLAGS      += ${INCLUDES}
-LDFLAGS     += -L${LOCALBASE}/lib -lmunge -L${PREFIX}/lib -lxtend
+LDFLAGS     += -L${PREFIX}/lib -L${LOCALBASE}/lib -lmunge -lxtend
 
 ############################################################################
 # Assume first command in PATH.  Override with full pathnames if necessary.
