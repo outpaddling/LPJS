@@ -5,9 +5,12 @@
 We're just getting started here, laying out the framework and prioritizing
 development phases.
 
-Development will move slowly as we're carefully deliberating the
+Development will move slowly as we carefully deliberate the
 design and implementation of each new feature to ensure the highest possible
 code quality.
+
+The user interface may undergo significant changes as testing reveals
+oversights in design.
 
 We anticipate having a minimal working batch system in place sometime in
 2022.  Stay tuned...
@@ -19,15 +22,14 @@ scheduler and resource manager for HPC (High Performance Computing) clusters.
 
 Unlike other batch systems, LPJS is designed to be small, easy to deploy and
 manage, and portable to any
-POSIX platform.  Most existing batch systems are extremely complex (including
-our long-time favorite SLURM, which originally stood for "Simple Linux Utility
+POSIX platform.  Most existing batch systems are extremely complex, including
+our long-time favorite SLURM, which stands for "Simple Linux Utility
 for Resource Management", but is no longer simple by any stretch of the
-imagination).
+imagination.
 
-Overly complex HPC tools present a barrier to learning and implementing
-small-scale HPC, which is crucial for research groups who have no ready
-access to centralized HPC resources.
-In major research institutions, centralizing HPC into one massive cluster
+Overly complex HPC tools present a barrier to learning and research
+for those who have no ready access to centralized HPC resources.
+In major research institutions, centralizing HPC into large clusters
 can improve utilization of resources and reduce overall costs.  In many
 other venues, building a large cluster and staffing a support group is
 simply not feasible.
@@ -37,24 +39,26 @@ derivatives for good reasons.  For one thing, RHEL is the only platform
 besides Windows supported by many commercial science and engineering
 applications such as ANSYS, Fluent, Abacus, etc.  Unfortunately, RHEL uses
 older Linux kernels, compilers, and other tools, which makes it difficult to
-run the latest open source software.
+run the latest open source software.  Facilitating small-scale HPC on
+platforms other than RHEL can help address this issue.
 
 The LPJS project does not aim to compete for market share on top 500
 clusters.  In contrast, we are committed to serving the small-scale HPC
-niche that other
-HPC software has abandoned by adhering to the following design principals:
+niche that other HPC software has abandoned, by adhering to the following
+design principals:
 
 - KISS (Keep it simple, stupid): We will not allow LPJS to fall victim to
 creeping feature syndrome. We focus on maintaining high quality in essential
 features, not implementing every feature someone thinks would be cool.
 
-- Complete portability: Our primary intention is to foster research and
+- Complete portability: One of our primary goals is to foster research and
 development of HPC clusters using any POSIX operating system on any hardware
 or cloud platform.  You can run it on RHEL if you like, but you can also use
 Debian Linux, Dragonfly BSD, FreeBSD, MacOS, NetBSD, OpenBSD, Ubuntu, or
 any of the other dozens of Unix-like systems available.  In fact, you can
-run a hybrid cluster with multiple different operating systems.  Our test
-environment includes 4 different operating systems + a Rock64 running FreeBSD:
+easily run a hybrid cluster with multiple different operating systems.  Our
+test environment includes 4 different operating systems + a Rock64 running
+FreeBSD:
 
 ```
 FreeBSD moray.acadix  bacon ~/Prog/Src/LPJS 1029: lpjs-nodes 
@@ -84,8 +88,8 @@ efficiency.  Link together multiple laptops in the field for quick and
 dirty data analysis.  Quickly deploy on as many cloud instances as you need
 for this week's computations.
 
-Note that THERE IS NOTHING INHERENTLY COMPLICATED ABOUT AN HPC CLUSTER.
-In its most basic form, it's just a LAN with some software to manage
+Note that THERE IS NOTHING INHERENTLY COMPLICATED ABOUT AN HPC CLUSTER. In its
+most basic form, it's just a LAN with a file server and some software to manage
 computing resources.  One can make a cluster as complicated as they wish,
 but simple HPC clusters are both possible and useful.
 
@@ -95,7 +99,7 @@ source software, or experiment with alternative operating systems or
 hardware platforms.
 
 LPJS will require only functionality that can be implemented with reasonable
-effort on all POSIX platforms, including but not limited to:
+effort on any POSIX platform, including but not limited to:
 
 - Queuing of batch jobs
 
