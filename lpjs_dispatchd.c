@@ -65,6 +65,14 @@ int     main(int argc,char *argv[])
     lpjs_load_config(&node_list, LPJS_CONFIG_ALL, Log_stream);
     job_list_init(&job_list);
 
+    /*
+     *  Set handler so that Listen_fd is properly closed before termination.
+     *  Still getting bind(): address alread in use during testing
+     *  with its frequent restarts.  Possible clues:
+     *  https://hea-www.harvard.edu/~fine/Tech/addrinuse.html
+     */
+    signal(SIGINT, terminate_daemon);
+
     return process_events(&node_list, &job_list);
 }
 
@@ -81,7 +89,7 @@ int     main(int argc,char *argv[])
 void    terminate_daemon(int s2)
 
 {
-    lpjs_log(Log_stream, "lpjs-dispatch shutting down...\n");
+    lpjs_log(Log_stream, "lpjs_dispatch shutting down...\n");
     fclose(Log_stream);
     close(Listen_fd);
     exit(0);
@@ -112,14 +120,6 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
     munge_err_t munge_status;
     node_t      new_node;
 
-    /*
-     *  Set handler so that Listen_fd is properly closed before termination.
-     *  Still getting bind(): address alread in use during testing
-     *  with its frequent restarts.  Possible clues:
-     *  https://hea-www.harvard.edu/~fine/Tech/addrinuse.html
-     */
-    signal(SIGINT, terminate_daemon);
-    
     if ((Listen_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
 	lpjs_log(Log_stream, "Error opening socket.\n");

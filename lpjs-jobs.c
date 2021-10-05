@@ -1,9 +1,7 @@
 /***************************************************************************
  *  Description:
- *  
- *  Arguments:
- *
- *  Returns:
+ *      List currently running and queued jobs.  Job info is queried from
+ *      lpjs_dispatchd.
  *
  *  History: 
  *  Date        Name        Modification

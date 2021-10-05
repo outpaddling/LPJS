@@ -8,9 +8,14 @@
 #include "network.h"
 #include "lpjs.h"
 
-/*
- *  Constructor for node_list_t
- */
+/***************************************************************************
+ *  Description:
+ *      Constructor for node_list_t
+ *  
+ *  History: 
+ *  Date        Name        Modification
+ *  2021-09-24  Jason Bacon Begin
+ ***************************************************************************/
 
 void    node_list_init(node_list_t *node_list)
 
@@ -18,6 +23,15 @@ void    node_list_init(node_list_t *node_list)
     node_list->count = 0;
 }
 
+
+/***************************************************************************
+ *  Description:
+ *      Add a compute node to the list of configured nodes 
+ *  
+ *  History: 
+ *  Date        Name        Modification
+ *  2021-09-24  Jason Bacon Begin
+ ***************************************************************************/
 
 int     node_list_add_compute(node_list_t *node_list, FILE *input_stream,
 			      const char *conf_file, FILE *error_stream)
@@ -51,6 +65,16 @@ int     node_list_add_compute(node_list_t *node_list, FILE *input_stream,
 }
 
 
+/***************************************************************************
+ *  Description:
+ *      Update state and specs of a node after receiving info, e.g. from
+ *      lpjs_compd
+ *  
+ *  History: 
+ *  Date        Name        Modification
+ *  2021-10-02  Jason Bacon Begin
+ ***************************************************************************/
+
 void    node_list_update_compute(node_list_t *node_list, node_t *node,
 				 FILE *error_stream)
 
@@ -80,6 +104,15 @@ void    node_list_update_compute(node_list_t *node_list, node_t *node,
     }
 }
 
+
+/***************************************************************************
+ *  Description:
+ *      Send current node list to msg_fd in human-readable format
+ *  
+ *  History: 
+ *  Date        Name        Modification
+ *  2021-09-26  Jason Bacon Begin
+ ***************************************************************************/
 
 void    node_list_send_status(int msg_fd, node_list_t *node_list)
 

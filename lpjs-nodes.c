@@ -1,3 +1,13 @@
+/***************************************************************************
+ *  Description:
+ *      List currently running and queued nodes.  Node info is queried from
+ *      lpjs_dispatchd.
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2021-09-25  Jason Bacon Begin
+ ***************************************************************************/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

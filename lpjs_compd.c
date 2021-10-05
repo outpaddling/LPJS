@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sysexits.h>
+#include <signal.h>
 #include <munge.h>
 #include "node-list.h"
 #include "config.h"
@@ -57,6 +58,14 @@ int     main (int argc, char *argv[])
     }
     else
 	Log_stream = stderr;
+
+    /*
+     *  Set handler so that Listen_fd is properly closed before termination.
+     *  Still getting bind(): address alread in use during testing
+     *  with its frequent restarts.  Possible clues:
+     *  https://hea-www.harvard.edu/~fine/Tech/addrinuse.html
+     */
+    signal(SIGINT, terminate_daemon);
     
     // Get hostname of head node
     lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, Log_stream);
@@ -69,7 +78,7 @@ int     main (int argc, char *argv[])
 
     /* Send a message to the server */
     /* Need to send \0, so dprintf() doesn't work here */
-    argv_to_cmd(cmd, argv, LPJS_CMD_MAX + 1);
+    str_argv_cat(cmd, argv, LPJS_CMD_MAX + 1);
     status = system(cmd);
     if ( send_msg(msg_fd, "compd-checkin") < 0 )
     {
@@ -119,3 +128,20 @@ int     main (int argc, char *argv[])
     return EX_OK;
 }
 
+
+/***************************************************************************
+ *  Description:
+ *      Gracefully shut down in the event of an interrupt signal
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2021-09-28  Jason Bacon Begin
+ ***************************************************************************/
+
+void    terminate_daemon(int s2)
+
+{
+    lpjs_log(Log_stream, "lpjs_dispatch shutting down...\n");
+    fclose(Log_stream);
+    exit(0);
+}

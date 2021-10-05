@@ -12,6 +12,17 @@
 #include "node-list.h"
 #include "network.h"
 
+/***************************************************************************
+ *  Description:
+ *      Resolve a host name to an IP address.
+ *
+ *      FIXME: Make this a libxtend function?
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2021-09-28  Jason Bacon Begin
+ ***************************************************************************/
+
 void    resolve_hostname(const char *hostname, char *ip, size_t ip_buff_len)
 
 {
@@ -36,6 +47,15 @@ void    resolve_hostname(const char *hostname, char *ip, size_t ip_buff_len)
     strlcpy(ip, inet_ntoa(*address_list[0]), ip_buff_len);
 }
 
+
+/***************************************************************************
+ *  Description:
+ *      Open a socket connection to lpjs_dispatchd.
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2021-09-28  Jason Bacon Begin
+ ***************************************************************************/
 
 int     connect_to_dispatch(node_list_t *node_list)
 
@@ -75,6 +95,15 @@ int     connect_to_dispatch(node_list_t *node_list)
 }
 
 
+/***************************************************************************
+ *  Description:
+ *      Echo a response from msg_fd directly to stdout.
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2021-09-28  Jason Bacon Begin
+ ***************************************************************************/
+
 int     print_response(int msg_fd, const char *caller_name)
 
 {
@@ -84,6 +113,7 @@ int     print_response(int msg_fd, const char *caller_name)
     while ( (bytes = read(msg_fd, buff, LPJS_MSG_MAX + 1)) > 0 )
     {
 	buff[bytes] = '\0';
+	// FIXME: null-terminate at sender?
 	printf("%s", buff);
     }
     

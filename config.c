@@ -9,6 +9,16 @@
 #include "misc.h"
 #include "lpjs.h"
 
+/***************************************************************************
+ *  Description:
+ *      Load LPJS config file, which contains the names of the head node
+ *      and compute nodes.
+ *  
+ *  History: 
+ *  Date        Name        Modification
+ *  2021-09-23  Jason Bacon Begin
+ ***************************************************************************/
+
 int     lpjs_load_config(node_list_t *node_list, int flags, FILE *error_stream)
 
 {

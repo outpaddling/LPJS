@@ -9,9 +9,14 @@
 #include "network.h"
 #include "lpjs.h"
 
-/*
- *  Constructor for node_t
- */
+/***************************************************************************
+ *  Description:
+ *      Constructor for node_t
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2021-09-23  Jason Bacon Begin
+ ***************************************************************************/
 
 void    node_init(node_t *node)
 
@@ -28,6 +33,15 @@ void    node_init(node_t *node)
     node->socket_fd = -1;
 }
 
+
+/***************************************************************************
+ *  Description:
+ *      Detect hardware specs and OS of the node running this function
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2021-10-02  Jason Bacon Begin
+ ***************************************************************************/
 
 void    node_detect_specs(node_t *node)
 
@@ -65,6 +79,15 @@ void    node_detect_specs(node_t *node)
 }
 
 
+/***************************************************************************
+ *  Description:
+ *      Print current nodes in human-readable form
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2021-09-23  Jason Bacon Begin
+ ***************************************************************************/
+
 void    node_print_status(node_t *node)
 
 {
@@ -74,9 +97,15 @@ void    node_print_status(node_t *node)
 }
 
 
-/*
- *  Send data to lpjs-nodes
- */
+/***************************************************************************
+ *  Description:
+ *      Send current node info to msg_fd in human-readable form, e.g. in
+ *      response to lpjs-nodes
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2021-09-23  Jason Bacon Begin
+ ***************************************************************************/
 
 void    node_send_status(node_t *node, int msg_fd)
 
@@ -95,6 +124,16 @@ void    node_send_status(node_t *node, int msg_fd)
 }
 
 
+/***************************************************************************
+ *  Description:
+ *      Send node hardware and OS specs to msg_fd in
+ *      machine-readable for, e.g. from compd to dispatchd
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2021-10-02  Jason Bacon Begin
+ ***************************************************************************/
+
 void    node_send_specs(node_t *node, int msg_fd)
 
 {
@@ -111,6 +150,16 @@ void    node_send_specs(node_t *node, int msg_fd)
     }
 }
 
+
+/***************************************************************************
+ *  Description:
+ *      Receive node hardware and OS specs via msg_fd in
+ *      machine-readable for, e.g. from compd to dispatchd
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2021-10-02  Jason Bacon Begin
+ ***************************************************************************/
 
 int     node_receive_specs(node_t *node, int msg_fd)
 

@@ -1,3 +1,12 @@
+/***************************************************************************
+ *  Description:
+ *      Submit a job to lpjs_dispatchd.
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2021-09-28  Jason Bacon Begin
+ ***************************************************************************/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -76,7 +85,7 @@ int     main (int argc, char *argv[])
      */
     
     sscanf(buff, "%s %u", host, &cores);
-    argv_to_cmd(remote_cmd, argv, LPJS_CMD_MAX + 1);
+    str_argv_cat(remote_cmd, argv, LPJS_CMD_MAX + 1);
     puts(remote_cmd);
     snprintf(cmd, LPJS_CMD_MAX + 150, "ssh %s lpjs-chaperone %s\n",
 	     host, remote_cmd);

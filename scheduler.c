@@ -1,6 +1,15 @@
 #include <stdio.h>
 #include "node-list.h"
 
+/***************************************************************************
+ *  Description:
+ *      Add a job to the queue
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2021-09-30  Jason Bacon Begin
+ ***************************************************************************/
+
 int     queue_job(int msg_fd, const char *incoming_msg, node_list_t *node_list)
 
 {

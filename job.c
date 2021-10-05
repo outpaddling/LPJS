@@ -8,9 +8,14 @@
 #include "network.h"
 #include "lpjs.h"
 
-/*
- *  Constructor for job_t
- */
+/***************************************************************************
+ *  Description:
+ *      Constructor for job_t
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2021-09-28  Jason Bacon Begin
+ ***************************************************************************/
 
 void    job_init(job_t *job)
 
@@ -22,6 +27,15 @@ void    job_init(job_t *job)
 }
 
 
+/***************************************************************************
+ *  Description:
+ *      Print job parameters in a readable format
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2021-09-28  Jason Bacon Begin
+ ***************************************************************************/
+
 void    job_print_params(job_t *job)
 
 {
@@ -29,6 +43,15 @@ void    job_print_params(job_t *job)
 	   job->cores, job->mem_per_core);
 }
 
+
+/***************************************************************************
+ *  Description:
+ *      Send job parameters to msg_fd, e.g. in response to lpjs-jobs request
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2021-09-28  Jason Bacon Begin
+ ***************************************************************************/
 
 void    job_send_params(int msg_fd, job_t *job)
 
