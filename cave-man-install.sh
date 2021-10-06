@@ -14,23 +14,26 @@
 # Default to ../local if PREFIX is not set
 : ${PREFIX:=../local}
 
-# Need separate LOCALBASE to find munge installed by FreeBSD ports or pkgsrc
-if [ -z $LOCALBASE ]; then
-    for d in /usr/local ~/Pkgsrc/pkg /usr/pkg /opt/pkg; do
-	if [ -e $d ]; then
-	    break;
-	fi
-    done
-fi
-LOCALBASE=$d
-printf "LOCALBASE = $LOCALBASE  PREFIX = $PREFIX\n"
-export PREFIX LOCALBASE
-
 # OS-dependent tricks
 # Set rpath to avoid picking up libs installed by package managers in
 # /usr/local/lib, etc.
 case $(uname) in
+FreeBSD)
+    ;;
+
 *)
+    # Need separate LOCALBASE to find munge installed by FreeBSD ports or pkgsrc
+    if [ -z $LOCALBASE ]; then
+	for d in ~/Pkgsrc/pkg /usr/pkg /opt/pkg; do
+	    if [ -e $d ]; then
+		break;
+	    fi
+	done
+    fi
+    LOCALBASE=$d
+    printf "LOCALBASE = $LOCALBASE  PREFIX = $PREFIX\n"
+    export PREFIX LOCALBASE
+
     export CFLAGS="-Wall -g -O"
     rp=$(realpath $PREFIX/lib)
     rl=$(realpath $LOCALBASE/lib)
