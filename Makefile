@@ -202,6 +202,7 @@ install: all
 		    ${DESTDIR}${PREFIX}/etc/lpjs
 	${INSTALL} -s -m 0755 ${USER_BINS} ${DESTDIR}${PREFIX}/bin
 	${INSTALL} -s -m 0755 ${SYS_BINS} ${DESTDIR}${PREFIX}/sbin
+	${INSTALL} -m 0755 Scripts/* ${DESTDIR}${PREFIX}/sbin
 	${INSTALL} -m 0644 config.sample ${DESTDIR}${PREFIX}/etc/lpjs
 	# ${INSTALL} -m 0444 ${MAN} ${DESTDIR}${MANDIR}/man1
 
