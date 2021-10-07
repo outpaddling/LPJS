@@ -56,7 +56,7 @@ do
     lpjs-banner
     cat << EOM
 
-1.. Generate configuration file
+1.. Generate configuration file (must be the same on all nodes)
 2.. Enable dispatch daemon (make this the head node)
 3.. Enable compute daemon (make this a compute node)
 Q.. Quit
