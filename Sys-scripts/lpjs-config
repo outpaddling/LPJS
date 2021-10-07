@@ -60,6 +60,7 @@ do
 
 1.. Generate configuration file (must be the same on all nodes)
 2.. Copy configuration file from head node (typically done by SPCM)
+3.. Enable dispatch daemon (make this the head node)
 4.. Enable compute daemon (make this a compute node)
 Q.. Quit
 
