@@ -1,0 +1,106 @@
+#!/bin/sh -e
+
+##########################################################################
+#   Script description:
+#       Menu for basic LPJS setup
+#       
+#   History:
+#   Date        Name        Modification
+#   2021-10-06  J Bacon     Begin
+##########################################################################
+
+usage()
+{
+    printf "Usage: $0\n"
+    exit 1
+}
+
+
+##########################################################################
+#   Function description:
+#       Pause until user presses return
+##########################################################################
+
+pause()
+{
+    local junk
+    
+    printf "Press return to continue..."
+    read junk
+}
+
+
+##########################################################################
+#   Main
+##########################################################################
+
+if [ $# != 0 ]; then
+    usage
+fi
+
+if ! auto-root-check $0; then
+    # Prevent user from running a Trojan as root in the case their account
+    # was compromised
+    absolute="$(which $0)"
+    # Don't count on -e being set at this point
+    if ! auto-file-secure "$absolute"; then
+	#exit 1
+    fi
+    printf "Root "
+    exec su -m root -c "$absolute $@"
+fi
+
+while true
+do
+    clear
+    lpjs-banner
+    cat << EOM
+
+1.. Generate configuration file
+2.. Enable dispatch daemon (make this the head node)
+3.. Enable compute daemon (make this a compute node)
+Q.. Quit
+
+EOM
+
+    read -p 'Selection? ' resp
+    case 0$resp in
+    01)
+	: ${EDITOR:=vi}
+	# Replace /usr/local with install prefix
+	conf_file=/usr/local/etc/lpjs/config
+	if [ -e $conf_file ]; then
+	    printf "$conf_file already exists.  Overwrite? y/[n] "
+	    read generate
+	else
+	    generate=y
+	fi
+	if [ 0"$generate" = 0y ]; then
+	    read -p "Host name of head node? " head_host
+	    read -p "Host names of compute nodes (comma-separated) " compute_hosts
+	    cat << EOM > $conf_file
+head    $head_host
+compute $compute_hosts
+EOM
+	fi
+	$EDITOR $conf_file
+	;;
+    
+    02)
+	auto-enable-service lpjs_dispatchd $0
+	pause
+	;;
+
+    03)
+	auto-enable-service lpjs_compd $0
+	pause
+	;;
+
+    0Q|0q)
+	exit 0
+	;;
+
+    *)
+	printf "Invalid option: $resp\n"
+    esac
+done

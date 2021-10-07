@@ -1,0 +1,25 @@
+#!/bin/sh -e
+
+##########################################################################
+#   Script description:
+#       Display ASCII art banner
+#       https://www.ascii-art-generator.org/
+#       Font type: Slant
+#
+#   History:
+#   Date        Name        Modification
+#   2021-10-06  Jason Bacon Begin
+##########################################################################
+
+cat << EOM
+			      __    ____      _______
+			     / /   / __ \    / / ___/
+			    / /   / /_/ /_  / /\__ \ 
+			   / /___/ ____/ /_/ /___/ / 
+			  /_____/_/    \____//____/  
+	   _________________________________________________________
+		  
+		       Lighweight Portable Job Scheduler
+		      https://github.com/outpaddling/lpjs
+	   _________________________________________________________
+EOM
