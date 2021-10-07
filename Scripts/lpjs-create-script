@@ -1,0 +1,75 @@
+#!/bin/sh -e
+
+##########################################################################
+#   Synopsis:
+#   
+#   Description:
+#       Generate an LPJS job script
+#
+#   Arguments:
+#       
+#   Returns:
+#
+#   Examples:
+#
+#   Files:
+#
+#   Environment:
+#
+#   See also:
+#       
+#   History:
+#   Date        Name        Modification
+#   2021-10-06  Jason Bacon Begin
+##########################################################################
+
+usage()
+{
+    printf "Usage: $0 \n"
+    exit 1
+}
+
+
+##########################################################################
+#   Main
+##########################################################################
+
+if [ $# != 1 ]; then
+    usage
+fi
+script=$1
+
+if [ ${script##*.} != lpjs ]; then
+    script=$script.lpjs
+fi
+
+selection=0
+while [ $selection != 1 ] && [ $selection != 2 ] && [ $selection != 3 ]; do
+    cat << EOM
+
+1.. Batch serial job
+2.. Array job (embarrassingly parallel)
+3.. Parallel program (shared memory, MPI, etc)
+
+EOM
+    read -p 'Selection? ' selection
+done
+
+read -p 'Command? ' command
+read -p 'Memory per process? (MiB) ' mem_per_proc
+if [ $selection = 2 ]; then
+    read -p 'Array index list? E.g. 1..10 or 1,2,3,5,7,11 ' index_list
+elif [ $selection = 3 ]; then
+    read -p 'Total cores? ' cores
+    read -p 'Cores per node? (0 = flexible) ' cores_per_node
+fi
+cat << EOM > $script
+#!/bin/sh -e
+
+#LPJS --mem-per-proc $mem_per_proc
+
+$command
+EOM
+
+: ${EDITOR:=vi}
+$EDITOR $script

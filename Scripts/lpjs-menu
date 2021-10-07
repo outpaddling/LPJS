@@ -38,17 +38,7 @@ if [ $# != 0 ]; then
     usage
 fi
 
-if ! auto-root-check $0; then
-    # Prevent user from running a Trojan as root in the case their account
-    # was compromised
-    absolute="$(which $0)"
-    # Don't count on -e being set at this point
-    if ! auto-file-secure "$absolute"; then
-	exit 1
-    fi
-    printf "Root "
-    exec su -m root -c "$absolute $@"
-fi
+: ${EDITOR:=vi}
 
 while true
 do
@@ -56,9 +46,9 @@ do
     lpjs-banner
     cat << EOM
 
-1.. Generate configuration file (must be the same on all nodes)
-2.. Enable dispatch daemon (make this the head node)
-3.. Enable compute daemon (make this a compute node)
+1.. Node status
+2.. Job status
+3.. Submit job
 Q.. Quit
 
 EOM
@@ -66,33 +56,32 @@ EOM
     read -p 'Selection? ' resp
     case 0$resp in
     01)
-	: ${EDITOR:=vi}
-	# Replace /usr/local with install prefix
-	conf_file=/usr/local/etc/lpjs/config
-	if [ -e $conf_file ]; then
-	    printf "$conf_file already exists.  Overwrite? y/[n] "
-	    read generate
-	else
-	    generate=y
-	fi
-	if [ 0"$generate" = 0y ]; then
-	    read -p "Host name of head node? " head_host
-	    read -p "Host names of compute nodes (comma-separated) " compute_hosts
-	    cat << EOM > $conf_file
-head    $head_host
-compute $compute_hosts
-EOM
-	fi
-	$EDITOR $conf_file
+	printf "Running lpjs-nodes...\n"
+	lpjs-nodes
+	pause
 	;;
     
     02)
-	auto-enable-service lpjs_dispatchd $0
+	printf "Running lpjs-jobs...\n"
+	lpjs-jobs
 	pause
 	;;
 
     03)
-	auto-enable-service lpjs_compd $0
+	read -p 'Script name? ' script
+	if [ ${script##*.} != lpjs ]; then
+	    script=$script.lpjs
+	fi
+	if [ ! -e $script ]; then
+	    ./lpjs-create-script $script
+	else
+	    $EDITOR $script
+	fi
+	read -p 'Submit? y/[n] ' submit
+	if [ 0"$submit" = 0y ]; then
+	    printf "Running lpjs-submit $script...\n"
+	    lpjs-submit $script
+	fi
 	pause
 	;;
 
