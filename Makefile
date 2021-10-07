@@ -126,6 +126,7 @@ MV      ?= mv
 MKDIR   ?= mkdir
 LN      ?= ln
 RM      ?= rm
+SED     ?= sed
 
 # No full pathnames for these.  Allow PATH to dtermine which one is used
 # in case a locally installed version is preferred.
@@ -203,6 +204,8 @@ install: all
 	${INSTALL} -s -m 0755 ${USER_BINS} ${DESTDIR}${PREFIX}/bin
 	${INSTALL} -s -m 0755 ${SYS_BINS} ${DESTDIR}${PREFIX}/sbin
 	${INSTALL} -m 0755 Sys-scripts/* ${DESTDIR}${PREFIX}/sbin
+	${SED} -e "s|/usr/local|`realpath ${PREFIX}`|g" \
+		Sys-scripts/lpjs-config > ${DESTDIR}${PREFIX}/sbin/lpjs-config
 	${INSTALL} -m 0755 User-scripts/* ${DESTDIR}${PREFIX}/bin
 	${INSTALL} -m 0644 config.sample ${DESTDIR}${PREFIX}/etc/lpjs
 	# ${INSTALL} -m 0444 ${MAN} ${DESTDIR}${MANDIR}/man1
