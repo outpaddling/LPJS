@@ -73,7 +73,7 @@ EOM
 	    script=$script.lpjs
 	fi
 	if [ ! -e $script ]; then
-	    ./lpjs-create-script $script
+	    lpjs-create-script $script
 	else
 	    $EDITOR $script
 	fi
