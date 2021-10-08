@@ -27,12 +27,10 @@ FILE    *Log_stream;
 
 int     main (int argc, char *argv[])
 {
-    int         msg_fd,
-		status;
+    int         msg_fd;
     node_list_t node_list;
     node_t      node;
-    char        cmd[LPJS_CMD_MAX + 1] = "",
-		buff[LPJS_MSG_MAX + 1],
+    char        buff[LPJS_MSG_MAX + 1],
 		*cred;
     munge_err_t munge_status;
     ssize_t     bytes;
@@ -79,8 +77,6 @@ int     main (int argc, char *argv[])
 
     /* Send a message to the server */
     /* Need to send \0, so dprintf() doesn't work here */
-    str_argv_cat(cmd, argv, 1, LPJS_CMD_MAX + 1);
-    status = system(cmd);
     if ( send_msg(msg_fd, "compd-checkin") < 0 )
     {
 	perror("lpjs-nodes: Failed to send message to dispatch");
