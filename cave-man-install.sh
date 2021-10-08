@@ -18,7 +18,7 @@
 # Set rpath to avoid picking up libs installed by package managers in
 # /usr/local/lib, etc.
 case $(uname) in
-FreeBSD|OpenBSD)
+FreeBSD|OpenBSD|DragonFly)
     ;;
 
 *)
