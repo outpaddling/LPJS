@@ -18,7 +18,7 @@
 # Set rpath to avoid picking up libs installed by package managers in
 # /usr/local/lib, etc.
 case $(uname) in
-FreeBSD)
+FreeBSD|OpenBSD)
     ;;
 
 *)
@@ -35,8 +35,8 @@ FreeBSD)
     export PREFIX LOCALBASE
 
     export CFLAGS="-Wall -g -O"
-    rp=$(realpath $PREFIX/lib)
-    rl=$(realpath $LOCALBASE/lib)
+    rp=$(readlink -f $PREFIX/lib)
+    rl=$(readlink -f $LOCALBASE/lib)
     export LDFLAGS="-L$rp -L$rl -Wl,-rpath,$rp:$rl:/usr/lib:/lib"
     ;;
 
