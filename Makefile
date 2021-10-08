@@ -49,26 +49,22 @@
 # Installed targets
 
 BIN         = lpjs_dispatchd
+LIB         = liblpjs.a
 SYS_BINS    = lpjs_dispatchd lpjs_compd lpjs-chaperone
 USER_BINS   = lpjs-nodes lpjs-jobs lpjs-submit
 
 ############################################################################
 # List object files that comprise BIN.
 
-DISPATCH_OBJS   = lpjs_dispatchd.o config.o node.o node-list.o misc.o \
-		  node-list-mutators.o node-mutators.o scheduler.o network.o \
-		  job.o job-list.o
-COMPD_OBJS      = lpjs_compd.o network.o config.o misc.o node-list.o node.o \
-		  node-mutators.o node-list-mutators.o
+LIB_OBJS        = config.o misc.o scheduler.o network.o job.o job-list.o \
+		  node.o node-mutators.o node-list.o node-list-mutators.o
+DISPATCH_OBJS   = lpjs_dispatchd.o 
+COMPD_OBJS      = lpjs_compd.o
 SCHEDULER_OBJS  = scheduler.o
-CHAPERONE_OBJS  = lpjs-chaperone.o config.o node-list.o node-list-mutators.o \
-		  node.o node-mutators.o network.o misc.o
-NODES_OBJS      = lpjs-nodes.o config.o node-list.o node-list-mutators.o \
-		  node.o node-mutators.o network.o misc.o
-JOBS_OBJS       = lpjs-jobs.o config.o node-list.o node-list-mutators.o \
-		  node.o node-mutators.o network.o misc.o
-SUBMIT_OBJS     = lpjs-submit.o config.o node-list.o node-list-mutators.o \
-		  node.o node-mutators.o network.o misc.o
+CHAPERONE_OBJS  = lpjs-chaperone.o
+NODES_OBJS      = lpjs-nodes.o
+JOBS_OBJS       = lpjs-jobs.o
+SUBMIT_OBJS     = lpjs-submit.o
 OBJS    = ${DISPATCH_OBJS} ${COMPD_OBJS} ${NODE_SPECS_OBJS} ${SCHEDULER_OBJS} \
 	  ${CHAPERONE_OBJS} ${NODES_OBJS} ${JOBS_OBJS} ${SUBMIT_OBJS}
 
@@ -113,7 +109,7 @@ RANLIB      ?= ranlib
 
 INCLUDES    += -I${PREFIX}/include -I${LOCALBASE}/include
 CFLAGS      += ${INCLUDES}
-LDFLAGS     += -L${PREFIX}/lib -L${LOCALBASE}/lib -lmunge -lxtend
+LDFLAGS     += -L. -L${PREFIX}/lib -L${LOCALBASE}/lib -llpjs -lmunge -lxtend
 
 ############################################################################
 # Assume first command in PATH.  Override with full pathnames if necessary.
@@ -141,22 +137,25 @@ STRIP   ?= strip
 
 all:    ${USER_BINS} ${SYS_BINS}
 
-lpjs_dispatchd: ${DISPATCH_OBJS}
+${LIB}: ${LIB_OBJS}
+	${AR} r ${LIB} ${LIB_OBJS}
+
+lpjs_dispatchd: ${DISPATCH_OBJS} ${LIB}
 	${LD} -o lpjs_dispatchd ${DISPATCH_OBJS} ${LDFLAGS}
 
-lpjs_compd: ${COMPD_OBJS}
+lpjs_compd: ${COMPD_OBJS} ${LIB}
 	${LD} -o lpjs_compd ${COMPD_OBJS} ${LDFLAGS}
 
-lpjs-chaperone: ${CHAPERONE_OBJS}
+lpjs-chaperone: ${CHAPERONE_OBJS} ${LIB}
 	${LD} -o lpjs-chaperone ${CHAPERONE_OBJS} ${LDFLAGS}
 	
-lpjs-nodes: ${NODES_OBJS}
+lpjs-nodes: ${NODES_OBJS} ${LIB}
 	${LD} -o lpjs-nodes ${NODES_OBJS} ${LDFLAGS}
 
-lpjs-jobs: ${JOBS_OBJS}
+lpjs-jobs: ${JOBS_OBJS} ${LIB}
 	${LD} -o lpjs-jobs ${JOBS_OBJS} ${LDFLAGS}
 
-lpjs-submit: ${SUBMIT_OBJS}
+lpjs-submit: ${SUBMIT_OBJS} ${LIB}
 	${LD} -o lpjs-submit ${SUBMIT_OBJS} ${LDFLAGS}
 
 ############################################################################
