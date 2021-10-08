@@ -35,8 +35,8 @@ FreeBSD|OpenBSD)
     export PREFIX LOCALBASE
 
     export CFLAGS="-Wall -g -O"
-    rp=$(readlink -f $PREFIX/lib)
-    rl=$(readlink -f $LOCALBASE/lib)
+    rp=$(realpath $PREFIX/lib)
+    rl=$(realpath $LOCALBASE/lib)
     export LDFLAGS="-L$rp -L$rl -Wl,-rpath,$rp:$rl:/usr/lib:/lib"
     ;;
 
