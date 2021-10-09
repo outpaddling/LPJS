@@ -141,6 +141,9 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
     }
     lpjs_log(Log_stream, "Bound to port %d...\n", tcp_port);
     
+    // FIXME: Is this loop sufficient to service all requests or do we
+    // need nonblocking I/O, threads, etc.?
+    
     while ( 1 )
     {
 	/* Listen for connection requests */
@@ -149,7 +152,9 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	    lpjs_log(Log_stream, "listen() failed.\n", stderr);
 	    return EX_UNAVAILABLE;
 	}
-    
+
+	// FIXME: Only accept requests from cluster nodes
+	
 	/* Accept a connection request */
 	if ((msg_fd = accept(Listen_fd,
 		(struct sockaddr *)&server_address, &address_len)) == -1)
@@ -185,7 +190,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 			 munge_strerror(munge_status));
 	    lpjs_log(Log_stream, "Checkin from %d, %d\n", uid, gid);
 	    
-	    // FIXME: Only accept connections from root
+	    // FIXME: Only accept compd checkins from root
 
 	    /*
 	     *  Get specs from node and add msg_fd
@@ -213,6 +218,9 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	}
 	else if ( memcmp(incoming_msg, "submit", 6) == 0 )
 	{
+	    // FIXME: Don't accept job submissions from root until
+	    // security issues have been considered
+	    
 	    lpjs_log(Log_stream, "Request for job submission.\n");
 	    
 	    /* Get munge credential */
