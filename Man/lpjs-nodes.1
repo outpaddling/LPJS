@@ -1,0 +1,55 @@
+.TH lpjs-nodes 1
+.SH NAME    \" Section header
+.PP
+
+lpns-nodes \- Show node status on an LPJS cluster
+
+\" Convention:
+\" Underline anything that is typed verbatim - commands, etc.
+.SH SYNOPSIS
+.PP
+.nf 
+.na 
+lpjs-nodes
+.ad
+.fi
+
+.SH OPTIONS
+.TP
+\fB\-\-long\fR
+Show more detailed information
+
+\" Optional sections
+.SH "DESCRIPTION"
+
+.B lpjs-nodes
+shows the current node status for cluster running LPJS (Lightweight Portable
+Job Scheduler).  Standard format includes basic hardware and operating
+system specs and current usage of cores and memory.
+
+.nf
+.na
+Hostname     State    Cores Used Physmem    Used OS      Arch
+moray        Up           4    0    7836       0 FreeBSD amd64
+.ad
+.fi
+
+
+.SH FILES
+.nf
+.na
+%%PREFIX%%/etc/lpjs/config
+.ad
+.fi
+
+.SH "SEE ALSO"
+lpjs-jobs(1), lpjs-submit(1)
+
+.SH BUGS
+Please report bugs to the author and send patches in unified diff format.
+(man diff for more information)
+
+.SH AUTHOR
+.nf
+.na
+J. Bacon

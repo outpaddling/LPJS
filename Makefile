@@ -177,7 +177,7 @@ depend:
 # Remove generated files (objs and nroff output from man pages)
 
 clean:
-	rm -f *.o ${USER_BINS} ${SYS_BINS} *.nr
+	rm -f *.o ${USER_BINS} ${SYS_BINS} ${LIB} *.nr
 
 # Keep backup files during normal clean, but provide an option to remove them
 realclean: clean
@@ -189,6 +189,7 @@ realclean: clean
 install: all
 	${MKDIR} -p ${DESTDIR}${PREFIX}/bin \
 		    ${DESTDIR}${PREFIX}/sbin \
+		    ${DESTDIR}${PREFIX}/lib \
 		    ${DESTDIR}${MANDIR}/man1 \
 		    ${DESTDIR}${PREFIX}/etc/lpjs
 	${INSTALL} -s -m 0755 ${USER_BINS} ${DESTDIR}${PREFIX}/bin
@@ -197,9 +198,13 @@ install: all
 	${SED} -e "s|/usr/local|`realpath ${PREFIX}`|g" \
 		Sys-scripts/lpjs-config > ${DESTDIR}${PREFIX}/sbin/lpjs-config
 	${INSTALL} -m 0755 User-scripts/* ${DESTDIR}${PREFIX}/bin
+	${INSTALL} -m 0644 ${LIB} ${DESTDIR}${PREFIX}/lib
 	${INSTALL} -m 0644 config.sample ${DESTDIR}${PREFIX}/etc/lpjs
-	# ${INSTALL} -m 0444 ${MAN} ${DESTDIR}${MANDIR}/man1
-
+	for f in Man/*; do \
+	    ${SED} -e "s|%%PREFIX%%|`realpath ${PREFIX}`|g" $${f} > \
+		${DESTDIR}${MANDIR}/man1/`basename $${f}`; \
+	done
+	
 install-strip: install
 	for f in ${USER_BINS}; do \
 	    ${STRIP} ${DESTDIR}${PREFIX}/bin/$${f}; \
