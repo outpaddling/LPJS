@@ -24,7 +24,8 @@ grouped together for the purpose of performing computationally intensive jobs.
 Most clusters are linked together with a private high-speed network to
 maximize the speed of data exchange between the nodes.  Typically there is
 a "head node", dedicated to keeping track of available CPU cores and memory
-on all nodes, multiple compute nodes, and one or more file servers.
+on all nodes, multiple compute nodes, and one or more file servers, A.K.A.
+I/O nodes.
 
 Using LPJS and similar systems, you can queue jobs to run as soon as
 resources become available.  Compute nodes with available cores and memory
