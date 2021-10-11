@@ -85,10 +85,10 @@ different CPU architectures:
 ```
 FreeBSD coral.acadix  bacon ~/Prog/Src/LPJS 1029: lpjs-nodes
 Hostname     State    Cores Used Physmem    Used OS      Arch
-coral        Up           4    0    7962       0 FreeBSD amd64    
-herring      Up           4    0    1000       0 FreeBSD arm64    
-imacg5       Up           1    0    1994       0 FreeBSD powerpc64
-netbsd9      Up           2    0    1023       0 NetBSD  amd64    
+coral        Up           4    0    7962       0 FreeBSD amd64
+herring      Up           4    0    1000       0 FreeBSD arm64
+imacg5       Up           1    0    2010       0 FreeBSD powerpc
+netbsd9      Up           2    0    1023       0 NetBSD  amd64
 debian11     Up           1    0     976       0 Linux   x86_64
 abalone      Up           4    0    8192       0 Darwin  x86_64
 dragonfly    Up           1    0     993       0 DragonFly x86_64
