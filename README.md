@@ -40,7 +40,7 @@ are working properly.  This avoids wasting resources and shows courtesy to
 other cluster users.
 
 Unlike other batch systems, LPJS is designed to be small, easy to deploy and
-manage, and portable to any
+manage, and portable to __any__
 POSIX platform.  Most existing batch systems are extremely complex, including
 our long-time favorite SLURM, which stands for "Simple Linux Utility
 for Resource Management", but is no longer simple by any stretch of the
@@ -73,33 +73,34 @@ high quality in essential features, not implementing every feature someone
 thinks would be cool.
 
 - Complete portability: One of our primary goals is to foster research and
-development of HPC clusters using any POSIX operating system on any hardware
+development of HPC clusters using __any__ POSIX operating system on __any__
+hardware
 or cloud platform.  You can run it on RHEL if you like, but you can also use
 Debian Linux, Dragonfly BSD, FreeBSD, Illumos, MacOS, NetBSD, OpenBSD,
 Ubuntu, or any of the other dozens of Unix-like systems available.  In fact,
 one can
-easily run a hybrid cluster with multiple different operating systems.  Our
+easily run a hybrid cluster with multiple operating systems.  Our
 test environment currently includes 5 different operating systems on three
 different CPU architectures:
 
-```
-FreeBSD coral.acadix  bacon ~/Prog/Src/LPJS 1029: lpjs-nodes
-Hostname     State    Cores Used Physmem    Used OS      Arch
-coral        Up           4    0    7962       0 FreeBSD amd64
-herring      Up           4    0    1000       0 FreeBSD arm64
-imacg5       Up           1    0    2010       0 FreeBSD powerpc
-netbsd9      Up           2    0    1023       0 NetBSD  amd64
-debian11     Up           1    0     976       0 Linux   x86_64
-abalone      Up           4    0    8192       0 Darwin  x86_64
-dragonfly    Up           1    0     993       0 DragonFly x86_64
-```
-
-Windows machines can be utilized with some sort of POSIX compatibility
-layer, such as Cygwin, MSYS2, or WSL.  These systems have limitations and
-performance issues, however, so a virtual machine running a lightweight BSD
-or Linux system under Windows may be preferable.  There are multiple free
-virtualization options for Windows hosts, including Hyper-V, VirtualBox,
-and VMware.
+    ```
+    FreeBSD coral.acadix  bacon ~/Prog/Src/LPJS 1029: lpjs-nodes
+    Hostname     State    Cores Used Physmem    Used OS      Arch
+    coral        Up           4    0    7962       0 FreeBSD amd64
+    herring      Up           4    0    1000       0 FreeBSD arm64
+    imacg5       Up           1    0    2010       0 FreeBSD powerpc
+    netbsd9      Up           2    0    1023       0 NetBSD  amd64
+    debian11     Up           1    0     976       0 Linux   x86_64
+    abalone      Up           4    0    8192       0 Darwin  x86_64
+    dragonfly    Up           1    0     993       0 DragonFly x86_64
+    ```
+    
+    Windows machines can be utilized with some sort of POSIX compatibility
+    layer, such as Cygwin, MSYS2, or WSL.  These systems have limitations and
+    performance issues, however, so a virtual machine running a lightweight BSD
+    or Linux system under Windows may be preferable.  There are multiple free
+    virtualization options for Windows hosts, including Hyper-V, VirtualBox,
+    and VMware.
 
 - Minimal configuration: HPC sysadmins should only be required to provide
 information that cannot be determined automatically, such as which computers
@@ -166,7 +167,7 @@ https://github.com/outpaddling/Coding-Standards/.
 
 ## Building and installing
 
-LPJS is intended to build cleanly in any POSIX environment on any CPU
+LPJS is intended to build cleanly in __any__ POSIX environment on __any__ CPU
 architecture.  Please don't hesitate to open an issue if you encounter
 problems on any Unix-like system.
 
