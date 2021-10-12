@@ -15,8 +15,7 @@ oversights in design.
 We anticipate having a minimal working batch system in place sometime in
 2022.  Stay tuned...
 
-LPJS will be integrated with 
-[SPCM](https:github.com/outpaddling/SPCM)
+LPJS will be integrated with https:github.com/outpaddling/SPCM
 when it is fully functional.
 
 ## Description
