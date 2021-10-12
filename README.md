@@ -15,6 +15,10 @@ oversights in design.
 We anticipate having a minimal working batch system in place sometime in
 2022.  Stay tuned...
 
+LPJS will be integrated with 
+[SPCM (Simple Portable Cluster Manager)](https:github.com/outpaddling/SPCM)
+when it is fully functional.
+
 ## Description
 
 LPJS (Lightweight Portable Job Scheduler) is a batch system, i.e. a job
