@@ -2,10 +2,10 @@
 
 ## Status
 
-LPJS is currently wriggling around the primordial ooze as we lay out the
+LPJS is currently slithering around the primordial ooze as we lay out the
 framework and prioritize development phases.
 
-Development will move slowly as we carefully deliberate the
+Early development will move slowly as we carefully deliberate the
 design and implementation of each new feature to ensure the highest possible
 code quality.
 
@@ -23,21 +23,23 @@ when it is fully functional.
 LPJS (Lightweight Portable Job Scheduler) is a batch system, i.e. a job
 scheduler and resource manager for HPC (High Performance Computing) clusters.
 An HPC cluster is anywhere from one to thousands of computers (called nodes)
-grouped together for the purpose of performing computationally intensive jobs.
+with managed CPU and memory resources for the purpose of performing
+computationally intensive jobs.
 Most clusters are linked together with a private high-speed network to
 maximize the speed of data exchange between the nodes.  Typically there is
 a "head node", dedicated to keeping track of available CPU cores and memory
 on all nodes, multiple compute nodes, and one or more file servers, A.K.A.
 I/O nodes.
 
-Using LPJS and similar systems, you can queue jobs to run as soon as
+Using LPJS and similar systems, users can queue jobs to run as soon as
 resources become available.  Compute nodes with available cores and memory
-are automatically selected and your computations run unattended (called
-batch mode), saving all output to files.  Most jobs run without any
+are automatically selected and programs run unattended (also called
+batch mode), redirecting terminal output to files.  Most jobs run without any
 interaction with the user, hence the name "batch" system.  They may start
-running as soon as they are submitted, or they may wait in the queue for a
-while.  Either way, once you have submitted a job, you can focus on other
-things, knowing that your job will run as soon as possible.
+running as soon as they are submitted, or they may wait in the queue until
+sufficient resources become available.  Either way, once you have submitted
+a job, you can focus on other things, knowing that your job will run as soon
+as possible.
 
 Users should, however, keep an eye on their running jobs to make sure they
 are working properly.  This avoids wasting resources and shows courtesy to
@@ -46,9 +48,10 @@ other cluster users.
 Unlike other batch systems, LPJS is designed to be small, easy to deploy and
 manage, and portable to __any__
 POSIX platform.  Most existing batch systems are extremely complex, including
-our long-time favorite SLURM, which stands for "Simple Linux Utility
+our long-time favorite, SLURM, which stands for "Simple Linux Utility
 for Resource Management", but is no longer simple by any stretch of the
-imagination.  The 'S' in SLURM has become somewhat of an irony.
+imagination.  The 'S' in SLURM has become somewhat of an irony as it has
+evolved into the dominant batch system for massive clusters.
 
 Overly complex HPC tools present a barrier to learning and research
 for those who have no ready access to centralized HPC resources.
@@ -60,10 +63,12 @@ simply not feasible.
 Large HPC clusters are dominated by Redhat Enterprise Linux (RHEL) and its
 derivatives for good reasons.  For one thing, RHEL is the only platform
 besides Windows supported by many commercial science and engineering
-applications such as ANSYS, Fluent, Abacus, etc.  Unfortunately, RHEL uses
-older Linux kernels, compilers, and other tools, making it difficult to
-run the latest open source software.  Facilitating small-scale HPC on
-platforms other than RHEL can help address this issue.
+applications such as ANSYS, Fluent, Abacus, etc.  Unfortunately, RHEL achieves
+enterprise reliability and long-term binary compatibility by using older,
+time-tested Linux kernels, compilers, and other tools, which often makes it
+difficult to run the latest open source software.  Facilitating small-scale
+HPC on platforms other than RHEL can help address this issue for open source
+software users.
 
 The LPJS project does not aim to compete for market share on TOP500
 clusters.  In contrast, we are committed to serving the small-scale HPC
@@ -73,19 +78,18 @@ design principals:
 - KISS (Keep it simple, stupid): We will not allow LPJS to fall victim to
 creeping feature syndrome, where software grows steadily without limit
 to the demise of reliability and maintainability. We focus on maintaining
-high quality in essential features, not implementing every feature someone
-thinks would be cool.
+high quality in essential features, not adding redundant or marginal
+features to try and please everyone.
 
 - Complete portability: One of our primary goals is to foster research and
 development of HPC clusters using __any__ POSIX operating system on __any__
 hardware
-or cloud platform.  You can run it on RHEL if you like, but you can also use
-Debian Linux, Dragonfly BSD, FreeBSD, Illumos, MacOS, NetBSD, OpenBSD,
-Ubuntu, or any of the other dozens of Unix-like systems available.  In fact,
-one can
-easily run a hybrid cluster with multiple operating systems.  Our
-test environment currently includes 5 different operating systems on three
-different CPU architectures:
+or cloud platform.  You can run it on RHEL/x86 if you like, but you can also
+use Debian Linux, Dragonfly BSD, FreeBSD, Illumos, MacOS, NetBSD, OpenBSD,
+Ubuntu, or any of the other dozens of Unix-like systems available on any
+hardware they support.  In fact, one can easily run a chimeric cluster with
+multiple operating systems.  Our test environment currently includes 5
+different operating systems on three different CPU architectures:
 
     ```
     FreeBSD coral.acadix  bacon ~/Prog/Src/LPJS 1029: lpjs-nodes
@@ -108,7 +112,7 @@ different CPU architectures:
 
 - Minimal configuration: HPC sysadmins should only be required to provide
 information that cannot be determined automatically, such as which computers
-on the network are authorized to act as head nodes or compute nodes.  Compute
+on the network are authorized to act as nodes nodes.  Compute
 node hardware specifications are automatically detected on all platforms.
 Most configuration parameters will simply be overrides of reasonable defaults.
 
@@ -125,18 +129,13 @@ utilize your Mac lab as an HPC cluster during off hours for maximum cost
 efficiency.  Link together multiple laptops in the field for quick and
 dirty data analysis.  Quickly deploy on as many cloud instances as you need
 for this week's computations.  You can even configure a single PC as a
-cluster for the sake of being able to queue jobs to maximize utilization
-and complete your computations ASAP.
+cluster for the sake of being able to queue jobs and maximize utilization
+of limited resources.
 
 Note that THERE IS NOTHING INHERENTLY COMPLICATED ABOUT AN HPC CLUSTER. In its
 typical basic form, it's just a LAN with a file server and some software to
 manage computing resources.  You can make a cluster as complicated as you
 wish, but simple HPC clusters are both possible and useful.
-
-LPJS makes it easy to build and maintain small HPC clusters on minimal
-hardware or cloud resources for independent research groups using open
-source software, or experiment with alternative operating systems or
-hardware platforms.
 
 LPJS will require only functionality that can be implemented with reasonable
 effort on all POSIX platforms, including but not limited to:
@@ -196,11 +195,11 @@ hence a good vehicle to learn how to create packages.
 FreeBSD is a highly underrated platform for scientific computing, with over
 1,900 scientific libraries and applications in the FreeBSD ports collection
 (of more than 30,000 total), modern clang compiler, fully-integrated ZFS
-filesystem, and renowned security, performance, and reliability.
+file system, and renowned security, performance, and reliability.
 FreeBSD has a somewhat well-earned reputation for being difficult to set up
 and manage compared to user-friendly systems like [Ubuntu](https://ubuntu.com/).
 However, if you're a little bit Unix-savvy, you can very quickly set up a
-workstation, laptop, or VM using
+workstation, laptop, or virtual machine using
 [desktop-installer](http://www.acadix.biz/desktop-installer.php).  If
 you're new to Unix, you can also reap the benefits of FreeBSD by running
 [GhostBSD](https://ghostbsd.org/), a FreeBSD distribution augmented with a
