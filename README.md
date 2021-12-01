@@ -65,7 +65,7 @@ derivatives for good reasons.  For one thing, RHEL is the only platform
 besides Windows supported by many commercial science and engineering
 applications such as ANSYS, Fluent, Abacus, etc.  Unfortunately, RHEL achieves
 enterprise reliability and long-term binary compatibility by using older,
-time-tested Linux kernels, compilers, and other tools, which often makes it
+time-tested Linux kernels, compilers, and other tools, which often make it
 difficult to run the latest open source software.  Facilitating small-scale
 HPC on platforms other than RHEL can help address this issue for open source
 software users.
@@ -112,7 +112,7 @@ different operating systems on three different CPU architectures:
 
 - Minimal configuration: HPC sysadmins should only be required to provide
 information that cannot be determined automatically, such as which computers
-on the network are authorized to act as nodes nodes.  Compute
+on the network are authorized to act as compute nodes.  Compute
 node hardware specifications are automatically detected on all platforms.
 Most configuration parameters will simply be overrides of reasonable defaults.
 
