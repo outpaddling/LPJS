@@ -23,10 +23,10 @@ FreeBSD|OpenBSD|DragonFly)
 
 *)
     # Need separate LOCALBASE to find munge installed by FreeBSD ports or pkgsrc
-    if [ -z $LOCALBASE ]; then
+    if [ -z "$LOCALBASE" ]; then
 	for d in ~/Pkgsrc/pkg /usr/pkg /opt/pkg; do
 	    if [ -e $d ]; then
-		break;
+		break
 	    fi
 	done
     fi
