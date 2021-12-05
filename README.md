@@ -33,17 +33,18 @@ I/O nodes.
 
 Using LPJS and similar systems, users can queue jobs to run as soon as
 resources become available.  Compute nodes with available cores and memory
-are automatically selected and programs run unattended (also called
-batch mode), redirecting terminal output to files.  Most jobs run without any
-interaction with the user, hence the name "batch" system.  They may start
+are automatically selected and programs usually run unattended (called
+batch mode), redirecting terminal output to files.  It is possible to run
+interactive jobs as well, but this is rare and typically only used for
+debugging.  Jobs may start
 running as soon as they are submitted, or they may wait in the queue until
 sufficient resources become available.  Either way, once you have submitted
-a job, you can focus on other things, knowing that your job will run as soon
-as possible.
+a job, you can focus on other things, knowing that your job will complete
+as soon as possible.
 
-Users should, however, keep an eye on their running jobs to make sure they
-are working properly.  This avoids wasting resources and shows courtesy to
-other cluster users.
+Users should, however, keep a close eye on their running jobs to make sure
+they are working properly.  This avoids wasting resources and shows common
+courtesy to other cluster users.
 
 Unlike other batch systems, LPJS is designed to be small, easy to deploy and
 manage, and portable to __any__
@@ -51,43 +52,49 @@ POSIX platform.  Most existing batch systems are extremely complex, including
 our long-time favorite, SLURM, which stands for "Simple Linux Utility
 for Resource Management", but is no longer simple by any stretch of the
 imagination.  The 'S' in SLURM has become somewhat of an irony as it has
-evolved into the dominant batch system for massive clusters.
+evolved into the premier batch system for massive and complex clusters.
+
+Note that THERE IS NOTHING INHERENTLY COMPLICATED ABOUT AN HPC CLUSTER. In its
+typical basic form, it's just a LAN with a manager node, a file server and
+some software to
+manage computing resources.  You can make a cluster as complicated as you
+wish, but simple HPC clusters are both possible and useful.
 
 Overly complex HPC tools present a barrier to learning and research
 for those who have no ready access to centralized HPC resources.
 In major research institutions, centralizing HPC into large clusters
 can improve utilization of resources and reduce overall costs.  In many
-other venues, building a large cluster and staffing a support group is
-simply not feasible.
+organizations, however, building a large cluster and staffing a support
+group is simply not feasible.
 
 Large HPC clusters are dominated by Redhat Enterprise Linux (RHEL) and its
 derivatives for good reasons.  For one thing, RHEL is the only platform
 besides Windows supported by many commercial science and engineering
 applications such as ANSYS, Fluent, Abacus, etc.  Unfortunately, RHEL achieves
 enterprise reliability and long-term binary compatibility by using older,
-time-tested Linux kernels, compilers, and other tools, which often make it
-difficult to run the latest open source software.  Facilitating small-scale
-HPC on platforms other than RHEL can help address this issue for open source
-software users.
+time-tested and debugged Linux kernels, compilers, and other tools, which
+often make it difficult to run the latest open source software.
+Facilitating small-scale HPC on platforms other than RHEL can eliminate
+this issue for open source software users.
 
 The LPJS project does not aim to compete for market share on TOP500
 clusters.  In contrast, we are committed to serving the small-scale HPC
 niche that most other HPC software has abandoned, by adhering to the following
 design principals:
 
-- KISS (Keep it simple, stupid): We will not allow LPJS to fall victim to
-creeping feature syndrome, where software grows steadily without limit
-to the demise of reliability and maintainability. We focus on maintaining
-high quality in essential features, not adding redundant or marginal
-features to try and please everyone.
+- KISS (Keep It Simple, Stupid): We will not allow LPJS to fall victim to
+creeping feature syndrome, where software complexity grows steadily without
+limit to the demise of reliability and maintainability.  Our focus is on
+improving quality in essential features rather than adding "cool" new
+features that make us look flashy.
 
 - Complete portability: One of our primary goals is to foster research and
 development of HPC clusters using __any__ POSIX operating system on __any__
-hardware
-or cloud platform.  You can run it on RHEL/x86 if you like, but you can also
+hardware or cloud platform.  You can run certainly LPJS on RHEL/x86 if you
+like, but you can also
 use Debian Linux, Dragonfly BSD, FreeBSD, Illumos, MacOS, NetBSD, OpenBSD,
 Ubuntu, or any of the other dozens of Unix-like systems available on any
-hardware they support.  In fact, one can easily run a chimeric cluster with
+hardware they support.  In fact, one could easily run a chimeric cluster with
 multiple operating systems.  Our test environment currently includes 5
 different operating systems on three different CPU architectures:
 
@@ -96,14 +103,14 @@ different operating systems on three different CPU architectures:
     Hostname     State    Cores Used Physmem    Used OS      Arch
     coral        Up           4    0    7962       0 FreeBSD amd64
     herring      Up           4    0    1000       0 FreeBSD arm64
-    imacg5       Up           1    0    2010       0 FreeBSD powerpc
+    beluga       Up           1    0    2010       0 FreeBSD powerpc
     netbsd9      Up           2    0    1023       0 NetBSD  amd64
     debian11     Up           1    0     976       0 Linux   x86_64
     abalone      Up           4    0    8192       0 Darwin  x86_64
     dragonfly    Up           1    0     993       0 DragonFly x86_64
     ```
     
-    Windows machines can be utilized with some sort of POSIX compatibility
+    MS Windows machines can be utilized with some sort of POSIX compatibility
     layer, such as Cygwin, MSYS2, or WSL.  These systems have limitations and
     performance issues, however, so a virtual machine running a lightweight BSD
     or Linux system under Windows may be preferable.  There are multiple free
@@ -114,7 +121,7 @@ different operating systems on three different CPU architectures:
 information that cannot be determined automatically, such as which computers
 on the network are authorized to act as compute nodes.  Compute
 node hardware specifications are automatically detected on all platforms.
-Most configuration parameters will simply be overrides of reasonable defaults.
+Most configuration parameters are simply overrides of reasonable defaults.
 
 - Unambiguous and intuitive user interface: Commands and options are
 spelled out in a way that is easy to remember and won't be confused with
@@ -122,23 +129,18 @@ others.
 
 - User-friendliness: We do our best to maintain good documentation, but
 also to make it unnecessary via meaningful error messages, help features,
-and a menu interface for basic operation and maintenance.
+and an intuitive user interface.
 
 - Flexibility: Run on dedicated hardware for maximum performance, or
 utilize your Mac lab as an HPC cluster during off hours for maximum cost
 efficiency.  Link together multiple laptops in the field for quick and
 dirty data analysis.  Quickly deploy on as many cloud instances as you need
 for this week's computations.  You can even configure a single PC as a
-cluster for the sake of being able to queue jobs and maximize utilization
+cluster for the sake of queuing jobs to maximize utilization
 of limited resources.
 
-Note that THERE IS NOTHING INHERENTLY COMPLICATED ABOUT AN HPC CLUSTER. In its
-typical basic form, it's just a LAN with a file server and some software to
-manage computing resources.  You can make a cluster as complicated as you
-wish, but simple HPC clusters are both possible and useful.
-
-LPJS will require only functionality that can be implemented with reasonable
-effort on all POSIX platforms, including but not limited to:
+LPJS only provides functionality that can be implemented with reasonable
+effort on __any__ POSIX platform, including but not limited to:
 
 - Queuing of batch jobs
 
@@ -151,8 +153,8 @@ effort on all POSIX platforms, including but not limited to:
 - Job accounting (maintaining records of completed jobs)
 
 This does not preclude support for operating system specific features such
-as cgroups, NUMA, etc. but all such features will be optional, implemented and
-installed separately as 3rd-party plugins.
+as cgroups, CUDA, FreeBSD jails, NUMA, etc. but all such features are
+optional, implemented and installed separately as 3rd-party plugins.
 
 ## Design and Implementation
 
