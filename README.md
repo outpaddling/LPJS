@@ -58,7 +58,8 @@ Note that THERE IS NOTHING INHERENTLY COMPLICATED ABOUT AN HPC CLUSTER. In its
 typical basic form, it's just a LAN with a manager node, a file server and
 some software to
 manage computing resources.  You can make a cluster as complicated as you
-wish, but simple HPC clusters are both possible and useful.
+wish, but simple HPC clusters can be highly effective at reducing computation
+time by orders of magnitude.
 
 Overly complex HPC tools present a barrier to learning and research
 for those who have no ready access to centralized HPC resources.
