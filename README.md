@@ -128,6 +128,9 @@ Most configuration parameters are simply overrides of reasonable defaults.
 spelled out in a way that is easy to remember and won't be confused with
 others.
 
+- Simple, easily readable default output formats.  More sophisticated
+output may be provided by non-default command line flags.
+
 - User-friendliness: We do our best to maintain good documentation, but
 also to make it unnecessary via meaningful error messages, help features,
 and an intuitive user interface.
