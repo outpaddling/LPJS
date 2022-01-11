@@ -206,14 +206,23 @@ FreeBSD has a somewhat well-earned reputation for being difficult to set up
 and manage compared to user-friendly systems like [Ubuntu](https://ubuntu.com/).
 However, if you're a little bit Unix-savvy, you can very quickly set up a
 workstation, laptop, or virtual machine using
-[desktop-installer](http://www.acadix.biz/desktop-installer.php).  If
-you're new to Unix, you can also reap the benefits of FreeBSD by running
-[GhostBSD](https://ghostbsd.org/), a FreeBSD distribution augmented with a
-graphical installer and management tools.  GhostBSD does not offer as many
-options as desktop-installer, but it may be more comfortable for Unix novices.
+[desktop-installer](http://www.acadix.biz/desktop-installer.php).
+
+To install the binary package on FreeBSD:
 
 ```
 pkg install LPJS
+```
+
+You can just as easily build and install from source.  This is useful for
+FreeBSD ports with special build options, for building with non-portable
+optimizations such as -march=native, and for 
+[work-in-progress ports](https://github.com/outpaddling/freebsd-ports-wip),
+for which binary packages are not yet maintained.
+
+```
+cd /usr/ports/biology/lpjs && env CFLAGS='-march=native -O2' make install
+cd /usr/ports/wip/lpjs && make install
 ```
 
 ### Installing via pkgsrc
