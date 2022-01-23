@@ -57,16 +57,20 @@ if ! auto-root-check $0; then
     exec su -m root -c "$cmd"
 fi
 
+: ${EDITOR:=vi}
+
 while true
 do
     clear
     lpjs-banner
     cat << EOM
 
-1.. Generate configuration file (must be the same on all nodes)
+1.. Generate configuration file (Usually done only on head node, or by SPCM)
 2.. Copy configuration file from head node (typically done by SPCM)
-3.. Enable dispatch daemon (make this the head node)
-4.. Enable compute daemon (make this a compute node)
+3.. Edit config file
+4.. Enable dispatch daemon (make this the head node)
+5.. Enable compute daemon (make this a compute node)
+6.. Restart daemon
 Q.. Quit
 
 EOM
@@ -74,7 +78,6 @@ EOM
     read -p 'Selection? ' resp
     case 0$resp in
     01)
-	: ${EDITOR:=vi}
 	if [ -e $conf_file ]; then
 	    printf "$conf_file already exists.  Overwrite? y/[n] "
 	    read generate
@@ -91,7 +94,7 @@ EOM
 	fi
 	$EDITOR $conf_file
 	;;
-    
+
     02)
 	read -p 'Host name of head node? ' head_host
 	read -p 'Username for ssh to head node (usually ssh does not accept root)? ' user_name
@@ -108,15 +111,30 @@ EOM
 	;;
     
     03)
+	$EDITOR $(auto-localbase)/etc/lpjs/config
+	;;
+    
+    04)
 	auto-enable-service lpjs_dispatchd $0
 	pause
 	;;
 
-    04)
+    05)
 	auto-enable-service lpjs_compd $0
 	pause
 	;;
 
+    06)
+	# FIXME: Maybe make auto-service-restart wrapper for portability
+	if auto-service-enabled lpjs_compd; then
+	    service lpjs_compd restart;
+	fi
+	if auto-service-enabled lpjs_dispatchd; then
+	    service lpjs_dispatchd restart;
+	fi
+	pause
+	;;
+    
     0Q|0q)
 	exit 0
 	;;
