@@ -97,7 +97,7 @@ use Debian Linux, Dragonfly BSD, FreeBSD, Illumos, MacOS, NetBSD, OpenBSD,
 Ubuntu, or any of the other dozens of Unix-like systems available on any
 hardware they support.  In fact, one could easily run a chimeric cluster with
 multiple operating systems.  Our test environment currently includes 5
-different operating systems on three different CPU architectures:
+different operating systems on four different CPU architectures:
 
     ```
     FreeBSD coral.acadix  bacon ~/Prog/Src/LPJS 1029: lpjs-nodes
@@ -105,6 +105,7 @@ different operating systems on three different CPU architectures:
     coral        Up           4    0    7962       0 FreeBSD amd64
     herring      Up           4    0    1000       0 FreeBSD arm64
     beluga       Up           1    0    2010       0 FreeBSD powerpc
+    ramora       Up           2    0    2036       0 FreeBSD riscv
     netbsd9      Up           2    0    1023       0 NetBSD  amd64
     debian11     Up           1    0     976       0 Linux   x86_64
     abalone      Up           4    0    8192       0 Darwin  x86_64
