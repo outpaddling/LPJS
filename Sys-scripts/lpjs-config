@@ -38,8 +38,7 @@ if [ $# != 0 ]; then
     usage
 fi
 
-# Replace /Users/bacon/Pkgsrc/pkg with install prefix
-conf_file=/Users/bacon/Pkgsrc/pkg/etc/lpjs/config
+conf_file=$(auto-localbase)/etc/lpjs/config
 
 # Prevent user from running a Trojan as root in the case their account
 # was compromised
@@ -105,7 +104,9 @@ EOM
 	    overwrite=y
 	fi
 	if [ 0"$overwrite" = 0y ]; then
-	    scp $user_name@$head_host:$conf_file $conf_file
+	    remote_conf=$(ssh $user_name@$head_host auto-localbase)/etc/lpjs/config
+	    #echo $remote_conf
+	    scp $user_name@$head_host:$remote_conf $conf_file
 	fi
 	pause
 	;;
