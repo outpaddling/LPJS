@@ -37,7 +37,7 @@ FreeBSD|OpenBSD|DragonFly)
     export CFLAGS="-Wall -g -O"
     rp=$(realpath $PREFIX/lib)
     rl=$(realpath $LOCALBASE/lib)
-    export LDFLAGS="-L$rp -L$rl -Wl,-rpath,$rp:$rl:/usr/lib:/lib"
+    export LDFLAGS="-L. -L$rp -L$rl -Wl,-rpath,$rp:$rl:/usr/lib:/lib"
     ;;
 
 esac
