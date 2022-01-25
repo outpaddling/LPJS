@@ -74,6 +74,8 @@ PREFIX      ?= ../local
 MANPREFIX   ?= ${PREFIX}
 MANDIR      ?= ${MANPREFIX}/man
 
+EXAMPLESDIR ?= ${PREFIX}/share/examples/lpjs
+
 ############################################################################
 # Build flags
 # Override with "make CC=gcc", "make CC=icc", etc.
@@ -204,6 +206,9 @@ install: all
 	    ${SED} -e "s|%%PREFIX%%|`realpath ${PREFIX}`|g" $${f} > \
 		${DESTDIR}${MANDIR}/man1/`basename $${f}`; \
 	done
+	${MKDIR} -p ${DESTDIR}${EXAMPLESDIR}/Systemd
+	${INSTALL} -m 0644 RC-scripts/Systemd/* \
+	    ${DESTDIR}${EXAMPLESDIR}/Systemd
 	
 install-strip: install
 	for f in ${USER_BINS}; do \
