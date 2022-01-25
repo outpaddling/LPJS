@@ -74,7 +74,7 @@ PREFIX      ?= ../local
 MANPREFIX   ?= ${PREFIX}
 MANDIR      ?= ${MANPREFIX}/man
 
-EXAMPLESDIR ?= ${PREFIX}/share/examples/lpjs
+DATADIR     ?= ${PREFIX}/share/lpjs
 
 ############################################################################
 # Build flags
@@ -206,9 +206,9 @@ install: all
 	    ${SED} -e "s|%%PREFIX%%|`realpath ${PREFIX}`|g" $${f} > \
 		${DESTDIR}${MANDIR}/man1/`basename $${f}`; \
 	done
-	${MKDIR} -p ${DESTDIR}${EXAMPLESDIR}/Systemd
+	${MKDIR} -p ${DESTDIR}${DATADIR}/Systemd
 	${INSTALL} -m 0644 RC-scripts/Systemd/* \
-	    ${DESTDIR}${EXAMPLESDIR}/Systemd
+	    ${DESTDIR}${DATADIR}/Systemd
 	
 install-strip: install
 	for f in ${USER_BINS}; do \
