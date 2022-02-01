@@ -19,6 +19,9 @@
 # /usr/local/lib, etc.
 case $(uname) in
 FreeBSD|OpenBSD|DragonFly)
+    export CFLAGS="-Wall -g -O"
+    LIBDIR=$(realpath $LOCALBASE/lib)
+    export LDFLAGS="-L. -L$LIBDIR -Wl,-rpath,$LIBDIR:/usr/lib:/lib"
     ;;
 
 *)
