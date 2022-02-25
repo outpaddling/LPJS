@@ -13,6 +13,7 @@
 
 # Default to ../local if PREFIX is not set
 : ${PREFIX:=../local}
+: ${LOCALBASE:=/usr/local}
 
 # OS-dependent tricks
 # Set rpath to avoid picking up libs installed by package managers in
@@ -45,4 +46,5 @@ FreeBSD|OpenBSD|DragonFly)
 
 esac
 
+export PREFIX LOCALBASE
 make clean install
