@@ -273,29 +273,32 @@ of them.
 To facilitate incorporation into package managers, the Makefile respects
 standard make/environment variables such as CC, CFLAGS, PREFIX, etc.  
 
-Add-on libraries required for the build, such as , should be found
-under ${LOCALBASE}, which defaults to ../local.
 The library, headers, and man pages are installed under
 ${DESTDIR}${PREFIX}.  DESTDIR is empty by default and is primarily used by
-package managers to stage installations.  PREFIX defaults to ${LOCALBASE}.
+package managers to stage installations.  PREFIX defaults to ../local.
 
-To install directly to /myprefix, assuming  is installed there as well,
+Add-on libraries required for the build, such as biolibc, should be found
+under either ${PREFIX} or ${LOCALBASE}, which defaults to ${PREFIX}.
+LOCALBASE can be set independently if you want to use libraries installed
+by FreeBSD ports (/usr/local), MacPorts (/opt/local), pkgsrc (/usr/pkg), etc.
+
+To install directly to /myprefix, assuming biolibc is installed there as well,
 using a make variable:
 
 ```
-make LOCALBASE=/myprefix clean depend install
+make PREFIX=/myprefix clean depend install
 ```
 
 Using an environment variable:
 
 ```
 # C-shell and derivatives
-setenv LOCALBASE /myprefix
+setenv PREFIX /myprefix
 make clean depend install
 
 # Bourne shell and derivatives
-LOCALBASE=/myprefix
-export LOCALBASE
+PREFIX=/myprefix
+export PREFIX
 make clean depend install
 ```
 
