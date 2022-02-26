@@ -12,8 +12,8 @@
 ##########################################################################
 
 # Default to ../local if PREFIX is not set
+# Don't set a default LOCALBASE.  Must be empty for check below.
 : ${PREFIX:=../local}
-: ${LOCALBASE:=/usr/local}
 
 # OS-dependent tricks
 # Set rpath to avoid picking up libs installed by package managers in
