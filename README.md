@@ -182,7 +182,7 @@ architecture.  Please don't hesitate to open an issue if you encounter
 problems on any Unix-like system.
 
 Primary development is done on FreeBSD with clang, but the code is frequently
-tested on CentOS, MacOS, and NetBSD as well.  MS Windows is not supported,
+tested on Linux, MacOS, and NetBSD as well.  MS Windows is not supported,
 unless using a POSIX environment such as Cygwin or Windows Subsystem for Linux.
 
 The Makefile is designed to be friendly to package managers, such as
