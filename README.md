@@ -203,7 +203,7 @@ For an overview of available package managers, see the
 ### Installing LPJS on FreeBSD:
 
 FreeBSD is a highly underrated platform for scientific computing, with over
-1,900 scientific libraries and applications in the FreeBSD ports collection
+2,000 scientific libraries and applications in the FreeBSD ports collection
 (of more than 30,000 total), modern clang compiler, fully-integrated ZFS
 file system, and renowned security, performance, and reliability.
 FreeBSD has a somewhat well-earned reputation for being difficult to set up
