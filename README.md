@@ -238,27 +238,29 @@ on [Illumos](https://illumos.org/), [MacOS](https://www.apple.com/macos/),
 many other Linux distributions.
 Using pkgsrc does not require admin privileges.  You can install a pkgsrc
 tree in any directory to which you have write access and easily install any
-of the nearly 20,000 packages in the collection.  The
-[auto-pkgsrc-setup](https://github.com/outpaddling/auto-admin/blob/master/Scripts/auto-pkgsrc-setup) script can assist you with
-basic setup.
+of the nearly 20,000 packages in the collection. 
 
-First bootstrap pkgsrc using auto-pkgsrc-setup or any
-other method.  Then run the following commands:
-
-```
-cd pkgsrc-dir/sysutils/LPJS
-bmake install clean
-```
-
-There may also be binary packages available for your platform.  If this is
-the case, you can install by running:
+The
+[auto-pkgsrc-setup](https://github.com/outpaddling/auto-admin/blob/master/Scripts/auto-pkgsrc-setup)
+script will help you install pkgsrc in about 10 minutes.  Just download it
+and run
 
 ```
-pkgin install LPJS
+sh auto-pkgsrc-setup
 ```
 
-See the [Joyent Cloud Services Site](https://pkgsrc.joyent.com/) for
-available package sets.
+Then, assuming you selected current packages and the default prefix
+
+```
+source ~/Pkgsrc/pkg/etc/pkgsrc.sh   # Or pkgsrc.csh for csh or tcsh
+cd ~/Pkgsrc/sysutils/lpjs
+sbmake install clean clean-depends
+```
+
+See the pkgsrc documentation for more information.
+
+Community support for pkgsrc is available through the
+[pkgsrc-users](http://netbsd.org/mailinglists) mailing list.
 
 ### Building LPJS locally
 
