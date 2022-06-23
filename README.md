@@ -241,7 +241,7 @@ tree in any directory to which you have write access and easily install any
 of the nearly 20,000 packages in the collection. 
 
 The
-[auto-pkgsrc-setup](https://github.com/outpaddling/auto-admin/blob/master/Scripts/auto-pkgsrc-setup)
+[auto-pkgsrc-setup](https://github.com/outpaddling/auto-admin/blob/master/User-scripts/auto-pkgsrc-setup)
 script will help you install pkgsrc in about 10 minutes.  Just download it
 and run
 
