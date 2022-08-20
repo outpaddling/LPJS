@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "node-list.h"
+#include "lpjs.h"
 
 /***************************************************************************
  *  Description:

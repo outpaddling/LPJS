@@ -7,4 +7,5 @@ lpjs-submit
 lpjs-chaperone
 .*.bak
 *.o
+*.a
 README.html

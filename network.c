@@ -11,6 +11,7 @@
 #include "xtend/net.h"
 #include "node-list.h"
 #include "network.h"
+#include "lpjs.h"
 
 /***************************************************************************
  *  Description:
