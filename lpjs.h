@@ -9,10 +9,6 @@
 #include "job-list.h"
 #endif
 
-#ifndef _MACHDEP_H_
-#include "machdep.h"
-#endif
-
 #define LPJS_FIELD_MAX      1024
 #define LPJS_CMD_MAX        4096
 #define LPJS_IP_MSG_MAX     4096

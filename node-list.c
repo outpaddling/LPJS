@@ -4,6 +4,7 @@
 #include <string.h>
 #include <xtend/dsv.h>      // dsv_read_field()
 #include <xtend/string.h>   // strtrim()
+#include <xtend/file.h>
 #include "node-list.h"
 #include "network.h"
 #include "lpjs.h"
@@ -119,7 +120,7 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
 {
     unsigned    c;
     
-    dprintf(msg_fd, NODE_STATUS_HEADER_FORMAT, "Hostname", "State",
+    xt_dprintf(msg_fd, NODE_STATUS_HEADER_FORMAT, "Hostname", "State",
 	    "Cores", "Used", "Physmem", "Used", "OS", "Arch");
     for (c = 0; c < node_list->count; ++c)
 	node_send_status(&node_list->compute_nodes[c], msg_fd);

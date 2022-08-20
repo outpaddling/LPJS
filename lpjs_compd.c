@@ -16,6 +16,7 @@
 #include <signal.h>
 #include <munge.h>
 #include <xtend/string.h>
+#include <xtend/file.h>
 #include "node-list.h"
 #include "config.h"
 #include "network.h"
@@ -76,7 +77,7 @@ int     main (int argc, char *argv[])
     }
 
     /* Send a message to the server */
-    /* Need to send \0, so dprintf() doesn't work here */
+    /* Need to send \0, so xt_dprintf() doesn't work here */
     if ( send_msg(msg_fd, "compd-checkin") < 0 )
     {
 	perror("lpjs-nodes: Failed to send message to dispatch");

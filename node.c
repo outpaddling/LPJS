@@ -5,6 +5,7 @@
 #include <sysexits.h>
 #include <sys/utsname.h>
 #include <xtend/dsv.h>
+#include <xtend/file.h>
 #include "node.h"
 #include "network.h"
 #include "lpjs.h"
@@ -114,11 +115,11 @@ void    node_send_status(node_t *node, int msg_fd)
      *  Don't use send_msg() here, since there will be more text to send
      *  and send_msg() terminates the message.
      */
-    if ( dprintf(msg_fd, NODE_STATUS_FORMAT, node->hostname, node->state,        
+    if ( xt_dprintf(msg_fd, NODE_STATUS_FORMAT, node->hostname, node->state,        
 		node->cores, node->cores_used,                                 
 		node->phys_mem, node->phys_mem_used, node->os, node->arch) < 0 )
     {
-	perror("send_node_specs(): dprintf() failed");
+	perror("send_node_specs(): xt_dprintf() failed");
 	exit(EX_IOERR);
     }
 }
@@ -141,11 +142,11 @@ void    node_send_specs(node_t *node, int msg_fd)
      *  Don't use send_msg() here, since there will be more text to send
      *  and send_msg() terminates the message.
      */
-    if ( dprintf(msg_fd, "%s\t%s\t%u\t%lu\t%u\t%s\t%s\n",
+    if ( xt_dprintf(msg_fd, "%s\t%s\t%u\t%lu\t%u\t%s\t%s\n",
 		 node->hostname, node->state, node->cores,
 		 node->phys_mem, node->zfs, node->os, node->arch) < 0 )
     {
-	perror("send_node_specs(): dprintf() failed");
+	perror("send_node_specs(): xt_dprintf() failed");
 	exit(EX_IOERR);
     }
 }

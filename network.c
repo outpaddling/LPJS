@@ -7,8 +7,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <stdarg.h>
-#include "xtend/string.h"   // strlcpy() on Linux
-#include "xtend/net.h"
+#include <xtend/string.h>   // strlcpy() on Linux
+#include <xtend/net.h>
+#include <xtend/file.h>
 #include "node-list.h"
 #include "network.h"
 #include "lpjs.h"
@@ -97,7 +98,7 @@ int     print_response(int msg_fd, const char *caller_name)
  *  Description:
  *      Construct and send a message through a socket.  The entire message
  *      + a null byte are sent in a single write().  Basically the same as
- *      dprintf(), except that it null-terminates the message.
+ *      xt_dprintf(), except that it null-terminates the message.
  *
  *  History: 
  *  Date        Name        Modification

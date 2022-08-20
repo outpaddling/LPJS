@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <xtend/file.h>
 #include "node-list.h"
 #include "lpjs.h"
 
@@ -21,7 +22,7 @@ int     queue_job(int msg_fd, const char *incoming_msg, node_list_t *node_list)
      *  dispatch
      */
 
-    dprintf(msg_fd, "%s 1", NODE_HOSTNAME(first_node));
+    xt_dprintf(msg_fd, "%s 1", NODE_HOSTNAME(first_node));
     return 0;
 }
 

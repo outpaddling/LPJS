@@ -57,8 +57,7 @@ USER_BINS   = lpjs-nodes lpjs-jobs lpjs-submit
 # List object files that comprise BIN.
 
 LIB_OBJS    = config.o misc.o scheduler.o network.o job.o job-list.o \
-	      node.o node-mutators.o node-list.o node-list-mutators.o \
-	      machdep.o
+	      node.o node-mutators.o node-list.o node-list-mutators.o
 
 ############################################################################
 # Compile, link, and install options
