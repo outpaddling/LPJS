@@ -18,12 +18,13 @@
 # OS-dependent tricks
 # Set rpath to avoid picking up libs installed by package managers in
 # /usr/local/lib, etc.
+
+PREFIX=../local
+CFLAGS="-Wall -g -O"
+
 case $(uname) in
 FreeBSD|OpenBSD|DragonFly)
     : ${LOCALBASE:=/usr/local}
-    export CFLAGS="-Wall -g -O"
-    LIBDIR=$(realpath $LOCALBASE/lib)
-    export LDFLAGS="-L. -L$LIBDIR -Wl,-rpath,$LIBDIR:/usr/lib:/lib"
     ;;
 
 *)
@@ -40,12 +41,6 @@ FreeBSD|OpenBSD|DragonFly)
     fi
     LOCALBASE=$pkgsrc
     printf "LOCALBASE = $LOCALBASE  PREFIX = $PREFIX\n"
-    export PREFIX LOCALBASE
-
-    export CFLAGS="-Wall -g -O"
-    rp=$(realpath $PREFIX/lib)
-    rl=$(realpath $LOCALBASE/lib)
-    export LDFLAGS="-L. -L$rp -L$rl -Wl,-rpath,$rp:$rl:/usr/lib:/lib"
     ;;
 
 esac
@@ -53,5 +48,8 @@ esac
 if [ $(uname) = SunOS ]; then
     LDFLAGS="$LDFLAGS -lsocket -lnsl"
 fi
-export PREFIX LOCALBASE
+
+rpl=$(realpath $PREFIX)
+rll=$(realpath $LOCALBASE)
+export LDFLAGS="-L. -L$rpl -L$rll -Wl,-rpath,$rpl:$rll:/usr/lib:/lib"
 make clean install
