@@ -50,5 +50,8 @@ FreeBSD|OpenBSD|DragonFly)
 
 esac
 
+if [ $(uname) = SunOS ]; then
+    LDFLAGS="$LDFLAGS -lsocket -lnsl"
+fi
 export PREFIX LOCALBASE
 make clean install
