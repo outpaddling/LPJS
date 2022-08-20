@@ -45,11 +45,11 @@ FreeBSD|OpenBSD|DragonFly)
 
 esac
 
-if [ $(uname) = SunOS ]; then
-    LDFLAGS="$LDFLAGS -lsocket -lnsl"
-fi
-
-rpl=$(realpath $PREFIX)
-rll=$(realpath $LOCALBASE)
+rpl=$(realpath $PREFIX/lib)
+rll=$(realpath $LOCALBASE/lib)
 export LDFLAGS="-L. -L$rpl -L$rll -Wl,-rpath,$rpl:$rll:/usr/lib:/lib"
+if [ $(uname) = SunOS ]; then
+    export LDFLAGS="$LDFLAGS -lsocket -lnsl"
+fi
+export PREFIX LOCALBASE
 make clean install
