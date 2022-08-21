@@ -279,11 +279,11 @@ To facilitate incorporation into package managers, the Makefile respects
 standard make/environment variables such as CC, CFLAGS, PREFIX, etc.  
 
 The library, headers, and man pages are installed under
-${DESTDIR}${PREFIX}.  DESTDIR is empty by default and is primarily used by
+`${DESTDIR}${PREFIX}`.  DESTDIR is empty by default and is primarily used by
 package managers to stage installations.  PREFIX defaults to ../local.
 
 Add-on libraries required for the build, such as biolibc, should be found
-under either ${PREFIX} or ${LOCALBASE}, which defaults to ${PREFIX}.
+under either `${PREFIX}` or `${LOCALBASE}`, which defaults to `${PREFIX}`.
 LOCALBASE can be set independently if you want to use libraries installed
 by FreeBSD ports (/usr/local), MacPorts (/opt/local), pkgsrc (/usr/pkg), etc.
 
