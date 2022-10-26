@@ -33,7 +33,7 @@ FreeBSD|OpenBSD|DragonFly)
 	for pkgsrc in ~/Pkgsrc/pkg /usr/pkg /opt/pkg; do
 	    if [ -e $pkgsrc ]; then
 		if ! pkg_info munge; then
-		    cd ${pkgsrc%pkg}/pkgsrc/security/munge && sbmake install
+		    (cd ${pkgsrc%pkg}/pkgsrc/security/munge && sbmake install)
 		fi
 		break
 	    fi
