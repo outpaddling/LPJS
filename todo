@@ -1,0 +1,7 @@
+
+Implement virtual memory limit checks
+    Document that this is enforced by ulimit() and unbreakable
+
+Implement real memory limit checks
+    Document that this is enforced by periodic sampling
+
