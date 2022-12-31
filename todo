@@ -1,7 +1,14 @@
 
+Basic queuing system
+    Core/memory tracking
+    Track actual vs stated memory use?
+
 Implement virtual memory limit checks
     Document that this is enforced by ulimit() and unbreakable
 
 Implement real memory limit checks
     Document that this is enforced by periodic sampling
+
+SLURM compatibility module
+    Convert sbatch scripts to lpjs and vice versa
 
