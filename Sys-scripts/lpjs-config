@@ -64,12 +64,13 @@ do
     lpjs-banner
     cat << EOM
 
-1.. Generate configuration file (Usually done only on head node, or by SPCM)
-2.. Copy configuration file from head node (typically done by SPCM)
-3.. Edit config file
-4.. Enable dispatch daemon (make this the head node)
-5.. Enable compute daemon (make this a compute node)
-6.. Restart daemon
+1.. Set up a zero-configuration one-node cluster on this machine
+2.. Generate configuration file (Usually done only on head node, or by SPCM)
+3.. Copy configuration file from head node (typically done by SPCM)
+4.. Edit config file
+5.. Enable dispatch daemon (make this the head node)
+6.. Enable compute daemon (make this a compute node)
+7.. Restart daemon
 Q.. Quit
 
 EOM
@@ -77,6 +78,10 @@ EOM
     read -p 'Selection? ' resp
     case 0$resp in
     01)
+	printf "Not yet implemented.\n"
+	;;
+    
+    02)
 	if [ -e $conf_file ]; then
 	    printf "$conf_file already exists.  Overwrite? y/[n] "
 	    read generate
@@ -94,7 +99,7 @@ EOM
 	$EDITOR $conf_file
 	;;
 
-    02)
+    03)
 	read -p 'Host name of head node? ' head_host
 	read -p 'Username for ssh to head node (usually ssh does not accept root)? ' user_name
 	if [ -e $conf_file ]; then
@@ -111,21 +116,21 @@ EOM
 	pause
 	;;
     
-    03)
+    04)
 	$EDITOR $(auto-localbase)/etc/lpjs/config
 	;;
     
-    04)
+    05)
 	auto-enable-service lpjs_dispatchd $0
 	pause
 	;;
 
-    05)
+    06)
 	auto-enable-service lpjs_compd $0
 	pause
 	;;
 
-    06)
+    07)
 	# FIXME: Maybe make auto-service-restart wrapper for portability
 	if auto-service-enabled lpjs_compd; then
 	    service lpjs_compd restart;
