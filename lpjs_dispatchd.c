@@ -21,6 +21,7 @@
 #include <signal.h>
 #include <errno.h>
 #include <munge.h>
+#include <xtend/proc.h>
 #include "lpjs.h"
 #include "node-list.h"
 #include "job-list.h"
@@ -57,7 +58,7 @@ int     main(int argc,char *argv[])
 	    perror("Cannot open /var/log/lpjs_dispatchd");
 	    return EX_CANTCREAT;
 	}
-	daemon(0, 0);
+	xt_daemonize(0, 0);
     }
     else
 	Log_stream = stderr;
