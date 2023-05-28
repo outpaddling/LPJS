@@ -74,7 +74,16 @@ compd_enable()
 	printf "Host name of head node? "
 	read head_node
 	printf "head    $head_node\n" >> $CONF_FILE
+    else
+	head_node=$(awk '$1 == "head" { print $2 }' $CONF_FILE)
     fi
+    
+    printf "Copy munge.key from $head_node to $(auto-localbase)/etc/munge.\n"
+    printf "Make sure the permissions are 0600 and ownership is root:0.\n"
+    pause
+    
+    printf "Add 'compute $(hostname)' to $CONF_FILE on $head_node.\n"
+    pause
     auto-enable-service lpjs_compd $0
 }
 
@@ -127,8 +136,9 @@ EOM
     read -p 'Selection? ' resp
     case 0$resp in
     01)
-	dispatchd_enable()
-	compd_enable()
+	dispatchd_enable
+	compd_enable
+	pause
 	;;
     
     02)
@@ -171,12 +181,12 @@ EOM
 	;;
     
     05)
-	dispatchd_enable()
+	dispatchd_enable
 	pause
 	;;
 
     06)
-	compd_enable()
+	compd_enable
 	pause
 	;;
 
