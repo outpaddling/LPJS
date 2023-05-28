@@ -121,11 +121,30 @@ EOM
 	;;
     
     05)
+	if grep -q '^head' $conf_file; then
+	    head_node=$(awk '$1 == "head" { print $2 }' $conf_file)
+	    printf "This node currently lists $head_node as the head node.\n"
+	    printf "$head_node will be replaced by $(hostname).\n"
+	    printf "Proceed? y/[n] "
+	    read proceed
+	    if [ 0"$proceed" != 0y ]; then
+		break
+	    fi
+	fi
+	head_node=$(hostname)
+	printf "head    $head_node\n" >> $conf_file.temp
+	grep -v '^head' $conf_file >> $conf_file.temp || true
+	mv -f $conf_file.temp $conf_file
 	auto-enable-service lpjs_dispatchd $0
 	pause
 	;;
 
     06)
+	if [ ! -e $conf_file ] || ! grep -q '^head' $conf_file; then
+	    printf "Host name of head node? "
+	    read head_node
+	    printf "head    $head_node\n" >> $conf_file
+	fi
 	auto-enable-service lpjs_compd $0
 	pause
 	;;
