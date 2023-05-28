@@ -1,5 +1,5 @@
 config.o: config.c node-list.h node.h config.h misc.h lpjs.h job-list.h \
- job.h
+  job.h
 	${CC} -c ${CFLAGS} config.c
 
 job-list.o: job-list.c job-list.h job.h lpjs.h node-list.h node.h
@@ -8,28 +8,23 @@ job-list.o: job-list.c job-list.h job.h lpjs.h node-list.h node.h
 job.o: job.c job.h network.h node-list.h node.h lpjs.h job-list.h
 	${CC} -c ${CFLAGS} job.c
 
+jobs.o: jobs.c node-list.h node.h config.h network.h lpjs.h job-list.h \
+  job.h
+	${CC} -c ${CFLAGS} jobs.c
+
 lpjs-chaperone.o: lpjs-chaperone.c node-list.h node.h config.h network.h \
- misc.h lpjs.h job-list.h job.h
+  misc.h lpjs.h job-list.h job.h
 	${CC} -c ${CFLAGS} lpjs-chaperone.c
 
-lpjs-jobs.o: lpjs-jobs.c node-list.h node.h config.h network.h lpjs.h \
- job-list.h job.h
-	${CC} -c ${CFLAGS} lpjs-jobs.c
-
-lpjs-nodes.o: lpjs-nodes.c node-list.h node.h config.h network.h lpjs.h \
- job-list.h job.h
-	${CC} -c ${CFLAGS} lpjs-nodes.c
-
-lpjs-submit.o: lpjs-submit.c node-list.h node.h config.h network.h misc.h \
- lpjs.h job-list.h job.h
-	${CC} -c ${CFLAGS} lpjs-submit.c
+lpjs.o: lpjs.c
+	${CC} -c ${CFLAGS} lpjs.c
 
 lpjs_compd.o: lpjs_compd.c node-list.h node.h config.h network.h misc.h \
- lpjs.h job-list.h job.h
+  lpjs.h job-list.h job.h
 	${CC} -c ${CFLAGS} lpjs_compd.c
 
 lpjs_dispatchd.o: lpjs_dispatchd.c lpjs.h node-list.h node.h job-list.h \
- job.h config.h scheduler.h network.h misc.h
+  job.h config.h scheduler.h network.h misc.h
 	${CC} -c ${CFLAGS} lpjs_dispatchd.c
 
 misc.o: misc.c
@@ -42,7 +37,7 @@ node-list-mutators.o: node-list-mutators.c node-list.h node.h
 	${CC} -c ${CFLAGS} node-list-mutators.c
 
 node-list.o: node-list.c node-list.h node.h network.h lpjs.h job-list.h \
- job.h
+  job.h
 	${CC} -c ${CFLAGS} node-list.c
 
 node-mutators.o: node-mutators.c node.h
@@ -51,6 +46,14 @@ node-mutators.o: node-mutators.c node.h
 node.o: node.c node.h network.h node-list.h lpjs.h job-list.h job.h
 	${CC} -c ${CFLAGS} node.c
 
+nodes.o: nodes.c node-list.h node.h config.h network.h lpjs.h job-list.h \
+  job.h
+	${CC} -c ${CFLAGS} nodes.c
+
 scheduler.o: scheduler.c node-list.h node.h lpjs.h job-list.h job.h
 	${CC} -c ${CFLAGS} scheduler.c
+
+submit.o: submit.c node-list.h node.h config.h network.h misc.h lpjs.h \
+  job-list.h job.h
+	${CC} -c ${CFLAGS} submit.c
 
