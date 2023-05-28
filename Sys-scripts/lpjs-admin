@@ -31,6 +31,55 @@ pause()
 
 
 ##########################################################################
+#   Function description:
+#       Enable dispatchd on this node (make this the head node)
+#       
+#   History:
+#   Date        Name        Modification
+#   2023-05-28  Jason Bacon Begin
+##########################################################################
+
+dispatchd_enable()
+{
+    if grep -q '^head' $CONF_FILE; then
+	head_node=$(awk '$1 == "head" { print $2 }' $CONF_FILE)
+	printf "This node currently lists $head_node as the head node.\n"
+	printf "$head_node will be replaced by $(hostname).\n"
+	printf "Proceed? y/[n] "
+	read proceed
+	if [ 0"$proceed" != 0y ]; then
+	    break
+	fi
+    fi
+    head_node=$(hostname)
+    printf "head    $head_node\n" >> $CONF_FILE.temp
+    grep -v '^head' $CONF_FILE >> $CONF_FILE.temp || true
+    mv -f $CONF_FILE.temp $CONF_FILE
+    auto-enable-service lpjs_dispatchd $0
+}
+
+
+##########################################################################
+#   Function description:
+#       Enable compd on this node (make this a compute node)
+#       
+#   History:
+#   Date        Name        Modification
+#   2023-05-28  Jason Bacon Begin
+##########################################################################
+
+compd_enable()
+{
+    if [ ! -e $CONF_FILE ] || ! grep -q '^head' $CONF_FILE; then
+	printf "Host name of head node? "
+	read head_node
+	printf "head    $head_node\n" >> $CONF_FILE
+    fi
+    auto-enable-service lpjs_compd $0
+}
+
+
+##########################################################################
 #   Main
 ##########################################################################
 
@@ -38,7 +87,7 @@ if [ $# != 0 ]; then
     usage
 fi
 
-conf_file=$(auto-localbase)/etc/lpjs/config
+CONF_FILE=$(auto-localbase)/etc/lpjs/config
 
 # Prevent user from running a Trojan as root in the case their account
 # was compromised
@@ -78,12 +127,13 @@ EOM
     read -p 'Selection? ' resp
     case 0$resp in
     01)
-	printf "Not yet implemented.\n"
+	dispatchd_enable()
+	compd_enable()
 	;;
     
     02)
-	if [ -e $conf_file ]; then
-	    printf "$conf_file already exists.  Overwrite? y/[n] "
+	if [ -e $CONF_FILE ]; then
+	    printf "$CONF_FILE already exists.  Overwrite? y/[n] "
 	    read generate
 	else
 	    generate=y
@@ -91,19 +141,19 @@ EOM
 	if [ 0"$generate" = 0y ]; then
 	    read -p "Host name of head node? " head_host
 	    read -p "Host names of compute nodes (comma-separated) " compute_hosts
-	    cat << EOM > $conf_file
+	    cat << EOM > $CONF_FILE
 head    $head_host
 compute $compute_hosts
 EOM
 	fi
-	$EDITOR $conf_file
+	$EDITOR $CONF_FILE
 	;;
 
     03)
 	read -p 'Host name of head node? ' head_host
 	read -p 'Username for ssh to head node (usually ssh does not accept root)? ' user_name
-	if [ -e $conf_file ]; then
-	    printf "$conf_file already exists.  Overwrite? y/[n] "
+	if [ -e $CONF_FILE ]; then
+	    printf "$CONF_FILE already exists.  Overwrite? y/[n] "
 	    read overwrite
 	else
 	    overwrite=y
@@ -111,7 +161,7 @@ EOM
 	if [ 0"$overwrite" = 0y ]; then
 	    remote_conf=$(ssh $user_name@$head_host auto-localbase)/etc/lpjs/config
 	    #echo $remote_conf
-	    scp $user_name@$head_host:$remote_conf $conf_file
+	    scp $user_name@$head_host:$remote_conf $CONF_FILE
 	fi
 	pause
 	;;
@@ -121,31 +171,12 @@ EOM
 	;;
     
     05)
-	if grep -q '^head' $conf_file; then
-	    head_node=$(awk '$1 == "head" { print $2 }' $conf_file)
-	    printf "This node currently lists $head_node as the head node.\n"
-	    printf "$head_node will be replaced by $(hostname).\n"
-	    printf "Proceed? y/[n] "
-	    read proceed
-	    if [ 0"$proceed" != 0y ]; then
-		break
-	    fi
-	fi
-	head_node=$(hostname)
-	printf "head    $head_node\n" >> $conf_file.temp
-	grep -v '^head' $conf_file >> $conf_file.temp || true
-	mv -f $conf_file.temp $conf_file
-	auto-enable-service lpjs_dispatchd $0
+	dispatchd_enable()
 	pause
 	;;
 
     06)
-	if [ ! -e $conf_file ] || ! grep -q '^head' $conf_file; then
-	    printf "Host name of head node? "
-	    read head_node
-	    printf "head    $head_node\n" >> $conf_file
-	fi
-	auto-enable-service lpjs_compd $0
+	compd_enable()
 	pause
 	;;
 
