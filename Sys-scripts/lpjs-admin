@@ -55,6 +55,7 @@ dispatchd_enable()
     printf "head    $head_node\n" >> $CONF_FILE.temp
     grep -v '^head' $CONF_FILE >> $CONF_FILE.temp || true
     mv -f $CONF_FILE.temp $CONF_FILE
+    auto_enable_munge
     auto-enable-service lpjs_dispatchd $0
 }
 
@@ -78,13 +79,44 @@ compd_enable()
 	head_node=$(awk '$1 == "head" { print $2 }' $CONF_FILE)
     fi
     
-    printf "Copy munge.key from $head_node to $(auto-localbase)/etc/munge.\n"
-    printf "Make sure the permissions are 0600 and ownership is root:0.\n"
-    pause
-    
     printf "Add 'compute $(hostname)' to $CONF_FILE on $head_node.\n"
     pause
+    auto_enable_munge
     auto-enable-service lpjs_compd $0
+    lpjs nodes
+}
+
+
+##########################################################################
+#   Function description:
+#       Enable munge daemon
+#       
+#   History:
+#   Date        Name        Modification
+#   2023-05-28  Charlie &   Begin
+##########################################################################
+
+auto_enable_munge()
+{
+    munge_key=$(auto-localbase)/etc/munge/munge.key
+    if [ -e $munge_key ]; then
+	printf "$munge_key already exists.  Update it if necessary.\n"
+    else
+	printf "Copy munge.key from $head_node to $(auto-localbase)/etc/munge.\n"
+    fi
+    printf "Permissions should be -rw------- and ownership root:root or root:wheel.\n"
+    printf "If they are not, you may have a security breach.\n"
+    printf "Current ownership and permissions:\n"
+    ls -l $munge_key
+    pause
+
+    if [ -e $(auto-localbase)/etc/rc.d/munged ]; then
+	auto-enable-service munged $0
+    else
+	printf "Could not find munge RC script.  Enable munge manually\n"
+	printf "before continuing.  Press return after munged is running.\n"
+	read junk
+    fi
 }
 
 
