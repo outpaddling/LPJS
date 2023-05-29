@@ -55,7 +55,7 @@ dispatchd_enable()
     printf "head    $head_node\n" >> $CONF_FILE.temp
     grep -v '^head' $CONF_FILE >> $CONF_FILE.temp || true
     mv -f $CONF_FILE.temp $CONF_FILE
-    auto_enable_munge
+    munge_enable
     auto-enable-service lpjs_dispatchd $0
 }
 
@@ -81,7 +81,7 @@ compd_enable()
     
     printf "Add 'compute $(hostname)' to $CONF_FILE on $head_node.\n"
     pause
-    auto_enable_munge
+    munge_enable
     auto-enable-service lpjs_compd $0
     lpjs nodes
 }
@@ -96,7 +96,7 @@ compd_enable()
 #   2023-05-28  Charlie &   Begin
 ##########################################################################
 
-auto_enable_munge()
+munge_enable()
 {
     munge_key=$(auto-localbase)/etc/munge/munge.key
     if [ -e $munge_key ]; then
@@ -110,6 +110,7 @@ auto_enable_munge()
     ls -l $munge_key
     pause
 
+    # FIXME: Make sure pkgsrc service is called "munged"
     if [ -e $(auto-localbase)/etc/rc.d/munged ]; then
 	auto-enable-service munged $0
     else
@@ -155,12 +156,11 @@ do
     cat << EOM
 
 1.. Set up a zero-configuration one-node cluster on this machine
-2.. Generate configuration file (Usually done only on head node, or by SPCM)
-3.. Copy configuration file from head node (typically done by SPCM)
-4.. Edit config file
-5.. Enable dispatch daemon (make this the head node)
-6.. Enable compute daemon (make this a compute node)
-7.. Restart daemon
+2.. Add a compute node (use this option only on the head node)
+3.. Enable dispatch daemon (make this the head node)
+4.. Enable compute daemon (make this a compute node)
+5.. Restart daemons
+6.. Edit config file (advanced users only)
 Q.. Quit
 
 EOM
@@ -188,42 +188,27 @@ head    $head_host
 compute $compute_hosts
 EOM
 	fi
+	
+	# FIXME: Temporary for debugging
 	$EDITOR $CONF_FILE
+	
+	# FIXME: Is this necessary?  If so, should it be?
+	service dispatchd restart
 	;;
 
     03)
-	read -p 'Host name of head node? ' head_host
-	read -p 'Username for ssh to head node (usually ssh does not accept root)? ' user_name
-	if [ -e $CONF_FILE ]; then
-	    printf "$CONF_FILE already exists.  Overwrite? y/[n] "
-	    read overwrite
-	else
-	    overwrite=y
-	fi
-	if [ 0"$overwrite" = 0y ]; then
-	    remote_conf=$(ssh $user_name@$head_host auto-localbase)/etc/lpjs/config
-	    #echo $remote_conf
-	    scp $user_name@$head_host:$remote_conf $CONF_FILE
-	fi
-	pause
-	;;
-    
-    04)
-	$EDITOR $(auto-localbase)/etc/lpjs/config
-	;;
-    
-    05)
 	dispatchd_enable
 	pause
 	;;
 
-    06)
+    04)
 	compd_enable
 	pause
 	;;
 
-    07)
+    05)
 	# FIXME: Maybe make auto-service-restart wrapper for portability
+	service munged restart
 	if auto-service-enabled lpjs_compd; then
 	    service lpjs_compd restart;
 	fi
@@ -231,6 +216,10 @@ EOM
 	    service lpjs_dispatchd restart;
 	fi
 	pause
+	;;
+    
+    06)
+	$EDITOR $(auto-localbase)/etc/lpjs/config
 	;;
     
     0Q|0q)
