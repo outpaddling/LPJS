@@ -1,10 +1,11 @@
+lpjs
+nodes
+jobs
+submit
 lpjs_dispatchd
 lpjs_compd
 lpjs-node-specs
 lpjs-chaperone
-nodes
-jobs
-submit
 .*.bak
 *.o
 *.a

@@ -21,6 +21,7 @@
 #include <signal.h>
 #include <errno.h>
 #include <munge.h>
+#include <stdbool.h>
 #include <xtend/proc.h>
 #include "lpjs.h"
 #include "node-list.h"
@@ -31,7 +32,7 @@
 #include "misc.h"
 
 // Must be global for signal handler
-int     Listen_fd;
+int     Listen_fd, Msg_fd;
 FILE    *Log_stream;
 
 int     main(int argc,char *argv[])
@@ -68,11 +69,12 @@ int     main(int argc,char *argv[])
 
     /*
      *  Set handler so that Listen_fd is properly closed before termination.
-     *  Still getting bind(): address alread in use during testing
+     *  Still getting bind(): address already in use during testing
      *  with its frequent restarts.  Possible clues:
      *  https://hea-www.harvard.edu/~fine/Tech/addrinuse.html
      */
     signal(SIGINT, terminate_daemon);
+    signal(SIGTERM, terminate_daemon);
 
     return process_events(&node_list, &job_list);
 }
@@ -93,7 +95,9 @@ void    terminate_daemon(int s2)
     lpjs_log(Log_stream, "lpjs_dispatch shutting down...\n");
     fclose(Log_stream);
     close(Listen_fd);
-    exit(0);
+    close(Msg_fd);
+    
+    exit(EX_OK);
 }
 
 
@@ -110,7 +114,6 @@ void    terminate_daemon(int s2)
 int     process_events(node_list_t *node_list, job_list_t *job_list)
 
 {
-    int         msg_fd;
     ssize_t     bytes;
     socklen_t   address_len = sizeof (struct sockaddr_in);
     char        incoming_msg[LPJS_IP_MSG_MAX + 1];
@@ -148,8 +151,8 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
     server_address.sin_addr.s_addr = htonl(INADDR_ANY);
 
     /* Bind socket fd to server address structure */
-    if (bind(Listen_fd, (struct sockaddr *) &server_address,
-	      sizeof (server_address)) < 0)
+    if ( bind(Listen_fd, (struct sockaddr *) &server_address,
+	      sizeof (server_address)) < 0 )
     {
 	lpjs_log(Log_stream, "bind() failed: %s", strerror(errno));
 	return EX_UNAVAILABLE;
@@ -159,28 +162,33 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
     // FIXME: This is just a skeletal loop for testing basic
     // connections between dispatchd and compd
     
-    while ( 1 )
-    {
 	/* Listen for connection requests */
-	if (listen (Listen_fd, LPJS_MSG_QUEUE_MAX) != 0)
+	if (listen(Listen_fd, LPJS_MSG_QUEUE_MAX) != 0)
 	{
 	    lpjs_log(Log_stream, "listen() failed.\n", stderr);
 	    return EX_UNAVAILABLE;
 	}
 
-	// FIXME: Only accept requests from cluster nodes
+    while ( true )
+    {
+	/*
+	 *  Check last ping time from every node
+	 */
 	
+	// ping_all_nodes();
+	
+	// FIXME: Only accept requests from cluster nodes
 	/* Accept a connection request */
-	if ((msg_fd = accept(Listen_fd,
+	if ((Msg_fd = accept(Listen_fd,
 		(struct sockaddr *)&server_address, &address_len)) == -1)
 	{
 	    lpjs_log(Log_stream, "accept() failed.\n", stderr);
 	    return EX_UNAVAILABLE;
 	}
-	lpjs_log(Log_stream, "Accepted connection. fd = %d\n", msg_fd);
+	lpjs_log(Log_stream, "Accepted connection. fd = %d\n", Msg_fd);
     
 	/* Read a message through the socket */
-	if ( (bytes = read(msg_fd, incoming_msg, 100)) == - 1)
+	if ( (bytes = read(Msg_fd, incoming_msg, 100)) == -1 )
 	{
 	    lpjs_log(Log_stream, "read() failed: %s", strerror(errno));
 	    return EX_IOERR;
@@ -191,10 +199,12 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	// a checkin request while one is already open
 	if ( memcmp(incoming_msg, "compd-checkin", 13) == 0 )
 	{
-	    lpjs_log(Log_stream, "compd checkin.\n");
+	    // Debug
+	    // lpjs_log(Log_stream, "compd checkin.\n");
+	    
 	    /* Get munge credential */
 	    // FIXME: What is the maximum cred length?
-	    if ( (bytes = read(msg_fd, incoming_msg, 4096)) == - 1)
+	    if ( (bytes = read(Msg_fd, incoming_msg, 4096)) == - 1)
 	    {
 		lpjs_log(Log_stream, "read() failed: %s", strerror(errno));
 		return EX_IOERR;
@@ -208,28 +218,28 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	    // FIXME: Only accept compd checkins from root
 
 	    /*
-	     *  Get specs from node and add msg_fd
+	     *  Get specs from node and add Msg_fd
 	     */
 	    
 	    // Debug
-	    send_msg(msg_fd, "Ident verified.\n");
+	    send_msg(Msg_fd, "Ident verified.\n");
 	    
-	    node_receive_specs(&new_node, msg_fd);
+	    node_receive_specs(&new_node, Msg_fd);
 	    node_print_status(&new_node);
 	    node_list_update_compute(node_list, &new_node, Log_stream);
 	    
-	    // node_set_socket_fd(node, msg_fd);
+	    // node_set_socket_fd(node, Msg_fd);
 	    // Acknoledge checkin
 	}
 	else if ( strcmp(incoming_msg, "nodes") == 0 )
 	{
 	    lpjs_log(Log_stream, "Request for node status.\n");
-	    node_list_send_status(msg_fd, node_list);
+	    node_list_send_status(Msg_fd, node_list);
 	}
 	else if ( strcmp(incoming_msg, "jobs") == 0 )
 	{
 	    lpjs_log(Log_stream, "Request for job status.\n");
-	    job_list_send_params(msg_fd, job_list);
+	    job_list_send_params(Msg_fd, job_list);
 	}
 	else if ( memcmp(incoming_msg, "submit", 6) == 0 )
 	{
@@ -240,7 +250,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	    
 	    /* Get munge credential */
 	    // FIXME: What is the maximum cred length?
-	    if ( (bytes = read(msg_fd, incoming_msg, 4096)) == - 1)
+	    if ( (bytes = read(Msg_fd, incoming_msg, 4096)) == - 1)
 	    {
 		lpjs_log(Log_stream, "read() failed: %s", strerror(errno));
 		return EX_IOERR;
@@ -250,14 +260,14 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 		lpjs_log(Log_stream, "munge_decode() failed.  Error = %s\n",
 			 munge_strerror(munge_status));
 	    lpjs_log(Log_stream, "Submit from %d, %d\n", uid, gid);
-	    queue_job(msg_fd, incoming_msg, node_list);
+	    queue_job(Msg_fd, incoming_msg, node_list);
 	}
 	else if ( memcmp(incoming_msg, "job-complete", 12) == 0 )
 	{
 	    lpjs_log(Log_stream, "Job completion report.\n");
 	    log_job(incoming_msg);
 	}
-	close(msg_fd);
+	close(Msg_fd);
     }
     close(Listen_fd);
     return EX_OK;
