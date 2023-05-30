@@ -71,9 +71,9 @@ int     main (int argc, char *argv[])
     // Get hostname of head node
     lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, Log_stream);
 
-    if ( (msg_fd = connect_to_dispatch(&node_list)) == -1 )
+    if ( (msg_fd = connect_to_dispatchd(&node_list)) == -1 )
     {
-	perror("lpjs-nodes: Failed to connect to dispatch");
+	perror("lpjs-nodes: Failed to connect to dispatchd");
 	return EX_IOERR;
     }
 
@@ -81,7 +81,7 @@ int     main (int argc, char *argv[])
     /* Need to send \0, so xt_dprintf() doesn't work here */
     if ( send_msg(msg_fd, "compd-checkin") < 0 )
     {
-	perror("lpjs-nodes: Failed to send message to dispatch");
+	perror("lpjs-nodes: Failed to send message to dispatchd");
 	close(msg_fd);
 	return EX_IOERR;
     }
@@ -95,7 +95,7 @@ int     main (int argc, char *argv[])
 
     if ( send_msg(msg_fd, cred) < 0 )
     {
-	perror("lpjs-submit: Failed to send credential to dispatch");
+	perror("lpjs-submit: Failed to send credential to dispatchd");
 	close(msg_fd);
 	free(cred);
 	return EX_IOERR;
@@ -115,7 +115,7 @@ int     main (int argc, char *argv[])
 	sleep(10);
     if ( bytes == -1 )
     {
-	perror("lpjs-submit: Failed to read response from dispatch");
+	perror("lpjs-submit: Failed to read response from dispatchd");
 	close(msg_fd);
 	return EX_IOERR;
     }
@@ -140,7 +140,7 @@ int     main (int argc, char *argv[])
 void    terminate_daemon(int s2)
 
 {
-    lpjs_log(Log_stream, "lpjs_dispatch shutting down...\n");
+    lpjs_log(Log_stream, "lpjs_compd shutting down...\n");
     fclose(Log_stream);
     exit(0);
 }

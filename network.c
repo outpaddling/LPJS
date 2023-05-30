@@ -23,36 +23,47 @@
  *  2021-09-28  Jason Bacon Begin
  ***************************************************************************/
 
-int     connect_to_dispatch(node_list_t *node_list)
+int     connect_to_dispatchd(node_list_t *node_list)
 
 {
     char                head_ip[LPJS_IP_MAX + 1];
-    short               tcp_port;   /* Need short for htons() */
     struct sockaddr_in  server_address;
     int                 msg_fd;
-    
-    // FIXME: Get this by resolving head hostname in config file
-    if ( resolve_hostname(NODE_LIST_HEAD_NODE(node_list), head_ip, LPJS_IP_MAX + 1) != XT_OK )
-	exit(EX_OSERR);
-    tcp_port = LPJS_TCP_PORT;
 
-    /* Set up socket structure */
-    server_address.sin_family = AF_INET;
-    server_address.sin_addr.s_addr = inet_addr (head_ip);
-    server_address.sin_port = htons (tcp_port);
-
-    /* Create a socket */
-    if ((msg_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    /*
+     *  Create a socket endpoint to pair with the endpoint on the server.
+     *  AF_INET and PF_INET have the same value, but PF_INET is more
+     *  correct according to BSD and Linux man pages, which indicate
+     *  that a protocol family should be specified.  In theory, a
+     *  protocol family can support more than one address family.
+     *  SOCK_STREAM indicates a reliable stream oriented protocol,
+     *  such as TCP, vs. unreliable unordered datagram protocols like UDP.
+     */
+    if ((msg_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0)
     {
-	perror("connect_to_dispatch(): socket() failed");
+	perror("connect_to_dispatchd(): socket() failed");
 	return -1;
     }
 
-    /* Attempt to connect to server */
+    // inet4
+    server_address.sin_family = AF_INET;
+    
+    // Convert head node hostname from LPJS config file to IP
+    if ( resolve_hostname(NODE_LIST_HEAD_NODE(node_list), head_ip,
+			  LPJS_IP_MAX + 1) != XT_OK )
+	exit(EX_OSERR);
+    
+    // Convert inet4 string xxx.xxx.xxx.xxx to 32-bit IP in network byte order
+    server_address.sin_addr.s_addr = inet_addr(head_ip);
+    
+    // Convert 16-bit port number to network byte order
+    server_address.sin_port = htons(LPJS_TCP_PORT);
+
+    /* Attempt to connect to dispatchd server */
     if (connect(msg_fd, (struct sockaddr *)&server_address,
 		 sizeof(server_address)) < 0)
     {
-	perror("connect_to_dispatch(): connect() failed");
+	perror("connect_to_dispatchd(): connect() failed");
 	fprintf(stderr, "hostname %s, ip = %s\n", 
 		NODE_LIST_HEAD_NODE(node_list), head_ip);
 	return -1;
@@ -86,7 +97,7 @@ int     print_response(int msg_fd, const char *caller_name)
     
     if ( bytes == -1 )
     {
-	fprintf(stderr, "%s: Failed to read response from dispatch",
+	fprintf(stderr, "%s: Failed to read response from dispatchd",
 		strerror(errno));
 	return EX_IOERR;
     }

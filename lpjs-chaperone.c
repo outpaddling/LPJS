@@ -42,7 +42,7 @@ int     main (int argc, char *argv[])
     // FIXME: Send errors to log
     lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, stderr);
 
-    if ( (msg_fd = connect_to_dispatch(&node_list)) == -1 )
+    if ( (msg_fd = connect_to_dispatchd(&node_list)) == -1 )
     {
 	perror("lpjs-nodes: Failed to connect to dispatch");
 	return EX_IOERR;

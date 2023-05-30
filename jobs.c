@@ -33,7 +33,7 @@ int     main(int argc,char *argv[])
     // Get hostname of head node
     lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, stderr);
 
-    if ( (msg_fd = connect_to_dispatch(&node_list)) == -1 )
+    if ( (msg_fd = connect_to_dispatchd(&node_list)) == -1 )
     {
 	perror("lpjs-jobs: Failed to connect to dispatch");
 	return EX_IOERR;

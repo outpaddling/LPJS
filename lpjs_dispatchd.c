@@ -112,7 +112,6 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 {
     int         msg_fd;
     ssize_t     bytes;
-    short       tcp_port;   /* Need short for htons() */
     socklen_t   address_len = sizeof (struct sockaddr_in);
     char        incoming_msg[LPJS_IP_MSG_MAX + 1];
     struct sockaddr_in server_address = { 0 };  // FIXME: Support IPV6
@@ -121,29 +120,44 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
     munge_err_t munge_status;
     node_t      new_node;
 
-    if ((Listen_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    /*
+     *  Create a socket endpoint to pair with the endpoint on the client.
+     *  AF_INET and PF_INET have the same value, but PF_INET is more
+     *  correct according to BSD and Linux man pages, which indicate
+     *  that a protocol family should be specified.  In theory, a
+     *  protocol family can support more than one address family.
+     *  SOCK_STREAM indicates a reliable stream oriented protocol,
+     *  such as TCP, vs. unreliable unordered datagram protocols like UDP.
+     */
+    if ((Listen_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0)
     {
 	lpjs_log(Log_stream, "Error opening socket.\n");
 	return EX_UNAVAILABLE;
     }
     lpjs_log(Log_stream, "Listen_fd = %d\n", Listen_fd);
 
-    tcp_port = LPJS_TCP_PORT;
-    server_address.sin_port = htons(tcp_port);
+    // Convert 16-bit port number to network byte order
+    server_address.sin_port = htons(LPJS_TCP_PORT);
+    
+    // inet4
     server_address.sin_family = AF_INET;
+    
+    // Convert 32-bit host address to network byte order
+    // INADDR_ANY is probably 0, but we may bind to a specific
+    // IP address in the future
     server_address.sin_addr.s_addr = htonl(INADDR_ANY);
 
-    /* Bind socket to server address */
+    /* Bind socket fd to server address structure */
     if (bind(Listen_fd, (struct sockaddr *) &server_address,
 	      sizeof (server_address)) < 0)
     {
 	lpjs_log(Log_stream, "bind() failed: %s", strerror(errno));
 	return EX_UNAVAILABLE;
     }
-    lpjs_log(Log_stream, "Bound to port %d...\n", tcp_port);
+    lpjs_log(Log_stream, "Bound to port %d...\n", LPJS_TCP_PORT);
     
-    // FIXME: Is this loop sufficient to service all requests or do we
-    // need nonblocking I/O, threads, etc.?
+    // FIXME: This is just a skeletal loop for testing basic
+    // connections between dispatchd and compd
     
     while ( 1 )
     {
