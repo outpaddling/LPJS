@@ -25,11 +25,11 @@
 #include "lpjs.h"
 
 // Must be global for signal handler
+int     Msg_fd;
 FILE    *Log_stream;
 
 int     main (int argc, char *argv[])
 {
-    int         msg_fd;
     node_list_t node_list;
     node_t      node;
     char        buff[LPJS_MSG_MAX + 1],
@@ -67,11 +67,12 @@ int     main (int argc, char *argv[])
      *  https://hea-www.harvard.edu/~fine/Tech/addrinuse.html
      */
     signal(SIGINT, terminate_daemon);
+    signal(SIGTERM, terminate_daemon);
     
     // Get hostname of head node
     lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, Log_stream);
 
-    if ( (msg_fd = connect_to_dispatchd(&node_list)) == -1 )
+    if ( (Msg_fd = connect_to_dispatchd(&node_list)) == -1 )
     {
 	perror("lpjs-nodes: Failed to connect to dispatchd");
 	return EX_IOERR;
@@ -79,10 +80,10 @@ int     main (int argc, char *argv[])
 
     /* Send a message to the server */
     /* Need to send \0, so xt_dprintf() doesn't work here */
-    if ( send_msg(msg_fd, "compd-checkin") < 0 )
+    if ( send_msg(Msg_fd, "compd-checkin") < 0 )
     {
-	perror("lpjs-nodes: Failed to send message to dispatchd");
-	close(msg_fd);
+	perror("lpjs-nodes: Failed to send checkin message to dispatchd");
+	close(Msg_fd);
 	return EX_IOERR;
     }
 
@@ -93,35 +94,41 @@ int     main (int argc, char *argv[])
 	return EX_UNAVAILABLE; // FIXME: Check actual error
     }
 
-    if ( send_msg(msg_fd, cred) < 0 )
+    if ( send_msg(Msg_fd, cred) < 0 )
     {
 	perror("lpjs-submit: Failed to send credential to dispatchd");
-	close(msg_fd);
+	close(Msg_fd);
 	free(cred);
 	return EX_IOERR;
     }
     free(cred);
     
     // Debug
-    bytes = read(msg_fd, buff, LPJS_MSG_MAX+1);
+    bytes = read(Msg_fd, buff, LPJS_MSG_MAX+1);
     fprintf(Log_stream, "%s\n", buff);
     
     node_detect_specs(&node);
-    node_send_specs(&node, msg_fd);
+    node_send_specs(&node, Msg_fd);
     
     // Now keep daemon running, awaiting jobs
-    // FIXME: Block read until message received instead of sleep
-    while ( (bytes = read(msg_fd, buff, LPJS_MSG_MAX+1)) == 0 )
-	sleep(10);
-    if ( bytes == -1 )
+    while ( true )
     {
-	perror("lpjs-submit: Failed to read response from dispatchd");
-	close(msg_fd);
-	return EX_IOERR;
+	while ( (bytes = read(Msg_fd, buff, LPJS_MSG_MAX+1)) == 0 )
+	{
+	    puts("Sleeping 5...");
+	    sleep(5);
+	}
+	
+	if ( bytes == -1 )
+	{
+	    perror("lpjs-submit: Failed to read response from dispatchd");
+	    close(Msg_fd);
+	    return EX_IOERR;
+	}
+	fprintf(Log_stream, "%s\n", buff);
     }
-    fprintf(Log_stream, "%s\n", buff);
-
-    close(msg_fd);
+    
+    close(Msg_fd);
     fclose(Log_stream);
 
     return EX_OK;
@@ -141,6 +148,8 @@ void    terminate_daemon(int s2)
 
 {
     lpjs_log(Log_stream, "lpjs_compd shutting down...\n");
+    close(Msg_fd);
     fclose(Log_stream);
-    exit(0);
+
+    exit(EX_OK);
 }
