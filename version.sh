@@ -6,7 +6,12 @@
 ##########################################################################
 
 if [ -e .git ]; then
-    version=$(git describe --tags | cut -d - -f 1-2 | tr - .)
+    if ! git describe --tags 2> /dev/null; then
+	commits=$(git log | awk '$1 == "commit"' | wc -l)
+	version=0.0.0.$(printf "%s" $commits)   # Remove leading space
+    else
+	version=$(git describe --tags | cut -d - -f 1-2 | tr - .)
+    fi
 elif [ -n "$VERSION" ]; then
     version=$VERSION
 else

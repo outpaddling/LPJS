@@ -988,23 +988,23 @@ int     node_set_state_cpy(node_t *node_ptr, char * new_state, size_t array_size
  *      
  *
  *  Description:
- *      Mutator for socket_fd member in a node_t structure.
- *      Use this function to set socket_fd in a node_t variable
+ *      Mutator for msg_fd member in a node_t structure.
+ *      Use this function to set msg_fd in a node_t variable
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
- *      socket_fd is a pointer, data previously pointed to should
+ *      msg_fd is a pointer, data previously pointed to should
  *      generally be freed before calling this function to avoid memory
  *      leaks.
  *
  *      Note that there is an equivalent macro (), which performs
  *      this function with no data verification or function call overhead.
  *      Use the macro version to maximize performance where the validity
- *      of new_socket_fd is guaranteed by other means.
+ *      of new_msg_fd is guaranteed by other means.
  *      
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
- *      new_socket_fd   The new value for socket_fd
+ *      new_msg_fd      The new value for msg_fd
  *
  *  Returns:
  *      LPSC_NODE_DATA_OK if the new value is acceptable and assigned
@@ -1012,9 +1012,9 @@ int     node_set_state_cpy(node_t *node_ptr, char * new_state, size_t array_size
  *
  *  Examples:
  *      node_t          node;
- *      int             new_socket_fd;
+ *      int             new_msg_fd;
  *
- *      if ( node_set_socket_fd(&node, new_socket_fd) == LPSC_NODE_DATA_OK )
+ *      if ( node_set_msg_fd(&node, new_msg_fd) == LPSC_NODE_DATA_OK )
  *      {
  *      }
  *
@@ -1026,7 +1026,7 @@ int     node_set_state_cpy(node_t *node_ptr, char * new_state, size_t array_size
  *  2021-10-01  gen-get-set Auto-generated from node.h
  ***************************************************************************/
 
-int     node_set_socket_fd(node_t *node_ptr, int new_socket_fd)
+int     node_set_msg_fd(node_t *node_ptr, int new_msg_fd)
 
 {
     /* FIXME: Replace this with a proper sanity check */
@@ -1034,7 +1034,7 @@ int     node_set_socket_fd(node_t *node_ptr, int new_socket_fd)
 	return LPSC_NODE_DATA_OUT_OF_RANGE;
     else
     {
-	node_ptr->socket_fd = new_socket_fd;
+	node_ptr->msg_fd = new_msg_fd;
 	return LPSC_NODE_DATA_OK;
     }
 }

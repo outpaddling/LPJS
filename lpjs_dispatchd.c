@@ -32,7 +32,7 @@
 #include "misc.h"
 
 // Must be global for signal handler
-int     Listen_fd, Msg_fd;
+int     Listen_fd;
 FILE    *Log_stream;
 
 int     main(int argc,char *argv[])
@@ -95,7 +95,7 @@ void    terminate_daemon(int s2)
     lpjs_log(Log_stream, "lpjs_dispatch shutting down...\n");
     fclose(Log_stream);
     close(Listen_fd);
-    close(Msg_fd);
+    // FIXME: Close all message fds?
     
     exit(EX_OK);
 }
@@ -122,6 +122,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
     gid_t       gid;
     munge_err_t munge_status;
     node_t      new_node;
+    int         msg_fd, c;
 
     /*
      *  Create a socket endpoint to pair with the endpoint on the client.
@@ -132,7 +133,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
      *  SOCK_STREAM indicates a reliable stream oriented protocol,
      *  such as TCP, vs. unreliable unordered datagram protocols like UDP.
      */
-    if ((Listen_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0)
+    if ((Listen_fd = socket(PF_INET, SOCK_STREAM|SOCK_NONBLOCK, 0)) < 0)
     {
 	lpjs_log(Log_stream, "Error opening socket.\n");
 	return EX_UNAVAILABLE;
@@ -162,12 +163,12 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
     // FIXME: This is just a skeletal loop for testing basic
     // connections between dispatchd and compd
     
-	/* Listen for connection requests */
-	if (listen(Listen_fd, LPJS_MSG_QUEUE_MAX) != 0)
-	{
-	    lpjs_log(Log_stream, "listen() failed.\n", stderr);
-	    return EX_UNAVAILABLE;
-	}
+    /* Listen for connection requests */
+    if (listen(Listen_fd, LPJS_MSG_QUEUE_MAX) != 0)
+    {
+	lpjs_log(Log_stream, "listen() failed.\n", stderr);
+	return EX_UNAVAILABLE;
+    }
 
     while ( true )
     {
@@ -179,95 +180,124 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	
 	// FIXME: Only accept requests from cluster nodes
 	/* Accept a connection request */
-	if ((Msg_fd = accept(Listen_fd,
+	if ((msg_fd = accept(Listen_fd,
 		(struct sockaddr *)&server_address, &address_len)) == -1)
 	{
-	    lpjs_log(Log_stream, "accept() failed.\n", stderr);
-	    return EX_UNAVAILABLE;
+	    // lpjs_log(Log_stream, "accept() failed.\n", stderr);
+	    puts("No new connections...");
 	}
-	lpjs_log(Log_stream, "Accepted connection. fd = %d\n", Msg_fd);
+	else
+	{
+	    lpjs_log(Log_stream, "Accepted connection. fd = %d\n", msg_fd);
+
+	    sleep(2);
+	    
+	    /* Read a message through the socket */
+	    if ( (bytes = read(msg_fd, incoming_msg, 100)) == -1 )
+	    {
+		lpjs_log(Log_stream, "read() failed: %s", strerror(errno));
+		return EX_IOERR;
+	    }
     
-	/* Read a message through the socket */
-	if ( (bytes = read(Msg_fd, incoming_msg, 100)) == -1 )
-	{
-	    lpjs_log(Log_stream, "read() failed: %s", strerror(errno));
-	    return EX_IOERR;
-	}
-
-	/* Process request */
-	// FIXME: Check for duplicate checkins.  We should not get
-	// a checkin request while one is already open
-	if ( memcmp(incoming_msg, "compd-checkin", 13) == 0 )
-	{
-	    // Debug
-	    // lpjs_log(Log_stream, "compd checkin.\n");
-	    
-	    /* Get munge credential */
-	    // FIXME: What is the maximum cred length?
-	    if ( (bytes = read(Msg_fd, incoming_msg, 4096)) == - 1)
+	    /* Process request */
+	    // FIXME: Check for duplicate checkins.  We should not get
+	    // a checkin request while one is already open
+	    if ( memcmp(incoming_msg, "compd-checkin", 13) == 0 )
 	    {
-		lpjs_log(Log_stream, "read() failed: %s", strerror(errno));
-		return EX_IOERR;
+		// Debug
+		// lpjs_log(Log_stream, "compd checkin.\n");
+		
+		/* Get munge credential */
+		// FIXME: What is the maximum cred length?
+		if ( (bytes = read(msg_fd, incoming_msg, 4096)) == - 1)
+		{
+		    lpjs_log(Log_stream, "read() failed: %s", strerror(errno));
+		    return EX_IOERR;
+		}
+		munge_status = munge_decode(incoming_msg, NULL, NULL, 0, &uid, &gid);
+		if ( munge_status != EMUNGE_SUCCESS )
+		    lpjs_log(Log_stream, "munge_decode() failed.  Error = %s\n",
+			     munge_strerror(munge_status));
+		lpjs_log(Log_stream, "Checkin from %d, %d\n", uid, gid);
+		
+		// FIXME: Only accept compd checkins from root
+    
+		/*
+		 *  Get specs from node and add msg_fd
+		 */
+		
+		// Debug
+		send_msg(msg_fd, "Ident verified.\n");
+		
+		node_receive_specs(&new_node, msg_fd);
+		node_print_status(&new_node);
+		node_list_update_compute(node_list, &new_node, Log_stream);
+		node_set_msg_fd(&new_node, msg_fd);
+		
+		puts("Done adding node.");
+		// Acknowledge checkin
 	    }
-	    munge_status = munge_decode(incoming_msg, NULL, NULL, 0, &uid, &gid);
-	    if ( munge_status != EMUNGE_SUCCESS )
-		lpjs_log(Log_stream, "munge_decode() failed.  Error = %s\n",
-			 munge_strerror(munge_status));
-	    lpjs_log(Log_stream, "Checkin from %d, %d\n", uid, gid);
-	    
-	    // FIXME: Only accept compd checkins from root
-
-	    /*
-	     *  Get specs from node and add Msg_fd
-	     */
-	    
-	    // Debug
-	    send_msg(Msg_fd, "Ident verified.\n");
-	    
-	    node_receive_specs(&new_node, Msg_fd);
-	    node_print_status(&new_node);
-	    node_list_update_compute(node_list, &new_node, Log_stream);
-	    
-	    // node_set_socket_fd(node, Msg_fd);
-	    // Acknoledge checkin
-	}
-	else if ( strcmp(incoming_msg, "nodes") == 0 )
-	{
-	    lpjs_log(Log_stream, "Request for node status.\n");
-	    node_list_send_status(Msg_fd, node_list);
-	}
-	else if ( strcmp(incoming_msg, "jobs") == 0 )
-	{
-	    lpjs_log(Log_stream, "Request for job status.\n");
-	    job_list_send_params(Msg_fd, job_list);
-	}
-	else if ( memcmp(incoming_msg, "submit", 6) == 0 )
-	{
-	    // FIXME: Don't accept job submissions from root until
-	    // security issues have been considered
-	    
-	    lpjs_log(Log_stream, "Request for job submission.\n");
-	    
-	    /* Get munge credential */
-	    // FIXME: What is the maximum cred length?
-	    if ( (bytes = read(Msg_fd, incoming_msg, 4096)) == - 1)
+	    else         
 	    {
-		lpjs_log(Log_stream, "read() failed: %s", strerror(errno));
-		return EX_IOERR;
+		fputs("Error: Expected checkin after accepting connection.\n", stderr);
+		return EX_DATAERR;
 	    }
-	    munge_status = munge_decode(incoming_msg, NULL, NULL, 0, &uid, &gid);
-	    if ( munge_status != EMUNGE_SUCCESS )
-		lpjs_log(Log_stream, "munge_decode() failed.  Error = %s\n",
-			 munge_strerror(munge_status));
-	    lpjs_log(Log_stream, "Submit from %d, %d\n", uid, gid);
-	    queue_job(Msg_fd, incoming_msg, node_list);
 	}
-	else if ( memcmp(incoming_msg, "job-complete", 12) == 0 )
+    
+	for (c = 0; c < NODE_LIST_COUNT(node_list); ++c)
 	{
-	    lpjs_log(Log_stream, "Job completion report.\n");
-	    log_job(incoming_msg);
+	    int     msg_fd = NODE_MSG_FD(&NODE_LIST_COMPUTE_NODES_AE(node_list, c));
+
+	    if ( msg_fd != -1 )
+	    {
+		/* Read a message through the socket */
+		if ( (bytes = read(msg_fd, incoming_msg, 100)) == -1 )
+		{
+		    lpjs_log(Log_stream, "read() failed: %s", strerror(errno));
+		    return EX_IOERR;
+		}
+	
+		if ( strcmp(incoming_msg, "nodes") == 0 )
+		{
+		    lpjs_log(Log_stream, "Request for node status.\n");
+		    node_list_send_status(msg_fd, node_list);
+		}
+		else if ( strcmp(incoming_msg, "jobs") == 0 )
+		{
+		    lpjs_log(Log_stream, "Request for job status.\n");
+		    job_list_send_params(msg_fd, job_list);
+		}
+		else if ( memcmp(incoming_msg, "submit", 6) == 0 )
+		{
+		    // FIXME: Don't accept job submissions from root until
+		    // security issues have been considered
+		    
+		    lpjs_log(Log_stream, "Request for job submission.\n");
+		    
+		    /* Get munge credential */
+		    // FIXME: What is the maximum cred length?
+		    if ( (bytes = read(msg_fd, incoming_msg, 4096)) == - 1)
+		    {
+			lpjs_log(Log_stream, "read() failed: %s", strerror(errno));
+			return EX_IOERR;
+		    }
+		    munge_status = munge_decode(incoming_msg, NULL, NULL, 0, &uid, &gid);
+		    if ( munge_status != EMUNGE_SUCCESS )
+			lpjs_log(Log_stream, "munge_decode() failed.  Error = %s\n",
+				 munge_strerror(munge_status));
+		    lpjs_log(Log_stream, "Submit from %d, %d\n", uid, gid);
+		    queue_job(msg_fd, incoming_msg, node_list);
+		}
+		else if ( memcmp(incoming_msg, "job-complete", 12) == 0 )
+		{
+		    lpjs_log(Log_stream, "Job completion report.\n");
+		    log_job(incoming_msg);
+		}
+	    }
 	}
-	close(Msg_fd);
+	
+	// Debug
+	sleep(2);
     }
     close(Listen_fd);
     return EX_OK;
