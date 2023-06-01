@@ -88,7 +88,7 @@ int     print_response(int msg_fd, const char *caller_name)
     ssize_t bytes;
     char    buff[LPJS_MSG_MAX+1];
     
-    while ( (bytes = read(msg_fd, buff, LPJS_MSG_MAX + 1)) > 0 )
+    while ( (bytes = recv(msg_fd, buff, LPJS_MSG_MAX + 1, 0)) > 0 )
     {
 	buff[bytes] = '\0';
 	// FIXME: null-terminate at sender?
@@ -108,7 +108,7 @@ int     print_response(int msg_fd, const char *caller_name)
 /***************************************************************************
  *  Description:
  *      Construct and send a message through a socket.  The entire message
- *      + a null byte are sent in a single write().  Basically the same as
+ *      + a null byte are sent in a single send().  Basically the same as
  *      xt_dprintf(), except that it null-terminates the message.
  *
  *  History: 
@@ -125,7 +125,7 @@ int     send_msg(int msg_fd, const char *format, ...)
     
     va_start(ap, format);
     status = vsnprintf(buff, LPJS_MSG_MAX + 1, format, ap);
-    write(msg_fd, buff, strlen(buff) + 1);
+    send(msg_fd, buff, strlen(buff) + 1, 0);
     va_end(ap);
     
     return status;

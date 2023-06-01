@@ -15,6 +15,7 @@
 #include <sysexits.h>
 #include <signal.h>
 #include <munge.h>
+#include <sys/socket.h>
 #include <xtend/string.h>
 #include <xtend/file.h>
 #include <xtend/proc.h>
@@ -94,6 +95,7 @@ int     main (int argc, char *argv[])
 	return EX_UNAVAILABLE; // FIXME: Check actual error
     }
 
+    printf("Sending %zd bytes...\n", strlen(cred));
     if ( send_msg(Msg_fd, cred) < 0 )
     {
 	perror("lpjs-submit: Failed to send credential to dispatchd");
@@ -104,7 +106,7 @@ int     main (int argc, char *argv[])
     free(cred);
     
     // Debug
-    bytes = read(Msg_fd, buff, LPJS_MSG_MAX+1);
+    bytes = recv(Msg_fd, buff, LPJS_MSG_MAX+1, 0);
     fprintf(Log_stream, "%s\n", buff);
     
     node_detect_specs(&node);
@@ -113,7 +115,7 @@ int     main (int argc, char *argv[])
     // Now keep daemon running, awaiting jobs
     while ( true )
     {
-	while ( (bytes = read(Msg_fd, buff, LPJS_MSG_MAX+1)) == 0 )
+	while ( (bytes = recv(Msg_fd, buff, LPJS_MSG_MAX+1, 0)) == 0 )
 	{
 	    puts("Sleeping 5...");
 	    sleep(5);
