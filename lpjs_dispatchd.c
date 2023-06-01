@@ -133,7 +133,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
      *  SOCK_STREAM indicates a reliable stream oriented protocol,
      *  such as TCP, vs. unreliable unordered datagram protocols like UDP.
      */
-    if ((Listen_fd = socket(PF_INET, SOCK_STREAM|SOCK_NONBLOCK, 0)) < 0)
+    if ((Listen_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0)
     {
 	lpjs_log(Log_stream, "Error opening socket.\n");
 	return EX_UNAVAILABLE;
@@ -152,11 +152,12 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
     server_address.sin_addr.s_addr = htonl(INADDR_ANY);
 
     /* Bind socket fd to server address structure */
-    if ( bind(Listen_fd, (struct sockaddr *) &server_address,
+    while ( bind(Listen_fd, (struct sockaddr *) &server_address,
 	      sizeof (server_address)) < 0 )
     {
 	lpjs_log(Log_stream, "bind() failed: %s", strerror(errno));
-	return EX_UNAVAILABLE;
+	fputs("Retrying in 5 seconds...\n", stderr);
+	sleep(5);
     }
     lpjs_log(Log_stream, "Bound to port %d...\n", LPJS_TCP_PORT);
     
@@ -190,13 +191,12 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	{
 	    lpjs_log(Log_stream, "Accepted connection. fd = %d\n", msg_fd);
 
-	    sleep(2);
-	    
 	    /* Read a message through the socket */
-	    if ( (bytes = read(msg_fd, incoming_msg, 100)) == -1 )
+	    while ( (bytes = recv(msg_fd, incoming_msg, 100, 0)) < 1 )
 	    {
-		lpjs_log(Log_stream, "read() failed: %s", strerror(errno));
-		return EX_IOERR;
+		lpjs_log(Log_stream, "recv() failed: %s", strerror(errno));
+		puts("Waiting for checkin request...");
+		sleep(1);
 	    }
     
 	    /* Process request */
@@ -204,16 +204,22 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	    // a checkin request while one is already open
 	    if ( memcmp(incoming_msg, "compd-checkin", 13) == 0 )
 	    {
+		printf("msg = %s\n", incoming_msg);
 		// Debug
 		// lpjs_log(Log_stream, "compd checkin.\n");
 		
+		sleep(5);
+		
 		/* Get munge credential */
 		// FIXME: What is the maximum cred length?
-		if ( (bytes = read(msg_fd, incoming_msg, 4096)) == - 1)
+		while ( (bytes = recv(msg_fd, incoming_msg, 4096, 0)) < 1 )
 		{
-		    lpjs_log(Log_stream, "read() failed: %s", strerror(errno));
-		    return EX_IOERR;
+		    lpjs_log(Log_stream, "recv() failed: %s", strerror(errno));
+		    puts("Waiting for checkin data...");
+		    sleep(1);
 		}
+		printf("Message length = %zd\n", bytes);
+		
 		munge_status = munge_decode(incoming_msg, NULL, NULL, 0, &uid, &gid);
 		if ( munge_status != EMUNGE_SUCCESS )
 		    lpjs_log(Log_stream, "munge_decode() failed.  Error = %s\n",
@@ -251,9 +257,9 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	    if ( msg_fd != -1 )
 	    {
 		/* Read a message through the socket */
-		if ( (bytes = read(msg_fd, incoming_msg, 100)) == -1 )
+		if ( (bytes = recv(msg_fd, incoming_msg, 100, 0)) == -1 )
 		{
-		    lpjs_log(Log_stream, "read() failed: %s", strerror(errno));
+		    lpjs_log(Log_stream, "recv() failed: %s", strerror(errno));
 		    return EX_IOERR;
 		}
 	
@@ -276,9 +282,9 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 		    
 		    /* Get munge credential */
 		    // FIXME: What is the maximum cred length?
-		    if ( (bytes = read(msg_fd, incoming_msg, 4096)) == - 1)
+		    if ( (bytes = recv(msg_fd, incoming_msg, 4096, 0)) == - 1)
 		    {
-			lpjs_log(Log_stream, "read() failed: %s", strerror(errno));
+			lpjs_log(Log_stream, "recv() failed: %s", strerror(errno));
 			return EX_IOERR;
 		    }
 		    munge_status = munge_decode(incoming_msg, NULL, NULL, 0, &uid, &gid);
