@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <sysexits.h>
 #include <munge.h>
+#include <sys/socket.h>
 #include <xtend/string.h>
 #include "node-list.h"
 #include "config.h"
