@@ -30,16 +30,19 @@ FreeBSD|OpenBSD|DragonFly)
 *)
     # Need separate LOCALBASE to find munge installed by FreeBSD ports or pkgsrc
     if [ -z "$LOCALBASE" ]; then
-	for pkgsrc in ~/Pkgsrc/pkg /usr/pkg /opt/pkg; do
-	    if [ -e $pkgsrc ]; then
-		if ! pkg_info munge; then
-		    (cd ${pkgsrc%pkg}/pkgsrc/security/munge && sbmake install)
-		fi
-		break
+	if [ -e ~/Pkgsrc/pkgsrc ]; then
+	    if ! pkg_info munge; then
+		(cd ~/Pkgsrc/pkgsrc/security/munge && sbmake install)
 	    fi
-	done
+	    LOCALBASE=~/Pkgsrc/pkg
+	elif which pkgin; then
+	    if ! pkg_info munge; then
+		runas root pkgin install munge
+	    fi
+	    LOCALBASE=/usr/pkg
+	fi
     fi
-    LOCALBASE=$pkgsrc
+    export LOCALBASE PREFIX
     printf "LOCALBASE = $LOCALBASE  PREFIX = $PREFIX\n"
     ;;
 
