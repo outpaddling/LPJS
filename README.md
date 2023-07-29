@@ -26,7 +26,8 @@ An HPC cluster is anywhere from one to thousands of computers (called nodes)
 with managed CPU and memory resources for the purpose of performing
 computationally intensive jobs.
 Most clusters are linked together with a private high-speed network to
-maximize the speed of data exchange between the nodes.  Typically there is
+maximize the speed of data exchange between the nodes, and to isolate the
+heavy traffic from the organizational network.  Typically there is
 a "head node", dedicated to keeping track of available CPU cores and memory
 on all nodes, multiple compute nodes, and one or more file servers, A.K.A.
 I/O nodes.
