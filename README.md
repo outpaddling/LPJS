@@ -212,6 +212,10 @@ and manage compared to user-friendly systems like [Ubuntu](https://ubuntu.com/).
 However, if you're a little bit Unix-savvy, you can very quickly set up a
 workstation, laptop, or virtual machine using
 [desktop-installer](http://www.acadix.biz/desktop-installer.php).
+[GhostBSD](https://ghostbsd.org/) offers and experience very similar
+to Ubuntu, but is build on FreeBSD rather than Debian Linux.  GhostBSD
+packages lag behind FreeBSD by a few months, but this is not generally
+an issue and there are workarounds.
 
 To install the binary package on FreeBSD:
 
