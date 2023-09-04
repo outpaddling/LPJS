@@ -1,4 +1,6 @@
 
+Reestablish lost connections between head and compute nodes
+
 Basic queuing system
     Core/memory tracking
     Track actual vs stated memory use?
