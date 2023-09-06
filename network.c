@@ -49,7 +49,7 @@ int     connect_to_dispatchd(node_list_t *node_list)
     server_address.sin_family = AF_INET;
     
     // Convert head node hostname from LPJS config file to IP
-    if ( resolve_hostname(NODE_LIST_HEAD_NODE(node_list), head_ip,
+    if ( xt_resolve_hostname(NODE_LIST_HEAD_NODE(node_list), head_ip,
 			  LPJS_IP_MAX + 1) != XT_OK )
 	exit(EX_OSERR);
     

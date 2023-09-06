@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <sysexits.h>
 #include <string.h>
-#include <xtend/dsv.h>      // dsv_read_field()
-#include <xtend/string.h>   // strtrim()
+#include <xtend/dsv.h>      // xt_dsv_read_field()
+#include <xtend/string.h>   // xt_strtrim()
 #include <xtend/file.h>
 #include "node-list.h"
 #include "network.h"
@@ -42,11 +42,11 @@ int     node_list_add_compute(node_list_t *node_list, FILE *input_stream,
     char    field[LPJS_FIELD_MAX+1];
     size_t  len;
     
-    while ( ((delim = dsv_read_field(input_stream, field, LPJS_FIELD_MAX+1,
+    while ( ((delim = xt_dsv_read_field(input_stream, field, LPJS_FIELD_MAX+1,
 				     ",", &len)) != '\n') &&
 	    (delim != EOF) )
     {
-	strtrim(field, " ");
+	xt_strtrim(field, " ");
 	node_init(&node_list->compute_nodes[node_list->count]);
 	node_set_hostname(&node_list->compute_nodes[node_list->count], strdup(field));
 	++node_list->count;
@@ -58,7 +58,7 @@ int     node_list_add_compute(node_list_t *node_list, FILE *input_stream,
     }
     
     // Add last node read by while condition
-    strtrim(field, " ");
+    xt_strtrim(field, " ");
     node_init(&node_list->compute_nodes[node_list->count]);
     node_set_hostname(&node_list->compute_nodes[node_list->count], strdup(field));
     ++node_list->count;

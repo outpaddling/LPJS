@@ -173,7 +173,7 @@ int     node_receive_specs(node_t *node, int msg_fd)
     if ( (fp = fdopen(msg_fd, "r")) == NULL )
 	return -1;
     
-    dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+    xt_dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
     // FIXME: This is not such a reliable test
     if ( *field == '\0' )
     {
@@ -190,22 +190,22 @@ int     node_receive_specs(node_t *node, int msg_fd)
 	node->hostname = strdup(field);
 	printf("Hostname = %s\n", node->hostname);
 	
-	dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+	xt_dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
 	node->state = strdup(field);
 	
-	dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+	xt_dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
 	node->cores = strtoul(field, &end, 10);
 	
-	dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+	xt_dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
 	node->phys_mem = strtoul(field, &end, 10);
 	
-	dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+	xt_dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
 	node->zfs = strtoul(field, &end, 10);
     
-	dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+	xt_dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
 	node->os = strdup(field);
     
-	dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+	xt_dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
 	node->arch = strdup(field);
     
 	fclose(fp);

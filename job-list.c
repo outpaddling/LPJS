@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <sysexits.h>
 #include <string.h>
-#include <xtend/dsv.h>      // dsv_read_field()
-#include <xtend/string.h>   // strtrim()
+#include <xtend/dsv.h>      // xt_dsv_read_field()
+#include <xtend/string.h>   // xt_strtrim()
 #include <xtend/file.h>
 #include "job-list.h"
 #include "lpjs.h"

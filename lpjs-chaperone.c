@@ -50,7 +50,7 @@ int     main (int argc, char *argv[])
 
     /* Send a message to the server */
     /* Need to send \0, so xt_dprintf() doesn't work here */
-    str_argv_cat(cmd, argv, 1, LPJS_CMD_MAX + 1);
+    xt_str_argv_cat(cmd, argv, 1, LPJS_CMD_MAX + 1);
     status = system(cmd);
     if ( send_msg(msg_fd, "job-complete\ncmd: %s\nstatus: %d\n",
 		  cmd, status) < 0 )
