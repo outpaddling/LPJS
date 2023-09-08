@@ -266,3 +266,11 @@ See the pkgsrc documentation for more information.
 
 Community support for pkgsrc is available through the
 [pkgsrc-users](http://netbsd.org/mailinglists) mailing list.
+
+## Instructions for packagers
+
+If you would like to add this project to another package manager
+rather than use FreeBSD ports or pkgsrc, basic manual build instructions
+for package can be found
+[here](https://github.com/outpaddling/Coding-Standards/blob/main/package.md).
+Your contribution is greatly appreciated!
