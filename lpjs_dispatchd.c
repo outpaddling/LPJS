@@ -155,7 +155,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
     while ( bind(Listen_fd, (struct sockaddr *) &server_address,
 	      sizeof (server_address)) < 0 )
     {
-	lpjs_log(Log_stream, "bind() failed: %s", strerror(errno));
+	lpjs_log(Log_stream, "bind() failed: %s: ", strerror(errno));
 	fputs("Retrying in 5 seconds...\n", stderr);
 	sleep(5);
     }
@@ -189,6 +189,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	}
 	else
 	{
+	    puts("Accepted new connection.");
 	    lpjs_log(Log_stream, "Accepted connection. fd = %d\n", msg_fd);
 
 	    /* Read a message through the socket */
@@ -242,11 +243,6 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 		
 		puts("Done adding node.");
 		// Acknowledge checkin
-	    }
-	    else         
-	    {
-		fputs("Error: Expected checkin after accepting connection.\n", stderr);
-		return EX_DATAERR;
 	    }
 	}
     
