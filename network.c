@@ -57,7 +57,7 @@ int     connect_to_dispatchd(node_list_t *node_list)
     server_address.sin_addr.s_addr = inet_addr(head_ip);
     
     // Convert 16-bit port number to network byte order
-    server_address.sin_port = htons(LPJS_DISPATCHD_TCP_PORT);
+    server_address.sin_port = htons(LPJS_IP_TCP_PORT);
 
     /* Attempt to connect to dispatchd server */
     if (connect(msg_fd, (struct sockaddr *)&server_address,

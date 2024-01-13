@@ -125,7 +125,13 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
     int         msg_fd, c;
 
     /*
+     *  Step 1: Create a socket for listening for new connections.
+     */
+    
+    /*
      *  Create a socket endpoint to pair with the endpoint on the client.
+     *  This only creates a file descriptor.  It is not yet bound to
+     *  any network interface and port.
      *  AF_INET and PF_INET have the same value, but PF_INET is more
      *  correct according to BSD and Linux man pages, which indicate
      *  that a protocol family should be specified.  In theory, a
@@ -135,14 +141,14 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
      */
     if ((Listen_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0)
     {
-	lpjs_log(Log_stream, "Error opening socket.\n");
+	lpjs_log(Log_stream, "Error opening listener socket.\n");
 	return EX_UNAVAILABLE;
     }
     lpjs_log(Log_stream, "Listen_fd = %d\n", Listen_fd);
 
     /*
-     *  Port on which to listen for new connections from compute nodes
-     *  Convert 16-bit port number from host byte order to network byte order
+     *  Port on which to listen for new connections from compute nodes.
+     *  Convert 16-bit port number from host byte order to network byte order.
      */
     server_address.sin_port = htons(LPJS_IP_TCP_PORT);
     
@@ -150,13 +156,14 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
     server_address.sin_family = AF_INET;
     
     /*
+     *  Listen on all local network interfaces for now (INADDR_ANY).
+     *  We may allow the user to specify binding to a specific IP address
+     *  in the future, for multihomed servers acting as gateways, etc.
      *  Convert 32-bit host address to network byte order.
-     *  INADDR_ANY is probably 0, but we may bind to a specific
-     *  IP address in the future.
      */
     server_address.sin_addr.s_addr = htonl(INADDR_ANY);
 
-    // Bind socket fd and server protocol address
+    // Bind socket fd and server address
     while ( bind(Listen_fd, (struct sockaddr *) &server_address,
 	      sizeof (server_address)) < 0 )
     {
@@ -175,6 +182,17 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	return EX_UNAVAILABLE;
     }
 
+    /*
+     *  Step 2: Accept new connections, and create a separate socket
+     *  for communication with each new compute node.
+     */
+    
+    // FIXME: Combine Listen_fd and all client socket fds into
+    // one fd_set and use select() to process events?  If select()
+    // indicates no activity, then sleep briefly.
+    // User commands may also connect from the head node or any other
+    // node
+    
     // FIXME: This is just a skeletal loop for testing basic
     // connections between dispatchd and compd
     while ( true )
@@ -183,10 +201,21 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	 *  Check last ping time from every node
 	 */
 	
+	// socket_count = Listen_fd + #checked-in nodes
+	// struct timeval timeout;  // Small
+	// Just watch for incoming connections and messages for now
+	// if ( select(socket_count, read_fds, NULL, NULL, &timeout) == 0 )
+	//     usleep();
+	
+	// FIXME: Verify that compute nodes are alive at regular intervals
+	// and update status accordingly.
+	// Ping nodes from here or expect pings from compute nodes?
+	// The latter would seem to fit with using select() here.
 	// ping_all_nodes();
 	
-	// FIXME: Only accept requests from cluster nodes
+	// FIXME: Only accept requests from designated cluster nodes
 	/* Accept a connection request */
+	// if ( fd_set[0] ) // select indicated that Listen_fd is ready
 	if ((msg_fd = accept(Listen_fd,
 		(struct sockaddr *)&server_address, &address_len)) == -1)
 	{
@@ -252,6 +281,9 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	    }
 	}
     
+	// FIXME: Don't use a separate loop for this.
+	// Compute-node check-ins and other incoming messages from
+	// user commands can all be handled the same way.
 	for (c = 0; c < NODE_LIST_COUNT(node_list); ++c)
 	{
 	    int     msg_fd = NODE_MSG_FD(&NODE_LIST_COMPUTE_NODES_AE(node_list, c));
