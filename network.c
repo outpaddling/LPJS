@@ -45,7 +45,7 @@ int     connect_to_dispatchd(node_list_t *node_list)
 	return -1;
     }
 
-    // inet4
+    // AF_INET = inet4, AF_INET6 for inet6
     server_address.sin_family = AF_INET;
     
     // Convert head node hostname from LPJS config file to IP
@@ -57,7 +57,7 @@ int     connect_to_dispatchd(node_list_t *node_list)
     server_address.sin_addr.s_addr = inet_addr(head_ip);
     
     // Convert 16-bit port number to network byte order
-    server_address.sin_port = htons(LPJS_TCP_PORT);
+    server_address.sin_port = htons(LPJS_DISPATCHD_TCP_PORT);
 
     /* Attempt to connect to dispatchd server */
     if (connect(msg_fd, (struct sockaddr *)&server_address,
@@ -86,9 +86,9 @@ int     print_response(int msg_fd, const char *caller_name)
 
 {
     ssize_t bytes;
-    char    buff[LPJS_MSG_MAX+1];
+    char    buff[LPJS_IP_MSG_MAX+1];
     
-    while ( (bytes = recv(msg_fd, buff, LPJS_MSG_MAX + 1, 0)) > 0 )
+    while ( (bytes = recv(msg_fd, buff, LPJS_IP_MSG_MAX + 1, 0)) > 0 )
     {
 	buff[bytes] = '\0';
 	// FIXME: null-terminate at sender?
@@ -121,10 +121,10 @@ int     send_msg(int msg_fd, const char *format, ...)
 {
     va_list     ap;
     int         status;
-    char        buff[LPJS_MSG_MAX + 1];
+    char        buff[LPJS_IP_MSG_MAX + 1];
     
     va_start(ap, format);
-    status = vsnprintf(buff, LPJS_MSG_MAX + 1, format, ap);
+    status = vsnprintf(buff, LPJS_IP_MSG_MAX + 1, format, ap);
     send(msg_fd, buff, strlen(buff) + 1, 0);
     va_end(ap);
     

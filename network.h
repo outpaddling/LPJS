@@ -1,10 +1,14 @@
 #ifndef _LPJS_NETWORK_H_
 #define _LPJS_NETWORK_H_
 
-#define LPJS_IP_MAX     64  // IPv6 max address size is 39
+// IPv6 max address size is 39
+#define LPJS_IP_MAX             64
 // FIXME: Pick a good default and check config file for override
-#define LPJS_TCP_PORT   (short)3000 // Need short for htonl()
-#define LPJS_MSG_MAX    4096
+#define LPJS_IP_TCP_PORT        (short)3000 // Need short for htonl()
+#define LPJS_IP_MSG_MAX         4096
+#define LPJS_IP_MSG_QUEUE_MAX   10
+
+#define LPJS_DISPATCHD_TCP_PORT   (short)3000 // Need short for htons()
 
 #ifndef _NODE_LIST_H_
 #include "node-list.h"

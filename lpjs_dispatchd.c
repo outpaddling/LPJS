@@ -140,18 +140,23 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
     }
     lpjs_log(Log_stream, "Listen_fd = %d\n", Listen_fd);
 
-    // Convert 16-bit port number to network byte order
-    server_address.sin_port = htons(LPJS_TCP_PORT);
+    /*
+     *  Port on which to listen for new connections from compute nodes
+     *  Convert 16-bit port number from host byte order to network byte order
+     */
+    server_address.sin_port = htons(LPJS_IP_TCP_PORT);
     
-    // inet4
+    // AF_INET = inet4, AF_INET6 = inet6
     server_address.sin_family = AF_INET;
     
-    // Convert 32-bit host address to network byte order
-    // INADDR_ANY is probably 0, but we may bind to a specific
-    // IP address in the future
+    /*
+     *  Convert 32-bit host address to network byte order.
+     *  INADDR_ANY is probably 0, but we may bind to a specific
+     *  IP address in the future.
+     */
     server_address.sin_addr.s_addr = htonl(INADDR_ANY);
 
-    /* Bind socket fd to server address structure */
+    // Bind socket fd and server protocol address
     while ( bind(Listen_fd, (struct sockaddr *) &server_address,
 	      sizeof (server_address)) < 0 )
     {
@@ -159,18 +164,19 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	fputs("Retrying in 5 seconds...\n", stderr);
 	sleep(5);
     }
-    lpjs_log(Log_stream, "Bound to port %d...\n", LPJS_TCP_PORT);
+    lpjs_log(Log_stream, "Bound to port %d...\n", LPJS_IP_TCP_PORT);
     
-    // FIXME: This is just a skeletal loop for testing basic
-    // connections between dispatchd and compd
-    
-    /* Listen for connection requests */
-    if (listen(Listen_fd, LPJS_MSG_QUEUE_MAX) != 0)
+    /*
+     *  Create queue for incoming connection requests
+     */
+    if (listen(Listen_fd, LPJS_IP_MSG_QUEUE_MAX) != 0)
     {
 	lpjs_log(Log_stream, "listen() failed.\n", stderr);
 	return EX_UNAVAILABLE;
     }
 
+    // FIXME: This is just a skeletal loop for testing basic
+    // connections between dispatchd and compd
     while ( true )
     {
 	/*

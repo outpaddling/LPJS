@@ -33,7 +33,7 @@ int     main (int argc, char *argv[])
 {
     node_list_t node_list;
     node_t      node;
-    char        buff[LPJS_MSG_MAX + 1],
+    char        buff[LPJS_IP_MSG_MAX + 1],
 		*cred;
     munge_err_t munge_status;
     ssize_t     bytes;
@@ -106,7 +106,7 @@ int     main (int argc, char *argv[])
     free(cred);
     
     // Debug
-    bytes = recv(Msg_fd, buff, LPJS_MSG_MAX+1, 0);
+    bytes = recv(Msg_fd, buff, LPJS_IP_MSG_MAX+1, 0);
     fprintf(Log_stream, "%s\n", buff);
     
     node_detect_specs(&node);
@@ -115,7 +115,7 @@ int     main (int argc, char *argv[])
     // Now keep daemon running, awaiting jobs
     while ( true )
     {
-	while ( (bytes = recv(Msg_fd, buff, LPJS_MSG_MAX+1, 0)) == 0 )
+	while ( (bytes = recv(Msg_fd, buff, LPJS_IP_MSG_MAX+1, 0)) == 0 )
 	{
 	    puts("Sleeping 5...");
 	    sleep(5);
