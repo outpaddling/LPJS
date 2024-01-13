@@ -206,6 +206,9 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	// Just watch for incoming connections and messages for now
 	// if ( select(socket_count, read_fds, NULL, NULL, &timeout) == 0 )
 	//     usleep();
+	// Top priority: Active compute nodes (move existing jobs along)
+	// Second priority: New compute node checkins (make resources available)
+	// Lowest priority: User commands
 	
 	// FIXME: Verify that compute nodes are alive at regular intervals
 	// and update status accordingly.
