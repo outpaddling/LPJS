@@ -169,7 +169,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	      sizeof (server_address)) < 0 )
     {
 	lpjs_log(Log_stream, "bind() failed: %s: ", strerror(errno));
-	fputs("Retrying in 5 seconds...\n", stderr);
+	fputs("Retrying in 5 seconds...\n", Log_stream);
 	sleep(5);
     }
     lpjs_log(Log_stream, "Bound to port %d...\n", LPJS_IP_TCP_PORT);
@@ -179,7 +179,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
      */
     if (listen(Listen_fd, LPJS_IP_MSG_QUEUE_MAX) != 0)
     {
-	lpjs_log(Log_stream, "listen() failed.\n", stderr);
+	lpjs_log(Log_stream, "listen() failed.\n", Log_stream);
 	return EX_UNAVAILABLE;
     }
 
@@ -189,31 +189,18 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
      */
     
     // FIXME: Combine Listen_fd and all client socket fds into
-    // one fd_set and use select() to process events?  If select()
-    // indicates no activity, then sleep briefly.
+    // one fd_set and use select() to process events.
     // User commands may also connect from the head node or any other
     // node
     
-    // FIXME: This is just a skeletal loop for testing basic
-    // connections between dispatchd and compd
     while ( true )
     {
 	fd_set  read_fds;
-	int     socket_count = 1;       // Just Listen_fd to start
-	
-	/*
-	 *  FIXME: Detect lost connections with compute nodes
-	 */
-	
-	// socket_count = Listen_fd + #checked-in nodes
-	// Just watch for incoming connections and messages for now
+	int     nfds;
 	
 	FD_ZERO(&read_fds);
 	FD_SET(Listen_fd, &read_fds);
-	
-	// Top priority: Active compute nodes (move existing jobs along)
-	// Second priority: New compute node checkins (make resources available)
-	// Lowest priority: User commands
+	nfds = Listen_fd + 1;   // FIXME: Use highest fd + 1
 	
 	// FIXME: Verify that compute nodes are alive at regular intervals
 	// and update status accordingly.
@@ -221,10 +208,15 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	// The latter would seem to fit with using select() here.
 	// ping_all_nodes();
 	
-	if ( select(socket_count, &read_fds, NULL, NULL, LPJS_NO_SELECT_TIMEOUT) > 0 )
+	if ( select(nfds, &read_fds, NULL, NULL, LPJS_NO_SELECT_TIMEOUT) > 0 )
 	{
+	    // Top priority: Active compute nodes (move existing jobs along)
+	    // Second priority: New compute node checkins (make resources available)
+	    // Lowest priority: User commands
+	    
 	    if ( FD_ISSET(Listen_fd, &read_fds) )
 	    {
+		fprintf(Log_stream, "select() indicated Listen_fd.\n");
 		// FIXME: Only accept requests from designated cluster nodes
 		/* Accept a connection request */
 		if ((msg_fd = accept(Listen_fd,
@@ -332,7 +324,9 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	    // Now check all socket fds returned by accept, i.e.
 	    // compute node and user command messages.
 	    
-	}        
+	}
+	else
+	    fprintf(Log_stream, "select() returned 0.\n");
     }
     close(Listen_fd);
     return EX_OK;

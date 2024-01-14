@@ -8,7 +8,7 @@
 
 /*
  *  Use the same default TCP port as SLURM (6817), since only one
- *  scheduler can be running at a time.
+ *  scheduler can be running on a given cluster.
  */
 #define LPJS_IP_TCP_PORT        (short)6817 // Need short for htons()
 
