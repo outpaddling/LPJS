@@ -34,7 +34,7 @@
 
 // Must be global for signal handler
 int     Listen_fd;
-FILE    *Log_stream;
+extern FILE    *Log_stream;
 
 int     main(int argc,char *argv[])
 
@@ -73,6 +73,9 @@ int     main(int argc,char *argv[])
      *  Still getting bind(): address already in use during testing
      *  with its frequent restarts.  Possible clues:
      *  https://hea-www.harvard.edu/~fine/Tech/addrinuse.html
+     *  Copy saved in ./bind-address-already-in-use.pdf
+     *  Best approach is to ensure that client completes a close
+     *  before the server closes.
      */
     signal(SIGINT, terminate_daemon);
     signal(SIGTERM, terminate_daemon);
@@ -99,6 +102,42 @@ void    terminate_daemon(int s2)
     // FIXME: Close all message fds?
     
     exit(EX_OK);
+}
+
+
+/***************************************************************************
+ *  Description:
+ *      Safely close a socket by ensuring first that the remote end
+ *      is closed first.  This avoids
+ *
+ *      bind(): Address already in use
+ *  
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-14  Jason Bacon Begin
+ ***************************************************************************/
+
+int     server_safe_close(int msg_fd)
+
+{
+    char    buff[64];
+    
+    /*
+     *  Client must be looking for the EOT character at the end of
+     *  a read, or this is useless.
+     */
+    send_eot(msg_fd);
+    
+    /*
+     *  Wait until EOF is signaled due to the other end being closed.
+     *  FIXME: No data should be read here.  The first read() should
+     *  return EOF.  Add a check for this.
+     */
+    while ( read(msg_fd, buff, 64) > 0 )
+	sleep(1);
+    
+    // lpjs_log(Log_stream, "Closing msg_fd.\n");
+    return close(msg_fd);
 }
 
 
@@ -285,13 +324,13 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 		    {
 			lpjs_log(Log_stream, "Request for node status.\n");
 			node_list_send_status(msg_fd, node_list);
-			close(msg_fd);
+			server_safe_close(msg_fd);
 		    }
 		    else if ( strcmp(incoming_msg, "jobs") == 0 )
 		    {
 			lpjs_log(Log_stream, "Request for job status.\n");
 			job_list_send_params(msg_fd, job_list);
-			close(msg_fd);
+			server_safe_close(msg_fd);
 		    }
 		    else if ( memcmp(incoming_msg, "submit", 6) == 0 )
 		    {

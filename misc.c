@@ -5,6 +5,8 @@
 #include <stdarg.h>
 #include <unistd.h>
 
+FILE    *Log_stream;
+
 /***************************************************************************
  *  Description:
  *      Log messages to stream of choice, usually either stderr if running

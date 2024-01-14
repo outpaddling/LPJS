@@ -124,4 +124,13 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
 	    "Cores", "Used", "Physmem", "Used", "OS", "Arch");
     for (c = 0; c < node_list->count; ++c)
 	node_send_status(&node_list->compute_nodes[c], msg_fd);
+    
+    /*
+     *  Closing the listener first results in "address already in use"
+     *  errors on restart.  Send an EOT character to signal the end of
+     *  transmission, so the client can close first and avoid a wait
+     *  state for the socket.
+     */
+    send_msg(msg_fd, "%c", 4);
 }
+

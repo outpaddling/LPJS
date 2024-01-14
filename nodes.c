@@ -46,7 +46,7 @@ int     main (int argc, char *argv[])
     }
 
     print_response(msg_fd, "lpjs-nodes");
-    close (msg_fd);
+    close(msg_fd);
 
     return EX_OK;
 }

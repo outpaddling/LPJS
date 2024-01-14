@@ -27,7 +27,7 @@
 
 // Must be global for signal handler
 int     Msg_fd;
-FILE    *Log_stream;
+extern FILE    *Log_stream;
 
 int     main (int argc, char *argv[])
 {

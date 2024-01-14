@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sysexits.h>
@@ -13,6 +14,9 @@
 #include "node-list.h"
 #include "network.h"
 #include "lpjs.h"
+#include "misc.h"
+
+extern FILE *Log_stream;
 
 /***************************************************************************
  *  Description:
@@ -60,8 +64,8 @@ int     connect_to_dispatchd(node_list_t *node_list)
     server_address.sin_port = htons(LPJS_IP_TCP_PORT);
 
     /* Attempt to connect to dispatchd server */
-    if (connect(msg_fd, (struct sockaddr *)&server_address,
-		 sizeof(server_address)) < 0)
+    if ( connect(msg_fd, (struct sockaddr *)&server_address,
+		 sizeof(server_address)) < 0 )
     {
 	perror("connect_to_dispatchd(): connect() failed");
 	fprintf(stderr, "hostname %s, ip = %s\n", 
@@ -87,9 +91,17 @@ int     print_response(int msg_fd, const char *caller_name)
 {
     ssize_t bytes;
     char    buff[LPJS_IP_MSG_MAX+1];
+    bool    eot_received = false;
     
-    while ( (bytes = recv(msg_fd, buff, LPJS_IP_MSG_MAX + 1, 0)) > 0 )
+    while ( ! eot_received &&
+	    (bytes = recv(msg_fd, buff, LPJS_IP_MSG_MAX + 1, 0)) > 0 )
     {
+	eot_received = (buff[bytes-1] == 4);
+	if ( eot_received )
+	{
+	    --bytes;
+	    // fprintf(stderr, "EOT received.\n");
+	}
 	buff[bytes] = '\0';
 	// FIXME: null-terminate at sender?
 	printf("%s", buff);
@@ -129,4 +141,18 @@ int     send_msg(int msg_fd, const char *format, ...)
     va_end(ap);
     
     return status;
+}
+
+
+ssize_t send_eot(int msg_fd)
+
+{
+    char    buff[1] = "\004";
+    ssize_t bytes;
+    
+    bytes = send(msg_fd, buff, 1, 0);
+    if ( bytes != 1 )
+	lpjs_log(Log_stream, "send_eot(): Failed to send EOT.\n");
+    
+    return bytes;
 }
