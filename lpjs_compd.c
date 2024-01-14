@@ -115,6 +115,8 @@ int     main (int argc, char *argv[])
     // Now keep daemon running, awaiting jobs
     while ( true )
     {
+	// FIXME: Detect lost connection with lpjs_dispatchd
+	
 	while ( (bytes = recv(Msg_fd, buff, LPJS_IP_MSG_MAX+1, 0)) == 0 )
 	{
 	    puts("Sleeping 5...");

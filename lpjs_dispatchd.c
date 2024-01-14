@@ -17,6 +17,7 @@
 #include <sysexits.h>
 #include <unistd.h>
 #include <sys/socket.h>
+#include <sys/select.h>
 #include <netinet/in.h>
 #include <signal.h>
 #include <errno.h>
@@ -122,7 +123,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
     gid_t       gid;
     munge_err_t munge_status;
     node_t      new_node;
-    int         msg_fd, c;
+    int         msg_fd;
 
     /*
      *  Step 1: Create a socket for listening for new connections.
@@ -197,15 +198,19 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
     // connections between dispatchd and compd
     while ( true )
     {
+	fd_set  read_fds;
+	int     socket_count = 1;       // Just Listen_fd to start
+	
 	/*
-	 *  Check last ping time from every node
+	 *  FIXME: Detect lost connections with compute nodes
 	 */
 	
 	// socket_count = Listen_fd + #checked-in nodes
-	// struct timeval timeout;  // Small
 	// Just watch for incoming connections and messages for now
-	// if ( select(socket_count, read_fds, NULL, NULL, &timeout) == 0 )
-	//     usleep();
+	
+	FD_ZERO(&read_fds);
+	FD_SET(Listen_fd, &read_fds);
+	
 	// Top priority: Active compute nodes (move existing jobs along)
 	// Second priority: New compute node checkins (make resources available)
 	// Lowest priority: User commands
@@ -216,131 +221,118 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	// The latter would seem to fit with using select() here.
 	// ping_all_nodes();
 	
-	// FIXME: Only accept requests from designated cluster nodes
-	/* Accept a connection request */
-	// if ( fd_set[0] ) // select indicated that Listen_fd is ready
-	if ((msg_fd = accept(Listen_fd,
-		(struct sockaddr *)&server_address, &address_len)) == -1)
+	if ( select(socket_count, &read_fds, NULL, NULL, LPJS_NO_SELECT_TIMEOUT) > 0 )
 	{
-	    // lpjs_log(Log_stream, "accept() failed.\n", stderr);
-	    puts("No new connections...");
-	}
-	else
-	{
-	    puts("Accepted new connection.");
-	    lpjs_log(Log_stream, "Accepted connection. fd = %d\n", msg_fd);
-
-	    /* Read a message through the socket */
-	    while ( (bytes = recv(msg_fd, incoming_msg, 100, 0)) < 1 )
+	    if ( FD_ISSET(Listen_fd, &read_fds) )
 	    {
-		lpjs_log(Log_stream, "recv() failed: %s", strerror(errno));
-		puts("Waiting for checkin request...");
-		sleep(1);
-	    }
-    
-	    /* Process request */
-	    // FIXME: Check for duplicate checkins.  We should not get
-	    // a checkin request while one is already open
-	    if ( memcmp(incoming_msg, "compd-checkin", 13) == 0 )
-	    {
-		printf("msg = %s\n", incoming_msg);
-		// Debug
-		// lpjs_log(Log_stream, "compd checkin.\n");
-		
-		sleep(5);
-		
-		/* Get munge credential */
-		// FIXME: What is the maximum cred length?
-		while ( (bytes = recv(msg_fd, incoming_msg, 4096, 0)) < 1 )
+		// FIXME: Only accept requests from designated cluster nodes
+		/* Accept a connection request */
+		if ((msg_fd = accept(Listen_fd,
+			(struct sockaddr *)&server_address, &address_len)) == -1)
 		{
-		    lpjs_log(Log_stream, "recv() failed: %s", strerror(errno));
-		    puts("Waiting for checkin data...");
-		    sleep(1);
+		    lpjs_log(Log_stream, "accept() failed, even though select indicated Listen_fd.\n");
+		    exit(EX_SOFTWARE);
 		}
-		printf("Message length = %zd\n", bytes);
-		
-		munge_status = munge_decode(incoming_msg, NULL, NULL, 0, &uid, &gid);
-		if ( munge_status != EMUNGE_SUCCESS )
-		    lpjs_log(Log_stream, "munge_decode() failed.  Error = %s\n",
-			     munge_strerror(munge_status));
-		lpjs_log(Log_stream, "Checkin from %d, %d\n", uid, gid);
-		
-		// FIXME: Only accept compd checkins from root
-    
-		/*
-		 *  Get specs from node and add msg_fd
-		 */
-		
-		// Debug
-		send_msg(msg_fd, "Ident verified.\n");
-		
-		node_receive_specs(&new_node, msg_fd);
-		node_print_status(&new_node);
-		node_list_update_compute(node_list, &new_node, Log_stream);
-		node_set_msg_fd(&new_node, msg_fd);
-		
-		puts("Done adding node.");
-		// Acknowledge checkin
-	    }
-	}
-    
-	// FIXME: Don't use a separate loop for this.
-	// Compute-node check-ins and other incoming messages from
-	// user commands can all be handled the same way.
-	for (c = 0; c < NODE_LIST_COUNT(node_list); ++c)
-	{
-	    int     msg_fd = NODE_MSG_FD(&NODE_LIST_COMPUTE_NODES_AE(node_list, c));
-
-	    if ( msg_fd != -1 )
-	    {
-		/* Read a message through the socket */
-		if ( (bytes = recv(msg_fd, incoming_msg, 100, 0)) == -1 )
+		else
 		{
-		    lpjs_log(Log_stream, "recv() failed: %s", strerror(errno));
-		    return EX_IOERR;
-		}
+		    puts("Accepted new connection.");
+		    lpjs_log(Log_stream, "Accepted connection. fd = %d\n", msg_fd);
 	
-		if ( strcmp(incoming_msg, "nodes") == 0 )
-		{
-		    lpjs_log(Log_stream, "Request for node status.\n");
-		    node_list_send_status(msg_fd, node_list);
-		}
-		else if ( strcmp(incoming_msg, "jobs") == 0 )
-		{
-		    lpjs_log(Log_stream, "Request for job status.\n");
-		    job_list_send_params(msg_fd, job_list);
-		}
-		else if ( memcmp(incoming_msg, "submit", 6) == 0 )
-		{
-		    // FIXME: Don't accept job submissions from root until
-		    // security issues have been considered
-		    
-		    lpjs_log(Log_stream, "Request for job submission.\n");
-		    
-		    /* Get munge credential */
-		    // FIXME: What is the maximum cred length?
-		    if ( (bytes = recv(msg_fd, incoming_msg, 4096, 0)) == - 1)
+		    /* Read a message through the socket */
+		    while ( (bytes = recv(msg_fd, incoming_msg, 100, 0)) < 1 )
 		    {
 			lpjs_log(Log_stream, "recv() failed: %s", strerror(errno));
-			return EX_IOERR;
+			puts("Waiting for checkin request...");
+			sleep(1);
 		    }
-		    munge_status = munge_decode(incoming_msg, NULL, NULL, 0, &uid, &gid);
-		    if ( munge_status != EMUNGE_SUCCESS )
-			lpjs_log(Log_stream, "munge_decode() failed.  Error = %s\n",
-				 munge_strerror(munge_status));
-		    lpjs_log(Log_stream, "Submit from %d, %d\n", uid, gid);
-		    queue_job(msg_fd, incoming_msg, node_list);
-		}
-		else if ( memcmp(incoming_msg, "job-complete", 12) == 0 )
-		{
-		    lpjs_log(Log_stream, "Job completion report.\n");
-		    log_job(incoming_msg);
+	    
+		    /* Process request */
+		    // FIXME: Check for duplicate checkins.  We should not get
+		    // a checkin request while one is already open
+		    if ( memcmp(incoming_msg, "compd-checkin", 13) == 0 )
+		    {
+			printf("msg = %s\n", incoming_msg);
+			// Debug
+			// lpjs_log(Log_stream, "compd checkin.\n");
+			
+			sleep(5);
+			
+			/* Get munge credential */
+			// FIXME: What is the maximum cred length?
+			while ( (bytes = recv(msg_fd, incoming_msg, 4096, 0)) < 1 )
+			{
+			    lpjs_log(Log_stream, "recv() failed: %s", strerror(errno));
+			    puts("Waiting for checkin data...");
+			    sleep(1);
+			}
+			printf("Message length = %zd\n", bytes);
+			
+			munge_status = munge_decode(incoming_msg, NULL, NULL, 0, &uid, &gid);
+			if ( munge_status != EMUNGE_SUCCESS )
+			    lpjs_log(Log_stream, "munge_decode() failed.  Error = %s\n",
+				     munge_strerror(munge_status));
+			lpjs_log(Log_stream, "Checkin from %d, %d\n", uid, gid);
+			
+			// FIXME: Only accept compd checkins from root
+	    
+			/*
+			 *  Get specs from node and add msg_fd
+			 */
+			
+			// Debug
+			send_msg(msg_fd, "Ident verified.\n");
+			
+			node_receive_specs(&new_node, msg_fd);
+			node_print_status(&new_node);
+			node_list_update_compute(node_list, &new_node, Log_stream);
+			node_set_msg_fd(&new_node, msg_fd);
+			
+			puts("Done adding node.");
+			// Acknowledge checkin
+		    }
+		    else if ( strcmp(incoming_msg, "nodes") == 0 )
+		    {
+			lpjs_log(Log_stream, "Request for node status.\n");
+			node_list_send_status(msg_fd, node_list);
+		    }
+		    else if ( strcmp(incoming_msg, "jobs") == 0 )
+		    {
+			lpjs_log(Log_stream, "Request for job status.\n");
+			job_list_send_params(msg_fd, job_list);
+		    }
+		    else if ( memcmp(incoming_msg, "submit", 6) == 0 )
+		    {
+			// FIXME: Don't accept job submissions from root until
+			// security issues have been considered
+			
+			lpjs_log(Log_stream, "Request for job submission.\n");
+			
+			/* Get munge credential */
+			// FIXME: What is the maximum cred length?
+			if ( (bytes = recv(msg_fd, incoming_msg, 4096, 0)) == - 1)
+			{
+			    lpjs_log(Log_stream, "recv() failed: %s", strerror(errno));
+			    return EX_IOERR;
+			}
+			munge_status = munge_decode(incoming_msg, NULL, NULL, 0, &uid, &gid);
+			if ( munge_status != EMUNGE_SUCCESS )
+			    lpjs_log(Log_stream, "munge_decode() failed.  Error = %s\n",
+				     munge_strerror(munge_status));
+			lpjs_log(Log_stream, "Submit from %d, %d\n", uid, gid);
+			queue_job(msg_fd, incoming_msg, node_list);
+		    }
+		    else if ( memcmp(incoming_msg, "job-complete", 12) == 0 )
+		    {
+			lpjs_log(Log_stream, "Job completion report.\n");
+			log_job(incoming_msg);
+		    }
 		}
 	    }
-	}
-	
-	// Debug
-	sleep(2);
+	    
+	    // Now check all socket fds returned by accept, i.e.
+	    // compute node and user command messages.
+	    
+	}        
     }
     close(Listen_fd);
     return EX_OK;
