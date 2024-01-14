@@ -216,7 +216,6 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	    
 	    if ( FD_ISSET(Listen_fd, &read_fds) )
 	    {
-		fprintf(Log_stream, "select() indicated Listen_fd.\n");
 		// FIXME: Only accept requests from designated cluster nodes
 		/* Accept a connection request */
 		if ((msg_fd = accept(Listen_fd,
@@ -234,7 +233,6 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 		    while ( (bytes = recv(msg_fd, incoming_msg, 100, 0)) < 1 )
 		    {
 			lpjs_log(Log_stream, "recv() failed: %s", strerror(errno));
-			puts("Waiting for checkin request...");
 			sleep(1);
 		    }
 	    
@@ -280,17 +278,20 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 			node_set_msg_fd(&new_node, msg_fd);
 			
 			puts("Done adding node.");
-			// Acknowledge checkin
+			// FIXME: Acknowledge checkin
+			close(msg_fd);
 		    }
 		    else if ( strcmp(incoming_msg, "nodes") == 0 )
 		    {
 			lpjs_log(Log_stream, "Request for node status.\n");
 			node_list_send_status(msg_fd, node_list);
+			close(msg_fd);
 		    }
 		    else if ( strcmp(incoming_msg, "jobs") == 0 )
 		    {
 			lpjs_log(Log_stream, "Request for job status.\n");
 			job_list_send_params(msg_fd, job_list);
+			close(msg_fd);
 		    }
 		    else if ( memcmp(incoming_msg, "submit", 6) == 0 )
 		    {
@@ -312,7 +313,11 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 				     munge_strerror(munge_status));
 			lpjs_log(Log_stream, "Submit from %d, %d\n", uid, gid);
 			queue_job(msg_fd, incoming_msg, node_list);
+			close(msg_fd);
 		    }
+		    
+		    // FIXME: This probably shouldn't come in on Listen_fd,
+		    // but on one of the compd sockets
 		    else if ( memcmp(incoming_msg, "job-complete", 12) == 0 )
 		    {
 			lpjs_log(Log_stream, "Job completion report.\n");
