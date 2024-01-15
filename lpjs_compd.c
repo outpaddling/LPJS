@@ -88,7 +88,7 @@ int     main (int argc, char *argv[])
 
     if ( (munge_status = munge_encode(&cred, NULL, NULL, 0)) != EMUNGE_SUCCESS )
     {
-	fputs("lpjs-submit: munge_encode() failed.\n", Log_stream);
+	fputs("lpjs_compd: munge_encode() failed.\n", Log_stream);
 	lpjs_log("Return code = %s\n", munge_strerror(munge_status));
 	return EX_UNAVAILABLE; // FIXME: Check actual error
     }
@@ -96,7 +96,7 @@ int     main (int argc, char *argv[])
     printf("Sending %zd bytes...\n", strlen(cred));
     if ( send_msg(msg_fd, cred) < 0 )
     {
-	perror("lpjs-submit: Failed to send credential to dispatchd");
+	perror("lpjs_compd: Failed to send credential to dispatchd");
 	close(msg_fd);
 	free(cred);
 	return EX_IOERR;
@@ -105,7 +105,7 @@ int     main (int argc, char *argv[])
     
     // Debug
     bytes = recv(msg_fd, buff, LPJS_IP_MSG_MAX+1, 0);
-    fprintf(Log_stream, "%s\n", buff);
+    lpjs_log("%s\n", buff);
     
     node_detect_specs(&node);
     node_send_specs(&node, msg_fd);
@@ -117,7 +117,7 @@ int     main (int argc, char *argv[])
 	// switch to reconnect loop
 	// FIXME: Send regular pings to lpjs_dispatchd
 	
-	while ( (bytes = recv(msg_fd, buff, LPJS_IP_MSG_MAX+1, 0)) == 0 )
+	while ( (bytes = recv(msg_fd, buff, LPJS_IP_MSG_MAX+1, MSG_WAITALL)) == 0 )
 	{
 	    puts("Sleeping 5...");
 	    sleep(5);
@@ -125,7 +125,7 @@ int     main (int argc, char *argv[])
 	
 	if ( bytes == -1 )
 	{
-	    perror("lpjs-submit: Failed to read response from dispatchd");
+	    perror("lpjs_compd: Failed to read response from dispatchd");
 	    close(msg_fd);
 	    return EX_IOERR;
 	}
