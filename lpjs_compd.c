@@ -14,8 +14,10 @@
 #include <unistd.h>
 #include <sysexits.h>
 #include <signal.h>
-#include <munge.h>
+#include <errno.h>
 #include <sys/socket.h>
+#include <poll.h>
+#include <munge.h>
 #include <xtend/string.h>
 #include <xtend/file.h>
 #include <xtend/proc.h>
@@ -25,16 +27,18 @@
 #include "misc.h"
 #include "lpjs.h"
 
+int     compd_checkin(int msg_fd, node_t *node);
+
 int     main (int argc, char *argv[])
 {
     node_list_t node_list;
     node_t      node;
-    char        buff[LPJS_IP_MSG_MAX + 1],
-		*cred;
-    munge_err_t munge_status;
+    char        buff[LPJS_IP_MSG_MAX + 1];
     ssize_t     bytes;
-    int         msg_fd;
+    int         msg_fd,
+		status;
     extern FILE *Log_stream;
+    struct pollfd   poll_fd;
 
     if ( argc > 2 )
     {
@@ -77,6 +81,75 @@ int     main (int argc, char *argv[])
 	return EX_IOERR;
     }
 
+    if ( (status = compd_checkin(msg_fd, &node)) != EX_OK )
+    {
+	lpjs_log("compd-checkin failed.\n");
+	exit(status);
+    }
+    
+    poll_fd.fd = msg_fd;
+    poll_fd.events = POLLIN | POLLRDHUP;    // POLLERR and POLLHUP always set
+    
+    // Now keep daemon running, awaiting jobs
+    // Almost correct: https://unix.stackexchange.com/questions/581426/how-to-get-notified-when-the-other-end-of-a-socketpair-is-closed
+    while ( true )
+    {
+	poll(&poll_fd, 1, 1000);
+	// printf("Back from poll().  revents = %08x\n", poll_fd.revents);
+	
+	// FIXME: Send regular pings to lpjs_dispatchd?
+	// Or monitor compd daemons with a separate process that
+	// sends events to dispatchd?
+	
+	if (poll_fd.revents & POLLRDHUP)
+	{
+	    // Close this end, or dispatchd gets "address already in use"
+	    // When trying to restart
+	    close(msg_fd);
+	    
+	    lpjs_log("Lost connection to dispatchd\n");
+	    while ( (msg_fd = connect_to_dispatchd(&node_list)) == -1 )
+	    {
+		int     retry_time = 10;
+		sleep(retry_time);
+		lpjs_log("Reconnect failed.  Retry in %d seconds...\n", retry_time);
+	    }
+	    
+	    if ( compd_checkin(msg_fd, &node) == EX_OK )
+		lpjs_log("Connection reestablished.\n");
+	    else
+	    {
+		lpjs_log("compd-checkin failed.\n");
+		exit(status);
+	    }
+	}
+	
+	if (poll_fd.revents & POLLERR) {
+	    lpjs_log("Error occurred polling dispatchd: %s\n", strerror(errno));
+	    break;
+	}
+	
+	if (poll_fd.revents & POLLIN)
+	{
+	    bytes = recv(msg_fd, buff, LPJS_IP_MSG_MAX+1, 0);
+	    buff[bytes] = '\0';
+	    printf("Received from dispatchd: %s\n", buff);
+	}
+	poll_fd.revents = 0;
+	sleep(2);
+    }
+
+    close(msg_fd);
+    return EX_IOERR;
+}
+
+
+int     compd_checkin(int msg_fd, node_t *node)
+
+{
+    char        *cred;
+    munge_err_t munge_status;
+    
     /* Send a message to the server */
     /* Need to send \0, so xt_dprintf() doesn't work here */
     if ( send_msg(msg_fd, "compd-checkin") < 0 )
@@ -88,7 +161,7 @@ int     main (int argc, char *argv[])
 
     if ( (munge_status = munge_encode(&cred, NULL, NULL, 0)) != EMUNGE_SUCCESS )
     {
-	fputs("lpjs_compd: munge_encode() failed.\n", Log_stream);
+	lpjs_log("lpjs_compd: munge_encode() failed.\n");
 	lpjs_log("Return code = %s\n", munge_strerror(munge_status));
 	return EX_UNAVAILABLE; // FIXME: Check actual error
     }
@@ -104,36 +177,11 @@ int     main (int argc, char *argv[])
     free(cred);
     
     // Debug
-    bytes = recv(msg_fd, buff, LPJS_IP_MSG_MAX+1, 0);
-    lpjs_log("%s\n", buff);
+    //bytes = recv(msg_fd, buff, LPJS_IP_MSG_MAX+1, 0);
+    //lpjs_log("%s\n", buff);
     
-    node_detect_specs(&node);
-    node_send_specs(&node, msg_fd);
+    node_detect_specs(node);
+    node_send_specs(node, msg_fd);
     
-    // Now keep daemon running, awaiting jobs
-    while ( true )
-    {
-	// FIXME: Detect lost connection with lpjs_dispatchd and
-	// switch to reconnect loop
-	// FIXME: Send regular pings to lpjs_dispatchd
-	
-	while ( (bytes = recv(msg_fd, buff, LPJS_IP_MSG_MAX+1, MSG_WAITALL)) == 0 )
-	{
-	    puts("Sleeping 5...");
-	    sleep(5);
-	}
-	
-	if ( bytes == -1 )
-	{
-	    perror("lpjs_compd: Failed to read response from dispatchd");
-	    close(msg_fd);
-	    return EX_IOERR;
-	}
-	fprintf(Log_stream, "%s\n", buff);
-    }
-    
-    close(msg_fd);
-    fclose(Log_stream);
-
     return EX_OK;
 }
