@@ -292,7 +292,9 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 			
 			puts("Done adding node.");
 			// FIXME: Acknowledge checkin
-			close(msg_fd);
+			
+			// Do not close msg_fd. Used to communicate with
+			// lpjs_compd processes.
 		    }
 		    else if ( strcmp(incoming_msg, "nodes") == 0 )
 		    {
@@ -326,7 +328,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 				     munge_strerror(munge_status));
 			lpjs_log("Submit from %d, %d\n", uid, gid);
 			queue_job(msg_fd, incoming_msg, node_list);
-			close(msg_fd);
+			server_safe_close(msg_fd);
 		    }
 		    
 		    // FIXME: This probably shouldn't come in on listen_fd,
