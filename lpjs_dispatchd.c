@@ -182,8 +182,8 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	      sizeof (server_address)) < 0 )
     {
 	lpjs_log("bind() failed: %s: ", strerror(errno));
-	lpjs_log("Retrying in 5 seconds...\n");
-	sleep(5);
+	lpjs_log("Retry in 10 seconds...\n");
+	sleep(10);
     }
     lpjs_log("Bound to port %d...\n", LPJS_IP_TCP_PORT);
     
