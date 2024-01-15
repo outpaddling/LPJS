@@ -32,15 +32,12 @@
 #include "network.h"
 #include "misc.h"
 
-// Must be global for signal handler
-int     Listen_fd;
-extern FILE    *Log_stream;
-
 int     main(int argc,char *argv[])
 
 {
     node_list_t node_list;
     job_list_t  job_list;
+    extern FILE    *Log_stream; // Must be global for signal handler
     
     if ( argc > 2 )
     {
@@ -69,39 +66,16 @@ int     main(int argc,char *argv[])
     job_list_init(&job_list);
 
     /*
-     *  Set handler so that Listen_fd is properly closed before termination.
-     *  Still getting bind(): address already in use during testing
-     *  with its frequent restarts.  Possible clues:
-     *  https://hea-www.harvard.edu/~fine/Tech/addrinuse.html
-     *  Copy saved in ./bind-address-already-in-use.pdf
+     *  bind(): address already in use during testing with frequent restarts.
      *  Best approach is to ensure that client completes a close
      *  before the server closes.
+     *  https://hea-www.harvard.edu/~fine/Tech/addrinuse.html
+     *  Copy saved in ./bind-address-already-in-use.pdf
      */
-    signal(SIGINT, terminate_daemon);
-    signal(SIGTERM, terminate_daemon);
+    signal(SIGINT, terminate_handler);
+    signal(SIGTERM, terminate_handler);
 
     return process_events(&node_list, &job_list);
-}
-
-
-/***************************************************************************
- *  Description:
- *      Gracefully shut down in the event of an interrupt signal
- *
- *  History: 
- *  Date        Name        Modification
- *  2021-09-28  Jason Bacon Begin
- ***************************************************************************/
-
-void    terminate_daemon(int s2)
-
-{
-    lpjs_log(Log_stream, "lpjs_dispatch shutting down...\n");
-    fclose(Log_stream);
-    close(Listen_fd);
-    // FIXME: Close all message fds?
-    
-    exit(EX_OK);
 }
 
 
@@ -162,7 +136,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
     gid_t       gid;
     munge_err_t munge_status;
     node_t      new_node;
-    int         msg_fd;
+    int         listen_fd, msg_fd;
 
     /*
      *  Step 1: Create a socket for listening for new connections.
@@ -179,12 +153,12 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
      *  SOCK_STREAM indicates a reliable stream oriented protocol,
      *  such as TCP, vs. unreliable unordered datagram protocols like UDP.
      */
-    if ((Listen_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0)
+    if ((listen_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0)
     {
-	lpjs_log(Log_stream, "Error opening listener socket.\n");
+	lpjs_log("Error opening listener socket.\n");
 	return EX_UNAVAILABLE;
     }
-    lpjs_log(Log_stream, "Listen_fd = %d\n", Listen_fd);
+    lpjs_log("listen_fd = %d\n", listen_fd);
 
     /*
      *  Port on which to listen for new connections from compute nodes.
@@ -204,21 +178,21 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
     server_address.sin_addr.s_addr = htonl(INADDR_ANY);
 
     // Bind socket fd and server address
-    while ( bind(Listen_fd, (struct sockaddr *) &server_address,
+    while ( bind(listen_fd, (struct sockaddr *) &server_address,
 	      sizeof (server_address)) < 0 )
     {
-	lpjs_log(Log_stream, "bind() failed: %s: ", strerror(errno));
-	fputs("Retrying in 5 seconds...\n", Log_stream);
+	lpjs_log("bind() failed: %s: ", strerror(errno));
+	lpjs_log("Retrying in 5 seconds...\n");
 	sleep(5);
     }
-    lpjs_log(Log_stream, "Bound to port %d...\n", LPJS_IP_TCP_PORT);
+    lpjs_log("Bound to port %d...\n", LPJS_IP_TCP_PORT);
     
     /*
      *  Create queue for incoming connection requests
      */
-    if (listen(Listen_fd, LPJS_IP_MSG_QUEUE_MAX) != 0)
+    if (listen(listen_fd, LPJS_IP_MSG_QUEUE_MAX) != 0)
     {
-	lpjs_log(Log_stream, "listen() failed.\n", Log_stream);
+	lpjs_log("listen() failed.\n");
 	return EX_UNAVAILABLE;
     }
 
@@ -227,7 +201,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
      *  for communication with each new compute node.
      */
     
-    // FIXME: Combine Listen_fd and all client socket fds into
+    // FIXME: Combine listen_fd and all client socket fds into
     // one fd_set and use select() to process events.
     // User commands may also connect from the head node or any other
     // node
@@ -238,8 +212,8 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	int     nfds;
 	
 	FD_ZERO(&read_fds);
-	FD_SET(Listen_fd, &read_fds);
-	nfds = Listen_fd + 1;   // FIXME: Use highest fd + 1
+	FD_SET(listen_fd, &read_fds);
+	nfds = listen_fd + 1;   // FIXME: Use highest fd + 1
 	
 	// FIXME: Verify that compute nodes are alive at regular intervals
 	// and update status accordingly.
@@ -253,25 +227,25 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	    // Second priority: New compute node checkins (make resources available)
 	    // Lowest priority: User commands
 	    
-	    if ( FD_ISSET(Listen_fd, &read_fds) )
+	    if ( FD_ISSET(listen_fd, &read_fds) )
 	    {
 		// FIXME: Only accept requests from designated cluster nodes
 		/* Accept a connection request */
-		if ((msg_fd = accept(Listen_fd,
+		if ((msg_fd = accept(listen_fd,
 			(struct sockaddr *)&server_address, &address_len)) == -1)
 		{
-		    lpjs_log(Log_stream, "accept() failed, even though select indicated Listen_fd.\n");
+		    lpjs_log("accept() failed, even though select indicated listen_fd.\n");
 		    exit(EX_SOFTWARE);
 		}
 		else
 		{
 		    puts("Accepted new connection.");
-		    lpjs_log(Log_stream, "Accepted connection. fd = %d\n", msg_fd);
+		    lpjs_log("Accepted connection. fd = %d\n", msg_fd);
 	
 		    /* Read a message through the socket */
 		    while ( (bytes = recv(msg_fd, incoming_msg, 100, 0)) < 1 )
 		    {
-			lpjs_log(Log_stream, "recv() failed: %s", strerror(errno));
+			lpjs_log("recv() failed: %s", strerror(errno));
 			sleep(1);
 		    }
 	    
@@ -290,7 +264,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 			// FIXME: What is the maximum cred length?
 			while ( (bytes = recv(msg_fd, incoming_msg, 4096, 0)) < 1 )
 			{
-			    lpjs_log(Log_stream, "recv() failed: %s", strerror(errno));
+			    lpjs_log("recv() failed: %s", strerror(errno));
 			    puts("Waiting for checkin data...");
 			    sleep(1);
 			}
@@ -298,9 +272,9 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 			
 			munge_status = munge_decode(incoming_msg, NULL, NULL, 0, &uid, &gid);
 			if ( munge_status != EMUNGE_SUCCESS )
-			    lpjs_log(Log_stream, "munge_decode() failed.  Error = %s\n",
+			    lpjs_log("munge_decode() failed.  Error = %s\n",
 				     munge_strerror(munge_status));
-			lpjs_log(Log_stream, "Checkin from %d, %d\n", uid, gid);
+			lpjs_log("Checkin from %d, %d\n", uid, gid);
 			
 			// FIXME: Only accept compd checkins from root
 	    
@@ -313,7 +287,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 			
 			node_receive_specs(&new_node, msg_fd);
 			node_print_status(&new_node);
-			node_list_update_compute(node_list, &new_node, Log_stream);
+			node_list_update_compute(node_list, &new_node);
 			node_set_msg_fd(&new_node, msg_fd);
 			
 			puts("Done adding node.");
@@ -322,13 +296,13 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 		    }
 		    else if ( strcmp(incoming_msg, "nodes") == 0 )
 		    {
-			lpjs_log(Log_stream, "Request for node status.\n");
+			lpjs_log("Request for node status.\n");
 			node_list_send_status(msg_fd, node_list);
 			server_safe_close(msg_fd);
 		    }
 		    else if ( strcmp(incoming_msg, "jobs") == 0 )
 		    {
-			lpjs_log(Log_stream, "Request for job status.\n");
+			lpjs_log("Request for job status.\n");
 			job_list_send_params(msg_fd, job_list);
 			server_safe_close(msg_fd);
 		    }
@@ -337,29 +311,29 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 			// FIXME: Don't accept job submissions from root until
 			// security issues have been considered
 			
-			lpjs_log(Log_stream, "Request for job submission.\n");
+			lpjs_log("Request for job submission.\n");
 			
 			/* Get munge credential */
 			// FIXME: What is the maximum cred length?
 			if ( (bytes = recv(msg_fd, incoming_msg, 4096, 0)) == - 1)
 			{
-			    lpjs_log(Log_stream, "recv() failed: %s", strerror(errno));
+			    lpjs_log("recv() failed: %s", strerror(errno));
 			    return EX_IOERR;
 			}
 			munge_status = munge_decode(incoming_msg, NULL, NULL, 0, &uid, &gid);
 			if ( munge_status != EMUNGE_SUCCESS )
-			    lpjs_log(Log_stream, "munge_decode() failed.  Error = %s\n",
+			    lpjs_log("munge_decode() failed.  Error = %s\n",
 				     munge_strerror(munge_status));
-			lpjs_log(Log_stream, "Submit from %d, %d\n", uid, gid);
+			lpjs_log("Submit from %d, %d\n", uid, gid);
 			queue_job(msg_fd, incoming_msg, node_list);
 			close(msg_fd);
 		    }
 		    
-		    // FIXME: This probably shouldn't come in on Listen_fd,
+		    // FIXME: This probably shouldn't come in on listen_fd,
 		    // but on one of the compd sockets
 		    else if ( memcmp(incoming_msg, "job-complete", 12) == 0 )
 		    {
-			lpjs_log(Log_stream, "Job completion report.\n");
+			lpjs_log("Job completion report.\n");
 			log_job(incoming_msg);
 		    }
 		}
@@ -370,9 +344,9 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	    
 	}
 	else
-	    fprintf(Log_stream, "select() returned 0.\n");
+	    lpjs_log("select() returned 0.\n");
     }
-    close(Listen_fd);
+    close(listen_fd);
     return EX_OK;
 }
 
@@ -391,5 +365,6 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 void    log_job(const char *incoming_msg)
 
 {
-    lpjs_log(Log_stream, incoming_msg);
+    // FIXME: Add extensive info about the job
+    lpjs_log(incoming_msg);
 }

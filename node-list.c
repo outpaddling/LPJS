@@ -8,6 +8,7 @@
 #include "node-list.h"
 #include "network.h"
 #include "lpjs.h"
+#include "misc.h"
 
 /***************************************************************************
  *  Description:
@@ -35,7 +36,7 @@ void    node_list_init(node_list_t *node_list)
  ***************************************************************************/
 
 int     node_list_add_compute(node_list_t *node_list, FILE *input_stream,
-			      const char *conf_file, FILE *error_stream)
+			      const char *conf_file)
 
 {
     int     delim;
@@ -53,7 +54,7 @@ int     node_list_add_compute(node_list_t *node_list, FILE *input_stream,
     }
     if ( delim == EOF )
     {
-	fprintf(error_stream, "Unexpected EOF reading %s.\n", conf_file);
+	lpjs_log("Unexpected EOF reading %s.\n", conf_file);
 	exit(EX_DATAERR);
     }
     
@@ -76,8 +77,7 @@ int     node_list_add_compute(node_list_t *node_list, FILE *input_stream,
  *  2021-10-02  Jason Bacon Begin
  ***************************************************************************/
 
-void    node_list_update_compute(node_list_t *node_list, node_t *node,
-				 FILE *error_stream)
+void    node_list_update_compute(node_list_t *node_list, node_t *node)
 
 {
     size_t  c;
@@ -89,11 +89,11 @@ void    node_list_update_compute(node_list_t *node_list, node_t *node,
 	*first_dot = '\0';
     for (c = 0; c < node_list->count; ++c)
     {
-	fprintf(error_stream, "%s\n",
+	lpjs_log("%s\n",
 		NODE_HOSTNAME(&node_list->compute_nodes[c]));
 	if ( strcmp(NODE_HOSTNAME(&node_list->compute_nodes[c]), short_hostname) == 0 )
 	{
-	    fprintf(error_stream, "Updating compute node %zu %s\n", c, NODE_HOSTNAME(&node_list->compute_nodes[c]));
+	    lpjs_log("Updating compute node %zu %s\n", c, NODE_HOSTNAME(&node_list->compute_nodes[c]));
 	    node_set_state(&node_list->compute_nodes[c], "Up");
 	    node_set_cores(&node_list->compute_nodes[c], NODE_CORES(node));
 	    node_set_phys_mem(&node_list->compute_nodes[c], NODE_PHYS_MEM(node));

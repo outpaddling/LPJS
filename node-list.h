@@ -60,7 +60,7 @@ typedef struct
 /* node-list.c */
 void    node_list_init(node_list_t *node_list);
 int     node_list_add_compute(node_list_t *node_list, FILE *input_stream,
-	const char *conf_file, FILE *error_stream);
+	const char *conf_file);
 void    node_list_send_status(int msg_fd, node_list_t *node_list);
 
 /* node-list-mutators.c */
@@ -70,6 +70,6 @@ int node_list_set_head_node_cpy(node_list_t *node_list_ptr, char *new_head_node,
 int node_list_set_count(node_list_t *node_list_ptr, unsigned new_count);
 int node_list_set_compute_nodes_ae(node_list_t *node_list_ptr, size_t c, node_t new_compute_nodes_element);
 int node_list_set_compute_nodes_cpy(node_list_t *node_list_ptr, node_t new_compute_nodes[], size_t array_size);
-void node_list_update_compute(node_list_t *node_list, node_t *node, FILE *error_stream);
+void node_list_update_compute(node_list_t *node_list, node_t *node);
 
 #endif  // _NODE_LIST_H_

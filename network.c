@@ -152,7 +152,7 @@ ssize_t send_eot(int msg_fd)
     
     bytes = send(msg_fd, buff, 1, 0);
     if ( bytes != 1 )
-	lpjs_log(Log_stream, "send_eot(): Failed to send EOT.\n");
+	lpjs_log("send_eot(): Failed to send EOT.\n");
     
     return bytes;
 }
