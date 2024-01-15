@@ -242,6 +242,8 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 		    puts("Accepted new connection.");
 		    lpjs_log("Accepted connection. fd = %d\n", msg_fd);
 	
+		    // FIXME: Use poll() to detect lost connections?
+		    
 		    /* Read a message through the socket */
 		    while ( (bytes = recv(msg_fd, incoming_msg, 100, 0)) < 1 )
 		    {
