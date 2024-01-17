@@ -256,7 +256,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 		    // a checkin request while one is already open
 		    if ( memcmp(incoming_msg, "compd-checkin", 13) == 0 )
 		    {
-			printf("msg = %s\n", incoming_msg);
+			lpjs_log("msg = %s\n", incoming_msg);
 			// Debug
 			// lpjs_log(Log_stream, "compd checkin.\n");
 			
@@ -270,7 +270,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 			    puts("Waiting for checkin data...");
 			    sleep(1);
 			}
-			printf("Message length = %zd\n", bytes);
+			lpjs_log("Message length = %zd\n", bytes);
 			
 			munge_status = munge_decode(incoming_msg, NULL, NULL, 0, &uid, &gid);
 			if ( munge_status != EMUNGE_SUCCESS )
@@ -288,6 +288,10 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 			send_msg(msg_fd, "Ident verified.\n");
 			
 			node_receive_specs(&new_node, msg_fd);
+			lpjs_log("Back from node_receive_specs().\n");
+			// Keep in sync with node_list_send_status()
+			printf(NODE_STATUS_HEADER_FORMAT, "Hostname", "State",
+			    "Cores", "Used", "Physmem", "Used", "OS", "Arch");
 			node_print_status(&new_node);
 			node_list_update_compute(node_list, &new_node);
 			node_set_msg_fd(&new_node, msg_fd);

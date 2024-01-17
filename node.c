@@ -210,6 +210,5 @@ int     node_receive_specs(node_t *node, int msg_fd)
     
 	fclose(fp);
     }
-    fclose(fp);
     return 0;
 }

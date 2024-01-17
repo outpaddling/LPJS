@@ -144,6 +144,17 @@ int     send_msg(int msg_fd, const char *format, ...)
 }
 
 
+/***************************************************************************
+ *  Description:
+ *      Send EOT (\004) char to signal end of communication.
+ *      Note that end of message is signalled by \000.  EOT
+ *      means we're done talking and the socket should be closed.
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-17  Jason Bacon Begin
+ ***************************************************************************/
+
 ssize_t send_eot(int msg_fd)
 
 {

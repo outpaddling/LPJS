@@ -94,8 +94,8 @@ int     main (int argc, char *argv[])
     // Almost correct: https://unix.stackexchange.com/questions/581426/how-to-get-notified-when-the-other-end-of-a-socketpair-is-closed
     while ( true )
     {
-	poll(&poll_fd, 1, 1000);
-	// printf("Back from poll().  revents = %08x\n", poll_fd.revents);
+	poll(&poll_fd, 1, 2000);
+	printf("Back from poll().  revents = %08x\n", poll_fd.revents);
 	
 	// FIXME: Send regular pings to lpjs_dispatchd?
 	// Or monitor compd daemons with a separate process that
@@ -136,7 +136,6 @@ int     main (int argc, char *argv[])
 	    printf("Received from dispatchd: %s\n", buff);
 	}
 	poll_fd.revents = 0;
-	sleep(2);
     }
 
     close(msg_fd);
