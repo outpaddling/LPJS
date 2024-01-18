@@ -31,6 +31,7 @@
 #include "scheduler.h"
 #include "network.h"
 #include "misc.h"
+#include "lpjs_dispatchd-protos.h"
 
 int     main(int argc,char *argv[])
 

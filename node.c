@@ -177,6 +177,7 @@ int     node_receive_specs(node_t *node, int msg_fd)
     size_t  len;
 
     // FIXME: NetBSD doesn't have fdclose()
+    // Might be better to use the fd directly anyway
     
     lpjs_log("In node_receive_specs()...\n");
     if ( (fp = fdopen(msg_fd, "r")) == NULL )
