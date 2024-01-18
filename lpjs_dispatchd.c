@@ -260,7 +260,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 			// Debug
 			// lpjs_log(Log_stream, "compd checkin.\n");
 			
-			sleep(5);
+			// sleep(5);
 			
 			/* Get munge credential */
 			// FIXME: What is the maximum cred length?
@@ -270,13 +270,13 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 			    puts("Waiting for checkin data...");
 			    sleep(1);
 			}
-			lpjs_log("Message length = %zd\n", bytes);
+			lpjs_log("Munge credential message length = %zd\n", bytes);
 			
 			munge_status = munge_decode(incoming_msg, NULL, NULL, 0, &uid, &gid);
 			if ( munge_status != EMUNGE_SUCCESS )
 			    lpjs_log("munge_decode() failed.  Error = %s\n",
 				     munge_strerror(munge_status));
-			lpjs_log("Checkin from %d, %d\n", uid, gid);
+			lpjs_log("Checkin from uid %d, gid %d\n", uid, gid);
 			
 			// FIXME: Only accept compd checkins from root
 	    
@@ -289,6 +289,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 			
 			node_receive_specs(&new_node, msg_fd);
 			lpjs_log("Back from node_receive_specs().\n");
+			
 			// Keep in sync with node_list_send_status()
 			printf(NODE_STATUS_HEADER_FORMAT, "Hostname", "State",
 			    "Cores", "Used", "Physmem", "Used", "OS", "Arch");

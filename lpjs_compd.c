@@ -146,8 +146,10 @@ int     main (int argc, char *argv[])
 int     compd_checkin(int msg_fd, node_t *node)
 
 {
-    char        *cred;
+    char        *cred,
+		buff[LPJS_IP_MSG_MAX + 1];
     munge_err_t munge_status;
+    size_t      bytes;
     
     /* Send a message to the server */
     /* Need to send \0, so xt_dprintf() doesn't work here */
@@ -165,7 +167,7 @@ int     compd_checkin(int msg_fd, node_t *node)
 	return EX_UNAVAILABLE; // FIXME: Check actual error
     }
 
-    printf("Sending %zd bytes...\n", strlen(cred));
+    printf("Sending %zd bytes: %s...\n", strlen(cred), cred);
     if ( send_msg(msg_fd, cred) < 0 )
     {
 	perror("lpjs_compd: Failed to send credential to dispatchd");
@@ -175,12 +177,15 @@ int     compd_checkin(int msg_fd, node_t *node)
     }
     free(cred);
     
-    // Debug
-    //bytes = recv(msg_fd, buff, LPJS_IP_MSG_MAX+1, 0);
-    //lpjs_log("%s\n", buff);
-    
     node_detect_specs(node);
+    
+    // Debug
+    // FIXME: This is needed before node_send_specs()
+    // Can't write to socket before reading response to cred?
+    bytes = recv(msg_fd, buff, LPJS_IP_MSG_MAX+1, 0);
+    lpjs_log("Response: %zu %s\n", bytes, buff);
     node_send_specs(node, msg_fd);
+    send_msg(msg_fd, "");
     
     return EX_OK;
 }

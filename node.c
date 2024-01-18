@@ -9,6 +9,7 @@
 #include "node.h"
 #include "network.h"
 #include "lpjs.h"
+#include "misc.h"
 
 /***************************************************************************
  *  Description:
@@ -63,20 +64,20 @@ void    node_detect_specs(node_t *node)
     node->cores = sysconf(_SC_NPROCESSORS_ONLN);
     node->phys_mem = sysconf(_SC_PAGESIZE) * sysconf(_SC_PHYS_PAGES)
 		     / 1024 / 1024;
-    printf("CPUs\t%u\n", node->cores);
-    printf("Physmem\t%lu\n", node->phys_mem);
+    lpjs_log("CPUs\t%u\n", node->cores);
+    lpjs_log("Physmem\t%lu\n", node->phys_mem);
     /*
      *  Report 1 if ZFS filesystem found, so that additional memory
      *  can be reserved on compute nodes.
      *  FIXME: There should be a better approach to this.
      */
     node->zfs = ! system("mount | fgrep -q zfs");
-    printf("ZFS\t%u\n", node->zfs);
+    lpjs_log("ZFS\t%u\n", node->zfs);
     uname(&u_name);
     // FIXME: Verify malloc() success
     node->os = strdup(u_name.sysname);
     node->arch = strdup(u_name.machine);
-    printf("OS\t%s\nArch\t%s\n", node->os, node->arch);
+    lpjs_log("OS\t%s\nArch\t%s\n", node->os, node->arch);
 }
 
 
@@ -141,7 +142,12 @@ void    node_send_specs(node_t *node, int msg_fd)
     /*
      *  Don't use send_msg() here, since there will be more text to send
      *  and send_msg() terminates the message.
+     *  FIXME: What additional text??
      */
+    lpjs_log("Sending specs...\n");
+    lpjs_log("%s\t%s\t%u\t%lu\t%u\t%s\t%s\n",
+		 node->hostname, node->state, node->cores,
+		 node->phys_mem, node->zfs, node->os, node->arch);
     if ( xt_dprintf(msg_fd, "%s\t%s\t%u\t%lu\t%u\t%s\t%s\n",
 		 node->hostname, node->state, node->cores,
 		 node->phys_mem, node->zfs, node->os, node->arch) < 0 )
@@ -170,45 +176,57 @@ int     node_receive_specs(node_t *node, int msg_fd)
 	    *end;
     size_t  len;
 
+    lpjs_log("In node_receive_specs()...\n");
     if ( (fp = fdopen(msg_fd, "r")) == NULL )
 	return -1;
     
     xt_dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+    lpjs_log("msg len = %zu\n", len);
+    
     // FIXME: This is not such a reliable test
     if ( *field == '\0' )
     {
+	lpjs_log("Got empty field.  Closing...\n");
 	node->state = "Unknown";
 	node->os = "Unknown";
 	node->arch = "Unknown";
-	fclose(fp);
+	fdclose(fp, NULL);
     }
     else
     {
-	node->state = "Up";
+	lpjs_log("Reading fields...\n");
 	
 	// FIXME: Add sanity checks
 	node->hostname = strdup(field);
-	printf("Hostname = %s\n", node->hostname);
+	lpjs_log("Hostname = %s\n", node->hostname);
 	
 	xt_dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
-	node->state = strdup(field);
+	// FIXME
+	// node->state = strdup(field);
+	node->state = "Up";
+	lpjs_log("State = %s\n", node->state);
 	
 	xt_dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
 	node->cores = strtoul(field, &end, 10);
+	lpjs_log("Cores = %u\n", node->cores);
 	
 	xt_dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
 	node->phys_mem = strtoul(field, &end, 10);
+	lpjs_log("phys_mem = %zu\n", node->phys_mem);
 	
 	xt_dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
 	node->zfs = strtoul(field, &end, 10);
+	lpjs_log("zfs = %d\n", node->zfs);
     
 	xt_dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
 	node->os = strdup(field);
+	lpjs_log("OS = %s\n", node->os);
     
 	xt_dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
 	node->arch = strdup(field);
+	lpjs_log("Arch = %s\n", node->arch);
     
-	fclose(fp);
+	fdclose(fp, NULL);
     }
     return 0;
 }
