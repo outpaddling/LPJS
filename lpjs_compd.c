@@ -75,6 +75,7 @@ int     main (int argc, char *argv[])
     // Get hostname of head node
     lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, Log_stream);
 
+    // FIXME: Retry, at least if running in daemon mode
     if ( (msg_fd = connect_to_dispatchd(&node_list)) == -1 )
     {
 	perror("lpjs-nodes: Failed to connect to dispatchd");
@@ -88,7 +89,7 @@ int     main (int argc, char *argv[])
     }
     
     poll_fd.fd = msg_fd;
-    poll_fd.events = POLLIN | POLLRDHUP;    // POLLERR and POLLHUP always set
+    poll_fd.events = POLLIN | LPJS_POLLHUP;    // POLLERR and POLLHUP always set
     
     // Now keep daemon running, awaiting jobs
     // Almost correct: https://unix.stackexchange.com/questions/581426/how-to-get-notified-when-the-other-end-of-a-socketpair-is-closed
@@ -101,7 +102,7 @@ int     main (int argc, char *argv[])
 	// Or monitor compd daemons with a separate process that
 	// sends events to dispatchd?
 	
-	if (poll_fd.revents & POLLRDHUP)
+	if (poll_fd.revents & LPJS_POLLHUP)
 	{
 	    // Close this end, or dispatchd gets "address already in use"
 	    // When trying to restart
