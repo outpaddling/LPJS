@@ -185,6 +185,12 @@ int     compd_checkin(int msg_fd, node_t *node)
     // Can't write to socket before reading response to cred?
     bytes = recv(msg_fd, buff, LPJS_IP_MSG_MAX+1, 0);
     lpjs_log("Response: %zu %s\n", bytes, buff);
+    if ( strcmp(buff, "Ident verified") != 0 )
+    {
+	lpjs_log("compd_checkin(): Expected \"Ident verified\".\n");
+	return EX_DATAERR;
+    }
+    
     node_send_specs(node, msg_fd);
     send_msg(msg_fd, "");
     

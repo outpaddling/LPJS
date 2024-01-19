@@ -142,7 +142,7 @@ void    node_send_specs(node_t *node, int msg_fd)
     /*
      *  Don't use send_msg() here, since there will be more text to send
      *  and send_msg() terminates the message.
-     *  FIXME: What additional text??
+     *  FIXME: What additional text??  Warning above is probably outdated.
      */
     lpjs_log("Sending specs...\n");
     lpjs_log("%s\t%s\t%u\t%lu\t%u\t%s\t%s\n",

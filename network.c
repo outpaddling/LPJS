@@ -137,6 +137,8 @@ int     send_msg(int msg_fd, const char *format, ...)
     
     va_start(ap, format);
     status = vsnprintf(buff, LPJS_IP_MSG_MAX + 1, format, ap);
+    
+    // Also send '\0' byte to mark end of message
     send(msg_fd, buff, strlen(buff) + 1, 0);
     va_end(ap);
     
