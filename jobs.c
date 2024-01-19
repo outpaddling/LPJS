@@ -33,20 +33,20 @@ int     main(int argc,char *argv[])
     // Get hostname of head node
     lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, stderr);
 
-    if ( (msg_fd = connect_to_dispatchd(&node_list)) == -1 )
+    if ( (msg_fd = lpjs_connect_to_dispatchd(&node_list)) == -1 )
     {
 	perror("lpjs-jobs: Failed to connect to dispatch");
 	return EX_IOERR;
     }
 
-    if ( send_msg(msg_fd, "jobs") < 0 )
+    if ( lpjs_send_msg(msg_fd, "jobs") < 0 )
     {
 	perror("lpjs-jobs: Failed to send message to dispatch");
 	close(msg_fd);
 	return EX_IOERR;
     }
     
-    print_response(msg_fd, "lpjs-jobs");
+    lpjs_print_response(msg_fd, "lpjs-jobs");
     close (msg_fd);
 
     return EX_OK;

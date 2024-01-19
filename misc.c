@@ -52,7 +52,7 @@ int     lpjs_log(const char *format, ...)
  *  2021-09-28  Jason Bacon Begin
  ***************************************************************************/
 
-void    terminate_handler(int s2)
+void    lpjs_terminate_handler(int s2)
 
 {
     lpjs_log("lpjs_compd received signal, shutting down...\n");

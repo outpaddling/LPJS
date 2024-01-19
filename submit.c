@@ -43,13 +43,13 @@ int     main (int argc, char *argv[])
     // Get hostname of head node
     lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, stderr);
 
-    if ( (msg_fd = connect_to_dispatchd(&node_list)) == -1 )
+    if ( (msg_fd = lpjs_connect_to_dispatchd(&node_list)) == -1 )
     {
 	perror("lpjs-submit: Failed to connect to dispatch");
 	return EX_IOERR;
     }
 
-    if ( send_msg(msg_fd, "submit") < 0 )
+    if ( lpjs_send_msg(msg_fd, "submit") < 0 )
     {
 	perror("lpjs-submit: Failed to send submit request to dispatch");
 	close(msg_fd);
@@ -63,7 +63,7 @@ int     main (int argc, char *argv[])
 	return EX_UNAVAILABLE; // FIXME: Check actual error
     }
 
-    if ( send_msg(msg_fd, cred) < 0 )
+    if ( lpjs_send_msg(msg_fd, cred) < 0 )
     {
 	perror("lpjs-submit: Failed to send credential to dispatch");
 	close(msg_fd);

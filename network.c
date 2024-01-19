@@ -27,11 +27,11 @@ extern FILE *Log_stream;
  *  2021-09-28  Jason Bacon Begin
  ***************************************************************************/
 
-int     connect_to_dispatchd(node_list_t *node_list)
+int     lpjs_connect_to_dispatchd(node_list_t *node_list)
 
 {
     char                head_ip[LPJS_IP_MAX + 1];
-    struct sockaddr_in  server_address;
+    struct sockaddr_in  server_address;     // sockaddr_in = inet4
     int                 msg_fd;
 
     /*
@@ -49,7 +49,7 @@ int     connect_to_dispatchd(node_list_t *node_list)
 	return -1;
     }
 
-    // AF_INET = inet4, AF_INET6 for inet6
+    // AF_INET = inet4 (IPv4), AF_INET6 for inet6 (IPv6)
     server_address.sin_family = AF_INET;
     
     // Convert head node hostname from LPJS config file to IP
@@ -86,7 +86,7 @@ int     connect_to_dispatchd(node_list_t *node_list)
  *  2021-09-28  Jason Bacon Begin
  ***************************************************************************/
 
-int     print_response(int msg_fd, const char *caller_name)
+int     lpjs_print_response(int msg_fd, const char *caller_name)
 
 {
     ssize_t bytes;
@@ -128,7 +128,7 @@ int     print_response(int msg_fd, const char *caller_name)
  *  2021-09-29  Jason Bacon Begin
  ***************************************************************************/
 
-int     send_msg(int msg_fd, const char *format, ...)
+int     lpjs_send_msg(int msg_fd, const char *format, ...)
 
 {
     va_list     ap;
@@ -157,7 +157,7 @@ int     send_msg(int msg_fd, const char *format, ...)
  *  2024-01-17  Jason Bacon Begin
  ***************************************************************************/
 
-ssize_t send_eot(int msg_fd)
+ssize_t lpjs_send_eot(int msg_fd)
 
 {
     char    buff[1] = "\004";

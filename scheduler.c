@@ -2,6 +2,7 @@
 #include <xtend/file.h>
 #include "node-list.h"
 #include "lpjs.h"
+#include "scheduler.h"
 
 /***************************************************************************
  *  Description:
@@ -12,7 +13,7 @@
  *  2021-09-30  Jason Bacon Begin
  ***************************************************************************/
 
-int     queue_job(int msg_fd, const char *incoming_msg, node_list_t *node_list)
+int     lpjs_queue_job(int msg_fd, const char *incoming_msg, node_list_t *node_list)
 
 {
     node_t  *first_node = &NODE_LIST_COMPUTE_NODES_AE(node_list, 0);
@@ -57,7 +58,7 @@ int     queue_job(int msg_fd, const char *incoming_msg, node_list_t *node_list)
  *  2021-10-05  Jason Bacon Begin
  ***************************************************************************/
 
-int     select_nodes()
+int     lpjs_select_nodes()
 
 {
     return 0;

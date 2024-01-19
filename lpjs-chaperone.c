@@ -42,7 +42,7 @@ int     main (int argc, char *argv[])
     // FIXME: Send errors to log
     lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, stderr);
 
-    if ( (msg_fd = connect_to_dispatchd(&node_list)) == -1 )
+    if ( (msg_fd = lpjs_connect_to_dispatchd(&node_list)) == -1 )
     {
 	perror("lpjs-nodes: Failed to connect to dispatch");
 	return EX_IOERR;
@@ -52,7 +52,7 @@ int     main (int argc, char *argv[])
     /* Need to send \0, so xt_dprintf() doesn't work here */
     xt_str_argv_cat(cmd, argv, 1, LPJS_CMD_MAX + 1);
     status = system(cmd);
-    if ( send_msg(msg_fd, "job-complete\ncmd: %s\nstatus: %d\n",
+    if ( lpjs_send_msg(msg_fd, "job-complete\ncmd: %s\nstatus: %d\n",
 		  cmd, status) < 0 )
     {
 	perror("lpjs-nodes: Failed to send message to dispatch");

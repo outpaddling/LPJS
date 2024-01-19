@@ -73,8 +73,8 @@ int     main(int argc,char *argv[])
      *  https://hea-www.harvard.edu/~fine/Tech/addrinuse.html
      *  Copy saved in ./bind-address-already-in-use.pdf
      */
-    signal(SIGINT, terminate_handler);
-    signal(SIGTERM, terminate_handler);
+    signal(SIGINT, lpjs_terminate_handler);
+    signal(SIGTERM, lpjs_terminate_handler);
 
     return process_events(&node_list, &job_list);
 }
@@ -92,7 +92,7 @@ int     main(int argc,char *argv[])
  *  2024-01-14  Jason Bacon Begin
  ***************************************************************************/
 
-int     server_safe_close(int msg_fd)
+int     lpjs_server_safe_close(int msg_fd)
 
 {
     char    buff[64];
@@ -101,7 +101,7 @@ int     server_safe_close(int msg_fd)
      *  Client must be looking for the EOT character at the end of
      *  a read, or this is useless.
      */
-    send_eot(msg_fd);
+    lpjs_send_eot(msg_fd);
     
     /*
      *  Wait until EOF is signaled due to the other end being closed.
@@ -191,7 +191,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
     /*
      *  Create queue for incoming connection requests
      */
-    if (listen(listen_fd, LPJS_IP_MSG_QUEUE_MAX) != 0)
+    if (listen(listen_fd, LPJS_IP_CONNECTION_QUEUE_MAX) != 0)
     {
 	lpjs_log("listen() failed.\n");
 	return EX_UNAVAILABLE;
@@ -286,7 +286,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 			 */
 			
 			// Debug
-			send_msg(msg_fd, "Ident verified.\n");
+			lpjs_send_msg(msg_fd, "Ident verified.\n");
 			
 			node_receive_specs(&new_node, msg_fd);
 			lpjs_log("Back from node_receive_specs().\n");
@@ -308,13 +308,13 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 		    {
 			lpjs_log("Request for node status.\n");
 			node_list_send_status(msg_fd, node_list);
-			server_safe_close(msg_fd);
+			lpjs_server_safe_close(msg_fd);
 		    }
 		    else if ( strcmp(incoming_msg, "jobs") == 0 )
 		    {
 			lpjs_log("Request for job status.\n");
 			job_list_send_params(msg_fd, job_list);
-			server_safe_close(msg_fd);
+			lpjs_server_safe_close(msg_fd);
 		    }
 		    else if ( memcmp(incoming_msg, "submit", 6) == 0 )
 		    {
@@ -335,8 +335,8 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 			    lpjs_log("munge_decode() failed.  Error = %s\n",
 				     munge_strerror(munge_status));
 			lpjs_log("Submit from %d, %d\n", uid, gid);
-			queue_job(msg_fd, incoming_msg, node_list);
-			server_safe_close(msg_fd);
+			lpjs_queue_job(msg_fd, incoming_msg, node_list);
+			lpjs_server_safe_close(msg_fd);
 		    }
 		    
 		    // FIXME: This probably shouldn't come in on listen_fd,
@@ -344,7 +344,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 		    else if ( memcmp(incoming_msg, "job-complete", 12) == 0 )
 		    {
 			lpjs_log("Job completion report.\n");
-			log_job(incoming_msg);
+			lpjs_log_job(incoming_msg);
 		    }
 		}
 	    }
@@ -372,7 +372,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
  *  2021-09-28  Jason Bacon Begin
  ***************************************************************************/
 
-void    log_job(const char *incoming_msg)
+void    lpjs_log_job(const char *incoming_msg)
 
 {
     // FIXME: Add extensive info about the job

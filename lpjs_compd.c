@@ -25,9 +25,7 @@
 #include "config.h"
 #include "network.h"
 #include "misc.h"
-#include "lpjs.h"
-
-int     compd_checkin(int msg_fd, node_t *node);
+#include "lpjs_compd.h"
 
 int     main (int argc, char *argv[])
 {
@@ -69,20 +67,20 @@ int     main (int argc, char *argv[])
      *  with its frequent restarts.  Possible clues:
      *  https://hea-www.harvard.edu/~fine/Tech/addrinuse.html
      */
-    signal(SIGINT, terminate_handler);
-    signal(SIGTERM, terminate_handler);
+    signal(SIGINT, lpjs_terminate_handler);
+    signal(SIGTERM, lpjs_terminate_handler);
     
     // Get hostname of head node
     lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, Log_stream);
 
     // FIXME: Retry, at least if running in daemon mode
-    if ( (msg_fd = connect_to_dispatchd(&node_list)) == -1 )
+    if ( (msg_fd = lpjs_connect_to_dispatchd(&node_list)) == -1 )
     {
 	perror("lpjs-nodes: Failed to connect to dispatchd");
 	return EX_IOERR;
     }
 
-    if ( (status = compd_checkin(msg_fd, &node)) != EX_OK )
+    if ( (status = lpjs_compd_checkin(msg_fd, &node)) != EX_OK )
     {
 	lpjs_log("compd-checkin failed.\n");
 	exit(status);
@@ -109,14 +107,14 @@ int     main (int argc, char *argv[])
 	    close(msg_fd);
 	    
 	    lpjs_log("Lost connection to dispatchd\n");
-	    while ( (msg_fd = connect_to_dispatchd(&node_list)) == -1 )
+	    while ( (msg_fd = lpjs_connect_to_dispatchd(&node_list)) == -1 )
 	    {
 		int     retry_time = 10;
 		sleep(retry_time);
 		lpjs_log("Reconnect failed.  Retry in %d seconds...\n", retry_time);
 	    }
 	    
-	    if ( compd_checkin(msg_fd, &node) == EX_OK )
+	    if ( lpjs_compd_checkin(msg_fd, &node) == EX_OK )
 		lpjs_log("Connection reestablished.\n");
 	    else
 	    {
@@ -144,7 +142,7 @@ int     main (int argc, char *argv[])
 }
 
 
-int     compd_checkin(int msg_fd, node_t *node)
+int     lpjs_compd_checkin(int msg_fd, node_t *node)
 
 {
     char        *cred,
@@ -154,7 +152,7 @@ int     compd_checkin(int msg_fd, node_t *node)
     
     /* Send a message to the server */
     /* Need to send \0, so xt_dprintf() doesn't work here */
-    if ( send_msg(msg_fd, "compd-checkin") < 0 )
+    if ( lpjs_send_msg(msg_fd, "compd-checkin") < 0 )
     {
 	perror("lpjs-nodes: Failed to send checkin message to dispatchd");
 	close(msg_fd);
@@ -169,7 +167,7 @@ int     compd_checkin(int msg_fd, node_t *node)
     }
 
     printf("Sending %zd bytes: %s...\n", strlen(cred), cred);
-    if ( send_msg(msg_fd, cred) < 0 )
+    if ( lpjs_send_msg(msg_fd, cred) < 0 )
     {
 	perror("lpjs_compd: Failed to send credential to dispatchd");
 	close(msg_fd);
@@ -187,12 +185,12 @@ int     compd_checkin(int msg_fd, node_t *node)
     lpjs_log("Response: %zu %s\n", bytes, buff);
     if ( strcmp(buff, "Ident verified") != 0 )
     {
-	lpjs_log("compd_checkin(): Expected \"Ident verified\".\n");
+	lpjs_log("lpjs_compd_checkin(): Expected \"Ident verified\".\n");
 	return EX_DATAERR;
     }
     
     node_send_specs(node, msg_fd);
-    send_msg(msg_fd, "");
+    lpjs_send_msg(msg_fd, "");
     
     return EX_OK;
 }

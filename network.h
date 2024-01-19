@@ -2,9 +2,9 @@
 #define _LPJS_NETWORK_H_
 
 // IPv6 max address size is 39
-#define LPJS_IP_MAX             64
-#define LPJS_IP_MSG_MAX         4096
-#define LPJS_IP_MSG_QUEUE_MAX   10
+#define LPJS_IP_MAX                     64
+#define LPJS_IP_MSG_MAX                 4096
+#define LPJS_IP_CONNECTION_QUEUE_MAX    4096    // Should be more than enough
 
 /*
  *  Use the same default TCP port as SLURM (6817), since only one

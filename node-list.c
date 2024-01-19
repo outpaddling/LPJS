@@ -131,6 +131,6 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
      *  transmission, so the client can close first and avoid a wait
      *  state for the socket.
      */
-    send_msg(msg_fd, "%c", 4);
+    lpjs_send_msg(msg_fd, "%c", 4);
 }
 
