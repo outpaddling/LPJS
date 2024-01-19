@@ -31,7 +31,7 @@
 #include "scheduler.h"
 #include "network.h"
 #include "misc.h"
-#include "lpjs_dispatchd-protos.h"
+#include "lpjs_dispatchd.h"
 
 int     main(int argc,char *argv[])
 
@@ -82,42 +82,6 @@ int     main(int argc,char *argv[])
 
 /***************************************************************************
  *  Description:
- *      Safely close a socket by ensuring first that the remote end
- *      is closed first.  This avoids
- *
- *      bind(): Address already in use
- *  
- *  History: 
- *  Date        Name        Modification
- *  2024-01-14  Jason Bacon Begin
- ***************************************************************************/
-
-int     lpjs_server_safe_close(int msg_fd)
-
-{
-    char    buff[64];
-    
-    /*
-     *  Client must be looking for the EOT character at the end of
-     *  a read, or this is useless.
-     */
-    lpjs_send_eot(msg_fd);
-    
-    /*
-     *  Wait until EOF is signaled due to the other end being closed.
-     *  FIXME: No data should be read here.  The first read() should
-     *  return EOF.  Add a check for this.
-     */
-    while ( read(msg_fd, buff, 64) > 0 )
-	sleep(1);
-    
-    // lpjs_log(Log_stream, "Closing msg_fd.\n");
-    return close(msg_fd);
-}
-
-
-/***************************************************************************
- *  Description:
  *      Listen for messages on LPJS_TCP_PORT and respond with either info
  *      (lpjs-nodes, lpjs-jobs, etc.) or actions (lpjs-submit).
  *
@@ -131,7 +95,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 {
     ssize_t     bytes;
     socklen_t   address_len = sizeof (struct sockaddr_in);
-    char        incoming_msg[LPJS_IP_MSG_MAX + 1];
+    char        incoming_msg[LPJS_FIRST_MSG_MAX + 1];
     struct sockaddr_in server_address = { 0 };  // FIXME: Support IPV6
     uid_t       uid;
     gid_t       gid;
@@ -244,9 +208,12 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 		    lpjs_log("Accepted connection. fd = %d\n", msg_fd);
 	
 		    // FIXME: Use poll() to detect lost connections?
+		    // FIXME: Use stream I/O for incoming messaging?
+		    // Simplifies passing variable-length messages at
+		    // the cost of CPU time.
 		    
 		    /* Read a message through the socket */
-		    while ( (bytes = recv(msg_fd, incoming_msg, 100, 0)) < 1 )
+		    while ( (bytes = recv(msg_fd, incoming_msg, LPJS_FIRST_MSG_MAX, 0)) < 1 )
 		    {
 			lpjs_log("recv() failed: %s", strerror(errno));
 			sleep(1);
@@ -272,6 +239,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 			    sleep(1);
 			}
 			lpjs_log("Munge credential message length = %zd\n", bytes);
+			lpjs_log("munge msg: %s\n", incoming_msg);
 			
 			munge_status = munge_decode(incoming_msg, NULL, NULL, 0, &uid, &gid);
 			if ( munge_status != EMUNGE_SUCCESS )
@@ -286,7 +254,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 			 */
 			
 			// Debug
-			lpjs_send_msg(msg_fd, "Ident verified.\n");
+			lpjs_send_msg(msg_fd, "Ident verified");
 			
 			node_receive_specs(&new_node, msg_fd);
 			lpjs_log("Back from node_receive_specs().\n");
@@ -377,4 +345,40 @@ void    lpjs_log_job(const char *incoming_msg)
 {
     // FIXME: Add extensive info about the job
     lpjs_log(incoming_msg);
+}
+
+
+/***************************************************************************
+ *  Description:
+ *      Safely close a socket by ensuring first that the remote end
+ *      is closed first.  This avoids
+ *
+ *      bind(): Address already in use
+ *  
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-14  Jason Bacon Begin
+ ***************************************************************************/
+
+int     lpjs_server_safe_close(int msg_fd)
+
+{
+    char    buff[64];
+    
+    /*
+     *  Client must be looking for the EOT character at the end of
+     *  a read, or this is useless.
+     */
+    lpjs_send_eot(msg_fd);
+    
+    /*
+     *  Wait until EOF is signaled due to the other end being closed.
+     *  FIXME: No data should be read here.  The first read() should
+     *  return EOF.  Add a check for this.
+     */
+    while ( read(msg_fd, buff, 64) > 0 )
+	sleep(1);
+    
+    // lpjs_log(Log_stream, "Closing msg_fd.\n");
+    return close(msg_fd);
 }

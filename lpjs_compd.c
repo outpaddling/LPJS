@@ -182,7 +182,7 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
     // FIXME: This is needed before node_send_specs()
     // Can't write to socket before reading response to cred?
     bytes = recv(msg_fd, buff, LPJS_IP_MSG_MAX+1, 0);
-    lpjs_log("Response: %zu %s\n", bytes, buff);
+    lpjs_log("Response: %zu '%s'\n", bytes, buff);
     if ( strcmp(buff, "Ident verified") != 0 )
     {
 	lpjs_log("lpjs_compd_checkin(): Expected \"Ident verified\".\n");
