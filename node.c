@@ -181,9 +181,6 @@ ssize_t node_receive_specs(node_t *node, int msg_fd)
     
     node_init(node);
     
-    // FIXME: NetBSD doesn't have fdclose()
-    // Might be better to use the fd directly anyway
-    
     lpjs_log("In node_receive_specs()...\n");
     
     msg_len = lpjs_receive_msg(msg_fd, specs_msg, LPJS_MSG_LEN_MAX, MSG_WAITALL);
@@ -198,7 +195,8 @@ ssize_t node_receive_specs(node_t *node, int msg_fd)
     else
     {
 	lpjs_log("Reading fields...\n");
-
+	stringp = specs_msg;
+	
 	if ( (field = strsep(&stringp, "\t")) == NULL )
 	{
 	    lpjs_log("node_receive_specs(): Failed to extract hostname from specs.\n");
