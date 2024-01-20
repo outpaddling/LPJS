@@ -1,0 +1,16 @@
+[Unit]
+Description=Lightweight, portable job scheduler
+Documentation=man:lpjs_dispatchd(8)
+After=network.target
+After=time-sync.target
+
+[Service]
+Type=forking
+ExecStart=/usr/sbin/lpjs_dispatchd
+PIDFile=/var/run/lpjs/lpjs_dispatchd.pid
+User=lpjs
+Group=lpjs
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
