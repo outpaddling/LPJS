@@ -152,7 +152,7 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
     
     /* Send a message to the server */
     /* Need to send \0, so xt_dprintf() doesn't work here */
-    if ( lpjs_send_msg(msg_fd, "compd-checkin") < 0 )
+    if ( lpjs_send_msg(msg_fd, 0, "compd-checkin") < 0 )
     {
 	perror("lpjs-nodes: Failed to send checkin message to dispatchd");
 	close(msg_fd);
@@ -167,7 +167,7 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
     }
 
     printf("Sending %zd bytes: %s...\n", strlen(cred), cred);
-    if ( lpjs_send_msg(msg_fd, cred) < 0 )
+    if ( lpjs_send_msg(msg_fd, 0, cred) < 0 )
     {
 	perror("lpjs_compd: Failed to send credential to dispatchd");
 	close(msg_fd);
@@ -176,11 +176,8 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
     }
     free(cred);
     
-    node_detect_specs(node);
-    
-    // Debug
-    // FIXME: This is needed before node_send_specs()
-    // Can't write to socket before reading response to cred?
+    // This is needed before node_send_specs().
+    // Can't write to socket before reading response to cred.
     bytes = lpjs_receive_msg(msg_fd, buff, LPJS_MSG_LEN_MAX+1, 0);
     lpjs_log("Response: %zu '%s'\n", bytes, buff);
     if ( strcmp(buff, "Ident verified") != 0 )
@@ -189,8 +186,8 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
 	return EX_DATAERR;
     }
     
+    node_detect_specs(node);
     node_send_specs(node, msg_fd);
-    lpjs_send_msg(msg_fd, "");
     
     return EX_OK;
 }

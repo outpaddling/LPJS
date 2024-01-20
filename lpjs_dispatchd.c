@@ -255,7 +255,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 			 */
 			
 			// Debug
-			lpjs_send_msg(msg_fd, "Ident verified");
+			lpjs_send_msg(msg_fd, 0, "Ident verified");
 			
 			node_receive_specs(&new_node, msg_fd);
 			lpjs_log("Back from node_receive_specs().\n");

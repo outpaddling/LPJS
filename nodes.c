@@ -40,7 +40,7 @@ int     main (int argc, char *argv[])
 	return EX_IOERR;
     }
 
-    if ( lpjs_send_msg(msg_fd, "nodes") < 0 )
+    if ( lpjs_send_msg(msg_fd, 0, "nodes") < 0 )
     {
 	perror("lpjs-nodes: Failed to send message to dispatch");
 	close(msg_fd);

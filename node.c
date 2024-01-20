@@ -4,8 +4,8 @@
 #include <unistd.h>
 #include <sysexits.h>
 #include <sys/utsname.h>
-#include <xtend/dsv.h>
-#include <xtend/file.h>
+#include <sys/socket.h>     // MSG_WAIT_ALL
+#include <xtend/file.h>     // xt_dprintf()
 #include "node.h"
 #include "network.h"
 #include "lpjs.h"
@@ -138,25 +138,25 @@ void    node_send_status(node_t *node, int msg_fd)
  *  2021-10-02  Jason Bacon Begin
  ***************************************************************************/
 
-void    node_send_specs(node_t *node, int msg_fd)
+ssize_t node_send_specs(node_t *node, int msg_fd)
 
 {
-    /*
-     *  Don't use send_msg() here, since there will be more text to send
-     *  and send_msg() terminates the message.
-     *  FIXME: What additional text??  Warning above is probably outdated.
-     */
+    char    specs_msg[LPJS_MSG_LEN_MAX + 1];
+    
     lpjs_log("Sending specs...\n");
     lpjs_log("%s\t%s\t%u\t%lu\t%u\t%s\t%s\n",
 		 node->hostname, node->state, node->cores,
 		 node->phys_mem, node->zfs, node->os, node->arch);
-    if ( xt_dprintf(msg_fd, "%s\t%s\t%u\t%lu\t%u\t%s\t%s\n",
-		 node->hostname, node->state, node->cores,
-		 node->phys_mem, node->zfs, node->os, node->arch) < 0 )
+    if ( snprintf(specs_msg, LPJS_MSG_LEN_MAX + 1,
+		  "%s\t%s\t%u\t%lu\t%u\t%s\t%s\n",
+		  node->hostname, node->state, node->cores,
+		  node->phys_mem, node->zfs, node->os, node->arch) < 0 )
     {
-	perror("send_node_specs(): xt_dprintf() failed");
+	perror("send_node_specs(): snprintf() failed");
 	exit(EX_IOERR);
     }
+    
+    return lpjs_send_msg(msg_fd, 0, specs_msg);
 }
 
 
@@ -170,70 +170,105 @@ void    node_send_specs(node_t *node, int msg_fd)
  *  2021-10-02  Jason Bacon Begin
  ***************************************************************************/
 
-int     node_receive_specs(node_t *node, int msg_fd)
+ssize_t node_receive_specs(node_t *node, int msg_fd)
 
 {
-    FILE    *fp;
-    char    field[LPJS_FIELD_MAX],
+    char    specs_msg[LPJS_MSG_LEN_MAX + 1],
+	    *field,
+	    *stringp,
 	    *end;
-    size_t  len;
-
+    ssize_t msg_len;
+    
     node_init(node);
     
     // FIXME: NetBSD doesn't have fdclose()
     // Might be better to use the fd directly anyway
     
     lpjs_log("In node_receive_specs()...\n");
-    if ( (fp = fdopen(msg_fd, "r")) == NULL )
-	return -1;
     
-    xt_dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
-    lpjs_log("msg len = %zu\n", len);
-    
-    // FIXME: This is not such a reliable test
-    if ( *field == '\0' )
+    msg_len = lpjs_receive_msg(msg_fd, specs_msg, LPJS_MSG_LEN_MAX, MSG_WAITALL);
+    if ( msg_len < 0 )
     {
-	lpjs_log("Got empty field.  Closing...\n");
+	lpjs_log("node_receive_specs(): Failed to receive message.\n");
 	node->state = "Unknown";
 	node->os = "Unknown";
 	node->arch = "Unknown";
-	fdclose(fp, NULL);
+	return -1;
     }
     else
     {
 	lpjs_log("Reading fields...\n");
-	
-	// FIXME: Add sanity checks
+
+	if ( (field = strsep(&stringp, "\t")) == NULL )
+	{
+	    lpjs_log("node_receive_specs(): Failed to extract hostname from specs.\n");
+	    return -1;
+	}
 	node->hostname = strdup(field);
 	lpjs_log("Hostname = %s\n", node->hostname);
-	
-	xt_dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
-	// FIXME
-	// node->state = strdup(field);
-	node->state = "Up";
+
+	if ( (field = strsep(&stringp, "\t")) == NULL )
+	{
+	    lpjs_log("node_receive_specs(): Failed to extract state from specs.\n");
+	    return -1;
+	}
+	node->state = strdup(field);
 	lpjs_log("State = %s\n", node->state);
-	
-	xt_dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+
+	if ( (field = strsep(&stringp, "\t")) == NULL )
+	{
+	    lpjs_log("node_receive_specs(): Failed to extract cores from specs.\n");
+	    return -1;
+	}
 	node->cores = strtoul(field, &end, 10);
+	if ( *end != '\0' )
+	{
+	    lpjs_log("node_receive_specs(): Cores field is not a valid number.\n");
+	    return -1;
+	}
 	lpjs_log("Cores = %u\n", node->cores);
-	
-	xt_dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+
+	if ( (field = strsep(&stringp, "\t")) == NULL )
+	{
+	    lpjs_log("node_receive_specs(): Failed to extract physmem from specs.\n");
+	    return -1;
+	}
 	node->phys_mem = strtoul(field, &end, 10);
+	if ( *end != '\0' )
+	{
+	    lpjs_log("node_receive_specs(): Physmem field is not a valid number.\n");
+	    return -1;
+	}
 	lpjs_log("phys_mem = %zu\n", node->phys_mem);
-	
-	xt_dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+
+	if ( (field = strsep(&stringp, "\t")) == NULL )
+	{
+	    lpjs_log("node_receive_specs(): Failed to extract ZFS Boolean from specs.\n");
+	    return -1;
+	}
 	node->zfs = strtoul(field, &end, 10);
+	if ( *end != '\0' )
+	{
+	    lpjs_log("node_receive_specs(): ZFS field is not a valid number (should be 0 or 1).\n");
+	    return -1;
+	}
 	lpjs_log("zfs = %d\n", node->zfs);
-    
-	xt_dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+
+	if ( (field = strsep(&stringp, "\t")) == NULL )
+	{
+	    lpjs_log("node_receive_specs(): Failed to extract OS from specs.\n");
+	    return -1;
+	}
 	node->os = strdup(field);
 	lpjs_log("OS = %s\n", node->os);
     
-	xt_dsv_read_field(fp, field, LPJS_FIELD_MAX, "\t", &len);
+	if ( (field = strsep(&stringp, "\t")) == NULL )
+	{
+	    lpjs_log("node_receive_specs(): Failed to extract arch from specs.\n");
+	    return -1;
+	}
 	node->arch = strdup(field);
 	lpjs_log("Arch = %s\n", node->arch);
-    
-	fdclose(fp, NULL);
     }
     return 0;
 }

@@ -42,7 +42,7 @@ int     main(int argc,char *argv[])
 	return EX_IOERR;
     }
 
-    if ( lpjs_send_msg(msg_fd, "jobs") < 0 )
+    if ( lpjs_send_msg(msg_fd, 0, "jobs") < 0 )
     {
 	perror("lpjs-jobs: Failed to send message to dispatch");
 	close(msg_fd);

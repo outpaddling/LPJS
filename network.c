@@ -130,7 +130,7 @@ int     lpjs_print_response(int msg_fd, const char *caller_name)
  *  2021-09-29  Jason Bacon Begin
  ***************************************************************************/
 
-int     lpjs_send_msg(int msg_fd, const char *format, ...)
+ssize_t lpjs_send_msg(int msg_fd, int send_flags, const char *format, ...)
 
 {
     va_list     ap;
@@ -142,7 +142,7 @@ int     lpjs_send_msg(int msg_fd, const char *format, ...)
     
     va_start(ap, format);
     status = vsnprintf(buff, LPJS_MSG_LEN_MAX + 1, format, ap);
-    
+   
     // vsnprintf() returns the length the the string would have been
     // if buff were unlimited, so we have to use strlen.
     msg_len = htons(strlen(buff));
@@ -150,7 +150,7 @@ int     lpjs_send_msg(int msg_fd, const char *format, ...)
     
     // Also send '\0' byte to mark end of message
     lpjs_log("Sending '%s'\n", buff);
-    send(msg_fd, buff, strlen(buff), 0);
+    send(msg_fd, buff, strlen(buff), send_flags);
     va_end(ap);
     
     return status;

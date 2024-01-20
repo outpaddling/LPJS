@@ -84,10 +84,10 @@ typedef struct
 /* node.c */
 void    node_init(node_t *node);
 void    node_print_status(node_t *node);
-void    node_send_specs(node_t *node, int fd);
+ssize_t node_send_specs(node_t *node, int fd);
 void    node_send_status(node_t *node, int fd);
 void    node_detect_specs(node_t *node);
-int     node_receive_specs(node_t *node, int msg_fd);
+ssize_t node_receive_specs(node_t *node, int msg_fd);
 
 /* node-mutators.c */
 int node_set_hostname(node_t *node_ptr, char *new_hostname);
