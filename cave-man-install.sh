@@ -32,7 +32,7 @@ FreeBSD|OpenBSD|DragonFly)
     if [ -z "$LOCALBASE" ]; then
 	if [ -e ~/Pkgsrc/pkgsrc ]; then
 	    if ! pkg_info munge; then
-		(cd ~/Pkgsrc/pkgsrc/security/munge && sbmake install)
+		(cd ~/Pkgsrc/pkgsrc/wip/munge && sbmake install)
 	    fi
 	    LOCALBASE=~/Pkgsrc/pkg
 	elif which pkgin; then
