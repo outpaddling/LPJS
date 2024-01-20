@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>org.pkgsrc.lpjs_compd</string>
+	<key>ProcessType</key>
+	<string>Interactive</string>
+	<key>EnableTransactions</key>
+	<true/>
+	<key>TransactionTimeLimitEnabled</key>
+	<false/>
+	<key>ExitTimeOut</key>
+	<integer>60</integer>
+	<key>KeepAlive</key>
+	<dict>
+		<key>PathState</key>
+		<dict>
+			<key>/usr/pkgsrc/var/spool/lpjs_compd/cache/org.pkgsrc.lpjs_compd</key>
+			<true/>
+		</dict>
+	</dict>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/usr/pkg/sbin/lpjs_compd</string>
+		<string>--daemonize</string>
+	</array>
+	<key>Sockets</key>
+	<dict>
+		<key>Listeners</key>
+		<array>
+			<dict>
+				<key>SockPathMode</key>
+				<integer>6817</integer>
+				<key>SockPathName</key>
+				<string>/usr/pkg/var/run/lpjs_compd</string>
+			</dict>
+		</array>
+	</dict>
+</dict>
+</plist>
