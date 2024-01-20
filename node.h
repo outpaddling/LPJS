@@ -15,8 +15,8 @@ typedef struct
     int             msg_fd;
 }   node_t;
 
-#define NODE_STATUS_HEADER_FORMAT "%-12s %-8s %5s %4s %7s %7s %-9s %-9s\n"
-#define NODE_STATUS_FORMAT        "%-12s %-8s %5u %4u %7lu %7lu %-9s %-9s\n"
+#define NODE_STATUS_HEADER_FORMAT "%-20s %-8s %5s %4s %7s %7s %-9s %-9s\n"
+#define NODE_STATUS_FORMAT        "%-20s %-8s %5u %4u %7lu %7lu %-9s %-9s\n"
 
 /* Return values for mutator functions */
 #define LPSC_NODE_DATA_OK              0

@@ -95,7 +95,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 {
     ssize_t     bytes;
     socklen_t   address_len = sizeof (struct sockaddr_in);
-    char        incoming_msg[LPJS_FIRST_MSG_MAX + 1];
+    char        incoming_msg[LPJS_MSG_LEN_MAX + 1];
     struct sockaddr_in server_address = { 0 };  // FIXME: Support IPV6
     uid_t       uid;
     gid_t       gid;
@@ -155,7 +155,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
     /*
      *  Create queue for incoming connection requests
      */
-    if (listen(listen_fd, LPJS_IP_CONNECTION_QUEUE_MAX) != 0)
+    if (listen(listen_fd, LPJS_CONNECTION_QUEUE_MAX) != 0)
     {
 	lpjs_log("listen() failed.\n");
 	return EX_UNAVAILABLE;
@@ -213,9 +213,10 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 		    // the cost of CPU time.
 		    
 		    /* Read a message through the socket */
-		    while ( (bytes = recv(msg_fd, incoming_msg, LPJS_FIRST_MSG_MAX, 0)) < 1 )
+		    while ( (bytes = lpjs_receive_msg(msg_fd,
+				 incoming_msg, LPJS_MSG_LEN_MAX, 0)) < 1 )
 		    {
-			lpjs_log("recv() failed: %s", strerror(errno));
+			lpjs_log("lpjs_receive_msg() failed: %s", strerror(errno));
 			sleep(1);
 		    }
 	    

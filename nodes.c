@@ -22,6 +22,8 @@ int     main (int argc, char *argv[])
 {
     int         msg_fd;
     node_list_t node_list;
+    // All commands might use lpjs_log()
+    extern FILE *Log_stream;
     
     if (argc != 1)
     {

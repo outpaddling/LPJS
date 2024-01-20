@@ -23,6 +23,9 @@ int     main(int argc,char *argv[])
 {
     int     msg_fd;
     node_list_t node_list;
+    extern FILE *Log_stream;
+    
+    Log_stream = stderr;
     
     if (argc != 1)
     {

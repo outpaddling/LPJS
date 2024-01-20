@@ -16,8 +16,6 @@
 #include "lpjs.h"
 #include "misc.h"
 
-extern FILE *Log_stream;
-
 /***************************************************************************
  *  Description:
  *      Open a socket connection to lpjs_dispatchd.
@@ -30,10 +28,13 @@ extern FILE *Log_stream;
 int     lpjs_connect_to_dispatchd(node_list_t *node_list)
 
 {
-    char                head_ip[LPJS_IP_MAX + 1];
+    char                head_text_ip[LPJS_TEXT_IP_ADDRESS_MAX + 1];
     struct sockaddr_in  server_address;     // sockaddr_in = inet4
     int                 msg_fd;
+    extern FILE         *Log_stream;
 
+    Log_stream = stderr;
+    
     /*
      *  Create a socket endpoint to pair with the endpoint on the server.
      *  AF_INET and PF_INET have the same value, but PF_INET is more
@@ -45,7 +46,7 @@ int     lpjs_connect_to_dispatchd(node_list_t *node_list)
      */
     if ((msg_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0)
     {
-	perror("connect_to_dispatchd(): socket() failed");
+	lpjs_log("connect_to_dispatchd(): socket() failed: %s", strerror(errno));
 	return -1;
     }
 
@@ -53,12 +54,13 @@ int     lpjs_connect_to_dispatchd(node_list_t *node_list)
     server_address.sin_family = AF_INET;
     
     // Convert head node hostname from LPJS config file to IP
-    if ( xt_resolve_hostname(NODE_LIST_HEAD_NODE(node_list), head_ip,
-			  LPJS_IP_MAX + 1) != XT_OK )
+    if ( xt_resolve_hostname(NODE_LIST_HEAD_NODE(node_list), head_text_ip,
+			  LPJS_TEXT_IP_ADDRESS_MAX + 1) != XT_OK )
 	exit(EX_OSERR);
+    lpjs_log("head node IP = %s\n", head_text_ip);
     
     // Convert inet4 string xxx.xxx.xxx.xxx to 32-bit IP in network byte order
-    server_address.sin_addr.s_addr = inet_addr(head_ip);
+    server_address.sin_addr.s_addr = inet_addr(head_text_ip);
     
     // Convert 16-bit port number to network byte order
     server_address.sin_port = htons(LPJS_IP_TCP_PORT);
@@ -67,9 +69,9 @@ int     lpjs_connect_to_dispatchd(node_list_t *node_list)
     if ( connect(msg_fd, (struct sockaddr *)&server_address,
 		 sizeof(server_address)) < 0 )
     {
-	perror("connect_to_dispatchd(): connect() failed");
+	lpjs_log("connect_to_dispatchd(): connect() failed: %s", strerror(errno));
 	fprintf(stderr, "hostname %s, ip = %s\n", 
-		NODE_LIST_HEAD_NODE(node_list), head_ip);
+		NODE_LIST_HEAD_NODE(node_list), head_text_ip);
 	return -1;
     }
 
@@ -90,11 +92,11 @@ int     lpjs_print_response(int msg_fd, const char *caller_name)
 
 {
     ssize_t bytes;
-    char    buff[LPJS_IP_MSG_MAX+1];
+    char    buff[LPJS_MSG_LEN_MAX + 1];
     bool    eot_received = false;
     
     while ( ! eot_received &&
-	    (bytes = recv(msg_fd, buff, LPJS_IP_MSG_MAX + 1, 0)) > 0 )
+	    (bytes = recv(msg_fd, buff, LPJS_MSG_LEN_MAX + 1, 0)) > 0 )
     {
 	eot_received = (buff[bytes-1] == 4);
 	if ( eot_received )
@@ -119,9 +121,9 @@ int     lpjs_print_response(int msg_fd, const char *caller_name)
 
 /***************************************************************************
  *  Description:
- *      Construct and send a message through a socket.  The entire message
- *      + a null byte are sent in a single send().  Basically the same as
- *      xt_dprintf(), except that it null-terminates the message.
+ *      Construct and send a message through a socket.  The length of
+ *      the entire message is sent as a uint16_t in network byte order
+ *      first, so the receiver knows exactly how many bytes to read.
  *
  *  History: 
  *  Date        Name        Modification
@@ -133,13 +135,22 @@ int     lpjs_send_msg(int msg_fd, const char *format, ...)
 {
     va_list     ap;
     int         status;
-    char        buff[LPJS_IP_MSG_MAX + 1];
+    uint16_t    msg_len;
+    char        buff[LPJS_MSG_LEN_MAX + 1];
+    
+    lpjs_log("lpjs_send_msg(): format = '%s'\n", format);
     
     va_start(ap, format);
-    status = vsnprintf(buff, LPJS_IP_MSG_MAX + 1, format, ap);
+    status = vsnprintf(buff, LPJS_MSG_LEN_MAX + 1, format, ap);
+    
+    // vsnprintf() returns the length the the string would have been
+    // if buff were unlimited, so we have to use strlen.
+    msg_len = htons(strlen(buff));
+    send(msg_fd, &msg_len, sizeof(uint16_t), 0);
     
     // Also send '\0' byte to mark end of message
-    send(msg_fd, buff, strlen(buff) + 1, 0);
+    lpjs_log("Sending '%s'\n", buff);
+    send(msg_fd, buff, strlen(buff), 0);
     va_end(ap);
     
     return status;
@@ -148,9 +159,52 @@ int     lpjs_send_msg(int msg_fd, const char *format, ...)
 
 /***************************************************************************
  *  Description:
+ *      Receive a message sent by lpjs_send_msg().  A uint16_t containing
+ *      the message length in network byte order is received first,
+ *      followed by the message.  The interface is idential to recv(2).
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-19  Jason Bacon Begin
+ ***************************************************************************/
+
+ssize_t lpjs_receive_msg(int msg_fd, char *buff, size_t buff_len, int flags)
+
+{
+    uint16_t    msg_len;
+    ssize_t     bytes_read;
+    
+    if ( recv(msg_fd, &msg_len, sizeof(uint16_t), flags | MSG_WAITALL)
+	      != sizeof(uint16_t) )
+    {
+	lpjs_log("lpjs_receive_msg(): Failed to read msg_len.\n");
+	exit(EX_DATAERR);
+    }
+    msg_len = ntohs(msg_len);
+    lpjs_log("lpjs_receive_msg(): msg_len = %u\n", msg_len);
+    
+    if ( msg_len > buff_len - 1 )
+    {
+	lpjs_log("lpjs_receive_msg(): msg_len > buff_len -1.\n");
+	lpjs_log("This is a software bug.\n");
+	exit(EX_SOFTWARE);
+    }
+    
+    bytes_read = recv(msg_fd, buff, msg_len, flags | MSG_WAITALL);
+    buff[bytes_read] = '\0';
+    lpjs_log("lpjs_receive_msg(): Got '%s'.\n", buff);
+    
+    return bytes_read;
+}
+
+
+/***************************************************************************
+ *  Description:
  *      Send EOT (\004) char to signal end of communication.
  *      Note that end of message is signalled by \000.  EOT
  *      means we're done talking and the socket should be closed.
+ *
+ *      FIXME: Can we use send(fd, buff, len, MSG_EOF) instead?
  *
  *  History: 
  *  Date        Name        Modification

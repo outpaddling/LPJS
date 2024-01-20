@@ -31,7 +31,7 @@ int     main (int argc, char *argv[])
 {
     node_list_t node_list;
     node_t      node;
-    char        buff[LPJS_IP_MSG_MAX + 1];
+    char        buff[LPJS_MSG_LEN_MAX + 1];
     ssize_t     bytes;
     int         msg_fd,
 		status;
@@ -130,7 +130,7 @@ int     main (int argc, char *argv[])
 	
 	if (poll_fd.revents & POLLIN)
 	{
-	    bytes = recv(msg_fd, buff, LPJS_IP_MSG_MAX+1, 0);
+	    bytes = lpjs_receive_msg(msg_fd, buff, LPJS_MSG_LEN_MAX+1, 0);
 	    buff[bytes] = '\0';
 	    printf("Received from dispatchd: %s\n", buff);
 	}
@@ -146,7 +146,7 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
 
 {
     char        *cred,
-		buff[LPJS_IP_MSG_MAX + 1];
+		buff[LPJS_MSG_LEN_MAX + 1];
     munge_err_t munge_status;
     size_t      bytes;
     
@@ -181,7 +181,7 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
     // Debug
     // FIXME: This is needed before node_send_specs()
     // Can't write to socket before reading response to cred?
-    bytes = recv(msg_fd, buff, LPJS_IP_MSG_MAX+1, 0);
+    bytes = lpjs_receive_msg(msg_fd, buff, LPJS_MSG_LEN_MAX+1, 0);
     lpjs_log("Response: %zu '%s'\n", bytes, buff);
     if ( strcmp(buff, "Ident verified") != 0 )
     {

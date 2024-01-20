@@ -7,7 +7,8 @@
 
 /*
  *  Avoid globals like the plague, but make an exception here so
- *  signal handlers can log messages.
+ *  signal handlers can log messages.  All commands might use
+ *  lpjs_log(), so Log_stream must be always be initialized in main().
  */
 FILE    *Log_stream;
 
@@ -55,7 +56,7 @@ int     lpjs_log(const char *format, ...)
 void    lpjs_terminate_handler(int s2)
 
 {
-    lpjs_log("lpjs_compd received signal, shutting down...\n");
+    lpjs_log("Received signal, shutting down...\n");
 
     exit(EX_OK);
 }

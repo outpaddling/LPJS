@@ -61,6 +61,8 @@ void    node_detect_specs(node_t *node)
     // FIXME: Verify malloc() success
     gethostname(temp_hostname, sysconf(_SC_HOST_NAME_MAX));
     node->hostname = strdup(temp_hostname);
+    // May include SMT/Hyperthreading.  Disable in BIOS for Linux or using
+    // sysctl on FreeBSD if you don't want to oversubscribe physical cores.
     node->cores = sysconf(_SC_NPROCESSORS_ONLN);
     node->phys_mem = sysconf(_SC_PAGESIZE) * sysconf(_SC_PHYS_PAGES)
 		     / 1024 / 1024;
@@ -176,6 +178,8 @@ int     node_receive_specs(node_t *node, int msg_fd)
 	    *end;
     size_t  len;
 
+    node_init(node);
+    
     // FIXME: NetBSD doesn't have fdclose()
     // Might be better to use the fd directly anyway
     
