@@ -218,7 +218,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 		     *  recv() will return 0 in this case.
 		     */
 		    
-		    bytes = lpjs_recv_msg(fd, incoming_msg, LPJS_MSG_LEN_MAX + 1, 0);
+		    bytes = lpjs_recv_msg(fd, incoming_msg, LPJS_MSG_LEN_MAX, 0);
 		    if ( bytes == 0 )
 		    {
 			lpjs_log("Lost connection to %s.  Closing...\n",
@@ -271,7 +271,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 			
 			/* Get munge credential */
 			// FIXME: What is the maximum cred length?
-			while ( (bytes = recv(msg_fd, incoming_msg, 4096, 0)) < 1 )
+			while ( (bytes = recv(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0)) < 1 )
 			{
 			    lpjs_log("recv() failed: %s", strerror(errno));
 			    puts("Waiting for checkin data...");

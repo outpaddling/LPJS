@@ -25,7 +25,7 @@ int     main (int argc, char *argv[])
 {
     int     msg_fd;
     ssize_t bytes;
-    char    buff[LPJS_MSG_LEN_MAX+1],
+    char    buff[LPJS_MSG_LEN_MAX + 1],
 	    cmd[LPJS_CMD_MAX + 151],
 	    remote_cmd[LPJS_CMD_MAX + 1] = "",
 	    host[128],
@@ -72,7 +72,7 @@ int     main (int argc, char *argv[])
     }
     free(cred);
     
-    if ( (bytes = lpjs_recv_msg(msg_fd, buff, LPJS_MSG_LEN_MAX+1, 0)) == -1 )
+    if ( (bytes = lpjs_recv_msg(msg_fd, buff, LPJS_MSG_LEN_MAX, 0)) == -1 )
     {
 	perror("lpjs-submit: Failed to read response from dispatch");
 	close(msg_fd);

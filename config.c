@@ -28,12 +28,12 @@ int     lpjs_load_config(node_list_t *node_list, int flags, FILE *error_stream)
 
 {
     FILE    *config_fp;
-    char    field[LPJS_FIELD_MAX+1];
-    char    config_file[PATH_MAX+1];
+    char    field[LPJS_FIELD_MAX + 1];
+    char    config_file[PATH_MAX + 1];
     int     delim;
     size_t  len;
     
-    snprintf(config_file, PATH_MAX+1, "%s/etc/lpjs/config", PREFIX);
+    snprintf(config_file, PATH_MAX + 1, "%s/etc/lpjs/config", PREFIX);
     // printf("Loading config file %s...\n", config_file);
     if ( (config_fp = fopen(config_file, "r")) == NULL )
     {
@@ -41,7 +41,7 @@ int     lpjs_load_config(node_list_t *node_list, int flags, FILE *error_stream)
 	exit(EX_NOINPUT);
     }
     node_list_init(node_list);
-    while ( ((delim = xt_dsv_read_field(config_fp, field, LPJS_FIELD_MAX+1,
+    while ( ((delim = xt_dsv_read_field(config_fp, field, LPJS_FIELD_MAX + 1,
 				     " \t", &len)) != EOF) )
     {
 	if ( strcmp(field, "head") == 0 )

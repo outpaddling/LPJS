@@ -40,10 +40,10 @@ int     node_list_add_compute(node_list_t *node_list, FILE *input_stream,
 
 {
     int     delim;
-    char    field[LPJS_FIELD_MAX+1];
+    char    field[LPJS_FIELD_MAX + 1];
     size_t  len;
     
-    while ( ((delim = xt_dsv_read_field(input_stream, field, LPJS_FIELD_MAX+1,
+    while ( ((delim = xt_dsv_read_field(input_stream, field, LPJS_FIELD_MAX + 1,
 				     ",", &len)) != '\n') &&
 	    (delim != EOF) )
     {

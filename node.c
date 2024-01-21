@@ -49,7 +49,7 @@ void    node_detect_specs(node_t *node)
 
 {
     struct utsname  u_name;
-    char            temp_hostname[sysconf(_SC_HOST_NAME_MAX)+1];
+    char            temp_hostname[sysconf(_SC_HOST_NAME_MAX) + 1];
     
     /*
      *  hwloc is extremely complex and we don't need most of its functionality

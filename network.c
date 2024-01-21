@@ -96,7 +96,7 @@ int     lpjs_print_response(int msg_fd, const char *caller_name)
     bool    eot_received = false;
     
     while ( ! eot_received &&
-	    (bytes = recv(msg_fd, buff, LPJS_MSG_LEN_MAX + 1, 0)) > 0 )
+	    (bytes = recv(msg_fd, buff, LPJS_MSG_LEN_MAX, 0)) > 0 )
     {
 	eot_received = (buff[bytes-1] == 4);
 	if ( eot_received )

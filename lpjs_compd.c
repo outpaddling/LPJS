@@ -130,7 +130,7 @@ int     main (int argc, char *argv[])
 	
 	if (poll_fd.revents & POLLIN)
 	{
-	    bytes = lpjs_recv_msg(msg_fd, buff, LPJS_MSG_LEN_MAX+1, 0);
+	    bytes = lpjs_recv_msg(msg_fd, buff, LPJS_MSG_LEN_MAX, 0);
 	    buff[bytes] = '\0';
 	    printf("Received from dispatchd: %s\n", buff);
 	}
@@ -178,7 +178,7 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
     
     // This is needed before node_send_specs().
     // Can't write to socket before reading response to cred.
-    bytes = lpjs_recv_msg(msg_fd, buff, LPJS_MSG_LEN_MAX+1, 0);
+    bytes = lpjs_recv_msg(msg_fd, buff, LPJS_MSG_LEN_MAX, 0);
     lpjs_log("Response: %zu '%s'\n", bytes, buff);
     if ( strcmp(buff, "Ident verified") != 0 )
     {
