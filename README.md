@@ -4,39 +4,49 @@
 
 LPJS is currently slithering around the primordial ooze as we lay out the
 framework and prioritize development phases.
-
 Early development will move slowly as we carefully deliberate the
-design and implementation of each new feature to ensure the highest possible
-code quality.
+specification, design, and implementation of each new feature to ensure
+the highest possible quality.
 
 The user interface may undergo significant changes as testing reveals
 oversights in design.
 
+Development is currently moving along nicely.
 We anticipate having a minimal working batch system in place sometime in
-2024.  Stay tuned...
+early 2024.  Stay tuned...
 
 LPJS will be integrated with [SPCM](https://github.com/outpaddling/SPCM)
-when it is fully functional.
+(replacing SLURM) when it is sufficiently functional.
 
 ## Description
 
 LPJS (Lightweight Portable Job Scheduler) is a batch system, i.e. a job
-scheduler and resource manager for HPC (High Performance Computing) clusters.
-An HPC cluster is anywhere from one to thousands of computers (called nodes)
-with managed CPU and memory resources for the purpose of performing
+scheduler and resource manager for HPC (High Performance Computing) clusters
+and HTC (High Throughput Computing) grids.
+A cluster or grid is anywhere from one to thousands of computers
+(called nodes)
+with managed CPU and memory resources, for the purpose of performing
 computationally intensive jobs in parallel (simultaneously).
 
-Most clusters are linked together with a private high-speed network to
+Most clusters consist of a few or many dedicated rack-mounted computers
+linked together with a private high-speed network, to
 maximize the speed of data exchange between the nodes, and to isolate the
-heavy traffic they generate from the broader
-organizational network.  Typically there is
+heavy traffic they generate from the broader organizational network.
+Cluster nodes typically have shared access to file servers (A.K.A.
+I/O nodes) using NFS or similar services.
+
+Grids are similar to clusters, but usually consist of more loosely coupled,
+non-dedicated machines over a wider area, such as desktop computers
+that may not even be on the same site.
+They do not have a dedicated network or access to a common file server.
+
+In both clusters and grids, there is typically
 a "head node", dedicated to keeping track of available CPU cores and memory
-on all nodes, multiple compute nodes, and one or more file servers, A.K.A.
-I/O nodes.
+on all nodes, multiple compute nodes.
 
 There may also be additional node types, such as "visualization"
 nodes, which contain graphical software for examining analysis results
-on the cluster,so they don't have to be transferred to a workstation or
+on the cluster, so they don't have to be transferred to a workstation or
 laptop first.  Note, however, that immediately copying results to another
 location is generally a good idea, so that you have a backup in case
 of accidental deletion, disk failure, etc.
@@ -56,19 +66,21 @@ Users should, however, keep a close eye on their running jobs to make sure
 they are working properly.  This avoids wasting resources and shows common
 courtesy to other cluster users.
 
-Unlike other batch systems, LPJS is designed to be small, easy to deploy and
+Unlike other batch systems, LPJS is designed to be simple, easy to deploy and
 manage, and portable to __any__
 POSIX platform.  Most existing batch systems are extremely complex, including
 our long-time favorite, SLURM, which stands for "Simple Linux Utility
 for Resource Management", but is no longer simple by any stretch of the
 imagination.  The 'S' in SLURM has become somewhat of an irony as it has
-evolved into the premier batch system for massive and complex clusters.
+evolved into the premier batch system for massive and complex HPC clusters.
 
-Note that THERE IS NOTHING INHERENTLY COMPLICATED ABOUT AN HPC CLUSTER. In its
-basic form, it's just a LAN with a head node for tracking resource use,
-compute nodes, a file server, and some software to
-manage computing resources.  You can make a cluster as complicated as you
-wish, but even simple HPC clusters can reduce computation
+Note that THERE IS NOTHING INHERENTLY COMPLICATED ABOUT AN HPC CLUSTER OR
+GRID. In its basic form, it's just a computer network
+with a head node for tracking resource use,
+compute nodes, possibly a file server, and some software to
+manage computing resources.  You can make a cluster or grid 
+as complicated as you
+wish, but even small, simple clusters and grids can reduce computation
 time by orders of magnitude.
 
 Overly complex HPC tools present a barrier to learning and research
@@ -78,7 +90,9 @@ can improve utilization of resources and reduce overall costs.  In many
 organizations, however, building a large cluster and staffing a support
 group is simply not feasible.  The talent pool for managing complex
 HPC resources is extremely limited, and many organizations simply cannot
-recruit the necessary staff, even if they can afford them.
+recruit the necessary staff, even if they can afford them.  I speak
+from ten years of experience supporting HPC and HTC at an R1 (top tier)
+research university.
 
 Large HPC clusters are dominated by Redhat Enterprise Linux (RHEL) and its
 derivatives, for many good reasons.  For one thing, RHEL is the only platform
@@ -113,7 +127,9 @@ use Debian Linux, Dragonfly BSD, FreeBSD, Illumos, MacOS, NetBSD, OpenBSD,
 Ubuntu, or any of the other dozens of Unix-like systems available, on any
 hardware that they support.
 In fact, one could easily run a chimeric cluster with
-multiple operating systems.  Our test environment currently includes five
+multiple operating systems.  Use RHEL derivatives for some nodes to support
+commercial software, and more modern systems for the latest open source.
+Our test environment currently includes six
 different operating systems on three different CPU architectures:
 
     ```
@@ -123,9 +139,11 @@ different operating systems on three different CPU architectures:
     herring      Up           4    0    1000       0 FreeBSD arm64
     ramora       Up           2    0    2036       0 FreeBSD riscv
     netbsd9      Up           2    0    1023       0 NetBSD  amd64
-    debian11     Up           1    0     976       0 Linux   x86_64
+    alma8        Up           1    0     976       0 Linux   x86_64
     abalone      Up           4    0    8192       0 Darwin  x86_64
-    dragonfly    Up           1    0     993       0 DragonFly x86_64
+    tarpon       Up           8    0    8192       0 Darwin  arm64
+    dragonfly    Up           2    0     993       0 DragonFly x86_64
+    sunfish      Up           2    0     972       0 SunOS   x86_64
     ```
     
     MS Windows machines can be utilized with some sort of POSIX compatibility
