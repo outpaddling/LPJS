@@ -96,7 +96,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
     ssize_t     bytes;
     socklen_t   address_len = sizeof (struct sockaddr_in);
     char        incoming_msg[LPJS_MSG_LEN_MAX + 1];
-    struct sockaddr_in server_address = { 0 };  // FIXME: Support IPV6
+    struct sockaddr_in server_address = { 0 };
     uid_t       uid;
     gid_t       gid;
     munge_err_t munge_status;
@@ -166,19 +166,31 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
      *  for communication with each new compute node.
      */
     
-    // FIXME: Combine listen_fd and all client socket fds into
-    // one fd_set and use select() to process events.
-    // User commands may also connect from the head node or any other
-    // node
-    
     while ( true )
     {
 	fd_set  read_fds;
-	int     nfds;
+	int     nfds, highest_fd;
 	
 	FD_ZERO(&read_fds);
 	FD_SET(listen_fd, &read_fds);
-	nfds = listen_fd + 1;   // FIXME: Use highest fd + 1
+	highest_fd = listen_fd;
+	for (unsigned c = 0; c < NODE_LIST_COUNT(node_list); ++c)
+	{
+	    node_t *node = &NODE_LIST_COMPUTE_NODES_AE(node_list, c);
+	    lpjs_log("Checking node %s, fd = %d...\n",
+		    NODE_HOSTNAME(node), NODE_MSG_FD(node));
+	    if ( NODE_MSG_FD(node) != NODE_MSG_FD_NOT_OPEN )
+	    {
+		lpjs_log("Adding fd %d, node %s to fd set.\n",
+			NODE_MSG_FD(node),
+			NODE_HOSTNAME(node));
+		FD_SET(NODE_MSG_FD(node), &read_fds);
+		if ( NODE_MSG_FD(node) > highest_fd )
+		    highest_fd = NODE_MSG_FD(node);
+	    }
+	}
+	lpjs_log("highest_fd = %d\n", highest_fd);
+	nfds = highest_fd + 1;
 	
 	// FIXME: Verify that compute nodes are alive at regular intervals
 	// and update status accordingly.
@@ -188,13 +200,24 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	
 	if ( select(nfds, &read_fds, NULL, NULL, LPJS_NO_SELECT_TIMEOUT) > 0 )
 	{
+	    lpjs_log("Back from select.\n");
+	    
 	    // Top priority: Active compute nodes (move existing jobs along)
 	    // Second priority: New compute node checkins (make resources available)
 	    // Lowest priority: User commands
+	    for (unsigned c = 0; c < NODE_LIST_COUNT(node_list); ++c)
+	    {
+		node_t *node = &NODE_LIST_COMPUTE_NODES_AE(node_list, c);
+		int     fd = NODE_MSG_FD(node);
+		if ( (fd != NODE_MSG_FD_NOT_OPEN) && FD_ISSET(fd, &read_fds) )
+		{
+		    lpjs_log("Activity on fd %d\n", fd);
+		}
+	    }
 	    
 	    if ( FD_ISSET(listen_fd, &read_fds) )
 	    {
-		// FIXME: Only accept requests from designated cluster nodes
+		// FIXME: Only accept requests from recognized cluster nodes
 		/* Accept a connection request */
 		if ((msg_fd = accept(listen_fd,
 			(struct sockaddr *)&server_address, &address_len)) == -1)
@@ -264,8 +287,9 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 			printf(NODE_STATUS_HEADER_FORMAT, "Hostname", "State",
 			    "Cores", "Used", "Physmem", "Used", "OS", "Arch");
 			node_print_status(&new_node);
-			node_list_update_compute(node_list, &new_node);
 			node_set_msg_fd(&new_node, msg_fd);
+			
+			node_list_update_compute(node_list, &new_node);
 			
 			puts("Done adding node.");
 			// FIXME: Acknowledge checkin

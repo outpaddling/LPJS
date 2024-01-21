@@ -32,7 +32,7 @@ void    node_init(node_t *node)
     node->os = "Unknown";
     node->arch = "Unknown";
     node->state = "Unknown";
-    node->msg_fd = -1;
+    node->msg_fd = NODE_MSG_FD_NOT_OPEN;
 }
 
 

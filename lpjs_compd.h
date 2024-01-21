@@ -1,5 +1,5 @@
-#ifndef __H_
-#define __H_
+#ifndef _LPJS_COMPD_H_
+#define _LPJS_COMPD_H_
 
 #ifdef  __cplusplus
 extern "C" {
@@ -11,4 +11,4 @@ extern "C" {
 }
 #endif
 
-#endif
+#endif  // _LPJS_COMPD_H_

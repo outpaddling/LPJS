@@ -1,7 +1,7 @@
-#ifndef _NODE_LIST_H_
-#define _NODE_LIST_H_
+#ifndef _LPJS_NODE_LIST_H_
+#define _LPJS_NODE_LIST_H_
 
-#ifndef _NODE_H_
+#ifndef _LPJS_NODE_H_
 #include "node.h"
 #endif
 
@@ -72,4 +72,4 @@ int node_list_set_compute_nodes_ae(node_list_t *node_list_ptr, size_t c, node_t 
 int node_list_set_compute_nodes_cpy(node_list_t *node_list_ptr, node_t new_compute_nodes[], size_t array_size);
 void node_list_update_compute(node_list_t *node_list, node_t *node);
 
-#endif  // _NODE_LIST_H_
+#endif  // _LPJS_NODE_LIST_H_

@@ -1,5 +1,5 @@
-#ifndef _JOB_H_
-#define _JOB_H_
+#ifndef _LPJS_JOB_H_
+#define _LPJS_JOB_H_
 
 typedef struct
 {
@@ -20,4 +20,4 @@ void    job_init(job_t *job);
 void    job_print_params(job_t *job);
 void    job_send_params(int fd, job_t *job);
 
-#endif  // _JOB_H_
+#endif  // _LPJS_JOB_H_

@@ -1,7 +1,7 @@
-#ifndef _JOB_LIST_H_
-#define _JOB_LIST_H_
+#ifndef _LPJS_JOB_LIST_H_
+#define _LPJS_JOB_LIST_H_
 
-#ifndef _JOB_H_
+#ifndef _LPJS_JOB_H_
 #include "job.h"
 #endif
 
@@ -18,4 +18,4 @@ void    job_list_init(job_list_t *job_list);
 int     job_list_add_job(job_list_t *job_list, job_t *job);
 void    job_list_send_params(int msg_fd, job_list_t *job_list);
 
-#endif  // _JOB_LIST_H_
+#endif  // _LPJS_JOB_LIST_H_

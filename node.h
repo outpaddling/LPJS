@@ -1,5 +1,9 @@
-#ifndef _NODE_H_
-#define _NODE_H_
+#ifndef _LPJS_NODE_H_
+#define _LPJS_NODE_H_
+
+#ifndef _TIME_H_
+#include <time.h>
+#endif
 
 typedef struct
 {
@@ -13,10 +17,12 @@ typedef struct
     char            *arch;
     char            *state;
     int             msg_fd;
+    time_t          last_ping;
 }   node_t;
 
-#define NODE_STATUS_HEADER_FORMAT "%-20s %-8s %5s %4s %7s %7s %-9s %-9s\n"
-#define NODE_STATUS_FORMAT        "%-20s %-8s %5u %4u %7lu %7lu %-9s %-9s\n"
+#define NODE_MSG_FD_NOT_OPEN        -1
+#define NODE_STATUS_HEADER_FORMAT   "%-20s %-8s %5s %4s %7s %7s %-9s %-9s\n"
+#define NODE_STATUS_FORMAT          "%-20s %-8s %5u %4u %7lu %7lu %-9s %-9s\n"
 
 /* Return values for mutator functions */
 #define LPSC_NODE_DATA_OK              0
@@ -109,4 +115,4 @@ int node_set_state(node_t *node_ptr, char *new_state);
 int node_set_state_ae(node_t *node_ptr, size_t c, char new_state_element);
 int node_set_state_cpy(node_t *node_ptr, char *new_state, size_t array_size);
 
-#endif  // _NODE_H_
+#endif  // _LPJS_NODE_H_
