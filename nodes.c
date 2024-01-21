@@ -22,8 +22,6 @@ int     main (int argc, char *argv[])
 {
     int         msg_fd;
     node_list_t node_list;
-    // All commands might use lpjs_log()
-    extern FILE *Log_stream;
     char        outgoing_msg[LPJS_MSG_LEN_MAX + 1];
     
     if (argc != 1)
@@ -31,7 +29,7 @@ int     main (int argc, char *argv[])
 	fprintf (stderr, "Usage: %s\n", argv[0]);
 	return EX_USAGE;
     }
-
+    
     // Get hostname of head node
     lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, stderr);
 
