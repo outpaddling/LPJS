@@ -184,7 +184,7 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
     // Can't write to socket before reading response to cred.
     bytes = lpjs_recv_msg(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0);
     lpjs_log("Response: %zu '%s'\n", bytes, incoming_msg);
-    if ( strcmp(incoming_msg, "Ident verified") != 0 )
+    if ( strcmp(incoming_msg, "Munge credentials verified") != 0 )
     {
 	lpjs_log("lpjs_compd_checkin(): Expected \"Ident verified\".\n");
 	return EX_DATAERR;
@@ -192,6 +192,14 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
     
     node_detect_specs(node);
     node_send_specs(node, msg_fd);
+    
+    lpjs_recv_msg(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0);
+    if ( strcmp(incoming_msg, "Node authorized") != 0 )
+    {
+	lpjs_log("This node is not authorized to connect.\n");
+	lpjs_log("It must be added to the etc/lpjs/config on the head node.\n");
+	exit(EX_NOPERM);
+    }
     
     return EX_OK;
 }
