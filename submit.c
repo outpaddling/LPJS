@@ -72,7 +72,7 @@ int     main (int argc, char *argv[])
     }
     free(cred);
     
-    if ( (bytes = lpjs_receive_msg(msg_fd, buff, LPJS_MSG_LEN_MAX+1, 0)) == -1 )
+    if ( (bytes = lpjs_recv_msg(msg_fd, buff, LPJS_MSG_LEN_MAX+1, 0)) == -1 )
     {
 	perror("lpjs-submit: Failed to read response from dispatch");
 	close(msg_fd);

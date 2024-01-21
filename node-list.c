@@ -100,6 +100,8 @@ void    node_list_update_compute(node_list_t *node_list, node_t *node)
 	    node_set_zfs(&node_list->compute_nodes[c], NODE_ZFS(node));
 	    node_set_os(&node_list->compute_nodes[c], strdup(NODE_OS(node)));
 	    node_set_arch(&node_list->compute_nodes[c], strdup(NODE_ARCH(node)));
+	    node_set_msg_fd(&node_list->compute_nodes[c], NODE_MSG_FD(node));
+	    node_set_last_ping(&node_list->compute_nodes[c], NODE_LAST_PING(node));
 	    return;
 	}
     }

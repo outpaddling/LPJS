@@ -212,6 +212,21 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 		if ( (fd != NODE_MSG_FD_NOT_OPEN) && FD_ISSET(fd, &read_fds) )
 		{
 		    lpjs_log("Activity on fd %d\n", fd);
+		    
+		    /*
+		     *  select() returns when a peer has closed the connection.
+		     *  recv() will return 0 in this case.
+		     */
+		    
+		    bytes = lpjs_recv_msg(fd, incoming_msg, LPJS_MSG_LEN_MAX + 1, 0);
+		    if ( bytes == 0 )
+		    {
+			lpjs_log("Lost connection to %s.  Closing...\n",
+				NODE_HOSTNAME(node));
+			close(fd);
+			node_set_msg_fd(node, NODE_MSG_FD_NOT_OPEN);
+			node_set_state(node, "Down");
+		    }
 		}
 	    }
 	    
@@ -236,10 +251,10 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 		    // the cost of CPU time.
 		    
 		    /* Read a message through the socket */
-		    while ( (bytes = lpjs_receive_msg(msg_fd,
+		    while ( (bytes = lpjs_recv_msg(msg_fd,
 				 incoming_msg, LPJS_MSG_LEN_MAX, 0)) < 1 )
 		    {
-			lpjs_log("lpjs_receive_msg() failed: %s", strerror(errno));
+			lpjs_log("lpjs_recv_msg() failed: %s", strerror(errno));
 			sleep(1);
 		    }
 	    
@@ -280,15 +295,18 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 			// Debug
 			lpjs_send_msg(msg_fd, 0, "Ident verified");
 			
-			node_receive_specs(&new_node, msg_fd);
-			lpjs_log("Back from node_receive_specs().\n");
+			node_recv_specs(&new_node, msg_fd);
+			lpjs_log("Back from node_recv_specs().\n");
 			
 			// Keep in sync with node_list_send_status()
 			printf(NODE_STATUS_HEADER_FORMAT, "Hostname", "State",
 			    "Cores", "Used", "Physmem", "Used", "OS", "Arch");
 			node_print_status(&new_node);
 			node_set_msg_fd(&new_node, msg_fd);
+			lpjs_log("New node fd = %d\n", NODE_MSG_FD(&new_node));
 			
+			// Nodes were added to node_list by lpjs_load_config()
+			// Just update the fields here
 			node_list_update_compute(node_list, &new_node);
 			
 			puts("Done adding node.");

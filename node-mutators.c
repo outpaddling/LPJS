@@ -8,43 +8,40 @@
 
 #include <string.h>
 #include <ctype.h>
+#include <stdbool.h>        // In case of bool
+#include <stdint.h>         // In case of int64_t, etc
 #include <xtend/string.h>   // strlcpy() on Linux
 #include "node.h"
 
 
 /***************************************************************************
  *  Library:
- *      #include <node.h>
+ *      #include <./node.h>
  *      
  *
  *  Description:
  *      Mutator for hostname member in a node_t structure.
- *      Use this function to set hostname in a node_t variable
+ *      Use this function to set hostname in a node_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
  *      hostname is a pointer, data previously pointed to should
- *      generally be freed before calling this function to avoid memory
+ *      be freed before calling this function to avoid memory
  *      leaks.
- *
- *      Note that there is an equivalent macro (), which performs
- *      this function with no data verification or function call overhead.
- *      Use the macro version to maximize performance where the validity
- *      of new_hostname is guaranteed by other means.
- *      
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
  *      new_hostname    The new value for hostname
  *
  *  Returns:
- *      LPSC_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPSC_NODE_DATA_OUT_OF_RANGE otherwise
+ *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
+ *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      char *          new_hostname;
  *
- *      if ( node_set_hostname(&node, new_hostname) == LPSC_NODE_DATA_OK )
+ *      if ( node_set_hostname(&node, new_hostname)
+ *              == LPJS_NODE_DATA_OK )
  *      {
  *      }
  *
@@ -53,37 +50,31 @@
  *
  *  History: 
  *  Date        Name        Modification
- *  2021-10-01  gen-get-set Auto-generated from node.h
+ *  2024-01-21  gen-get-set Auto-generated from node.h
  ***************************************************************************/
 
 int     node_set_hostname(node_t *node_ptr, char * new_hostname)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
     if ( new_hostname == NULL )
-	return LPSC_NODE_DATA_OUT_OF_RANGE;
+	return LPJS_NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->hostname = new_hostname;
-	return LPSC_NODE_DATA_OK;
+	return LPJS_NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <node.h>
+ *      #include <./node.h>
  *      
  *
  *  Description:
  *      Mutator for an array element of hostname member in a node_t
- *      structure. Use this function to set an element of the array
- *      hostname in a node_t variable from non-member functions.
- *
- *      Note that there is an equivalent macro NODE_SET_HOSTNAME_AE(), which performs
- *      this function with no data verification or function call overhead.
- *      Use the macro version to maximize performance where the validity
- *      of new_hostname_element is guaranteed by other means.
+ *      structure. Use this function to set node_ptr->hostname[c]
+ *      in a node_t object from non-member functions.
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
@@ -91,15 +82,16 @@ int     node_set_hostname(node_t *node_ptr, char * new_hostname)
  *      new_hostname_element The new value for hostname[c]
  *
  *  Returns:
- *      LPSC_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPSC_NODE_DATA_OUT_OF_RANGE otherwise
+ *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
+ *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      size_t          c;
  *      char *          new_hostname_element;
  *
- *      if ( node_set_hostname(&node, c, new_hostname_element) == LPSC_NODE_DATA_OK )
+ *      if ( node_set_hostname_ae(&node, c, new_hostname_element)
+ *              == LPJS_NODE_DATA_OK )
  *      {
  *      }
  *
@@ -108,38 +100,32 @@ int     node_set_hostname(node_t *node_ptr, char * new_hostname)
  *
  *  History: 
  *  Date        Name        Modification
- *  2021-10-01  gen-get-set Auto-generated from node.h
+ *  2024-01-21  gen-get-set Auto-generated from node.h
  ***************************************************************************/
 
 int     node_set_hostname_ae(node_t *node_ptr, size_t c, char  new_hostname_element)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
-    if ( 0 )
-	return LPSC_NODE_DATA_OUT_OF_RANGE;
+    if ( false )
+	return LPJS_NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->hostname[c] = new_hostname_element;
-	return LPSC_NODE_DATA_OK;
+	return LPJS_NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <node.h>
+ *      #include <./node.h>
  *      
  *
  *  Description:
  *      Mutator for hostname member in a node_t structure.
- *      Use this function to set hostname in a node_t variable
+ *      Use this function to set hostname in a node_t object
  *      from non-member functions.  This function copies the array pointed to
- *      by new_hostname to ->hostname.
- *
- *      Note that there is an equivalent macro NODE_SET_HOSTNAME(), which performs
- *      this function with no data verification or function call overhead.
- *      Use the macro version to maximize performance where the validity
- *      of new_hostname is guaranteed by other means.
+ *      by new_hostname to node_ptr->hostname.
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
@@ -147,15 +133,16 @@ int     node_set_hostname_ae(node_t *node_ptr, size_t c, char  new_hostname_elem
  *      array_size      Size of the hostname array.
  *
  *  Returns:
- *      LPSC_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPSC_NODE_DATA_OUT_OF_RANGE otherwise
+ *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
+ *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      char *          new_hostname;
  *      size_t          array_size;
  *
- *      if ( node_set_hostname(&node, new_hostname, array_size) == LPSC_NODE_DATA_OK )
+ *      if ( node_set_hostname_cpy(&node, new_hostname, array_size)
+ *              == LPJS_NODE_DATA_OK )
  *      {
  *      }
  *
@@ -164,57 +151,51 @@ int     node_set_hostname_ae(node_t *node_ptr, size_t c, char  new_hostname_elem
  *
  *  History: 
  *  Date        Name        Modification
- *  2021-10-01  gen-get-set Auto-generated from node.h
+ *  2024-01-21  gen-get-set Auto-generated from node.h
  ***************************************************************************/
 
 int     node_set_hostname_cpy(node_t *node_ptr, char * new_hostname, size_t array_size)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
     if ( new_hostname == NULL )
-	return LPSC_NODE_DATA_OUT_OF_RANGE;
+	return LPJS_NODE_DATA_OUT_OF_RANGE;
     else
     {
 	// FIXME: Assuming char array is a null-terminated string
 	strlcpy(node_ptr->hostname, new_hostname, array_size);
-	return LPSC_NODE_DATA_OK;
+	return LPJS_NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <node.h>
+ *      #include <./node.h>
  *      
  *
  *  Description:
  *      Mutator for cores member in a node_t structure.
- *      Use this function to set cores in a node_t variable
+ *      Use this function to set cores in a node_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
  *      cores is a pointer, data previously pointed to should
- *      generally be freed before calling this function to avoid memory
+ *      be freed before calling this function to avoid memory
  *      leaks.
- *
- *      Note that there is an equivalent macro (), which performs
- *      this function with no data verification or function call overhead.
- *      Use the macro version to maximize performance where the validity
- *      of new_cores is guaranteed by other means.
- *      
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
  *      new_cores       The new value for cores
  *
  *  Returns:
- *      LPSC_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPSC_NODE_DATA_OUT_OF_RANGE otherwise
+ *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
+ *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      unsigned        new_cores;
  *
- *      if ( node_set_cores(&node, new_cores) == LPSC_NODE_DATA_OK )
+ *      if ( node_set_cores(&node, new_cores)
+ *              == LPJS_NODE_DATA_OK )
  *      {
  *      }
  *
@@ -223,56 +204,50 @@ int     node_set_hostname_cpy(node_t *node_ptr, char * new_hostname, size_t arra
  *
  *  History: 
  *  Date        Name        Modification
- *  2021-10-01  gen-get-set Auto-generated from node.h
+ *  2024-01-21  gen-get-set Auto-generated from node.h
  ***************************************************************************/
 
 int     node_set_cores(node_t *node_ptr, unsigned new_cores)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
-    if ( 0 )
-	return LPSC_NODE_DATA_OUT_OF_RANGE;
+    if ( false )
+	return LPJS_NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->cores = new_cores;
-	return LPSC_NODE_DATA_OK;
+	return LPJS_NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <node.h>
+ *      #include <./node.h>
  *      
  *
  *  Description:
  *      Mutator for cores_used member in a node_t structure.
- *      Use this function to set cores_used in a node_t variable
+ *      Use this function to set cores_used in a node_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
  *      cores_used is a pointer, data previously pointed to should
- *      generally be freed before calling this function to avoid memory
+ *      be freed before calling this function to avoid memory
  *      leaks.
- *
- *      Note that there is an equivalent macro (), which performs
- *      this function with no data verification or function call overhead.
- *      Use the macro version to maximize performance where the validity
- *      of new_cores_used is guaranteed by other means.
- *      
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
  *      new_cores_used  The new value for cores_used
  *
  *  Returns:
- *      LPSC_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPSC_NODE_DATA_OUT_OF_RANGE otherwise
+ *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
+ *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      unsigned        new_cores_used;
  *
- *      if ( node_set_cores_used(&node, new_cores_used) == LPSC_NODE_DATA_OK )
+ *      if ( node_set_cores_used(&node, new_cores_used)
+ *              == LPJS_NODE_DATA_OK )
  *      {
  *      }
  *
@@ -281,56 +256,50 @@ int     node_set_cores(node_t *node_ptr, unsigned new_cores)
  *
  *  History: 
  *  Date        Name        Modification
- *  2021-10-01  gen-get-set Auto-generated from node.h
+ *  2024-01-21  gen-get-set Auto-generated from node.h
  ***************************************************************************/
 
 int     node_set_cores_used(node_t *node_ptr, unsigned new_cores_used)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
-    if ( 0 )
-	return LPSC_NODE_DATA_OUT_OF_RANGE;
+    if ( false )
+	return LPJS_NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->cores_used = new_cores_used;
-	return LPSC_NODE_DATA_OK;
+	return LPJS_NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <node.h>
+ *      #include <./node.h>
  *      
  *
  *  Description:
- *      Mutator for mem member in a node_t structure.
- *      Use this function to set mem in a node_t variable
+ *      Mutator for phys_mem member in a node_t structure.
+ *      Use this function to set phys_mem in a node_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
- *      mem is a pointer, data previously pointed to should
- *      generally be freed before calling this function to avoid memory
+ *      phys_mem is a pointer, data previously pointed to should
+ *      be freed before calling this function to avoid memory
  *      leaks.
- *
- *      Note that there is an equivalent macro (), which performs
- *      this function with no data verification or function call overhead.
- *      Use the macro version to maximize performance where the validity
- *      of new_mem is guaranteed by other means.
- *      
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
- *      new_mem         The new value for mem
+ *      new_phys_mem    The new value for phys_mem
  *
  *  Returns:
- *      LPSC_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPSC_NODE_DATA_OUT_OF_RANGE otherwise
+ *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
+ *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
- *      unsigned long   new_mem;
+ *      unsigned long   new_phys_mem;
  *
- *      if ( node_set_mem(&node, new_mem) == LPSC_NODE_DATA_OK )
+ *      if ( node_set_phys_mem(&node, new_phys_mem)
+ *              == LPJS_NODE_DATA_OK )
  *      {
  *      }
  *
@@ -339,56 +308,50 @@ int     node_set_cores_used(node_t *node_ptr, unsigned new_cores_used)
  *
  *  History: 
  *  Date        Name        Modification
- *  2021-10-01  gen-get-set Auto-generated from node.h
+ *  2024-01-21  gen-get-set Auto-generated from node.h
  ***************************************************************************/
 
-int     node_set_phys_mem(node_t *node_ptr, unsigned long new_mem)
+int     node_set_phys_mem(node_t *node_ptr, unsigned long new_phys_mem)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
-    if ( 0 )
-	return LPSC_NODE_DATA_OUT_OF_RANGE;
+    if ( false )
+	return LPJS_NODE_DATA_OUT_OF_RANGE;
     else
     {
-	node_ptr->phys_mem = new_mem;
-	return LPSC_NODE_DATA_OK;
+	node_ptr->phys_mem = new_phys_mem;
+	return LPJS_NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <node.h>
+ *      #include <./node.h>
  *      
  *
  *  Description:
- *      Mutator for mem_used member in a node_t structure.
- *      Use this function to set mem_used in a node_t variable
+ *      Mutator for phys_mem_used member in a node_t structure.
+ *      Use this function to set phys_mem_used in a node_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
- *      mem_used is a pointer, data previously pointed to should
- *      generally be freed before calling this function to avoid memory
+ *      phys_mem_used is a pointer, data previously pointed to should
+ *      be freed before calling this function to avoid memory
  *      leaks.
- *
- *      Note that there is an equivalent macro (), which performs
- *      this function with no data verification or function call overhead.
- *      Use the macro version to maximize performance where the validity
- *      of new_mem_used is guaranteed by other means.
- *      
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
- *      new_mem_used    The new value for mem_used
+ *      new_phys_mem_used The new value for phys_mem_used
  *
  *  Returns:
- *      LPSC_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPSC_NODE_DATA_OUT_OF_RANGE otherwise
+ *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
+ *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
- *      unsigned long   new_mem_used;
+ *      unsigned long   new_phys_mem_used;
  *
- *      if ( node_set_mem_used(&node, new_mem_used) == LPSC_NODE_DATA_OK )
+ *      if ( node_set_phys_mem_used(&node, new_phys_mem_used)
+ *              == LPJS_NODE_DATA_OK )
  *      {
  *      }
  *
@@ -397,56 +360,50 @@ int     node_set_phys_mem(node_t *node_ptr, unsigned long new_mem)
  *
  *  History: 
  *  Date        Name        Modification
- *  2021-10-01  gen-get-set Auto-generated from node.h
+ *  2024-01-21  gen-get-set Auto-generated from node.h
  ***************************************************************************/
 
-int     node_set_mem_used(node_t *node_ptr, unsigned long new_mem_used)
+int     node_set_phys_mem_used(node_t *node_ptr, unsigned long new_phys_mem_used)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
-    if ( 0 )
-	return LPSC_NODE_DATA_OUT_OF_RANGE;
+    if ( false )
+	return LPJS_NODE_DATA_OUT_OF_RANGE;
     else
     {
-	node_ptr->phys_mem_used = new_mem_used;
-	return LPSC_NODE_DATA_OK;
+	node_ptr->phys_mem_used = new_phys_mem_used;
+	return LPJS_NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <node.h>
+ *      #include <./node.h>
  *      
  *
  *  Description:
  *      Mutator for zfs member in a node_t structure.
- *      Use this function to set zfs in a node_t variable
+ *      Use this function to set zfs in a node_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
  *      zfs is a pointer, data previously pointed to should
- *      generally be freed before calling this function to avoid memory
+ *      be freed before calling this function to avoid memory
  *      leaks.
- *
- *      Note that there is an equivalent macro (), which performs
- *      this function with no data verification or function call overhead.
- *      Use the macro version to maximize performance where the validity
- *      of new_zfs is guaranteed by other means.
- *      
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
  *      new_zfs         The new value for zfs
  *
  *  Returns:
- *      LPSC_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPSC_NODE_DATA_OUT_OF_RANGE otherwise
+ *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
+ *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      int             new_zfs;
  *
- *      if ( node_set_zfs(&node, new_zfs) == LPSC_NODE_DATA_OK )
+ *      if ( node_set_zfs(&node, new_zfs)
+ *              == LPJS_NODE_DATA_OK )
  *      {
  *      }
  *
@@ -455,56 +412,50 @@ int     node_set_mem_used(node_t *node_ptr, unsigned long new_mem_used)
  *
  *  History: 
  *  Date        Name        Modification
- *  2021-10-01  gen-get-set Auto-generated from node.h
+ *  2024-01-21  gen-get-set Auto-generated from node.h
  ***************************************************************************/
 
 int     node_set_zfs(node_t *node_ptr, int new_zfs)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
-    if ( 0 )
-	return LPSC_NODE_DATA_OUT_OF_RANGE;
+    if ( false )
+	return LPJS_NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->zfs = new_zfs;
-	return LPSC_NODE_DATA_OK;
+	return LPJS_NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <node.h>
+ *      #include <./node.h>
  *      
  *
  *  Description:
  *      Mutator for os member in a node_t structure.
- *      Use this function to set os in a node_t variable
+ *      Use this function to set os in a node_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
  *      os is a pointer, data previously pointed to should
- *      generally be freed before calling this function to avoid memory
+ *      be freed before calling this function to avoid memory
  *      leaks.
- *
- *      Note that there is an equivalent macro (), which performs
- *      this function with no data verification or function call overhead.
- *      Use the macro version to maximize performance where the validity
- *      of new_os is guaranteed by other means.
- *      
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
  *      new_os          The new value for os
  *
  *  Returns:
- *      LPSC_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPSC_NODE_DATA_OUT_OF_RANGE otherwise
+ *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
+ *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      char *          new_os;
  *
- *      if ( node_set_os(&node, new_os) == LPSC_NODE_DATA_OK )
+ *      if ( node_set_os(&node, new_os)
+ *              == LPJS_NODE_DATA_OK )
  *      {
  *      }
  *
@@ -513,37 +464,31 @@ int     node_set_zfs(node_t *node_ptr, int new_zfs)
  *
  *  History: 
  *  Date        Name        Modification
- *  2021-10-01  gen-get-set Auto-generated from node.h
+ *  2024-01-21  gen-get-set Auto-generated from node.h
  ***************************************************************************/
 
 int     node_set_os(node_t *node_ptr, char * new_os)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
     if ( new_os == NULL )
-	return LPSC_NODE_DATA_OUT_OF_RANGE;
+	return LPJS_NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->os = new_os;
-	return LPSC_NODE_DATA_OK;
+	return LPJS_NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <node.h>
+ *      #include <./node.h>
  *      
  *
  *  Description:
  *      Mutator for an array element of os member in a node_t
- *      structure. Use this function to set an element of the array
- *      os in a node_t variable from non-member functions.
- *
- *      Note that there is an equivalent macro NODE_SET_OS_AE(), which performs
- *      this function with no data verification or function call overhead.
- *      Use the macro version to maximize performance where the validity
- *      of new_os_element is guaranteed by other means.
+ *      structure. Use this function to set node_ptr->os[c]
+ *      in a node_t object from non-member functions.
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
@@ -551,15 +496,16 @@ int     node_set_os(node_t *node_ptr, char * new_os)
  *      new_os_element  The new value for os[c]
  *
  *  Returns:
- *      LPSC_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPSC_NODE_DATA_OUT_OF_RANGE otherwise
+ *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
+ *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      size_t          c;
  *      char *          new_os_element;
  *
- *      if ( node_set_os(&node, c, new_os_element) == LPSC_NODE_DATA_OK )
+ *      if ( node_set_os_ae(&node, c, new_os_element)
+ *              == LPJS_NODE_DATA_OK )
  *      {
  *      }
  *
@@ -568,38 +514,32 @@ int     node_set_os(node_t *node_ptr, char * new_os)
  *
  *  History: 
  *  Date        Name        Modification
- *  2021-10-01  gen-get-set Auto-generated from node.h
+ *  2024-01-21  gen-get-set Auto-generated from node.h
  ***************************************************************************/
 
 int     node_set_os_ae(node_t *node_ptr, size_t c, char  new_os_element)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
-    if ( 0 )
-	return LPSC_NODE_DATA_OUT_OF_RANGE;
+    if ( false )
+	return LPJS_NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->os[c] = new_os_element;
-	return LPSC_NODE_DATA_OK;
+	return LPJS_NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <node.h>
+ *      #include <./node.h>
  *      
  *
  *  Description:
  *      Mutator for os member in a node_t structure.
- *      Use this function to set os in a node_t variable
+ *      Use this function to set os in a node_t object
  *      from non-member functions.  This function copies the array pointed to
- *      by new_os to ->os.
- *
- *      Note that there is an equivalent macro NODE_SET_OS(), which performs
- *      this function with no data verification or function call overhead.
- *      Use the macro version to maximize performance where the validity
- *      of new_os is guaranteed by other means.
+ *      by new_os to node_ptr->os.
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
@@ -607,15 +547,16 @@ int     node_set_os_ae(node_t *node_ptr, size_t c, char  new_os_element)
  *      array_size      Size of the os array.
  *
  *  Returns:
- *      LPSC_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPSC_NODE_DATA_OUT_OF_RANGE otherwise
+ *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
+ *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      char *          new_os;
  *      size_t          array_size;
  *
- *      if ( node_set_os(&node, new_os, array_size) == LPSC_NODE_DATA_OK )
+ *      if ( node_set_os_cpy(&node, new_os, array_size)
+ *              == LPJS_NODE_DATA_OK )
  *      {
  *      }
  *
@@ -624,57 +565,51 @@ int     node_set_os_ae(node_t *node_ptr, size_t c, char  new_os_element)
  *
  *  History: 
  *  Date        Name        Modification
- *  2021-10-01  gen-get-set Auto-generated from node.h
+ *  2024-01-21  gen-get-set Auto-generated from node.h
  ***************************************************************************/
 
 int     node_set_os_cpy(node_t *node_ptr, char * new_os, size_t array_size)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
     if ( new_os == NULL )
-	return LPSC_NODE_DATA_OUT_OF_RANGE;
+	return LPJS_NODE_DATA_OUT_OF_RANGE;
     else
     {
 	// FIXME: Assuming char array is a null-terminated string
 	strlcpy(node_ptr->os, new_os, array_size);
-	return LPSC_NODE_DATA_OK;
+	return LPJS_NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <node.h>
+ *      #include <./node.h>
  *      
  *
  *  Description:
  *      Mutator for arch member in a node_t structure.
- *      Use this function to set arch in a node_t variable
+ *      Use this function to set arch in a node_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
  *      arch is a pointer, data previously pointed to should
- *      generally be freed before calling this function to avoid memory
+ *      be freed before calling this function to avoid memory
  *      leaks.
- *
- *      Note that there is an equivalent macro (), which performs
- *      this function with no data verification or function call overhead.
- *      Use the macro version to maximize performance where the validity
- *      of new_arch is guaranteed by other means.
- *      
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
  *      new_arch        The new value for arch
  *
  *  Returns:
- *      LPSC_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPSC_NODE_DATA_OUT_OF_RANGE otherwise
+ *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
+ *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      char *          new_arch;
  *
- *      if ( node_set_arch(&node, new_arch) == LPSC_NODE_DATA_OK )
+ *      if ( node_set_arch(&node, new_arch)
+ *              == LPJS_NODE_DATA_OK )
  *      {
  *      }
  *
@@ -683,37 +618,31 @@ int     node_set_os_cpy(node_t *node_ptr, char * new_os, size_t array_size)
  *
  *  History: 
  *  Date        Name        Modification
- *  2021-10-01  gen-get-set Auto-generated from node.h
+ *  2024-01-21  gen-get-set Auto-generated from node.h
  ***************************************************************************/
 
 int     node_set_arch(node_t *node_ptr, char * new_arch)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
     if ( new_arch == NULL )
-	return LPSC_NODE_DATA_OUT_OF_RANGE;
+	return LPJS_NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->arch = new_arch;
-	return LPSC_NODE_DATA_OK;
+	return LPJS_NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <node.h>
+ *      #include <./node.h>
  *      
  *
  *  Description:
  *      Mutator for an array element of arch member in a node_t
- *      structure. Use this function to set an element of the array
- *      arch in a node_t variable from non-member functions.
- *
- *      Note that there is an equivalent macro NODE_SET_ARCH_AE(), which performs
- *      this function with no data verification or function call overhead.
- *      Use the macro version to maximize performance where the validity
- *      of new_arch_element is guaranteed by other means.
+ *      structure. Use this function to set node_ptr->arch[c]
+ *      in a node_t object from non-member functions.
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
@@ -721,15 +650,16 @@ int     node_set_arch(node_t *node_ptr, char * new_arch)
  *      new_arch_element The new value for arch[c]
  *
  *  Returns:
- *      LPSC_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPSC_NODE_DATA_OUT_OF_RANGE otherwise
+ *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
+ *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      size_t          c;
  *      char *          new_arch_element;
  *
- *      if ( node_set_arch(&node, c, new_arch_element) == LPSC_NODE_DATA_OK )
+ *      if ( node_set_arch_ae(&node, c, new_arch_element)
+ *              == LPJS_NODE_DATA_OK )
  *      {
  *      }
  *
@@ -738,38 +668,32 @@ int     node_set_arch(node_t *node_ptr, char * new_arch)
  *
  *  History: 
  *  Date        Name        Modification
- *  2021-10-01  gen-get-set Auto-generated from node.h
+ *  2024-01-21  gen-get-set Auto-generated from node.h
  ***************************************************************************/
 
 int     node_set_arch_ae(node_t *node_ptr, size_t c, char  new_arch_element)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
-    if ( 0 )
-	return LPSC_NODE_DATA_OUT_OF_RANGE;
+    if ( false )
+	return LPJS_NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->arch[c] = new_arch_element;
-	return LPSC_NODE_DATA_OK;
+	return LPJS_NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <node.h>
+ *      #include <./node.h>
  *      
  *
  *  Description:
  *      Mutator for arch member in a node_t structure.
- *      Use this function to set arch in a node_t variable
+ *      Use this function to set arch in a node_t object
  *      from non-member functions.  This function copies the array pointed to
- *      by new_arch to ->arch.
- *
- *      Note that there is an equivalent macro NODE_SET_ARCH(), which performs
- *      this function with no data verification or function call overhead.
- *      Use the macro version to maximize performance where the validity
- *      of new_arch is guaranteed by other means.
+ *      by new_arch to node_ptr->arch.
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
@@ -777,15 +701,16 @@ int     node_set_arch_ae(node_t *node_ptr, size_t c, char  new_arch_element)
  *      array_size      Size of the arch array.
  *
  *  Returns:
- *      LPSC_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPSC_NODE_DATA_OUT_OF_RANGE otherwise
+ *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
+ *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      char *          new_arch;
  *      size_t          array_size;
  *
- *      if ( node_set_arch(&node, new_arch, array_size) == LPSC_NODE_DATA_OK )
+ *      if ( node_set_arch_cpy(&node, new_arch, array_size)
+ *              == LPJS_NODE_DATA_OK )
  *      {
  *      }
  *
@@ -794,57 +719,51 @@ int     node_set_arch_ae(node_t *node_ptr, size_t c, char  new_arch_element)
  *
  *  History: 
  *  Date        Name        Modification
- *  2021-10-01  gen-get-set Auto-generated from node.h
+ *  2024-01-21  gen-get-set Auto-generated from node.h
  ***************************************************************************/
 
 int     node_set_arch_cpy(node_t *node_ptr, char * new_arch, size_t array_size)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
     if ( new_arch == NULL )
-	return LPSC_NODE_DATA_OUT_OF_RANGE;
+	return LPJS_NODE_DATA_OUT_OF_RANGE;
     else
     {
 	// FIXME: Assuming char array is a null-terminated string
 	strlcpy(node_ptr->arch, new_arch, array_size);
-	return LPSC_NODE_DATA_OK;
+	return LPJS_NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <node.h>
+ *      #include <./node.h>
  *      
  *
  *  Description:
  *      Mutator for state member in a node_t structure.
- *      Use this function to set state in a node_t variable
+ *      Use this function to set state in a node_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
  *      state is a pointer, data previously pointed to should
- *      generally be freed before calling this function to avoid memory
+ *      be freed before calling this function to avoid memory
  *      leaks.
- *
- *      Note that there is an equivalent macro (), which performs
- *      this function with no data verification or function call overhead.
- *      Use the macro version to maximize performance where the validity
- *      of new_state is guaranteed by other means.
- *      
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
  *      new_state       The new value for state
  *
  *  Returns:
- *      LPSC_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPSC_NODE_DATA_OUT_OF_RANGE otherwise
+ *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
+ *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      char *          new_state;
  *
- *      if ( node_set_state(&node, new_state) == LPSC_NODE_DATA_OK )
+ *      if ( node_set_state(&node, new_state)
+ *              == LPJS_NODE_DATA_OK )
  *      {
  *      }
  *
@@ -853,37 +772,31 @@ int     node_set_arch_cpy(node_t *node_ptr, char * new_arch, size_t array_size)
  *
  *  History: 
  *  Date        Name        Modification
- *  2021-10-01  gen-get-set Auto-generated from node.h
+ *  2024-01-21  gen-get-set Auto-generated from node.h
  ***************************************************************************/
 
 int     node_set_state(node_t *node_ptr, char * new_state)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
     if ( new_state == NULL )
-	return LPSC_NODE_DATA_OUT_OF_RANGE;
+	return LPJS_NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->state = new_state;
-	return LPSC_NODE_DATA_OK;
+	return LPJS_NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <node.h>
+ *      #include <./node.h>
  *      
  *
  *  Description:
  *      Mutator for an array element of state member in a node_t
- *      structure. Use this function to set an element of the array
- *      state in a node_t variable from non-member functions.
- *
- *      Note that there is an equivalent macro NODE_SET_STATE_AE(), which performs
- *      this function with no data verification or function call overhead.
- *      Use the macro version to maximize performance where the validity
- *      of new_state_element is guaranteed by other means.
+ *      structure. Use this function to set node_ptr->state[c]
+ *      in a node_t object from non-member functions.
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
@@ -891,15 +804,16 @@ int     node_set_state(node_t *node_ptr, char * new_state)
  *      new_state_element The new value for state[c]
  *
  *  Returns:
- *      LPSC_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPSC_NODE_DATA_OUT_OF_RANGE otherwise
+ *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
+ *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      size_t          c;
  *      char *          new_state_element;
  *
- *      if ( node_set_state(&node, c, new_state_element) == LPSC_NODE_DATA_OK )
+ *      if ( node_set_state_ae(&node, c, new_state_element)
+ *              == LPJS_NODE_DATA_OK )
  *      {
  *      }
  *
@@ -908,38 +822,32 @@ int     node_set_state(node_t *node_ptr, char * new_state)
  *
  *  History: 
  *  Date        Name        Modification
- *  2021-10-01  gen-get-set Auto-generated from node.h
+ *  2024-01-21  gen-get-set Auto-generated from node.h
  ***************************************************************************/
 
 int     node_set_state_ae(node_t *node_ptr, size_t c, char  new_state_element)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
-    if ( 0 )
-	return LPSC_NODE_DATA_OUT_OF_RANGE;
+    if ( false )
+	return LPJS_NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->state[c] = new_state_element;
-	return LPSC_NODE_DATA_OK;
+	return LPJS_NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <node.h>
+ *      #include <./node.h>
  *      
  *
  *  Description:
  *      Mutator for state member in a node_t structure.
- *      Use this function to set state in a node_t variable
+ *      Use this function to set state in a node_t object
  *      from non-member functions.  This function copies the array pointed to
- *      by new_state to ->state.
- *
- *      Note that there is an equivalent macro NODE_SET_STATE(), which performs
- *      this function with no data verification or function call overhead.
- *      Use the macro version to maximize performance where the validity
- *      of new_state is guaranteed by other means.
+ *      by new_state to node_ptr->state.
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
@@ -947,15 +855,16 @@ int     node_set_state_ae(node_t *node_ptr, size_t c, char  new_state_element)
  *      array_size      Size of the state array.
  *
  *  Returns:
- *      LPSC_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPSC_NODE_DATA_OUT_OF_RANGE otherwise
+ *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
+ *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      char *          new_state;
  *      size_t          array_size;
  *
- *      if ( node_set_state(&node, new_state, array_size) == LPSC_NODE_DATA_OK )
+ *      if ( node_set_state_cpy(&node, new_state, array_size)
+ *              == LPJS_NODE_DATA_OK )
  *      {
  *      }
  *
@@ -964,57 +873,51 @@ int     node_set_state_ae(node_t *node_ptr, size_t c, char  new_state_element)
  *
  *  History: 
  *  Date        Name        Modification
- *  2021-10-01  gen-get-set Auto-generated from node.h
+ *  2024-01-21  gen-get-set Auto-generated from node.h
  ***************************************************************************/
 
 int     node_set_state_cpy(node_t *node_ptr, char * new_state, size_t array_size)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
     if ( new_state == NULL )
-	return LPSC_NODE_DATA_OUT_OF_RANGE;
+	return LPJS_NODE_DATA_OUT_OF_RANGE;
     else
     {
 	// FIXME: Assuming char array is a null-terminated string
 	strlcpy(node_ptr->state, new_state, array_size);
-	return LPSC_NODE_DATA_OK;
+	return LPJS_NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <node.h>
+ *      #include <./node.h>
  *      
  *
  *  Description:
  *      Mutator for msg_fd member in a node_t structure.
- *      Use this function to set msg_fd in a node_t variable
+ *      Use this function to set msg_fd in a node_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
  *      msg_fd is a pointer, data previously pointed to should
- *      generally be freed before calling this function to avoid memory
+ *      be freed before calling this function to avoid memory
  *      leaks.
- *
- *      Note that there is an equivalent macro (), which performs
- *      this function with no data verification or function call overhead.
- *      Use the macro version to maximize performance where the validity
- *      of new_msg_fd is guaranteed by other means.
- *      
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
  *      new_msg_fd      The new value for msg_fd
  *
  *  Returns:
- *      LPSC_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPSC_NODE_DATA_OUT_OF_RANGE otherwise
+ *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
+ *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      int             new_msg_fd;
  *
- *      if ( node_set_msg_fd(&node, new_msg_fd) == LPSC_NODE_DATA_OK )
+ *      if ( node_set_msg_fd(&node, new_msg_fd)
+ *              == LPJS_NODE_DATA_OK )
  *      {
  *      }
  *
@@ -1023,18 +926,69 @@ int     node_set_state_cpy(node_t *node_ptr, char * new_state, size_t array_size
  *
  *  History: 
  *  Date        Name        Modification
- *  2021-10-01  gen-get-set Auto-generated from node.h
+ *  2024-01-21  gen-get-set Auto-generated from node.h
  ***************************************************************************/
 
 int     node_set_msg_fd(node_t *node_ptr, int new_msg_fd)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
-    if ( 0 )
-	return LPSC_NODE_DATA_OUT_OF_RANGE;
+    if ( false )
+	return LPJS_NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->msg_fd = new_msg_fd;
-	return LPSC_NODE_DATA_OK;
+	return LPJS_NODE_DATA_OK;
+    }
+}
+
+
+/***************************************************************************
+ *  Library:
+ *      #include <./node.h>
+ *      
+ *
+ *  Description:
+ *      Mutator for last_ping member in a node_t structure.
+ *      Use this function to set last_ping in a node_t object
+ *      from non-member functions.  This function performs a direct
+ *      assignment for scalar or pointer structure members.  If
+ *      last_ping is a pointer, data previously pointed to should
+ *      be freed before calling this function to avoid memory
+ *      leaks.
+ *
+ *  Arguments:
+ *      node_ptr        Pointer to the structure to set
+ *      new_last_ping   The new value for last_ping
+ *
+ *  Returns:
+ *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
+ *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
+ *
+ *  Examples:
+ *      node_t          node;
+ *      time_t          new_last_ping;
+ *
+ *      if ( node_set_last_ping(&node, new_last_ping)
+ *              == LPJS_NODE_DATA_OK )
+ *      {
+ *      }
+ *
+ *  See also:
+ *      (3)
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-21  gen-get-set Auto-generated from node.h
+ ***************************************************************************/
+
+int     node_set_last_ping(node_t *node_ptr, time_t new_last_ping)
+
+{
+    if ( false )
+	return LPJS_NODE_DATA_OUT_OF_RANGE;
+    else
+    {
+	node_ptr->last_ping = new_last_ping;
+	return LPJS_NODE_DATA_OK;
     }
 }

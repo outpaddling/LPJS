@@ -168,31 +168,33 @@ ssize_t lpjs_send_msg(int msg_fd, int send_flags, const char *format, ...)
  *  2024-01-19  Jason Bacon Begin
  ***************************************************************************/
 
-ssize_t lpjs_receive_msg(int msg_fd, char *buff, size_t buff_len, int flags)
+ssize_t lpjs_recv_msg(int msg_fd, char *buff, size_t buff_len, int flags)
 
 {
     uint16_t    msg_len;
     ssize_t     bytes_read;
     
-    if ( recv(msg_fd, &msg_len, sizeof(uint16_t), flags | MSG_WAITALL)
-	      != sizeof(uint16_t) )
+    bytes_read = recv(msg_fd, &msg_len, sizeof(uint16_t), flags | MSG_WAITALL);
+    if ( bytes_read == 0 )
+	return 0;
+    else if ( bytes_read != sizeof(uint16_t) )
     {
-	lpjs_log("lpjs_receive_msg(): Failed to read msg_len.\n");
+	lpjs_log("lpjs_recv_msg(): Read partial msg_len.\n");
 	exit(EX_DATAERR);
     }
     msg_len = ntohs(msg_len);
-    lpjs_log("lpjs_receive_msg(): msg_len = %u\n", msg_len);
+    lpjs_log("lpjs_recv_msg(): msg_len = %u\n", msg_len);
     
     if ( msg_len > buff_len - 1 )
     {
-	lpjs_log("lpjs_receive_msg(): msg_len > buff_len -1.\n");
+	lpjs_log("lpjs_recv_msg(): msg_len > buff_len -1.\n");
 	lpjs_log("This is a software bug.\n");
 	exit(EX_SOFTWARE);
     }
     
     bytes_read = recv(msg_fd, buff, msg_len, flags | MSG_WAITALL);
     buff[bytes_read] = '\0';
-    lpjs_log("lpjs_receive_msg(): Got '%s'.\n", buff);
+    lpjs_log("lpjs_recv_msg(): Got '%s'.\n", buff);
     
     return bytes_read;
 }
