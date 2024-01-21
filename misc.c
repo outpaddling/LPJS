@@ -22,6 +22,7 @@ FILE    *Log_stream;
  *  2021-09-28  Jason Bacon Begin
  ***************************************************************************/
 
+// FIXME: Add debug levels argument
 int     lpjs_log(const char *format, ...)
 
 {

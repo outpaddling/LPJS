@@ -21,9 +21,10 @@
 int     main(int argc,char *argv[])
 
 {
-    int     msg_fd;
+    int         msg_fd;
     node_list_t node_list;
     extern FILE *Log_stream;
+    char        outgoing_msg[LPJS_MSG_LEN_MAX + 1];
     
     Log_stream = stderr;
     
@@ -42,7 +43,9 @@ int     main(int argc,char *argv[])
 	return EX_IOERR;
     }
 
-    if ( lpjs_send_msg(msg_fd, 0, "jobs") < 0 )
+    outgoing_msg[0] = LPJS_REQUEST_JOB_STATUS;
+    outgoing_msg[1] = '\0';
+    if ( lpjs_send_msg(msg_fd, 0, outgoing_msg) < 0 )
     {
 	perror("lpjs-jobs: Failed to send message to dispatch");
 	close(msg_fd);

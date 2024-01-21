@@ -21,6 +21,7 @@
 #include <xtend/string.h>
 #include <xtend/file.h>
 #include <xtend/proc.h>
+#include "lpjs.h"
 #include "node-list.h"
 #include "config.h"
 #include "network.h"
@@ -31,7 +32,7 @@ int     main (int argc, char *argv[])
 {
     node_list_t node_list;
     node_t      node;
-    char        buff[LPJS_MSG_LEN_MAX + 1];
+    char        incoming_msg[LPJS_MSG_LEN_MAX + 1];
     ssize_t     bytes;
     int         msg_fd,
 		status;
@@ -130,9 +131,9 @@ int     main (int argc, char *argv[])
 	
 	if (poll_fd.revents & POLLIN)
 	{
-	    bytes = lpjs_recv_msg(msg_fd, buff, LPJS_MSG_LEN_MAX, 0);
-	    buff[bytes] = '\0';
-	    printf("Received from dispatchd: %s\n", buff);
+	    bytes = lpjs_recv_msg(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0);
+	    incoming_msg[bytes] = '\0';
+	    printf("Received from dispatchd: %s\n", incoming_msg);
 	}
 	poll_fd.revents = 0;
     }
@@ -146,13 +147,16 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
 
 {
     char        *cred,
-		buff[LPJS_MSG_LEN_MAX + 1];
+		outgoing_msg[LPJS_MSG_LEN_MAX + 1],
+		incoming_msg[LPJS_MSG_LEN_MAX + 1];
     munge_err_t munge_status;
     size_t      bytes;
     
     /* Send a message to the server */
     /* Need to send \0, so xt_dprintf() doesn't work here */
-    if ( lpjs_send_msg(msg_fd, 0, "compd-checkin") < 0 )
+    outgoing_msg[0] = LPJS_REQUEST_COMPD_CHECKIN;
+    outgoing_msg[1] = '\0';
+    if ( lpjs_send_msg(msg_fd, 0, outgoing_msg) < 0 )
     {
 	perror("lpjs-nodes: Failed to send checkin message to dispatchd");
 	close(msg_fd);
@@ -178,9 +182,9 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
     
     // This is needed before node_send_specs().
     // Can't write to socket before reading response to cred.
-    bytes = lpjs_recv_msg(msg_fd, buff, LPJS_MSG_LEN_MAX, 0);
-    lpjs_log("Response: %zu '%s'\n", bytes, buff);
-    if ( strcmp(buff, "Ident verified") != 0 )
+    bytes = lpjs_recv_msg(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0);
+    lpjs_log("Response: %zu '%s'\n", bytes, incoming_msg);
+    if ( strcmp(incoming_msg, "Ident verified") != 0 )
     {
 	lpjs_log("lpjs_compd_checkin(): Expected \"Ident verified\".\n");
 	return EX_DATAERR;

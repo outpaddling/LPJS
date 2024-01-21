@@ -138,8 +138,6 @@ ssize_t lpjs_send_msg(int msg_fd, int send_flags, const char *format, ...)
     uint16_t    msg_len;
     char        buff[LPJS_MSG_LEN_MAX + 1];
     
-    lpjs_log("lpjs_send_msg(): format = '%s'\n", format);
-    
     va_start(ap, format);
     status = vsnprintf(buff, LPJS_MSG_LEN_MAX + 1, format, ap);
    
@@ -149,7 +147,6 @@ ssize_t lpjs_send_msg(int msg_fd, int send_flags, const char *format, ...)
     send(msg_fd, &msg_len, sizeof(uint16_t), 0);
     
     // Also send '\0' byte to mark end of message
-    lpjs_log("Sending '%s'\n", buff);
     send(msg_fd, buff, strlen(buff), send_flags);
     va_end(ap);
     
@@ -183,7 +180,7 @@ ssize_t lpjs_recv_msg(int msg_fd, char *buff, size_t buff_len, int flags)
 	exit(EX_DATAERR);
     }
     msg_len = ntohs(msg_len);
-    lpjs_log("lpjs_recv_msg(): msg_len = %u\n", msg_len);
+    // lpjs_log("lpjs_recv_msg(): msg_len = %u\n", msg_len);
     
     if ( msg_len > buff_len - 1 )
     {
@@ -194,7 +191,7 @@ ssize_t lpjs_recv_msg(int msg_fd, char *buff, size_t buff_len, int flags)
     
     bytes_read = recv(msg_fd, buff, msg_len, flags | MSG_WAITALL);
     buff[bytes_read] = '\0';
-    lpjs_log("lpjs_recv_msg(): Got '%s'.\n", buff);
+    // lpjs_log("lpjs_recv_msg(): Got '%s'.\n", buff);
     
     return bytes_read;
 }

@@ -25,7 +25,8 @@ int     main (int argc, char *argv[])
 {
     int     msg_fd;
     ssize_t bytes;
-    char    buff[LPJS_MSG_LEN_MAX + 1],
+    char    outgoing_msg[LPJS_MSG_LEN_MAX + 1],
+	    incoming_msg[LPJS_MSG_LEN_MAX + 1],
 	    cmd[LPJS_CMD_MAX + 151],
 	    remote_cmd[LPJS_CMD_MAX + 1] = "",
 	    host[128],
@@ -49,7 +50,9 @@ int     main (int argc, char *argv[])
 	return EX_IOERR;
     }
 
-    if ( lpjs_send_msg(msg_fd, 0, "submit") < 0 )
+    outgoing_msg[0] = LPJS_REQUEST_SUBMIT;
+    outgoing_msg[1] = '\0';
+    if ( lpjs_send_msg(msg_fd, 0, outgoing_msg, 0) < 1 )
     {
 	perror("lpjs-submit: Failed to send submit request to dispatch");
 	close(msg_fd);
@@ -72,21 +75,21 @@ int     main (int argc, char *argv[])
     }
     free(cred);
     
-    if ( (bytes = lpjs_recv_msg(msg_fd, buff, LPJS_MSG_LEN_MAX, 0)) == -1 )
+    if ( (bytes = lpjs_recv_msg(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0)) == -1 )
     {
 	perror("lpjs-submit: Failed to read response from dispatch");
 	close(msg_fd);
 	return EX_IOERR;
     }
-    buff[bytes] = '\0';
-    puts(buff);
+    incoming_msg[bytes] = '\0';
+    puts(incoming_msg);
     
     /*
      *  Temporarily run 1 process interactively via ssh to test
      *  remote execution under lpjs-chaperone
      */
     
-    sscanf(buff, "%s %u", host, &cores);
+    sscanf(incoming_msg, "%s %u", host, &cores);
     xt_str_argv_cat(remote_cmd, argv, 1, LPJS_CMD_MAX + 1);
     puts(remote_cmd);
     snprintf(cmd, LPJS_CMD_MAX + 151, "ssh %s lpjs-chaperone ./%s\n",

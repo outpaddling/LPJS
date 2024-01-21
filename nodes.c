@@ -24,6 +24,7 @@ int     main (int argc, char *argv[])
     node_list_t node_list;
     // All commands might use lpjs_log()
     extern FILE *Log_stream;
+    char        outgoing_msg[LPJS_MSG_LEN_MAX + 1];
     
     if (argc != 1)
     {
@@ -40,7 +41,9 @@ int     main (int argc, char *argv[])
 	return EX_IOERR;
     }
 
-    if ( lpjs_send_msg(msg_fd, 0, "nodes") < 0 )
+    outgoing_msg[0] = LPJS_REQUEST_NODE_STATUS;
+    outgoing_msg[1] = '\0';
+    if ( lpjs_send_msg(msg_fd, 0, outgoing_msg) < 0 )
     {
 	perror("lpjs-nodes: Failed to send message to dispatch");
 	close(msg_fd);

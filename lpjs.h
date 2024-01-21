@@ -13,4 +13,19 @@
 #define LPJS_CMD_MAX            4096
 #define LPJS_NO_SELECT_TIMEOUT  NULL
 
-#endif
+// Don't start codes at 0.  It will be interpreted as a null-terminator
+enum
+{
+    LPJS_REQUEST_COMPD_CHECKIN = 1,
+    LPJS_REQUEST_NODE_STATUS,
+    LPJS_REQUEST_JOB_STATUS,
+    LPJS_REQUEST_SUBMIT
+};
+
+// Don't start codes at 0.  It will be interpreted as a null-terminator
+enum
+{
+    LPJS_NOTICE_JOB_COMPLETE = 1
+};
+
+#endif  // _LPJS_H_
