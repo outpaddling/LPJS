@@ -17,7 +17,6 @@
 #include <errno.h>
 #include <sys/socket.h>
 #include <poll.h>
-#include <munge.h>
 #include <xtend/string.h>
 #include <xtend/file.h>
 #include <xtend/proc.h>
@@ -29,13 +28,15 @@
 #include "lpjs_compd.h"
 
 int     main (int argc, char *argv[])
+
 {
     node_list_t node_list;
     node_t      node;
     char        incoming_msg[LPJS_MSG_LEN_MAX + 1];
     ssize_t     bytes;
     int         msg_fd,
-		status;
+		status,
+		retry_time = 10;
     extern FILE *Log_stream;
     struct pollfd   poll_fd;
 
@@ -74,11 +75,12 @@ int     main (int argc, char *argv[])
     // Get hostname of head node
     lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, Log_stream);
 
-    // FIXME: Retry, at least if running in daemon mode
-    if ( (msg_fd = lpjs_connect_to_dispatchd(&node_list)) == -1 )
+    while ( (msg_fd = lpjs_connect_to_dispatchd(&node_list)) == -1 )
     {
-	perror("lpjs-nodes: Failed to connect to dispatchd");
-	return EX_IOERR;
+	lpjs_log("lpjs_compd: Failed to connect to dispatchd: %s\n",
+		strerror(errno));
+	lpjs_log("Retry in %d seconds...\n", retry_time);
+	sleep(retry_time);
     }
 
     if ( (status = lpjs_compd_checkin(msg_fd, &node)) != EX_OK )
@@ -110,9 +112,10 @@ int     main (int argc, char *argv[])
 	    lpjs_log("Lost connection to dispatchd\n");
 	    while ( (msg_fd = lpjs_connect_to_dispatchd(&node_list)) == -1 )
 	    {
-		int     retry_time = 10;
+		lpjs_log("lpjs_compd: Failed to reconnect to dispatchd: %s\n",
+			strerror(errno));
+		lpjs_log("Retry in %d seconds...\n", retry_time);
 		sleep(retry_time);
-		lpjs_log("Reconnect failed.  Retry in %d seconds...\n", retry_time);
 	    }
 	    
 	    if ( lpjs_compd_checkin(msg_fd, &node) == EX_OK )
@@ -146,11 +149,8 @@ int     main (int argc, char *argv[])
 int     lpjs_compd_checkin(int msg_fd, node_t *node)
 
 {
-    char        *cred,
-		outgoing_msg[LPJS_MSG_LEN_MAX + 1],
+    char        outgoing_msg[LPJS_MSG_LEN_MAX + 1],
 		incoming_msg[LPJS_MSG_LEN_MAX + 1];
-    munge_err_t munge_status;
-    size_t      bytes;
     
     /* Send a message to the server */
     /* Need to send \0, so xt_dprintf() doesn't work here */
@@ -158,38 +158,18 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
     outgoing_msg[1] = '\0';
     if ( lpjs_send_msg(msg_fd, 0, outgoing_msg) < 0 )
     {
-	perror("lpjs-nodes: Failed to send checkin message to dispatchd");
+	perror("lpjs_compd: Failed to send checkin message to dispatchd");
 	close(msg_fd);
 	return EX_IOERR;
     }
 
-    if ( (munge_status = munge_encode(&cred, NULL, NULL, 0)) != EMUNGE_SUCCESS )
-    {
-	lpjs_log("lpjs_compd: munge_encode() failed.\n");
-	lpjs_log("Return code = %s\n", munge_strerror(munge_status));
-	return EX_UNAVAILABLE; // FIXME: Check actual error
-    }
-
-    printf("Sending %zd bytes: %s...\n", strlen(cred), cred);
-    if ( lpjs_send_msg(msg_fd, 0, cred) < 0 )
-    {
-	perror("lpjs_compd: Failed to send credential to dispatchd");
-	close(msg_fd);
-	free(cred);
-	return EX_IOERR;
-    }
-    free(cred);
-    
-    // This is needed before node_send_specs().
-    // Can't write to socket before reading response to cred.
-    bytes = lpjs_recv_msg(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0);
-    lpjs_log("Response: %zu '%s'\n", bytes, incoming_msg);
-    if ( strcmp(incoming_msg, "Munge credentials verified") != 0 )
-    {
-	lpjs_log("lpjs_compd_checkin(): Expected \"Ident verified\".\n");
+    // FIXME: Just sending a credential with no payload for now, to
+    // authenticate the socket connection.  Not sure if we should worry
+    // about a connection-oriented socket getting hijacked and
+    // munge other communication as well.
+    if ( lpjs_send_munge_msg(msg_fd, NULL) != EX_OK )
 	return EX_DATAERR;
-    }
-    
+
     node_detect_specs(node);
     node_send_specs(node, msg_fd);
     
@@ -200,6 +180,6 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
 	lpjs_log("It must be added to the etc/lpjs/config on the head node.\n");
 	exit(EX_NOPERM);
     }
-    
+
     return EX_OK;
 }

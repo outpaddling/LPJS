@@ -146,7 +146,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
     while ( bind(listen_fd, (struct sockaddr *) &server_address,
 	      sizeof (server_address)) < 0 )
     {
-	lpjs_log("bind() failed: %s: ", strerror(errno));
+	lpjs_log("bind() failed: %s\n", strerror(errno));
 	lpjs_log("Retry in 10 seconds...\n");
 	sleep(10);
     }
@@ -191,12 +191,6 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	}
 	lpjs_log("highest_fd = %d\n", highest_fd);
 	nfds = highest_fd + 1;
-	
-	// FIXME: Verify that compute nodes are alive at regular intervals
-	// and update status accordingly.
-	// Ping nodes from here or expect pings from compute nodes?
-	// The latter would seem to fit with using select() here.
-	// ping_all_nodes();
 	
 	if ( select(nfds, &read_fds, NULL, NULL, LPJS_NO_SELECT_TIMEOUT) > 0 )
 	{
@@ -246,7 +240,6 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	    
 	    if ( FD_ISSET(listen_fd, &read_fds) )
 	    {
-		// FIXME: Only accept requests from recognized cluster nodes
 		/* Accept a connection request */
 		if ((msg_fd = accept(listen_fd,
 			(struct sockaddr *)&server_address, &address_len)) == -1)
@@ -259,11 +252,6 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 		    puts("Accepted new connection.");
 		    lpjs_log("Accepted connection. fd = %d\n", msg_fd);
 	
-		    // FIXME: Use poll() to detect lost connections?
-		    // FIXME: Use stream I/O for incoming messaging?
-		    // Simplifies passing variable-length messages at
-		    // the cost of CPU time.
-		    
 		    /* Read a message through the socket */
 		    while ( (bytes = lpjs_recv_msg(msg_fd,
 				 incoming_msg, LPJS_MSG_LEN_MAX, 0)) < 1 )
@@ -327,7 +315,9 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 				    for (unsigned c = 0; c < NODE_LIST_COUNT(node_list); ++c)
 				    {
 					node_t *node = &NODE_LIST_COMPUTE_NODES_AE(node_list, c);
-					if ( strcmp(NODE_HOSTNAME(node), NODE_HOSTNAME(&new_node)) == 0 )
+					// If config has short hostnames, just match that
+					int valid_hostname_len = strlen(NODE_HOSTNAME(node));
+					if ( memcmp(NODE_HOSTNAME(node), NODE_HOSTNAME(&new_node), valid_hostname_len) == 0 )
 					    valid_node = true;
 				    }
 				    if ( ! valid_node )

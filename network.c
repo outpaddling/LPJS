@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <stdarg.h>
+#include <munge.h>
 #include <xtend/string.h>   // strlcpy() on Linux
 #include <xtend/net.h>
 #include <xtend/file.h>
@@ -221,4 +222,51 @@ ssize_t lpjs_send_eot(int msg_fd)
 	lpjs_log("send_eot(): Failed to send EOT.\n");
     
     return bytes;
+}
+
+
+/***************************************************************************
+ *  Description:
+ *      Send a munge-encoded message
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-21  Jason Bacon Begin
+ ***************************************************************************/
+
+ssize_t lpjs_send_munge_msg(int msg_fd, char *msg)
+
+{
+    char        *cred,
+		incoming_msg[LPJS_MSG_LEN_MAX + 1];
+    munge_err_t munge_status;
+    size_t      bytes;
+    
+    if ( (munge_status = munge_encode(&cred, NULL, NULL, 0)) != EMUNGE_SUCCESS )
+    {
+	lpjs_log("lpjs_compd: munge_encode() failed.\n");
+	lpjs_log("Return code = %s\n", munge_strerror(munge_status));
+	return EX_UNAVAILABLE; // FIXME: Check actual error
+    }
+
+    printf("Sending %zd bytes: %s...\n", strlen(cred), cred);
+    if ( lpjs_send_msg(msg_fd, 0, cred) < 0 )
+    {
+	perror("lpjs_compd: Failed to send credential to dispatchd");
+	close(msg_fd);
+	free(cred);
+	return EX_IOERR;
+    }
+    free(cred);
+    
+    // Read acknowledgment from dispatchd before node_send_specs().
+    bytes = lpjs_recv_msg(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0);
+    lpjs_log("Response: %zu '%s'\n", bytes, incoming_msg);
+    if ( strcmp(incoming_msg, "Munge credentials verified") != 0 )
+    {
+	lpjs_log("lpjs_compd_checkin(): Expected \"Ident verified\".\n");
+	return EX_DATAERR;
+    }
+    
+    return EX_OK;
 }
