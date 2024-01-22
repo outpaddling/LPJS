@@ -1,4 +1,24 @@
 
+Doc:
+    Submission: Everything under one "lpjs submit" command
+    Job: An independent computational run
+	Serial
+	Multithreaded
+	MPI
+
+Required submission parameters
+    Jobs
+    Cores per job
+    Nodes per job
+    
+    Array: Jobs > 1
+    Multithreaded: nodes per job = 1, cores per job = # or "all"
+    MPI: Cores per job > 1
+
+lpjs shell
+
+lpjs cancel job|submission #
+
 Basic queuing system
     Core/memory tracking
     Track actual vs stated memory use?
