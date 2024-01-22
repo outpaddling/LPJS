@@ -76,7 +76,7 @@ int     main(int argc,char *argv[])
     signal(SIGINT, lpjs_terminate_handler);
     signal(SIGTERM, lpjs_terminate_handler);
 
-    return process_events(&node_list, &job_list);
+    return lpjs_process_events(&node_list, &job_list);
 }
 
 
@@ -90,76 +90,24 @@ int     main(int argc,char *argv[])
  *  2021-09-25  Jason Bacon Begin
  ***************************************************************************/
 
-int     process_events(node_list_t *node_list, job_list_t *job_list)
+int     lpjs_process_events(node_list_t *node_list, job_list_t *job_list)
 
 {
     ssize_t     bytes;
     socklen_t   address_len = sizeof (struct sockaddr_in);
     char        incoming_msg[LPJS_MSG_LEN_MAX + 1];
-    struct sockaddr_in server_address = { 0 };
     uid_t       uid;
     gid_t       gid;
     munge_err_t munge_status;
     node_t      new_node;
     int         listen_fd, msg_fd;
+    struct sockaddr_in server_address = { 0 };
 
     /*
      *  Step 1: Create a socket for listening for new connections.
      */
     
-    /*
-     *  Create a socket endpoint to pair with the endpoint on the client.
-     *  This only creates a file descriptor.  It is not yet bound to
-     *  any network interface and port.
-     *  AF_INET and PF_INET have the same value, but PF_INET is more
-     *  correct according to BSD and Linux man pages, which indicate
-     *  that a protocol family should be specified.  In theory, a
-     *  protocol family can support more than one address family.
-     *  SOCK_STREAM indicates a reliable stream oriented protocol,
-     *  such as TCP, vs. unreliable unordered datagram protocols like UDP.
-     */
-    if ((listen_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0)
-    {
-	lpjs_log("Error opening listener socket.\n");
-	return EX_UNAVAILABLE;
-    }
-    lpjs_log("listen_fd = %d\n", listen_fd);
-
-    /*
-     *  Port on which to listen for new connections from compute nodes.
-     *  Convert 16-bit port number from host byte order to network byte order.
-     */
-    server_address.sin_port = htons(LPJS_IP_TCP_PORT);
-    
-    // AF_INET = inet4, AF_INET6 = inet6
-    server_address.sin_family = AF_INET;
-    
-    /*
-     *  Listen on all local network interfaces for now (INADDR_ANY).
-     *  We may allow the user to specify binding to a specific IP address
-     *  in the future, for multihomed servers acting as gateways, etc.
-     *  Convert 32-bit host address to network byte order.
-     */
-    server_address.sin_addr.s_addr = htonl(INADDR_ANY);
-
-    // Bind socket fd and server address
-    while ( bind(listen_fd, (struct sockaddr *) &server_address,
-	      sizeof (server_address)) < 0 )
-    {
-	lpjs_log("bind() failed: %s\n", strerror(errno));
-	lpjs_log("Retry in 10 seconds...\n");
-	sleep(10);
-    }
-    lpjs_log("Bound to port %d...\n", LPJS_IP_TCP_PORT);
-    
-    /*
-     *  Create queue for incoming connection requests
-     */
-    if (listen(listen_fd, LPJS_CONNECTION_QUEUE_MAX) != 0)
-    {
-	lpjs_log("listen() failed.\n");
-	return EX_UNAVAILABLE;
-    }
+    listen_fd = lpjs_listen(&server_address);
 
     /*
      *  Step 2: Accept new connections, and create a separate socket
@@ -196,47 +144,7 @@ int     process_events(node_list_t *node_list, job_list_t *job_list)
 	{
 	    lpjs_log("Back from select.\n");
 	    
-	    // Top priority: Active compute nodes (move existing jobs along)
-	    // Second priority: New compute node checkins (make resources available)
-	    // Lowest priority: User commands
-	    for (unsigned c = 0; c < NODE_LIST_COUNT(node_list); ++c)
-	    {
-		node_t *node = &NODE_LIST_COMPUTE_NODES_AE(node_list, c);
-		int     fd = NODE_MSG_FD(node);
-		if ( (fd != NODE_MSG_FD_NOT_OPEN) && FD_ISSET(fd, &read_fds) )
-		{
-		    lpjs_log("Activity on fd %d\n", fd);
-		    
-		    /*
-		     *  select() returns when a peer has closed the connection.
-		     *  lpjs_recv_msg() will return 0 in this case.
-		     */
-		    
-		    bytes = lpjs_recv_msg(fd, incoming_msg, LPJS_MSG_LEN_MAX, 0);
-		    if ( bytes == 0 )
-		    {
-			lpjs_log("Lost connection to %s.  Closing...\n",
-				NODE_HOSTNAME(node));
-			close(fd);
-			node_set_msg_fd(node, NODE_MSG_FD_NOT_OPEN);
-			node_set_state(node, "Down");
-		    }
-		    else
-		    {
-			switch(incoming_msg[0])
-			{
-			    case    LPJS_NOTICE_JOB_COMPLETE:
-				lpjs_log("Job completion report.\n");
-				lpjs_log_job(incoming_msg);
-				break;
-				
-			    default:
-				lpjs_log("Invalid notification on fd %d: %d\n",
-					fd, incoming_msg[0]);
-			}
-		    }
-		}
-	    }
+	    lpjs_check_comp_fds(node_list, &read_fds);
 	    
 	    if ( FD_ISSET(listen_fd, &read_fds) )
 	    {
@@ -447,4 +355,142 @@ int     lpjs_server_safe_close(int msg_fd)
     
     // lpjs_log(Log_stream, "Closing msg_fd.\n");
     return close(msg_fd);
+}
+
+
+/***************************************************************************
+ *  Description:
+ *      Check all connected sockets for messages
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-22  Jason Bacon Factor out from lpjs_process_events()
+ ***************************************************************************/
+
+void    lpjs_check_comp_fds(node_list_t *node_list, fd_set *read_fds)
+
+{
+    node_t  *node;
+    int     fd;
+    ssize_t bytes;
+    char    incoming_msg[LPJS_MSG_LEN_MAX + 1];
+    
+    // Top priority: Active compute nodes (move existing jobs along)
+    // Second priority: New compute node checkins (make resources available)
+    // Lowest priority: User commands
+    for (unsigned c = 0; c < NODE_LIST_COUNT(node_list); ++c)
+    {
+	node = &NODE_LIST_COMPUTE_NODES_AE(node_list, c);
+	fd = NODE_MSG_FD(node);
+	if ( (fd != NODE_MSG_FD_NOT_OPEN) && FD_ISSET(fd, read_fds) )
+	{
+	    lpjs_log("Activity on fd %d\n", fd);
+	    
+	    /*
+	     *  select() returns when a peer has closed the connection.
+	     *  lpjs_recv_msg() will return 0 in this case.
+	     */
+	    
+	    bytes = lpjs_recv_msg(fd, incoming_msg, LPJS_MSG_LEN_MAX, 0);
+	    if ( bytes == 0 )
+	    {
+		lpjs_log("Lost connection to %s.  Closing...\n",
+			NODE_HOSTNAME(node));
+		close(fd);
+		node_set_msg_fd(node, NODE_MSG_FD_NOT_OPEN);
+		node_set_state(node, "Down");
+	    }
+	    else
+	    {
+		switch(incoming_msg[0])
+		{
+		    case    LPJS_NOTICE_JOB_COMPLETE:
+			lpjs_log("Job completion report.\n");
+			lpjs_log_job(incoming_msg);
+			
+			/*
+			 *  FIXME: Check the queue and dispatch the
+			 *  next job if possible
+			 */
+			
+			break;
+			
+		    default:
+			lpjs_log("Invalid notification on fd %d: %d\n",
+				fd, incoming_msg[0]);
+		}
+	    }
+	}
+    }
+}
+
+
+/***************************************************************************
+ *  Description:
+ *      Create listener socket
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-22  Jason Bacon Factor out from lpjs_process_events()
+ ***************************************************************************/
+
+int     lpjs_listen(struct sockaddr_in *server_address)
+
+{
+    int     listen_fd;
+    
+    /*
+     *  Create a socket endpoint to pair with the endpoint on the client.
+     *  This only creates a file descriptor.  It is not yet bound to
+     *  any network interface and port.
+     *  AF_INET and PF_INET have the same value, but PF_INET is more
+     *  correct according to BSD and Linux man pages, which indicate
+     *  that a protocol family should be specified.  In theory, a
+     *  protocol family can support more than one address family.
+     *  SOCK_STREAM indicates a reliable stream oriented protocol,
+     *  such as TCP, vs. unreliable unordered datagram protocols like UDP.
+     */
+    if ((listen_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0)
+    {
+	lpjs_log("Error opening listener socket.\n");
+	exit(EX_UNAVAILABLE);
+    }
+    lpjs_log("listen_fd = %d\n", listen_fd);
+
+    /*
+     *  Port on which to listen for new connections from compute nodes.
+     *  Convert 16-bit port number from host byte order to network byte order.
+     */
+    server_address->sin_port = htons(LPJS_IP_TCP_PORT);
+    
+    // AF_INET = inet4, AF_INET6 = inet6
+    server_address->sin_family = AF_INET;
+    
+    /*
+     *  Listen on all local network interfaces for now (INADDR_ANY).
+     *  We may allow the user to specify binding to a specific IP address
+     *  in the future, for multihomed servers acting as gateways, etc.
+     *  Convert 32-bit host address to network byte order.
+     */
+    server_address->sin_addr.s_addr = htonl(INADDR_ANY);
+
+    // Bind socket fd and server address
+    while ( bind(listen_fd, (struct sockaddr *)server_address,
+	      sizeof (*server_address)) < 0 )
+    {
+	lpjs_log("bind() failed: %s\n", strerror(errno));
+	lpjs_log("Retry in 10 seconds...\n");
+	sleep(10);
+    }
+    lpjs_log("Bound to port %d...\n", LPJS_IP_TCP_PORT);
+    
+    /*
+     *  Create queue for incoming connection requests
+     */
+    if (listen(listen_fd, LPJS_CONNECTION_QUEUE_MAX) != 0)
+    {
+	lpjs_log("listen() failed.\n");
+	exit(EX_UNAVAILABLE);
+    }
+    return listen_fd;
 }
