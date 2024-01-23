@@ -137,7 +137,7 @@ int     lpjs_process_events(node_list_t *node_list, job_list_t *job_list)
 	{
 	    lpjs_log("Back from select.\n");
 	    
-	    lpjs_check_comp_fds(node_list, &read_fds);
+	    lpjs_check_comp_fds(&read_fds, node_list, job_list);
 	    lpjs_check_listen_fd(listen_fd, &read_fds, &server_address,
 				 node_list, job_list);
 	}
@@ -213,7 +213,8 @@ int     lpjs_server_safe_close(int msg_fd)
  *  2024-01-22  Jason Bacon Factor out from lpjs_process_events()
  ***************************************************************************/
 
-void    lpjs_check_comp_fds(node_list_t *node_list, fd_set *read_fds)
+void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
+			    job_list_t *job_list)
 
 {
     node_t  *node;
@@ -253,12 +254,7 @@ void    lpjs_check_comp_fds(node_list_t *node_list, fd_set *read_fds)
 		    case    LPJS_NOTICE_JOB_COMPLETE:
 			lpjs_log("Job completion report.\n");
 			lpjs_log_job(incoming_msg);
-			
-			/*
-			 *  FIXME: Check the queue and dispatch the
-			 *  next job if possible
-			 */
-			
+			lpjs_dispatch_next_job(node_list, job_list);
 			break;
 			
 		    default:
@@ -361,10 +357,6 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
     ssize_t     bytes;
     char        incoming_msg[LPJS_MSG_LEN_MAX + 1];
     socklen_t   address_len = sizeof (struct sockaddr_in);
-    munge_err_t munge_status;
-    node_t      new_node;
-    uid_t       uid;
-    gid_t       gid;
     
     if ( FD_ISSET(listen_fd, read_fds) )
     {
@@ -392,81 +384,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	    switch(incoming_msg[0])
 	    {
 		case    LPJS_REQUEST_COMPD_CHECKIN:
-		    // FIXME: Check for duplicate checkins.  We should not get
-		    // a checkin request while one is already open
-		    lpjs_log("compd-checkin requested.\n");
-		    // lpjs_log(Log_stream, "compd checkin.\n");
-		    
-		    /* Get munge credential */
-		    // FIXME: What is the maximum cred length?
-		    if ( (bytes = lpjs_recv_msg(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0)) < 1 )
-		    {
-			lpjs_server_safe_close(msg_fd);
-			lpjs_log("Failed to read munge credential: %s", strerror(errno));
-		    }
-		    else
-		    {
-			lpjs_log("Munge credential message length = %zd\n", bytes);
-			lpjs_log("munge msg: %s\n", incoming_msg);
-			
-			munge_status = munge_decode(incoming_msg, NULL, NULL, 0, &uid, &gid);
-			if ( munge_status != EMUNGE_SUCCESS )
-			{
-			    lpjs_server_safe_close(msg_fd);
-			    lpjs_log("munge_decode() failed.  Error = %s\n",
-				     munge_strerror(munge_status));
-			}
-			else
-			{
-			    lpjs_log("Checkin from uid %d, gid %d\n", uid, gid);
-			    
-			    // FIXME: Only accept compd checkins from root
-		
-			    /*
-			     *  Get specs from node and add msg_fd
-			     */
-			    
-			    lpjs_send_msg(msg_fd, 0, "Munge credentials verified");
-			    
-			    node_recv_specs(&new_node, msg_fd);
-			    
-			    // Keep in sync with node_list_send_status()
-			    printf(NODE_STATUS_HEADER_FORMAT, "Hostname", "State",
-				"Cores", "Used", "Physmem", "Used", "OS", "Arch");
-			    node_print_status(&new_node);
-			    
-			    // Make sure node name is valid
-			    // Note: For real security, only authorized
-			    // nodes should be allowed to pass through
-			    // the network firewall.
-			    bool valid_node = false;
-			    for (unsigned c = 0; c < NODE_LIST_COUNT(node_list); ++c)
-			    {
-				node_t *node = &NODE_LIST_COMPUTE_NODES_AE(node_list, c);
-				// If config has short hostnames, just match that
-				int valid_hostname_len = strlen(NODE_HOSTNAME(node));
-				if ( memcmp(NODE_HOSTNAME(node), NODE_HOSTNAME(&new_node), valid_hostname_len) == 0 )
-				    valid_node = true;
-			    }
-			    if ( ! valid_node )
-			    {
-				lpjs_log("Unauthorized checkin request from %s.\n", NODE_HOSTNAME(&new_node));
-				close(msg_fd);
-			    }
-			    else
-			    {
-				lpjs_send_msg(msg_fd, 0, "Node authorized");
-				node_set_msg_fd(&new_node, msg_fd);
-				
-				// Nodes were added to node_list by lpjs_load_config()
-				// Just update the fields here
-				node_list_update_compute(node_list, &new_node);
-				
-				puts("Done adding node.");
-				// FIXME: Acknowledge checkin
-			    }
-			}
-		    }
+		    lpjs_compute_node_checkin(msg_fd, node_list);
+		    lpjs_dispatch_next_job(node_list, job_list);
 		    break;
 		
 		case    LPJS_REQUEST_NODE_STATUS:
@@ -482,26 +401,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    break;
 		
 		case    LPJS_REQUEST_SUBMIT:
-		    // FIXME: Don't accept job submissions from root until
-		    // security issues have been considered
-		    
-		    lpjs_log("Request for job submission.\n");
-		    
-		    /* Get munge credential */
-		    // FIXME: What is the maximum cred length?
-		    if ( (bytes = lpjs_recv_msg(msg_fd, incoming_msg, 4096, 0)) == - 1)
-		    {
-			lpjs_log("lpjs_recv_msg() failed: %s", strerror(errno));
-			// FIXME: Figure out proper return values
-			return EX_IOERR;
-		    }
-		    munge_status = munge_decode(incoming_msg, NULL, NULL, 0, &uid, &gid);
-		    if ( munge_status != EMUNGE_SUCCESS )
-			lpjs_log("munge_decode() failed.  Error = %s\n",
-				 munge_strerror(munge_status));
-		    lpjs_log("Submit from %d, %d\n", uid, gid);
-		    lpjs_queue_job(msg_fd, incoming_msg, node_list);
-		    lpjs_server_safe_close(msg_fd);
+		    lpjs_submit(msg_fd, node_list, job_list);
+		    lpjs_dispatch_next_job(node_list, job_list);
 		    break;
 		
 		default:
@@ -513,4 +414,163 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
     }
     
     return EX_OK;
+}
+
+
+/***************************************************************************
+ *  Description:
+ *      Process a compute node checkin request
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-22  Jason Bacon Factor out from lpjs_process_events()
+ ***************************************************************************/
+
+void    lpjs_compute_node_checkin(int msg_fd, node_list_t *node_list)
+
+{
+    munge_err_t munge_status;
+    node_t      new_node;
+    uid_t       uid;
+    gid_t       gid;
+    ssize_t     bytes;
+    char        incoming_msg[LPJS_MSG_LEN_MAX + 1];
+    
+    // FIXME: Check for duplicate checkins.  We should not get
+    // a checkin request while one is already open
+    lpjs_log("compd-checkin requested.\n");
+    // lpjs_log(Log_stream, "compd checkin.\n");
+    
+    /* Get munge credential */
+    // FIXME: What is the maximum cred length?
+    if ( (bytes = lpjs_recv_msg(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0)) < 1 )
+    {
+	lpjs_server_safe_close(msg_fd);
+	lpjs_log("Failed to read munge credential: %s", strerror(errno));
+    }
+    else
+    {
+	lpjs_log("Munge credential message length = %zd\n", bytes);
+	lpjs_log("munge msg: %s\n", incoming_msg);
+	
+	munge_status = munge_decode(incoming_msg, NULL, NULL, 0, &uid, &gid);
+	if ( munge_status != EMUNGE_SUCCESS )
+	{
+	    lpjs_server_safe_close(msg_fd);
+	    lpjs_log("munge_decode() failed.  Error = %s\n",
+		     munge_strerror(munge_status));
+	}
+	else
+	{
+	    lpjs_log("Checkin from uid %d, gid %d\n", uid, gid);
+	    
+	    // FIXME: Only accept compd checkins from root
+
+	    /*
+	     *  Get specs from node and add msg_fd
+	     */
+	    
+	    lpjs_send_msg(msg_fd, 0, "Munge credentials verified");
+	    
+	    node_recv_specs(&new_node, msg_fd);
+	    
+	    // Keep in sync with node_list_send_status()
+	    printf(NODE_STATUS_HEADER_FORMAT, "Hostname", "State",
+		"Cores", "Used", "Physmem", "Used", "OS", "Arch");
+	    node_print_status(&new_node);
+	    
+	    // Make sure node name is valid
+	    // Note: For real security, only authorized
+	    // nodes should be allowed to pass through
+	    // the network firewall.
+	    bool valid_node = false;
+	    for (unsigned c = 0; c < NODE_LIST_COUNT(node_list); ++c)
+	    {
+		node_t *node = &NODE_LIST_COMPUTE_NODES_AE(node_list, c);
+		// If config has short hostnames, just match that
+		int valid_hostname_len = strlen(NODE_HOSTNAME(node));
+		if ( memcmp(NODE_HOSTNAME(node), NODE_HOSTNAME(&new_node), valid_hostname_len) == 0 )
+		    valid_node = true;
+	    }
+	    if ( ! valid_node )
+	    {
+		lpjs_log("Unauthorized checkin request from %s.\n", NODE_HOSTNAME(&new_node));
+		close(msg_fd);
+	    }
+	    else
+	    {
+		lpjs_send_msg(msg_fd, 0, "Node authorized");
+		node_set_msg_fd(&new_node, msg_fd);
+		
+		// Nodes were added to node_list by lpjs_load_config()
+		// Just update the fields here
+		node_list_update_compute(node_list, &new_node);
+		
+		puts("Done adding node.");
+		// FIXME: Acknowledge checkin
+	    }
+	}
+    }
+}
+
+
+/***************************************************************************
+ *  Description:
+ *      Add a new submission to the queue
+ *  
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-22  Jason Bacon Factor out from lpjs_process_events()
+ ***************************************************************************/
+
+int     lpjs_submit(int msg_fd, node_list_t *node_list, job_list_t *job_list)
+
+{
+    uid_t       uid;
+    gid_t       gid;
+    munge_err_t munge_status;
+    ssize_t     bytes;
+    char        incoming_msg[LPJS_MSG_LEN_MAX + 1];
+    
+    // FIXME: Don't accept job submissions from root until
+    // security issues have been considered
+    
+    lpjs_log("Request for job submission.\n");
+    
+    /* Get munge credential */
+    // FIXME: What is the maximum cred length?
+    if ( (bytes = lpjs_recv_msg(msg_fd, incoming_msg, 4096, 0)) == - 1)
+    {
+	lpjs_log("lpjs_recv_msg() failed: %s", strerror(errno));
+	// FIXME: Figure out proper return values
+	return EX_IOERR;
+    }
+    munge_status = munge_decode(incoming_msg, NULL, NULL, 0, &uid, &gid);
+    if ( munge_status != EMUNGE_SUCCESS )
+	lpjs_log("munge_decode() failed.  Error = %s\n",
+		 munge_strerror(munge_status));
+    lpjs_log("Submit from %d, %d\n", uid, gid);
+    lpjs_queue_job(msg_fd, incoming_msg, node_list);
+    lpjs_server_safe_close(msg_fd);
+    
+    return EX_OK;
+}
+
+
+/***************************************************************************
+ *  Description:
+ *      Check available nodes and the job queue, and dispatch the
+ *      next submission.  This should be called following any changes
+ *      to the job queue (new submissions, completed jobs), and when
+ *      a new node is added.  I.e. whenever it might become possible
+ *      to start new jobs.
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-22  Jason Bacon Begin
+ ***************************************************************************/
+
+void    lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
+
+{
 }

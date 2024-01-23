@@ -1,6 +1,6 @@
 
 Doc:
-    Submission: Everything under one "lpjs submit" command
+    Submission: All jobs under one "lpjs submit" command
     Job: An independent computational run
 	Serial
 	Multithreaded
