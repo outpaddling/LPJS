@@ -75,6 +75,13 @@ int     lpjs_connect_to_dispatchd(node_list_t *node_list)
 		NODE_LIST_HEAD_NODE(node_list), head_text_ip);
 	return -1;
     }
+    
+    /*
+     *  FIXME: Is there a way to terminate the connection to the listener
+     *  socket (port 6817 by default) immediately after msg_fd connects?
+     *  It lingers for a minute or so, causing bind() to fail on the
+     *  head node when restarting dispatchd.
+     */
 
     return msg_fd;
 }
