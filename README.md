@@ -38,11 +38,12 @@ I/O nodes) using NFS or similar services.
 Grids are similar to clusters, but usually consist of more loosely coupled,
 non-dedicated machines over a wider area, such as desktop computers
 that may not even be on the same site.
-They do not have a dedicated network or access to a common file server.
+They usually do not have a dedicated network or access to a common file server.
 
-In both clusters and grids, there is typically
-a "head node", dedicated to keeping track of available CPU cores and memory
-on all nodes, multiple compute nodes.
+In both clusters and grids, there are multiple "compute nodes", which
+actually run the programs, and a "head node", dedicated to keeping track of
+available CPU cores and memory on the compute nodes, and dispatching
+jobs from a queue when possible.
 
 There may also be additional node types, such as "visualization"
 nodes, which contain graphical software for examining analysis results
@@ -53,7 +54,7 @@ of accidental deletion, disk failure, etc.
 
 Using LPJS and similar systems, users can queue jobs to run as soon as
 resources become available.  Compute nodes with available cores and memory
-are automatically selected and programs usually run unattended (called
+are automatically selected, and programs usually run unattended (called
 batch mode), redirecting terminal output to files.  It is possible to run
 interactive jobs as well, but this is rare and typically only used for
 debugging.  Jobs may start
@@ -77,11 +78,12 @@ evolved into the premier batch system for massive and complex HPC clusters.
 Note that THERE IS NOTHING INHERENTLY COMPLICATED ABOUT AN HPC CLUSTER OR
 GRID. In its basic form, it's just a computer network
 with a head node for tracking resource use,
-compute nodes, possibly a file server, and some software to
+compute nodes, possibly some file servers, and some software to
 manage computing resources.  You can make a cluster or grid 
 as complicated as you
-wish, but even small, simple clusters and grids can reduce computation
-time by orders of magnitude.
+wish, but small, simple clusters and grids can reduce computation
+time by orders of magnitude, often reducing months of computation to hours,
+or years days.
 
 Overly complex HPC tools present a barrier to learning and research
 for those who have no ready access to centralized HPC resources.
@@ -96,8 +98,8 @@ research university.
 
 Large HPC clusters are dominated by Redhat Enterprise Linux (RHEL) and its
 derivatives, for many good reasons.  For one thing, RHEL is the only platform
-besides Windows supported by many commercial science and engineering
-applications such as ANSYS, Fluent, Abacus, etc.  Unfortunately, RHEL achieves
+besides Windows that is supported by many commercial science and engineering
+applications, such as ANSYS, Fluent, Abacus, etc.  Unfortunately, RHEL achieves
 enterprise reliability and long-term binary compatibility by using older,
 time-tested and debugged Linux kernels, compilers, and other tools, which
 often make it difficult to run the latest open source software.  Many
@@ -117,9 +119,9 @@ creeping feature syndrome, where software complexity grows steadily without
 limit to the demise of portability,
 reliability and maintainability.  Our focus is on
 improving quality in essential features rather than adding "cool" new
-features with emotional appeal.
+features for emotional appeal.
 
-- Complete portability: One of our primary goals is to foster research and
+- Complete portability across the POSIX world: One of our primary goals is to foster research and
 development of HPC clusters using __any__ POSIX operating system on __any__
 hardware or cloud platform.  You can run certainly LPJS on RHEL/x86 if you
 like, but you can also
@@ -162,14 +164,16 @@ configuration parameters are simply overrides of reasonable defaults.
 
 - Unambiguous and intuitive user interface: Commands and options are
 spelled out in a way that is easy to remember and won't be confused with
-others.
+others.  We won't invent new Jargon just to make us look better than
+the rest.
 
 - Simple, easily readable default output formats.  More sophisticated
 output may be provided by non-default command line flags.
 
 - User-friendliness: We do our best to maintain good documentation, but
 also to make it unnecessary via meaningful error messages, help features,
-and an intuitive user interface.
+and an intuitive user interface.  A menu interface is included for
+the most common tasks.
 
 - Flexibility: Run on dedicated hardware for maximum performance,
 utilize your Mac lab as an HPC cluster during off hours for maximum cost
@@ -177,27 +181,29 @@ efficiency, or link together multiple laptops in the field for quick and
 dirty data analysis.  Quickly deploy on as many cloud instances as you need
 for this week's computations.  You can even configure a single PC as a
 cluster for the sake of queuing jobs to maximize utilization
-of limited resources.
+of its limited resources.
 
-    The only networking requirement is that all nodes can connect
-    to the head node.  I.e., the head node can use an IP that is
-    directly routable from all nodes, or could itself be behind a NAT
-    using port-forwarding.
+    The only networking requirement is that all compute nodes can connect
+    to the head node.  The head node can use an IP that is
+    directly routable from all nodes, or could itself be behind a
+    router with NAT using port-forwarding.
     
     Note that for best communication performance, all nodes should be
     on the same subnet, preferably with a dedicated switch used only
     by cluster nodes.
     However, LPJS is designed to function where this
-    is not practical, such as existing office or campus networks.
+    is not practical, and can utilize existing office or campus networks,
+    even the Internet (one of our test compute nodes is several miles
+    from the head node).
 
-LPJS only provides functionality that can be implemented with reasonable
+LPJS directly provides only functionality that can be implemented with reasonable
 effort on __any__ POSIX platform, including but not limited to:
 
 - Queuing of batch jobs
 
 - Management of available cores and memory
 
-- Full enforcement of resource limits stated by job descriptions
+- Full enforcement of resource limits as stated by job descriptions
 
 - Job monitoring
 
