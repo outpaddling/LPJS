@@ -38,7 +38,13 @@ int     main(int argc,char *argv[])
 {
     node_list_t node_list;
     job_list_t  job_list;
-    extern FILE    *Log_stream; // Must be global for signal handler
+    
+    // Must be global for signal handler
+    // FIXME: Maybe use ucontext to pass these to handler
+    extern FILE         *Log_stream;
+    extern node_list_t  *Node_list;
+    
+    Node_list = &node_list;
     
     if ( argc > 2 )
     {
@@ -165,42 +171,6 @@ void    lpjs_log_job(const char *incoming_msg)
 {
     // FIXME: Add extensive info about the job
     lpjs_log(incoming_msg);
-}
-
-
-/***************************************************************************
- *  Description:
- *      Safely close a socket by ensuring first that the remote end
- *      is closed first.  This avoids
- *
- *      bind(): Address already in use
- *  
- *  History: 
- *  Date        Name        Modification
- *  2024-01-14  Jason Bacon Begin
- ***************************************************************************/
-
-int     lpjs_server_safe_close(int msg_fd)
-
-{
-    char    buff[64];
-    
-    /*
-     *  Client must be looking for the EOT character at the end of
-     *  a read, or this is useless.
-     */
-    lpjs_send_eot(msg_fd);
-    
-    /*
-     *  Wait until EOF is signaled due to the other end being closed.
-     *  FIXME: No data should be read here.  The first read() should
-     *  return EOF.  Add a check for this.
-     */
-    while ( read(msg_fd, buff, 64) > 0 )
-	sleep(1);
-    
-    // lpjs_log(Log_stream, "Closing msg_fd.\n");
-    return close(msg_fd);
 }
 
 

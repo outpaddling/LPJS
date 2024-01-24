@@ -4,13 +4,17 @@
 #include <sysexits.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include "misc.h"
+#include "node-list.h"
+#include "network.h"
 
 /*
  *  Avoid globals like the plague, but make an exception here so
  *  signal handlers can log messages.  All commands might use
  *  lpjs_log(), so Log_stream must be always be initialized in main().
  */
-FILE    *Log_stream;
+FILE        *Log_stream;
+node_list_t *Node_list;
 
 /***************************************************************************
  *  Description:
@@ -57,7 +61,18 @@ int     lpjs_log(const char *format, ...)
 void    lpjs_terminate_handler(int s2)
 
 {
+    node_t  *node;
+    int     c;
+    
     lpjs_log("Received signal, shutting down...\n");
-
+    for (c = 0; c < NODE_LIST_COUNT(Node_list); ++c)
+    {
+	node = &NODE_LIST_COMPUTE_NODES_AE(Node_list, c);
+	if ( NODE_MSG_FD(node) != -1 )
+	{
+	    lpjs_log("Closing connection with %s...\n", NODE_HOSTNAME(node));
+	    lpjs_server_safe_close(NODE_MSG_FD(node));
+	}
+    }
     exit(EX_OK);
 }
