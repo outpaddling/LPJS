@@ -1,4 +1,9 @@
 
+Terminate jobs that exceed their resource allocation
+    Only if there are jobs in the queue
+
+Report peak resource use compared to specified
+
 Doc:
     Submission: All jobs under one "lpjs submit" command
     Job: An independent computational run
@@ -8,8 +13,12 @@ Doc:
 
 Required submission parameters
     Jobs
-    Cores per job
+    Processors per job
+	Processor as defined by sysconf(_SC_NPROCESSORS_CONF)
+	or getconf _NPROCESSORS_CONF
     Nodes per job
+    pmem per job or pmem per core
+    vmem per job or vmem per core
     
     Array: Jobs > 1
     Multithreaded: nodes per job = 1, cores per job = # or "all"
