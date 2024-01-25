@@ -1,15 +1,15 @@
 [Unit]
-Description=Lightweight, portable job scheduler
+Description=Lightweight, Portable, Job Scheduler compute node service
 Documentation=man:lpjs_compd(8)
 After=network.target
 After=time-sync.target
 
 [Service]
 Type=forking
-ExecStart=/usr/sbin/lpjs_compd
+ExecStart=/usr/pkg/sbin/lpjs_compd --daemonize
 PIDFile=/var/run/lpjs/lpjs_compd.pid
-User=lpjs
-Group=lpjs
+User=root
+Group=root
 Restart=on-abort
 
 [Install]
