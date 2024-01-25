@@ -7,9 +7,13 @@ After=time-sync.target
 [Service]
 Type=forking
 ExecStart=/usr/pkg/sbin/lpjs_dispatchd --daemonize
-PIDFile=/var/run/lpjs/lpjs_dispatchd.pid
-User=lpjs
-Group=lpjs
+# FIXME: Get this working
+# PIDFile=/var/run/lpjs/lpjs_dispatchd.pid
+# FIXME: Probably shouldn't have to run dispatchd as root
+# User=lpjs
+# Group=lpjs
+User=root
+Group=root
 Restart=on-abort
 
 [Install]
