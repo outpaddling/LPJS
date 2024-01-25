@@ -217,7 +217,7 @@ install: all
 		${DESTDIR}${MANDIR}/man1/`basename $${f}`; \
 	done
 	${MKDIR} -p ${DESTDIR}${DATADIR}/Systemd
-	${INSTALL} -m 0644 RC-scripts/Systemd/* \
+	${INSTALL} -m 0644 Services/Systemd/* \
 	    ${DESTDIR}${DATADIR}/Systemd
 	
 install-strip: install
