@@ -1,4 +1,6 @@
 
+compd doesn't seem to daemonize on alma8
+
 Make sure non-daemons don't use Log_stream
     Some functions are shared between daemon and non-daemon programs
 
