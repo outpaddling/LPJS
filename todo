@@ -1,5 +1,6 @@
 
-compd doesn't seem to daemonize on alma8
+systemctl restart lpjs_compd doesn't work
+    Waiting a while and running restart again starts the daemon
 
 Make sure non-daemons don't use Log_stream
     Some functions are shared between daemon and non-daemon programs
