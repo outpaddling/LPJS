@@ -21,9 +21,12 @@
 #include <netinet/in.h>
 #include <signal.h>
 #include <errno.h>
-#include <munge.h>
 #include <stdbool.h>
+#include <sys/stat.h>
+
+#include <munge.h>
 #include <xtend/proc.h>
+
 #include "lpjs.h"
 #include "node-list.h"
 #include "job-list.h"
@@ -57,11 +60,13 @@ int     main(int argc,char *argv[])
 	 *  Code run after this must not attempt to write to stdout or stderr
 	 *  since they will be closed.  Use lpjs_log() for all informative
 	 *  messages.
+	 *  FIXME: Prevent unchecked log growth
 	 */
-	Log_stream = fopen("/var/log/lpjs_dispatchd", "a");
+	mkdir("/var/log/lpjs", 0755);
+	Log_stream = fopen("/var/log/lpjs/dispatchd", "a");
 	if ( Log_stream == NULL )
 	{
-	    perror("Cannot open /var/log/lpjs_dispatchd");
+	    perror("Cannot open /var/log/lpjs/dispatchd");
 	    return EX_CANTCREAT;
 	}
 	xt_daemonize(0, 0);

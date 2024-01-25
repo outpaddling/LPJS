@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sysexits.h>
+
 #include "node-list.h"
 #include "config.h"
 #include "network.h"
@@ -24,12 +25,16 @@ int     main (int argc, char *argv[])
     int         msg_fd;
     node_list_t node_list;
     char        outgoing_msg[LPJS_MSG_LEN_MAX + 1];
+    extern FILE *Log_stream;
     
     if (argc != 1)
     {
 	fprintf (stderr, "Usage: %s\n", argv[0]);
 	return EX_USAGE;
     }
+    
+    // Shared functions may use lpjs_log
+    Log_stream = stderr;
     
     // Get hostname of head node
     lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, stderr);

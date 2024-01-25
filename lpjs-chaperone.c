@@ -17,8 +17,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sysexits.h>
+
 #include <xtend/string.h>
 #include <xtend/file.h>
+
 #include "node-list.h"
 #include "config.h"
 #include "network.h"
@@ -31,6 +33,7 @@ int     main (int argc, char *argv[])
 		status;
     node_list_t node_list;
     char        cmd[LPJS_CMD_MAX + 1] = "";
+    extern FILE *Log_stream;
     
     if (argc < 2)
     {
@@ -38,6 +41,9 @@ int     main (int argc, char *argv[])
 	return EX_USAGE;
     }
 
+    // Shared functions may use lpjs_log
+    Log_stream = stderr;
+    
     // Get hostname of head node
     // FIXME: Send errors to log
     lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, stderr);

@@ -4,6 +4,7 @@
 #include <sysexits.h>
 #include <stdarg.h>
 #include <unistd.h>
+
 #include "misc.h"
 #include "node-list.h"
 #include "network.h"
@@ -19,7 +20,7 @@ node_list_t *Node_list;
 /***************************************************************************
  *  Description:
  *      Log messages to stream of choice, usually either stderr if running
- *      as a foreground process, /var/log/lpjs_* if daemonized.
+ *      as a foreground process, /var/log/lpjs if daemonized.
  *
  *  History: 
  *  Date        Name        Modification

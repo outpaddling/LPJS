@@ -2,9 +2,11 @@
 #include <stdlib.h>
 #include <sysexits.h>
 #include <string.h>
+
 #include <xtend/dsv.h>      // xt_dsv_read_field()
 #include <xtend/string.h>   // xt_strtrim()
 #include <xtend/file.h>
+
 #include "node-list.h"
 #include "network.h"
 #include "lpjs.h"

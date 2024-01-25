@@ -10,7 +10,9 @@
 #include <ctype.h>
 #include <stdbool.h>        // In case of bool
 #include <stdint.h>         // In case of int64_t, etc
+
 #include <xtend/string.h>   // strlcpy() on Linux
+
 #include "node.h"
 
 

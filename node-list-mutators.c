@@ -8,7 +8,9 @@
 
 #include <string.h>
 #include <ctype.h>
+
 #include <xtend/string.h>   // strlcpy() on Linux
+
 #include "node-list.h"
 
 

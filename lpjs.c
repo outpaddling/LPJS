@@ -44,10 +44,11 @@
 int     main(int argc,char *argv[])
 
 {
-    char    cmd[PATH_MAX + 1];
-    DIR     *dp;
+    char            cmd[PATH_MAX + 1];
+    DIR             *dp;
     struct dirent   *dir_entry;
     struct stat     inode;
+    extern FILE     *Log_stream;
     
     if ( (argc == 2) && (strcmp(argv[1],"--version") == 0) )
     {
@@ -72,6 +73,9 @@ int     main(int argc,char *argv[])
 	return EX_USAGE;
     }
 
+    // Shared functions may use lpjs_log
+    Log_stream = stderr;
+    
     snprintf(cmd, PATH_MAX, "%s/%s", LIBEXECDIR, argv[1]);
     if ( stat(cmd, &inode) == 0 )
 	execv(cmd, argv + 1);

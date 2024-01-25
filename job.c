@@ -3,8 +3,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sysexits.h>
+
 #include <xtend/dsv.h>
 #include <xtend/file.h>
+
 #include "job.h"
 #include "network.h"
 #include "lpjs.h"

@@ -3,7 +3,9 @@
 #include <string.h>
 #include <sysexits.h>
 #include <limits.h>
+
 #include <xtend/dsv.h>
+
 #include "node-list.h"
 #include "config.h"
 #include "misc.h"

@@ -8,10 +8,12 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <stdarg.h>
+
 #include <munge.h>
 #include <xtend/string.h>   // strlcpy() on Linux
 #include <xtend/net.h>
 #include <xtend/file.h>
+
 #include "node-list.h"
 #include "network.h"
 #include "lpjs.h"

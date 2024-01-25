@@ -12,9 +12,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sysexits.h>
-#include <munge.h>
+#include <sys/stat.h>
 #include <sys/socket.h>
+
+#include <munge.h>
 #include <xtend/string.h>
+
 #include "node-list.h"
 #include "config.h"
 #include "network.h"
@@ -34,6 +37,7 @@ int     main (int argc, char *argv[])
     unsigned cores;
     node_list_t node_list;
     munge_err_t munge_status;
+    extern FILE *Log_stream;
     
     if (argc < 2)
     {
@@ -41,6 +45,16 @@ int     main (int argc, char *argv[])
 	return EX_USAGE;
     }
 
+    // Shared functions may use lpjs_log
+    // FIXME: Prevent unchecked log growth
+    mkdir("/var/log/lpjs", 0755);
+    Log_stream = fopen("/var/log/lpjs/chaperone", "a");
+    if ( Log_stream == NULL )
+    {
+	perror("Cannot open /var/log/lpjs/chaperone");
+	return EX_CANTCREAT;
+    }
+    
     // Get hostname of head node
     lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, stderr);
 

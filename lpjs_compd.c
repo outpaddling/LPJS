@@ -17,9 +17,11 @@
 #include <errno.h>
 #include <sys/socket.h>
 #include <poll.h>
+
 #include <xtend/string.h>
 #include <xtend/file.h>
 #include <xtend/proc.h>
+
 #include "lpjs.h"
 #include "node-list.h"
 #include "config.h"
@@ -49,11 +51,13 @@ int     main (int argc, char *argv[])
 	 *  Code run after this must not attempt to write to stdout or stderr
 	 *  since they will be closed.  Use lpjs_log() for all informative
 	 *  messages.
+	 *  FIXME: Prevent unchecked log growth
 	 */
-	Log_stream = fopen("/var/log/lpjs_compd", "a");
+	mkdir("/var/log/lpjs", 0755);
+	Log_stream = fopen("/var/log/lpjs/compd", "a");
 	if ( Log_stream == NULL )
 	{
-	    perror("Cannot open /var/log/lpjs_compd");
+	    perror("Cannot open /var/log/lpjs/compd");
 	    return EX_CANTCREAT;
 	}
 	xt_daemonize(0, 0);
