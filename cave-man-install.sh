@@ -28,6 +28,9 @@ FreeBSD|OpenBSD|DragonFly)
     ;;
 
 *)
+    # Use system pkgsrc munge, running as a service
+    export LOCALBASE=/usr/pkg
+    
     # Need separate LOCALBASE to find munge installed by FreeBSD ports or pkgsrc
     if [ -z "$LOCALBASE" ]; then
 	if [ -e ~/Pkgsrc/pkgsrc ]; then

@@ -34,7 +34,6 @@ int     lpjs_connect_to_dispatchd(node_list_t *node_list)
     char                head_text_ip[LPJS_TEXT_IP_ADDRESS_MAX + 1];
     struct sockaddr_in  server_address;     // sockaddr_in = inet4
     int                 msg_fd;
-    extern FILE         *Log_stream;
 
     /*
      *  Create a socket endpoint to pair with the endpoint on the server.
