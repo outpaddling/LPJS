@@ -3,6 +3,7 @@ Description=Lightweight, Portable Job Scheduler dispatch service
 Documentation=man:lpjs_dispatchd(8)
 After=network.target
 After=time-sync.target
+After=munge.service
 
 [Service]
 Type=forking
