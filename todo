@@ -1,4 +1,6 @@
 
+Don't run dispatchd as root?  Create lpjs account?
+
 Terminate jobs that exceed their resource allocation
     Only if there are jobs in the queue
 
