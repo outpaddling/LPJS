@@ -61,8 +61,8 @@ int     main (int argc, char *argv[])
     
     if ( (munge_status = munge_encode(&cred, NULL, NULL, 0)) != EMUNGE_SUCCESS )
     {
-	fputs("lpjs-submit: munge_encode() failed.\n", stderr);
-	fprintf(stderr, "Return code = %s\n", munge_strerror(munge_status));
+	lpjs_log("lpjs-submit: munge_encode() failed.\n");
+	lpjs_log("Return code = %s\n", munge_strerror(munge_status));
 	return EX_UNAVAILABLE; // FIXME: Check actual error
     }
 

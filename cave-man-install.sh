@@ -48,8 +48,10 @@ FreeBSD|OpenBSD|DragonFly)
 
 esac
 
-rpl=$(realpath $PREFIX/lib)
-rll=$(realpath $LOCALBASE/lib)
+PREFIX=$(realpath $PREFIX)
+LOCALBASE=$(realpath $LOCALBASE)
+rpl=$PREFIX/lib
+rll=$LOCALBASE/lib
 export LDFLAGS="-L. -L$rpl -L$rll -Wl,-rpath,$rpl:$rll:/usr/lib:/lib"
 if [ $(uname) = SunOS ]; then
     export LDFLAGS="$LDFLAGS -lsocket -lnsl"

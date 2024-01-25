@@ -1,4 +1,7 @@
 
+Make sure non-daemons don't use Log_stream
+    Some functions are shared between daemon and non-daemon programs
+
 Don't run dispatchd as root?  Create lpjs account?
 
 Terminate jobs that exceed their resource allocation

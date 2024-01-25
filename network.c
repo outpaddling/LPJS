@@ -71,7 +71,7 @@ int     lpjs_connect_to_dispatchd(node_list_t *node_list)
 		 sizeof(server_address)) < 0 )
     {
 	lpjs_log("connect_to_dispatchd(): connect() failed: %s", strerror(errno));
-	fprintf(stderr, "hostname %s, ip = %s\n", 
+	lpjs_log("hostname %s, ip = %s\n", 
 		NODE_LIST_HEAD_NODE(node_list), head_text_ip);
 	return -1;
     }
@@ -110,7 +110,7 @@ int     lpjs_print_response(int msg_fd, const char *caller_name)
 	if ( eot_received )
 	{
 	    --bytes;
-	    // fprintf(stderr, "EOT received.\n");
+	    // lpjs_log("EOT received.\n");
 	}
 	buff[bytes] = '\0';
 	// FIXME: null-terminate at sender?
@@ -119,7 +119,7 @@ int     lpjs_print_response(int msg_fd, const char *caller_name)
     
     if ( bytes == -1 )
     {
-	fprintf(stderr, "%s: Failed to read response from dispatchd",
+	lpjs_log("%s: Failed to read response from dispatchd",
 		strerror(errno));
 	return EX_IOERR;
     }

@@ -19,6 +19,7 @@
 #include "lpjs.h"
 
 int     main (int argc, char *argv[])
+
 {
     int         msg_fd;
     node_list_t node_list;

@@ -35,8 +35,8 @@ int     main (int argc, char *argv[])
     char        incoming_msg[LPJS_MSG_LEN_MAX + 1];
     ssize_t     bytes;
     int         msg_fd;
-    extern FILE *Log_stream;
     struct pollfd   poll_fd;
+    extern FILE *Log_stream;
 
     if ( argc > 2 )
     {
@@ -60,15 +60,6 @@ int     main (int argc, char *argv[])
     }
     else
 	Log_stream = stderr;
-
-    /*
-     *  Set handler so that Listen_fd is properly closed before termination.
-     *  Still getting bind(): address alread in use during testing
-     *  with its frequent restarts.  Possible clues:
-     *  https://hea-www.harvard.edu/~fine/Tech/addrinuse.html
-     */
-    signal(SIGINT, lpjs_terminate_handler);
-    signal(SIGTERM, lpjs_terminate_handler);
     
     // Get hostname of head node
     lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, Log_stream);
