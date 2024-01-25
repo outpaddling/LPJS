@@ -34,8 +34,6 @@ int     lpjs_connect_to_dispatchd(node_list_t *node_list)
     int                 msg_fd;
     extern FILE         *Log_stream;
 
-    Log_stream = stderr;
-    
     /*
      *  Create a socket endpoint to pair with the endpoint on the server.
      *  AF_INET and PF_INET have the same value, but PF_INET is more
