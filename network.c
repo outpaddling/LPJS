@@ -112,7 +112,6 @@ int     lpjs_print_response(int msg_fd, const char *caller_name)
 	    // lpjs_log("EOT received.\n");
 	}
 	buff[bytes] = '\0';
-	// FIXME: null-terminate at sender?
 	printf("%s", buff);
     }
     
