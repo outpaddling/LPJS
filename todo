@@ -22,6 +22,8 @@ Doc:
 	Serial
 	Multithreaded
 	MPI
+    Config file can be the same on all nodes, but the compute nodes
+    only need the head node listed
 
 Required submission parameters
     Jobs

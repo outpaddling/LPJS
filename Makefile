@@ -219,9 +219,9 @@ install: all
 	${MKDIR} -p ${DESTDIR}${DATADIR}/Systemd
 	${INSTALL} -m 0644 Services/Systemd/* \
 	    ${DESTDIR}${DATADIR}/Systemd
-	${MKDIR} -p ${DESTDIR}${DATADIR}/Darwin
-	${INSTALL} -m 0644 Services/Darwin/* \
-	    ${DESTDIR}${DATADIR}/Darwin
+	${MKDIR} -p ${DESTDIR}${DATADIR}/Launchd
+	${INSTALL} -m 0644 Services/Launchd/* \
+	    ${DESTDIR}${DATADIR}/Launchd
 	
 install-strip: install
 	for f in ${LIBEXEC}; do \
