@@ -445,7 +445,7 @@ void    lpjs_compute_node_checkin(int msg_fd, node_list_t *node_list)
 	     *  Get specs from node and add msg_fd
 	     */
 	    
-	    lpjs_send_msg(msg_fd, 0, "Munge credentials verified");
+	    lpjs_send_msg(msg_fd, 0, MUNGE_CRED_VERIFIED);
 	    
 	    node_recv_specs(&new_node, msg_fd);
 	    
