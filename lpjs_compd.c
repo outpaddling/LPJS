@@ -89,6 +89,8 @@ int     main (int argc, char *argv[])
 	    // When trying to restart
 	    close(msg_fd);
 	    lpjs_log("Lost connection to dispatchd: HUP received.\n");
+	    // Give dispatchd time to restart
+	    sleep(10);
 	    msg_fd = checkin(&node_list, &node);
 	}
 	
@@ -108,6 +110,8 @@ int     main (int argc, char *argv[])
 		// When trying to restart
 		close(msg_fd);
 		lpjs_log("Lost connection to dispatchd: EOT received.\n");
+		// Give dispatchd time to restart
+		sleep(10);
 		msg_fd = checkin(&node_list, &node);
 	    }
 	    lpjs_log("Received from dispatchd: %s\n", incoming_msg);
@@ -132,10 +136,12 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
     outgoing_msg[1] = '\0';
     if ( lpjs_send_msg(msg_fd, 0, outgoing_msg) < 0 )
     {
-	perror("lpjs_compd: Failed to send checkin message to dispatchd");
+	lpjs_log("lpjs_compd: Failed to send checkin message to dispatchd: %s",
+		strerror(errno));
 	close(msg_fd);
 	return EX_IOERR;
     }
+    lpjs_log("Sent checkin request.\n");
 
     // FIXME: Just sending a credential with no payload for now, to
     // authenticate the socket connection.  Not sure if we should worry
@@ -143,6 +149,7 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
     // munge other communication as well.
     if ( lpjs_send_munge_msg(msg_fd, NULL) != EX_OK )
 	return EX_DATAERR;
+    lpjs_log("Sent munge auth.\n");
 
     node_detect_specs(node);
     node_send_specs(node, msg_fd);
@@ -201,13 +208,12 @@ int     checkin(node_list_t *node_list, node_t *node)
 	sleep(retry_time);
     }
     
-    if ( (status = lpjs_compd_checkin(msg_fd, node)) == EX_OK )
-	lpjs_log("Connection established.\n");
-    else
+    while ( (status = lpjs_compd_checkin(msg_fd, node)) != EX_OK )
     {
-	lpjs_log("compd-checkin failed.\n");
-	exit(status);
+	lpjs_log("compd-checkin failed.  Retry in 10 seconds...\n");
+	sleep(10);
     }
+    lpjs_log("Checkin successful.\n");
     
     return msg_fd;
 }

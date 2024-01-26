@@ -180,9 +180,15 @@ ssize_t lpjs_recv_msg(int msg_fd, char *buff, size_t buff_len, int flags)
     bytes_read = recv(msg_fd, &msg_len, sizeof(uint16_t), flags | MSG_WAITALL);
     if ( bytes_read == 0 )
 	return 0;
+    else if ( bytes_read == -1 )
+    {
+	lpjs_log("lpjs_recv_msg(): recv() returned -1: %s\n", strerror(errno));
+	return 0;
+    }
     else if ( bytes_read != sizeof(uint16_t) )
     {
-	lpjs_log("lpjs_recv_msg(): Read partial msg_len.\n");
+	lpjs_log("lpjs_recv_msg(): Read partial msg_len: %zd bytes.\n",
+		bytes_read);
 	exit(EX_DATAERR);
     }
     msg_len = ntohs(msg_len);
@@ -267,9 +273,9 @@ ssize_t lpjs_send_munge_msg(int msg_fd, char *msg)
     // Read acknowledgment from dispatchd before node_send_specs().
     bytes = lpjs_recv_msg(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0);
     lpjs_log("Response: %zu '%s'\n", bytes, incoming_msg);
-    if ( strcmp(incoming_msg, "Munge credentials verified") != 0 )
+    if ( strcmp(incoming_msg, MUNGE_CRED_VERIFIED) != 0 )
     {
-	lpjs_log("lpjs_compd_checkin(): Expected \"Ident verified\".\n");
+	lpjs_log("lpjs_compd_checkin(): Expected %s.\n", MUNGE_CRED_VERIFIED);
 	return EX_DATAERR;
     }
     
