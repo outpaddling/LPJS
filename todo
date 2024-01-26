@@ -6,9 +6,6 @@ Allow running compd as non-root
 systemctl restart lpjs_compd doesn't work
     Waiting a while and running restart again starts the daemon
 
-Make sure non-daemons don't use Log_stream
-    Some functions are shared between daemon and non-daemon programs
-
 Don't run dispatchd as root?  Create lpjs account?
 
 Terminate jobs that exceed their resource allocation
@@ -38,9 +35,13 @@ Required submission parameters
     Multithreaded: nodes per job = 1, cores per job = # or "all"
     MPI: Cores per job > 1
 
+Optional submission parameters
+    has_command, where command is any program in the standard PATH on node
+	PATH may differ across compute nodes, as they may run different OSs
+
 lpjs shell
 
-lpjs cancel job|submission #
+lpjs cancel job|submission-#
 
 Basic queuing system
     Core/memory tracking
@@ -52,6 +53,4 @@ Implement virtual memory limit checks
 Implement real memory limit checks
     Document that this is enforced by periodic sampling
 
-SLURM compatibility module
-    Convert sbatch scripts to lpjs and vice versa
-
+Convert sbatch scripts to lpjs and vice versa
