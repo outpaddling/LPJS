@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<book xmlns="http://docbook.org/ns/docbook" version="5.0">
+    <title>LPJS - Lighweight, Portable Job Scheduler</title>
+    
+    <chapter>
+        <title>Introduction</title>
+        
+        <para>
+        Small, simple, reliable.  Easy to set up.  Intuitive UI.
+        </para>
+        
+        <para>
+        See Research Computing User's Guide.
+        </para>
+    </chapter>
+    
+    <chapter>
+        <title>Installation</title>
+        
+        <para>
+        Use FreeBSD ports or pkgsrc.  Other package managers may be
+        supported by third parties.
+        </para>
+    </chapter>
+    
+    <chapter>
+        <title>Starting Daemons</title>
+        
+        <para>
+        munged, lpjs_dispatchd, lpjs_compd.  Install munge key on head
+        node and all compute nodes.
+        </para>
+        
+        <para>
+        Jobs can be submitted from any node with the same version of
+        LPJS installed.  It need not be running LPJS daemons, but it
+        does require a config file point to the head node and munge
+        to authenticate requests.  Hence, other computers on the network
+        can act as submit nodes, even if they are not part of the cluster/grid.
+        </para>
+        
+        <para>
+        Normally run as a service.  Run lpjs-admin and use the menus
+        to set up machine as a head node or compute node.  This will
+        enable the necessary daemons.
+        </para>
+        
+        <para>
+        It is possible to use LPJS without having admin access.
+        Start the daemons manually by running <command>munged</command>
+        and <command>lpjs_dispatchd</command> on the head node, and
+        <command>munged</command> and <command>lpjs_compd</command>
+        on each compute node.  Compute nodes will only be able to run jobs
+        under the same user name that submitted them.
+        </para>
+    </chapter>
+    
+    <chapter>
+        <title>Monitoring the Cluster/Grid</title>
+        
+        <para>
+        Learn to do this <emphasis>before</emphasis> running your
+        own jobs.
+        </para>
+    </chapter>
+    
+    <chapter>
+        <title>Running Jobs</title>
+    </chapter>
+</book>
