@@ -11,6 +11,7 @@
  *  scheduler can be running on a given cluster.
  */
 #define LPJS_IP_TCP_PORT        (short)6817 // Need short for htons()
+#define LPJS_RETRY_TIME         5
 
 #define MUNGE_CRED_VERIFIED     "Munge credentials verified" 
 

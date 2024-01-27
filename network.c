@@ -69,7 +69,7 @@ int     lpjs_connect_to_dispatchd(node_list_t *node_list)
     if ( connect(msg_fd, (struct sockaddr *)&server_address,
 		 sizeof(server_address)) < 0 )
     {
-	lpjs_log("connect_to_dispatchd(): connect() failed: %s", strerror(errno));
+	lpjs_log("connect_to_dispatchd(): connect() failed: %s\n", strerror(errno));
 	lpjs_log("hostname %s, ip = %s\n", 
 		NODE_LIST_HEAD_NODE(node_list), head_text_ip);
 	return -1;

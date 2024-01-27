@@ -96,8 +96,7 @@ int     main (int argc, char *argv[])
 	    // When trying to restart
 	    close(msg_fd);
 	    lpjs_log("Lost connection to dispatchd: HUP received.\n");
-	    // Give dispatchd time to restart
-	    sleep(10);
+	    sleep(LPJS_RETRY_TIME);  // No point trying immediately after drop
 	    msg_fd = checkin(&node_list, &node);
 	}
 	
@@ -117,8 +116,7 @@ int     main (int argc, char *argv[])
 		// When trying to restart
 		close(msg_fd);
 		lpjs_log("Lost connection to dispatchd: EOT received.\n");
-		// Give dispatchd time to restart
-		sleep(10);
+		sleep(LPJS_RETRY_TIME);  // No point trying immediately after drop
 		msg_fd = checkin(&node_list, &node);
 	    }
 	    lpjs_log("Received from dispatchd: %s\n", incoming_msg);
@@ -204,21 +202,20 @@ int     checkin(node_list_t *node_list, node_t *node)
 
 {
     int     msg_fd,
-	    status,
-	    retry_time = 10;
+	    status;
     
     while ( (msg_fd = lpjs_connect_to_dispatchd(node_list)) == -1 )
     {
 	lpjs_log("lpjs_compd: Failed to reconnect to dispatchd: %s\n",
 		strerror(errno));
-	lpjs_log("Retry in %d seconds...\n", retry_time);
-	sleep(retry_time);
+	lpjs_log("Retry in %d seconds...\n", LPJS_RETRY_TIME);
+	sleep(LPJS_RETRY_TIME);
     }
     
     while ( (status = lpjs_compd_checkin(msg_fd, node)) != EX_OK )
     {
-	lpjs_log("compd-checkin failed.  Retry in 10 seconds...\n");
-	sleep(10);
+	lpjs_log("compd-checkin failed.  Retry in %d seconds...\n", LPJS_RETRY_TIME);
+	sleep(LPJS_RETRY_TIME);
     }
     lpjs_log("Checkin successful.\n");
     
