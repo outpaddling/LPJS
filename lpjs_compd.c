@@ -19,7 +19,7 @@
 #include <poll.h>
 
 #include <xtend/string.h>
-#include <xtend/file.h>
+#include <xtend/file.h>     // xt_rmkdir(), ??
 #include <xtend/proc.h>
 
 #include "lpjs.h"
@@ -47,19 +47,26 @@ int     main (int argc, char *argv[])
     }
     else if ( (argc == 2) && (strcmp(argv[1],"--daemonize") == 0 ) )
     {
+	// FIXME: Prevent unchecked log growth
+	if ( xt_rmkdir(LPJS_LOG_DIR, 0755) != 0 )
+	{
+	    perror("Cannot create " LPJS_LOG_DIR);
+	    return EX_CANTCREAT;
+	}
+
+	Log_stream = fopen(LPJS_COMPD_LOG, "a");
+	if ( Log_stream == NULL )
+	{
+	    perror("Cannot open " LPJS_COMPD_LOG);
+	    return EX_CANTCREAT;
+	}
+
 	/*
 	 *  Code run after this must not attempt to write to stdout or stderr
 	 *  since they will be closed.  Use lpjs_log() for all informative
 	 *  messages.
 	 *  FIXME: Prevent unchecked log growth
 	 */
-	mkdir("/var/log/lpjs", 0755);
-	Log_stream = fopen("/var/log/lpjs/compd", "a");
-	if ( Log_stream == NULL )
-	{
-	    perror("Cannot open /var/log/lpjs/compd");
-	    return EX_CANTCREAT;
-	}
 	xt_daemonize(0, 0);
     }
     else

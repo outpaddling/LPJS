@@ -20,7 +20,8 @@ node_list_t *Node_list;
 /***************************************************************************
  *  Description:
  *      Log messages to stream of choice, usually either stderr if running
- *      as a foreground process, /var/log/lpjs if daemonized.
+ *      as a foreground process, or PREFIX/var/log/lpjs by default
+ *      if daemonized.
  *
  *  History: 
  *  Date        Name        Modification

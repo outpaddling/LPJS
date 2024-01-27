@@ -17,6 +17,7 @@
 
 #include <munge.h>
 #include <xtend/string.h>
+#include <xtend/file.h>     // xt_rmkdir()
 
 #include "node-list.h"
 #include "config.h"
@@ -37,6 +38,7 @@ int     main (int argc, char *argv[])
     unsigned cores;
     node_list_t node_list;
     munge_err_t munge_status;
+    // Shared functions may use lpjs_log
     extern FILE *Log_stream;
     
     if (argc < 2)
@@ -45,13 +47,17 @@ int     main (int argc, char *argv[])
 	return EX_USAGE;
     }
 
-    // Shared functions may use lpjs_log
     // FIXME: Prevent unchecked log growth
-    mkdir("/var/log/lpjs", 0755);
-    Log_stream = fopen("/var/log/lpjs/chaperone", "a");
+    if ( xt_rmkdir(LPJS_LOG_DIR, 0755) != 0 )
+    {
+	perror("Cannot create " LPJS_LOG_DIR);
+	return EX_CANTCREAT;
+    }
+    
+    Log_stream = fopen(LPJS_CHAPERONE_LOG, "a");
     if ( Log_stream == NULL )
     {
-	perror("Cannot open /var/log/lpjs/chaperone");
+	perror("Cannot open " LPJS_CHAPERONE_LOG);
 	return EX_CANTCREAT;
     }
     

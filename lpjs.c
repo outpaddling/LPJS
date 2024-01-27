@@ -40,6 +40,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include "lpjs.h"
 
 int     main(int argc,char *argv[])
 

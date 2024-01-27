@@ -26,6 +26,7 @@
 
 #include <munge.h>
 #include <xtend/proc.h>
+#include <xtend/file.h>     // xt_rmkdir()
 
 #include "lpjs.h"
 #include "node-list.h"
@@ -56,19 +57,27 @@ int     main(int argc,char *argv[])
     }
     else if ( (argc == 2) && (strcmp(argv[1],"--daemonize") == 0 ) )
     {
+	// FIXME: Prevent unchecked log growth
+	puts(LPJS_LOG_DIR);
+	if ( xt_rmkdir(LPJS_LOG_DIR, 0755) != 0 )
+	{
+	    perror("Cannot create " LPJS_LOG_DIR);
+	    return EX_CANTCREAT;
+	}
+	
+	Log_stream = fopen(LPJS_DISPATCHD_LOG, "a");
+	if ( Log_stream == NULL )
+	{
+	    perror("Cannot open " LPJS_DISPATCHD_LOG);
+	    return EX_CANTCREAT;
+	}
+
 	/*
 	 *  Code run after this must not attempt to write to stdout or stderr
 	 *  since they will be closed.  Use lpjs_log() for all informative
 	 *  messages.
 	 *  FIXME: Prevent unchecked log growth
 	 */
-	mkdir("/var/log/lpjs", 0755);
-	Log_stream = fopen("/var/log/lpjs/dispatchd", "a");
-	if ( Log_stream == NULL )
-	{
-	    perror("Cannot open /var/log/lpjs/dispatchd");
-	    return EX_CANTCREAT;
-	}
 	xt_daemonize(0, 0);
     }
     else

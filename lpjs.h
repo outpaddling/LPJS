@@ -13,6 +13,11 @@
 #define LPJS_CMD_MAX            4096
 #define LPJS_NO_SELECT_TIMEOUT  NULL
 
+#define LPJS_LOG_DIR            PREFIX "/var/log/lpjs"
+#define LPJS_COMPD_LOG          LPJS_LOG_DIR "/compd"
+#define LPJS_DISPATCHD_LOG      LPJS_LOG_DIR "/dispatchd"
+#define LPJS_CHAPERONE_LOG      LPJS_LOG_DIR "/chaperone"
+
 // Don't start codes at 0.  It will be interpreted as a null-terminator
 enum
 {
