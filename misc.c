@@ -4,7 +4,11 @@
 #include <sysexits.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include <errno.h>
 
+#include <xtend/file.h> // xt_rmkdir()
+
+#include "lpjs.h"
 #include "misc.h"
 #include "node-list.h"
 #include "network.h"
@@ -77,4 +81,52 @@ void    lpjs_terminate_handler(int s2)
 	}
     }
     exit(EX_OK);
+}
+
+
+/***************************************************************************
+ *  Use auto-c2man to generate a man page from this comment
+ *
+ *  Library:
+ *      #include <>
+ *      -l
+ *
+ *  Description:
+ *  
+ *  Arguments:
+ *
+ *  Returns:
+ *
+ *  Examples:
+ *
+ *  Files:
+ *
+ *  Environment
+ *
+ *  See also:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-27  Jason Bacon Begin
+ ***************************************************************************/
+
+FILE    *lpjs_log_output(char *pathname)
+
+{
+    FILE    *fp;
+    
+    // FIXME: Prevent unchecked log growth
+    if ( xt_rmkdir(LPJS_LOG_DIR, 0755) != 0 )
+    {
+	perror("Cannot create " LPJS_LOG_DIR);
+	return NULL;
+    }
+
+    fp = fopen(pathname, "a");
+    if ( fp == NULL )
+    {
+	fprintf(stderr, "Cannot open %s: %s\n", pathname, strerror(errno));
+	return NULL;
+    }
+    return fp;
 }

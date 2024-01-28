@@ -52,25 +52,13 @@ int     main(int argc,char *argv[])
     
     if ( argc > 2 )
     {
-	fprintf (stderr, "Usage: %s [--daemonize]\n", argv[0]);
+	fprintf (stderr, "Usage: %s [--daemonize|--log-output]\n", argv[0]);
 	return EX_USAGE;
     }
     else if ( (argc == 2) && (strcmp(argv[1],"--daemonize") == 0 ) )
     {
-	// FIXME: Prevent unchecked log growth
-	puts(LPJS_LOG_DIR);
-	if ( xt_rmkdir(LPJS_LOG_DIR, 0755) != 0 )
-	{
-	    perror("Cannot create " LPJS_LOG_DIR);
+	if ( (Log_stream = lpjs_log_output(LPJS_DISPATCHD_LOG)) == NULL )
 	    return EX_CANTCREAT;
-	}
-	
-	Log_stream = fopen(LPJS_DISPATCHD_LOG, "a");
-	if ( Log_stream == NULL )
-	{
-	    perror("Cannot open " LPJS_DISPATCHD_LOG);
-	    return EX_CANTCREAT;
-	}
 
 	/*
 	 *  Code run after this must not attempt to write to stdout or stderr
@@ -79,6 +67,11 @@ int     main(int argc,char *argv[])
 	 *  FIXME: Prevent unchecked log growth
 	 */
 	xt_daemonize(0, 0);
+    }
+    else if ( (argc == 2) && (strcmp(argv[1],"--log-output") == 0 ) )
+    {
+	if ( (Log_stream = lpjs_log_output(LPJS_DISPATCHD_LOG)) == NULL )
+	    return EX_CANTCREAT;
     }
     else
 	Log_stream = stderr;
