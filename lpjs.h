@@ -17,6 +17,9 @@
 #define LPJS_COMPD_LOG          LPJS_LOG_DIR "/compd"
 #define LPJS_DISPATCHD_LOG      LPJS_LOG_DIR "/dispatchd"
 #define LPJS_CHAPERONE_LOG      LPJS_LOG_DIR "/chaperone"
+#define LPJS_JOB_LOG            LPJS_LOG_DIR "/jobs"
+
+#define LPJS_SPOOL_DIR          PREFIX "/var/spool/lpjs"
 
 // Don't start codes at 0.  It will be interpreted as a null-terminator
 enum

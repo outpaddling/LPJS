@@ -1,0 +1,7 @@
+#!/bin/sh -e
+
+#lpjs jobs 1
+#lpjs cores-per-job 2
+#lpjs cores-per-node all
+
+hostname

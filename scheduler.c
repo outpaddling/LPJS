@@ -6,29 +6,6 @@
 #include "lpjs.h"
 #include "scheduler.h"
 
-/***************************************************************************
- *  Description:
- *      Add a job to the queue
- *
- *  History: 
- *  Date        Name        Modification
- *  2021-09-30  Jason Bacon Begin
- ***************************************************************************/
-
-int     lpjs_queue_job(int msg_fd, const char *incoming_msg, node_list_t *node_list)
-
-{
-    node_t  *first_node = &NODE_LIST_COMPUTE_NODES_AE(node_list, 0);
-    
-    /*
-     *  Temporarily allocate 1 core on first node unconditionally to test
-     *  dispatch
-     */
-
-    xt_dprintf(msg_fd, "%s 1", NODE_HOSTNAME(first_node));
-    return 0;
-}
-
 
 /***************************************************************************
  *  Library:
@@ -64,4 +41,23 @@ int     lpjs_select_nodes()
 
 {
     return 0;
+}
+
+
+/***************************************************************************
+ *  Description:
+ *      Check available nodes and the job queue, and dispatch the
+ *      next submission.  This should be called following any changes
+ *      to the job queue (new submissions, completed jobs), and when
+ *      a new node is added.  I.e. whenever it might become possible
+ *      to start new jobs.
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-22  Jason Bacon Begin
+ ***************************************************************************/
+
+void    lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
+
+{
 }

@@ -31,21 +31,19 @@ int     main (int argc, char *argv[])
     ssize_t bytes;
     char    outgoing_msg[LPJS_MSG_LEN_MAX + 1],
 	    incoming_msg[LPJS_MSG_LEN_MAX + 1],
-	    cmd[LPJS_CMD_MAX + 151],
-	    remote_cmd[LPJS_CMD_MAX + 1] = "",
-	    host[128],
-	    *cred;
-    unsigned cores;
+	    *cred,
+	    *script_name;
     node_list_t node_list;
     munge_err_t munge_status;
     // Shared functions may use lpjs_log
     extern FILE *Log_stream;
     
-    if (argc < 2)
+    if ( argc != 2 )
     {
-	fprintf (stderr, "Usage: %s command [args]\n", argv[0]);
+	fprintf (stderr, "Usage: %s script.lpjs\n", argv[0]);
 	return EX_USAGE;
     }
+    script_name =argv[1];
 
     // FIXME: Prevent unchecked log growth
     if ( xt_rmkdir(LPJS_LOG_DIR, 0755) != 0 )
@@ -79,7 +77,7 @@ int     main (int argc, char *argv[])
 	return EX_IOERR;
     }
     
-    if ( (munge_status = munge_encode(&cred, NULL, NULL, 0)) != EMUNGE_SUCCESS )
+    if ( (munge_status = munge_encode(&cred, NULL, script_name, strlen(script_name) + 1)) != EMUNGE_SUCCESS )
     {
 	lpjs_log("lpjs-submit: munge_encode() failed.\n");
 	lpjs_log("Return code = %s\n", munge_strerror(munge_status));
@@ -103,20 +101,6 @@ int     main (int argc, char *argv[])
     }
     incoming_msg[bytes] = '\0';
     puts(incoming_msg);
-    
-    /*
-     *  Temporarily run 1 process interactively via ssh to test
-     *  remote execution under lpjs-chaperone
-     */
-    
-    sscanf(incoming_msg, "%s %u", host, &cores);
-    xt_str_argv_cat(remote_cmd, argv, 1, LPJS_CMD_MAX + 1);
-    puts(remote_cmd);
-    snprintf(cmd, LPJS_CMD_MAX + 151, "ssh %s lpjs-chaperone ./%s\n",
-	     host, remote_cmd);
-    puts(cmd);
-    system(cmd);
-    close (msg_fd);
 
     return EX_OK;
 }

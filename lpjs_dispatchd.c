@@ -507,7 +507,9 @@ int     lpjs_submit(int msg_fd, node_list_t *node_list, job_list_t *job_list)
     gid_t       gid;
     munge_err_t munge_status;
     ssize_t     bytes;
-    char        incoming_msg[LPJS_MSG_LEN_MAX + 1];
+    int         script_name_len;
+    char        incoming_msg[LPJS_MSG_LEN_MAX + 1],
+		*script_name;
     
     // FIXME: Don't accept job submissions from root until
     // security issues have been considered
@@ -522,32 +524,46 @@ int     lpjs_submit(int msg_fd, node_list_t *node_list, job_list_t *job_list)
 	// FIXME: Figure out proper return values
 	return EX_IOERR;
     }
-    munge_status = munge_decode(incoming_msg, NULL, NULL, 0, &uid, &gid);
+    munge_status = munge_decode(incoming_msg, NULL, (void **)&script_name,
+				&script_name_len, &uid, &gid);
     if ( munge_status != EMUNGE_SUCCESS )
 	lpjs_log("munge_decode() failed.  Error = %s\n",
 		 munge_strerror(munge_status));
-    lpjs_log("Submit from %d, %d\n", uid, gid);
-    lpjs_queue_job(msg_fd, incoming_msg, node_list);
+    lpjs_log("Submit script %s from %d, %d\n", script_name, uid, gid);
+    lpjs_queue_job(msg_fd, script_name, node_list);
     lpjs_server_safe_close(msg_fd);
     
+    free(script_name);
     return EX_OK;
 }
 
 
 /***************************************************************************
  *  Description:
- *      Check available nodes and the job queue, and dispatch the
- *      next submission.  This should be called following any changes
- *      to the job queue (new submissions, completed jobs), and when
- *      a new node is added.  I.e. whenever it might become possible
- *      to start new jobs.
+ *      Add a job to the queue
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-22  Jason Bacon Begin
+ *  2021-09-30  Jason Bacon Begin
  ***************************************************************************/
 
-void    lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
+int     lpjs_queue_job(int msg_fd, const char *script_name, node_list_t *node_list)
 
 {
+    if ( xt_rmkdir(LPJS_SPOOL_DIR, 0755) != 0 )
+    {
+	perror("Cannot create " LPJS_SPOOL_DIR);
+	return -1;  // FIXME: Define error codes
+    }
+    
+    if ( xt_fast_cp(script_name, LPJS_SPOOL_DIR) != 0 )
+    {
+	fprintf(stderr, "lpjs_queue_job(): Failed to copy script to %s: %s\n",
+		script_name, LPJS_SPOOL_DIR);
+	return -1;
+    }
+    lpjs_log("Spooled %s.\n", script_name);
+    getchar();
+    
+    return 0;   // FIXME: Define error codes
 }
