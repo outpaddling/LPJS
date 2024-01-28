@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <sysexits.h>
 #include <unistd.h>
+#include <libgen.h>     // basename()
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <netinet/in.h>
@@ -550,20 +551,62 @@ int     lpjs_submit(int msg_fd, node_list_t *node_list, job_list_t *job_list)
 int     lpjs_queue_job(int msg_fd, const char *script_name, node_list_t *node_list)
 
 {
-    if ( xt_rmkdir(LPJS_SPOOL_DIR, 0755) != 0 )
+    char    spool_dir[PATH_MAX + 1],
+	    spool_path[PATH_MAX + 1],
+	    job_num_path[PATH_MAX + 1],
+	    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
+    FILE    *fp;
+    unsigned long    next_job_num;
+    
+    lpjs_log("Spooling %s...\n", script_name);
+    
+    snprintf(job_num_path, PATH_MAX + 1, "%s/next-job", LPJS_SPOOL_DIR);
+    if ( (fp = fopen(job_num_path, "r")) == NULL )
+	next_job_num = 1;
+    else
+    {
+	fscanf(fp, "%lu", &next_job_num);
+	fclose(fp);
+    }
+
+    snprintf(spool_dir, PATH_MAX + 1, "%s/%lu", LPJS_SPOOL_DIR,
+	    next_job_num);
+    if ( xt_rmkdir(spool_dir, 0755) != 0 )
     {
 	perror("Cannot create " LPJS_SPOOL_DIR);
 	return -1;  // FIXME: Define error codes
     }
+
+    snprintf(spool_path, PATH_MAX + 1, "%s/%s", spool_dir,
+	    basename((char *)script_name));
     
-    if ( xt_fast_cp(script_name, LPJS_SPOOL_DIR) != 0 )
+    // lpjs_log("cwd = %s\n", getcwd(cwd, PATH_MAX + 1));
+    
+    // FIXME: Use a symlink instead?  Copy is safer in case user
+    // modifies the script while a job is running.
+    if ( xt_fast_cp(script_name, spool_path) != 0 )
     {
-	fprintf(stderr, "lpjs_queue_job(): Failed to copy script to %s: %s\n",
-		script_name, LPJS_SPOOL_DIR);
+	lpjs_log("lpjs_queue_job(): Failed to copy %s to %s: %s\n",
+		script_name, spool_path, strerror(errno));
 	return -1;
     }
-    lpjs_log("Spooled %s.\n", script_name);
-    getchar();
+    
+    snprintf(outgoing_msg, LPJS_MSG_LEN_MAX, "Spooled job %lu to %s.\n",
+	    next_job_num, spool_path);
+    lpjs_send_msg(msg_fd, 0, outgoing_msg);
+    lpjs_log(outgoing_msg);
+    
+    // Bump job num after successful spool
+    if ( (fp = fopen(job_num_path, "w")) == NULL )
+    {
+	lpjs_log("Cannot update %s: %s\n", job_num_path, strerror(errno));
+	return -1;
+    }
+    else
+    {
+	fprintf(fp, "%lu\n", ++next_job_num);
+	fclose(fp);
+    }
     
     return 0;   // FIXME: Define error codes
 }

@@ -28,11 +28,10 @@
 int     main (int argc, char *argv[])
 {
     int     msg_fd;
-    ssize_t bytes;
     char    outgoing_msg[LPJS_MSG_LEN_MAX + 1],
-	    incoming_msg[LPJS_MSG_LEN_MAX + 1],
 	    *cred,
-	    *script_name;
+	    *script_name,
+	    script_path[PATH_MAX + 1];
     node_list_t node_list;
     munge_err_t munge_status;
     // Shared functions may use lpjs_log
@@ -77,7 +76,16 @@ int     main (int argc, char *argv[])
 	return EX_IOERR;
     }
     
-    if ( (munge_status = munge_encode(&cred, NULL, script_name, strlen(script_name) + 1)) != EMUNGE_SUCCESS )
+    if ( script_name[0] == '/' )
+	strlcpy(script_path, script_name, PATH_MAX + 1);
+    else
+    {
+	getcwd(script_path, PATH_MAX + 1);
+	strlcat(script_path, "/", PATH_MAX + 1);
+	strlcat(script_path, script_name, PATH_MAX + 1);
+    }
+    if ( (munge_status = munge_encode(&cred, NULL, script_path,
+				strlen(script_path) + 1)) != EMUNGE_SUCCESS )
     {
 	lpjs_log("lpjs-submit: munge_encode() failed.\n");
 	lpjs_log("Return code = %s\n", munge_strerror(munge_status));
@@ -92,7 +100,9 @@ int     main (int argc, char *argv[])
 	return EX_IOERR;
     }
     free(cred);
-    
+
+    lpjs_print_response(msg_fd, "lpjs submit");
+    /*
     if ( (bytes = lpjs_recv_msg(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0)) == -1 )
     {
 	perror("lpjs-submit: Failed to read response from dispatch");
@@ -100,7 +110,8 @@ int     main (int argc, char *argv[])
 	return EX_IOERR;
     }
     incoming_msg[bytes] = '\0';
-    puts(incoming_msg);
+    printf(incoming_msg);
+    */
 
     return EX_OK;
 }
