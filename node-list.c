@@ -120,12 +120,29 @@ void    node_list_update_compute(node_list_t *node_list, node_t *node)
 void    node_list_send_status(int msg_fd, node_list_t *node_list)
 
 {
-    unsigned    c;
+    unsigned        c,
+		    cores,
+		    cores_used;
+    unsigned long   mem,
+		    mem_used;
     
     xt_dprintf(msg_fd, NODE_STATUS_HEADER_FORMAT, "Hostname", "State",
 	    "Cores", "Used", "Physmem", "Used", "OS", "Arch");
+    cores = cores_used = mem = mem_used = 0;
     for (c = 0; c < node_list->count; ++c)
+    {
 	node_send_status(&node_list->compute_nodes[c], msg_fd);
+	if ( strcmp(NODE_STATE(&node_list->compute_nodes[c]), "Up") == 0 )
+	{
+	    cores += NODE_CORES(&node_list->compute_nodes[c]);
+	    cores_used += NODE_CORES_USED(&node_list->compute_nodes[c]);
+	    mem += NODE_PHYS_MEM(&node_list->compute_nodes[c]);
+	    mem_used += NODE_PHYS_MEM_USED(&node_list->compute_nodes[c]);
+	}
+    }
+    
+    xt_dprintf(msg_fd, NODE_STATUS_FORMAT, "Totals", "",
+		  cores, cores_used, mem, mem_used, "", "");
     
     /*
      *  Closing the listener first results in "address already in use"
@@ -133,6 +150,6 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
      *  transmission, so the client can close first and avoid a wait
      *  state for the socket.
      */
-    lpjs_send_msg(msg_fd, 0, "%c", 4);
+    lpjs_send_eot(msg_fd);
 }
 

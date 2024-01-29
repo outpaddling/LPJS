@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
 #include <sysexits.h>
 #include <sys/utsname.h>
 #include <sys/socket.h>     // MSG_WAIT_ALL
@@ -137,7 +138,7 @@ void    node_send_status(node_t *node, int msg_fd)
 		node->cores, node->cores_used,                                 
 		node->phys_mem, node->phys_mem_used, node->os, node->arch) < 0 )
     {
-	perror("send_node_specs(): xt_dprintf() failed");
+	lpjs_log("send_node_specs(): xt_dprintf() failed: %s", strerror(errno));
 	exit(EX_IOERR);
     }
 }

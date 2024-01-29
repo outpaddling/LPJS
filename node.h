@@ -19,7 +19,7 @@ typedef struct
     int             zfs;        // 0 or 1
     char            *os;
     char            *arch;
-    char            *state;
+    char            *state;     // FIXME: Use an enum, not a string
     int             msg_fd;
     time_t          last_ping;
 }   node_t;
