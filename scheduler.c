@@ -5,10 +5,10 @@
 
 #include <xtend/file.h>
 
-#include "node-list.h"
 #include "lpjs.h"
+#include "node-list.h"
 #include "scheduler.h"
-
+#include "misc.h"       // lpjs_log()
 
 /***************************************************************************
  *  Description:
@@ -124,26 +124,27 @@ int     lpjs_select_next_job(job_t *job)
 {
     DIR             *dp;
     struct dirent   *entry;
-    unsigned long   low_job_num,
+    unsigned long   low_job_id,
 		    int_dir_name;
     char            *end;
     
     /*
-     *  Find spooled job with lowest job num
+     *  Find spooled job with lowest job id
      */
     dp = opendir(LPJS_SPOOL_DIR);
-    low_job_num = ULONG_MAX;
+    low_job_id = ULONG_MAX;
     while ( (entry = readdir(dp)) != NULL )
     {
 	// The directory name is the job ID
 	int_dir_name = strtoul(entry->d_name, &end, 10);
 	if ( *end == '\0' )
 	{
-	    if ( int_dir_name < low_job_num )
-		low_job_num = int_dir_name;
+	    if ( int_dir_name < low_job_id )
+		low_job_id = int_dir_name;
 	}
     }
     closedir(dp);
+    lpjs_log("%s(): Selected job %lu to dispatch.\n", __FUNCTION__, low_job_id);
     
     /*
      *  Parse the job script and submission data, build the job_t structure
