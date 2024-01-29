@@ -122,7 +122,7 @@ FILE    *lpjs_log_output(char *pathname)
 	return NULL;
     }
 
-    fp = fopen(pathname, "a");
+    fp = fopen(pathname, "w");
     if ( fp == NULL )
     {
 	fprintf(stderr, "Cannot open %s: %s\n", pathname, strerror(errno));

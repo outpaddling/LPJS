@@ -51,6 +51,7 @@ int     main (int argc, char *argv[])
 	return EX_CANTCREAT;
     }
     
+    // FIXME: Need a different filename for each job
     Log_stream = fopen(LPJS_CHAPERONE_LOG, "a");
     if ( Log_stream == NULL )
     {
