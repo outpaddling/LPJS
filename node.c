@@ -68,20 +68,33 @@ void    node_detect_specs(node_t *node)
     node->cores = sysconf(_SC_NPROCESSORS_ONLN);
     node->phys_mem = sysconf(_SC_PAGESIZE) * sysconf(_SC_PHYS_PAGES)
 		     / 1024 / 1024;
-    lpjs_log("CPUs\t%u\n", node->cores);
-    lpjs_log("Physmem\t%lu\n", node->phys_mem);
     /*
      *  Report 1 if ZFS filesystem found, so that additional memory
      *  can be reserved on compute nodes.
      *  FIXME: There should be a better approach to this.
      */
     node->zfs = ! system("mount | fgrep -q zfs");
-    lpjs_log("ZFS\t%u\n", node->zfs);
     uname(&u_name);
     // FIXME: Verify malloc() success
     node->os = strdup(u_name.sysname);
     node->arch = strdup(u_name.machine);
-    lpjs_log("OS\t%s\nArch\t%s\n", node->os, node->arch);
+}
+
+
+/***************************************************************************
+ *  Description:
+ *      Print header for node status info
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-28  Jason Bacon Begin
+ ***************************************************************************/
+
+void    node_print_status_header(FILE *stream)
+
+{
+    fprintf(stderr, NODE_STATUS_HEADER_FORMAT, "Hostname", "State",
+	  "Cores", "Used", "Physmem", "Used", "OS", "Arch");
 }
 
 
@@ -94,10 +107,10 @@ void    node_detect_specs(node_t *node)
  *  2021-09-23  Jason Bacon Begin
  ***************************************************************************/
 
-void    node_print_status(node_t *node)
+void    node_print_status(FILE *stream, node_t *node)
 
 {
-    printf(NODE_STATUS_FORMAT, node->hostname, node->state,
+    fprintf(stream, NODE_STATUS_FORMAT, node->hostname, node->state,
 	   node->cores, node->cores_used,
 	   node->phys_mem, node->phys_mem_used, node->os, node->arch);
 }
@@ -143,12 +156,11 @@ void    node_send_status(node_t *node, int msg_fd)
 ssize_t node_send_specs(node_t *node, int msg_fd)
 
 {
-    char    specs_msg[LPJS_MSG_LEN_MAX + 1];
+    char        specs_msg[LPJS_MSG_LEN_MAX + 1];
+    extern FILE *Log_stream;
     
-    lpjs_log("Sending specs...\n");
-    lpjs_log("%s\t%s\t%u\t%lu\t%u\t%s\t%s\n",
-		 node->hostname, node->state, node->cores,
-		 node->phys_mem, node->zfs, node->os, node->arch);
+    node_print_status_header(Log_stream);
+    node_print_status(Log_stream, node);
     if ( snprintf(specs_msg, LPJS_MSG_LEN_MAX + 1,
 		  "%s\t%s\t%u\t%lu\t%u\t%s\t%s\n",
 		  node->hostname, node->state, node->cores,
@@ -183,8 +195,6 @@ ssize_t node_recv_specs(node_t *node, int msg_fd)
     
     node_init(node);
     
-    lpjs_log("In node_recv_specs()...\n");
-    
     msg_len = lpjs_recv_msg(msg_fd, specs_msg, LPJS_MSG_LEN_MAX, MSG_WAITALL);
     if ( msg_len < 0 )
     {
@@ -196,7 +206,6 @@ ssize_t node_recv_specs(node_t *node, int msg_fd)
     }
     else
     {
-	lpjs_log("Reading fields...\n");
 	stringp = specs_msg;
 	
 	if ( (field = strsep(&stringp, "\t")) == NULL )
@@ -205,7 +214,6 @@ ssize_t node_recv_specs(node_t *node, int msg_fd)
 	    return -1;
 	}
 	node->hostname = strdup(field);
-	lpjs_log("Hostname = %s\n", node->hostname);
 
 	if ( (field = strsep(&stringp, "\t")) == NULL )
 	{
@@ -213,7 +221,6 @@ ssize_t node_recv_specs(node_t *node, int msg_fd)
 	    return -1;
 	}
 	node->state = strdup(field);
-	lpjs_log("State = %s\n", node->state);
 
 	if ( (field = strsep(&stringp, "\t")) == NULL )
 	{
@@ -226,7 +233,6 @@ ssize_t node_recv_specs(node_t *node, int msg_fd)
 	    lpjs_log("node_recv_specs(): Cores field is not a valid number.\n");
 	    return -1;
 	}
-	lpjs_log("Cores = %u\n", node->cores);
 
 	if ( (field = strsep(&stringp, "\t")) == NULL )
 	{
@@ -239,7 +245,6 @@ ssize_t node_recv_specs(node_t *node, int msg_fd)
 	    lpjs_log("node_recv_specs(): Physmem field is not a valid number.\n");
 	    return -1;
 	}
-	lpjs_log("phys_mem = %zu\n", node->phys_mem);
 
 	if ( (field = strsep(&stringp, "\t")) == NULL )
 	{
@@ -252,7 +257,6 @@ ssize_t node_recv_specs(node_t *node, int msg_fd)
 	    lpjs_log("node_recv_specs(): ZFS field is not a valid number (should be 0 or 1).\n");
 	    return -1;
 	}
-	lpjs_log("zfs = %d\n", node->zfs);
 
 	if ( (field = strsep(&stringp, "\t")) == NULL )
 	{
@@ -260,15 +264,13 @@ ssize_t node_recv_specs(node_t *node, int msg_fd)
 	    return -1;
 	}
 	node->os = strdup(field);
-	lpjs_log("OS = %s\n", node->os);
     
-	if ( (field = strsep(&stringp, "\t")) == NULL )
+	if ( (field = strsep(&stringp, "\t\n")) == NULL )
 	{
 	    lpjs_log("node_recv_specs(): Failed to extract arch from specs.\n");
 	    return -1;
 	}
 	node->arch = strdup(field);
-	lpjs_log("Arch = %s\n", node->arch);
     }
     return 0;
 }

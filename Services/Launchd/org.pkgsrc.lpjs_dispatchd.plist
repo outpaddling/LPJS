@@ -4,8 +4,11 @@
     <dict>
 	<key>Label</key>
 	<string>org.pkgsrc.lpjs_dispatchd</string>
-	<key>Program</key>
-	<string>/opt/pkg/sbin/lpjs_dispatchd</string>
+	<key>ProgramArguments</key>
+	<array>
+	    <string>/opt/pkg/sbin/lpjs_dispatchd</string>
+	    <string>--log-output</string>
+	</array>
 	<key>RunAtLoad</key>
 	<true/>
 	<key>KeepAlive</key>

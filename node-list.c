@@ -91,11 +91,9 @@ void    node_list_update_compute(node_list_t *node_list, node_t *node)
 	*first_dot = '\0';
     for (c = 0; c < node_list->count; ++c)
     {
-	lpjs_log("%s\n",
-		NODE_HOSTNAME(&node_list->compute_nodes[c]));
 	if ( strcmp(NODE_HOSTNAME(&node_list->compute_nodes[c]), short_hostname) == 0 )
 	{
-	    lpjs_log("Updating compute node %zu %s\n", c, NODE_HOSTNAME(&node_list->compute_nodes[c]));
+	    // lpjs_log("Updating compute node %zu %s\n", c, NODE_HOSTNAME(&node_list->compute_nodes[c]));
 	    node_set_state(&node_list->compute_nodes[c], "Up");
 	    node_set_cores(&node_list->compute_nodes[c], NODE_CORES(node));
 	    node_set_phys_mem(&node_list->compute_nodes[c], NODE_PHYS_MEM(node));

@@ -57,7 +57,6 @@ int     lpjs_connect_to_dispatchd(node_list_t *node_list)
     if ( xt_resolve_hostname(NODE_LIST_HEAD_NODE(node_list), head_text_ip,
 			  LPJS_TEXT_IP_ADDRESS_MAX + 1) != XT_OK )
 	exit(EX_OSERR);
-    lpjs_log("head node IP = %s\n", head_text_ip);
     
     // Convert inet4 string xxx.xxx.xxx.xxx to 32-bit IP in network byte order
     server_address.sin_addr.s_addr = inet_addr(head_text_ip);
@@ -250,8 +249,8 @@ ssize_t lpjs_send_munge_msg(int msg_fd, char *msg)
 {
     char        *cred,
 		incoming_msg[LPJS_MSG_LEN_MAX + 1];
+    ssize_t     bytes;
     munge_err_t munge_status;
-    size_t      bytes;
     
     if ( (munge_status = munge_encode(&cred, NULL, NULL, 0)) != EMUNGE_SUCCESS )
     {
@@ -260,7 +259,7 @@ ssize_t lpjs_send_munge_msg(int msg_fd, char *msg)
 	return EX_UNAVAILABLE; // FIXME: Check actual error
     }
 
-    printf("Sending %zd bytes: %s...\n", strlen(cred), cred);
+    // printf("Sending %zd bytes: %s...\n", strlen(cred), cred);
     if ( lpjs_send_msg(msg_fd, 0, cred) < 0 )
     {
 	perror("lpjs_compd: Failed to send credential to dispatchd");
@@ -272,8 +271,8 @@ ssize_t lpjs_send_munge_msg(int msg_fd, char *msg)
     
     // Read acknowledgment from dispatchd before node_send_specs().
     bytes = lpjs_recv_msg(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0);
-    lpjs_log("Response: %zu '%s'\n", bytes, incoming_msg);
-    if ( strcmp(incoming_msg, MUNGE_CRED_VERIFIED) != 0 )
+    // lpjs_log("Response: %zu '%s'\n", bytes, incoming_msg);
+    if ( (bytes == 0) || (strcmp(incoming_msg, MUNGE_CRED_VERIFIED) != 0) )
     {
 	lpjs_log("lpjs_compd_checkin(): Expected %s.\n", MUNGE_CRED_VERIFIED);
 	return EX_DATAERR;

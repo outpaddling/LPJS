@@ -75,10 +75,10 @@ int     main (int argc, char *argv[])
     
     // Now keep daemon running, awaiting jobs
     // Almost correct: https://unix.stackexchange.com/questions/581426/how-to-get-notified-when-the-other-end-of-a-socketpair-is-closed
+    lpjs_log("Waiting for submissions...\n");
     while ( true )
     {
 	poll(&poll_fd, 1, 2000);
-	printf("Back from poll().  revents = %08x\n", poll_fd.revents);
 	
 	// FIXME: Send regular pings to lpjs_dispatchd?
 	// Or monitor compd daemons with a separate process that
@@ -148,7 +148,6 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
     // munge other communication as well.
     if ( lpjs_send_munge_msg(msg_fd, NULL) != EX_OK )
 	return EX_DATAERR;
-    lpjs_log("Sent munge auth.\n");
 
     node_detect_specs(node);
     node_send_specs(node, msg_fd);

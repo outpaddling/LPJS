@@ -136,20 +136,17 @@ int     lpjs_process_events(node_list_t *node_list, job_list_t *job_list)
 	    //        NODE_HOSTNAME(node), NODE_MSG_FD(node));
 	    if ( NODE_MSG_FD(node) != NODE_MSG_FD_NOT_OPEN )
 	    {
-		lpjs_log("Adding fd %d, node %s to fd set.\n",
-			NODE_MSG_FD(node),
-			NODE_HOSTNAME(node));
 		FD_SET(NODE_MSG_FD(node), &read_fds);
 		if ( NODE_MSG_FD(node) > highest_fd )
 		    highest_fd = NODE_MSG_FD(node);
 	    }
 	}
-	lpjs_log("highest_fd = %d\n", highest_fd);
+	// lpjs_log("highest_fd = %d\n", highest_fd);
 	nfds = highest_fd + 1;
 	
 	if ( select(nfds, &read_fds, NULL, NULL, LPJS_NO_SELECT_TIMEOUT) > 0 )
 	{
-	    lpjs_log("Back from select.\n");
+	    // lpjs_log("Back from select.\n");
 	    
 	    lpjs_check_comp_fds(&read_fds, node_list, job_list);
 	    lpjs_check_listen_fd(listen_fd, &read_fds, &server_address,
@@ -275,7 +272,6 @@ int     lpjs_listen(struct sockaddr_in *server_address)
 	lpjs_log("Error opening listener socket.\n");
 	exit(EX_UNAVAILABLE);
     }
-    lpjs_log("listen_fd = %d\n", listen_fd);
 
     /*
      *  Port on which to listen for new connections from compute nodes.
@@ -347,8 +343,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	}
 	else
 	{
-	    puts("Accepted new connection.");
-	    lpjs_log("Accepted connection. fd = %d\n", msg_fd);
+	    // lpjs_log("Accepted connection. fd = %d\n", msg_fd);
 
 	    /* Read a message through the socket */
 	    while ( (bytes = lpjs_recv_msg(msg_fd,
@@ -413,6 +408,7 @@ void    lpjs_compute_node_checkin(int msg_fd, node_list_t *node_list)
     gid_t       gid;
     ssize_t     bytes;
     char        incoming_msg[LPJS_MSG_LEN_MAX + 1];
+    extern FILE *Log_stream;
     
     // FIXME: Check for duplicate checkins.  We should not get
     // a checkin request while one is already open
@@ -428,8 +424,8 @@ void    lpjs_compute_node_checkin(int msg_fd, node_list_t *node_list)
     }
     else
     {
-	lpjs_log("Munge credential message length = %zd\n", bytes);
-	lpjs_log("munge msg: %s\n", incoming_msg);
+	// lpjs_log("Munge credential message length = %zd\n", bytes);
+	// lpjs_log("munge msg: %s\n", incoming_msg);
 	
 	munge_status = munge_decode(incoming_msg, NULL, NULL, 0, &uid, &gid);
 	if ( munge_status != EMUNGE_SUCCESS )
@@ -453,9 +449,8 @@ void    lpjs_compute_node_checkin(int msg_fd, node_list_t *node_list)
 	    node_recv_specs(&new_node, msg_fd);
 	    
 	    // Keep in sync with node_list_send_status()
-	    printf(NODE_STATUS_HEADER_FORMAT, "Hostname", "State",
-		"Cores", "Used", "Physmem", "Used", "OS", "Arch");
-	    node_print_status(&new_node);
+	    node_print_status_header(Log_stream);
+	    node_print_status(Log_stream, &new_node);
 	    
 	    // Make sure node name is valid
 	    // Note: For real security, only authorized
@@ -483,8 +478,6 @@ void    lpjs_compute_node_checkin(int msg_fd, node_list_t *node_list)
 		// Nodes were added to node_list by lpjs_load_config()
 		// Just update the fields here
 		node_list_update_compute(node_list, &new_node);
-		
-		puts("Done adding node.");
 		// FIXME: Acknowledge checkin
 	    }
 	}
@@ -558,7 +551,7 @@ int     lpjs_queue_job(int msg_fd, const char *script_name, node_list_t *node_li
     FILE    *fp;
     unsigned long    next_job_num;
     
-    lpjs_log("Spooling %s...\n", script_name);
+    // lpjs_log("Spooling %s...\n", script_name);
     
     snprintf(job_num_path, PATH_MAX + 1, "%s/next-job", LPJS_SPOOL_DIR);
     if ( (fp = fopen(job_num_path, "r")) == NULL )
@@ -592,7 +585,7 @@ int     lpjs_queue_job(int msg_fd, const char *script_name, node_list_t *node_li
     }
     
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX, "Spooled job %lu to %s.\n",
-	    next_job_num, spool_path);
+	    next_job_num, spool_dir);
     lpjs_send_msg(msg_fd, 0, outgoing_msg);
     lpjs_log(outgoing_msg);
     
