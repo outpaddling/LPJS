@@ -37,6 +37,8 @@ int     main (int argc, char *argv[])
     // Shared functions may use lpjs_log
     extern FILE *Log_stream;
     
+    Log_stream = stderr;
+    
     if ( argc != 2 )
     {
 	fprintf (stderr, "Usage: %s script.lpjs\n", argv[0]);
@@ -44,21 +46,6 @@ int     main (int argc, char *argv[])
     }
     script_name =argv[1];
 
-    // FIXME: Prevent unchecked log growth
-    if ( xt_rmkdir(LPJS_LOG_DIR, 0755) != 0 )
-    {
-	perror("Cannot create " LPJS_LOG_DIR);
-	return EX_CANTCREAT;
-    }
-    
-    // FIXME: Need a different filename for each job
-    Log_stream = fopen(LPJS_CHAPERONE_LOG, "a");
-    if ( Log_stream == NULL )
-    {
-	perror("Cannot open " LPJS_CHAPERONE_LOG);
-	return EX_CANTCREAT;
-    }
-    
     // Get hostname of head node
     lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, stderr);
 

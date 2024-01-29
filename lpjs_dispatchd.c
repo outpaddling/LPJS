@@ -229,7 +229,7 @@ void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
 		    case    LPJS_NOTICE_JOB_COMPLETE:
 			lpjs_log("Job completion report.\n");
 			lpjs_log_job(incoming_msg);
-			lpjs_dispatch_next_job(node_list, job_list);
+			lpjs_dispatch_jobs(node_list, job_list);
 			break;
 			
 		    default:
@@ -358,7 +358,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	    {
 		case    LPJS_REQUEST_COMPD_CHECKIN:
 		    lpjs_compute_node_checkin(msg_fd, node_list);
-		    lpjs_dispatch_next_job(node_list, job_list);
+		    lpjs_dispatch_jobs(node_list, job_list);
 		    break;
 		
 		case    LPJS_REQUEST_NODE_STATUS:
@@ -375,7 +375,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		
 		case    LPJS_REQUEST_SUBMIT:
 		    lpjs_submit(msg_fd, node_list, job_list);
-		    lpjs_dispatch_next_job(node_list, job_list);
+		    lpjs_dispatch_jobs(node_list, job_list);
 		    break;
 		
 		default:
@@ -587,6 +587,8 @@ int     lpjs_queue_job(int msg_fd, const char *script_name, node_list_t *node_li
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX, "Spooled job %lu to %s.\n",
 	    next_job_num, spool_dir);
     lpjs_send_msg(msg_fd, 0, outgoing_msg);
+    
+    // FIXME: Send this to the job log, not the daemon log
     lpjs_log(outgoing_msg);
     
     // Bump job num after successful spool
