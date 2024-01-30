@@ -47,7 +47,9 @@ int     main (int argc, char *argv[])
 	return EX_USAGE;
     }
     script_name =argv[1];
-
+    
+    job_parse_script(&job, script_name);
+    
     // Get hostname of head node
     lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, stderr);
 
@@ -67,10 +69,6 @@ int     main (int argc, char *argv[])
     }
     
     // FIXME: Send full job specs from job_t class and entire script
-    
-    job_parse_script(&job, script_name);
-    xt_realpath(script_name, script_path, PATH_MAX + 1);
-    
     if ( (munge_status = munge_encode(&cred, NULL, script_path,
 				strlen(script_path) + 1)) != EMUNGE_SUCCESS )
     {
