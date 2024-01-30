@@ -26,6 +26,7 @@
 #include "lpjs.h"
 
 int     main (int argc, char *argv[])
+
 {
     int     msg_fd;
     char    outgoing_msg[LPJS_MSG_LEN_MAX + 1],
@@ -33,6 +34,7 @@ int     main (int argc, char *argv[])
 	    *script_name,
 	    script_path[PATH_MAX + 1];
     node_list_t node_list;
+    job_t       job;
     munge_err_t munge_status;
     // Shared functions may use lpjs_log
     extern FILE *Log_stream;
@@ -64,14 +66,11 @@ int     main (int argc, char *argv[])
 	return EX_IOERR;
     }
     
-    if ( script_name[0] == '/' )
-	strlcpy(script_path, script_name, PATH_MAX + 1);
-    else
-    {
-	getcwd(script_path, PATH_MAX + 1);
-	strlcat(script_path, "/", PATH_MAX + 1);
-	strlcat(script_path, script_name, PATH_MAX + 1);
-    }
+    // FIXME: Send full job specs from job_t class and entire script
+    
+    job_parse_script(&job, script_name);
+    xt_realpath(script_name, script_path, PATH_MAX + 1);
+    
     if ( (munge_status = munge_encode(&cred, NULL, script_path,
 				strlen(script_path) + 1)) != EMUNGE_SUCCESS )
     {
@@ -90,16 +89,6 @@ int     main (int argc, char *argv[])
     free(cred);
 
     lpjs_print_response(msg_fd, "lpjs submit");
-    /*
-    if ( (bytes = lpjs_recv_msg(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0)) == -1 )
-    {
-	perror("lpjs-submit: Failed to read response from dispatch");
-	close(msg_fd);
-	return EX_IOERR;
-    }
-    incoming_msg[bytes] = '\0';
-    printf(incoming_msg);
-    */
-
+    
     return EX_OK;
 }

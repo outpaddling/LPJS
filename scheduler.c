@@ -55,11 +55,6 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
     /*
      *  Look through spool dir and determine requirements of the
      *  next job in the queue
-     *  FIXME: Not sure the job_list class is useful.  Storing
-     *  this info in memory means it's lost and must be rebuilt
-     *  when dispatchd is restarted.  May be better to just keep
-     *  this info on disk.  Compd should retry indefinitely to
-     *  send updates if it can't connect to dispatchd.
      */
     
     if ( lpjs_select_next_job(&job) == 0 )
@@ -72,6 +67,11 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
     
     /*
      *  Log submission time and stats
+     */
+    
+    /*
+     *  Update job in job_list.  This is only a cache of information stored
+     *  on disk, for quick access during queries.
      */
     
     return 0;
@@ -147,11 +147,16 @@ int     lpjs_select_next_job(job_t *job)
     lpjs_log("%s(): Selected job %lu to dispatch.\n", __FUNCTION__, low_job_id);
     
     /*
-     *  Parse the job script and submission data, build the job_t structure
+     *  Get job specs and script from spool dir
      */
     
     /*
-     *  Remove the job from the spool dir
+     *  Move from pending to running
+     */
+    
+    /*
+     *  Update job in job_list.  This is only a cache of information stored
+     *  on disk, for quick access during queries.
      */
     
     return 0;

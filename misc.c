@@ -130,3 +130,56 @@ FILE    *lpjs_log_output(char *pathname)
     }
     return fp;
 }
+
+
+/***************************************************************************
+ *  Use auto-c2man to generate a man page from this comment
+ *
+ *  Name:
+ *      -
+ *
+ *  Library:
+ *      #include <>
+ *      -l
+ *
+ *  Description:
+ *  
+ *  Arguments:
+ *
+ *  Returns:
+ *
+ *  Examples:
+ *
+ *  Files:
+ *
+ *  Environment
+ *
+ *  See also:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-30  Jason Bacon Begin
+ ***************************************************************************/
+
+char    *xt_realpath(const char *relative_path,
+		    char *absolute_path, size_t buff_size)
+
+{
+    if ( relative_path[0] == '/' )
+	strlcpy(absolute_path, relative_path, buff_size);
+    else if ( relative_path[0] == '~' )
+    {
+	fputs("xt_realpath(): ~ is not yet supported.\n", stderr);
+	return NULL;
+    }
+    else
+    {
+	getcwd(absolute_path, buff_size);
+	strlcat(absolute_path, "/", buff_size);
+	strlcat(absolute_path, relative_path, buff_size);
+    }
+    
+    // FIXME: Compact path by removing ./ and ../
+    
+    return NULL;
+}
