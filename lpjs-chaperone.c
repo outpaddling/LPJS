@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sysexits.h>
+#include <errno.h>
 
 #include <xtend/string.h>
 #include <xtend/file.h>
@@ -32,40 +33,51 @@ int     main (int argc, char *argv[])
     int         msg_fd,
 		status;
     node_list_t node_list;
-    char        cmd[LPJS_CMD_MAX + 1] = "";
+    char        cmd[LPJS_CMD_MAX + 1] = "",
+		log_file[PATH_MAX + 1];
     extern FILE *Log_stream;
     
-    if (argc < 2)
+    if ( argc < 2 )
     {
 	fprintf (stderr, "Usage: %s command [args]\n", argv[0]);
 	return EX_USAGE;
     }
 
-    // Shared functions may use lpjs_log
-    Log_stream = stderr;
+    // Open process-specific log file in var/log/lpjs
+    // FIXME: Prevent log files from piling up
+    snprintf(log_file, PATH_MAX + 1, "%s/chaperone-%d",
+	    LPJS_LOG_DIR, getpid());
+    
+    if ( (Log_stream = lpjs_log_output(log_file)) == NULL )
+	return EX_CANTCREAT;
     
     // Get hostname of head node
-    // FIXME: Send errors to log
     lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, stderr);
 
     if ( (msg_fd = lpjs_connect_to_dispatchd(&node_list)) == -1 )
     {
-	perror("lpjs-nodes: Failed to connect to dispatch");
+	lpjs_log("lpjs-chaperone: Failed to connect to dispatch: %s",
+		strerror(errno));
 	return EX_IOERR;
     }
-
-    /* Send a message to the server */
-    /* Need to send \0, so xt_dprintf() doesn't work here */
+    
+    // FIXME: Use fork() and exec() or posix_spawn(), and monitor
+    // the child process for resource use
     xt_str_argv_cat(cmd, argv, 1, LPJS_CMD_MAX + 1);
     status = system(cmd);
+    
+    /* Send a message to the server */
+    /* Need to send \0, so xt_dprintf() doesn't work here */
     if ( lpjs_send_msg(msg_fd, 0, "job-complete\ncmd: %s\nstatus: %d\n",
 		  cmd, status) < 0 )
     {
-	perror("lpjs-nodes: Failed to send message to dispatch");
+	lpjs_log("lpjs-chaperone: Failed to send message to dispatch: %s",
+		strerror(errno));
 	close(msg_fd);
 	return EX_IOERR;
     }
-    close (msg_fd);
+    close(msg_fd);
+    fclose(Log_stream);
 
     return EX_OK;
 }
