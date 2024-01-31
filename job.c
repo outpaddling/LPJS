@@ -11,10 +11,37 @@
 #include <xtend/string.h>   // xt_strblank()
 #include <xtend/proc.h>     // xt_get_user_name()
 
-#include "job.h"
+#include "job-private.h"
 #include "network.h"
 #include "lpjs.h"
 #include "misc.h"       // xt_realpath(), change to libxtend
+
+
+/***************************************************************************
+ *  Description:
+ *  
+ *  Returns:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-31  Jason Bacon Begin
+ ***************************************************************************/
+
+job_t   *job_new(void)
+
+{
+    job_t   *job;
+    
+    if ( (job = malloc(sizeof(job_t))) == NULL )
+    {
+	lpjs_log("%s: malloc() failed.\n", __FUNCTION__);
+	exit(EX_UNAVAILABLE);
+    }
+    job_init(job);
+    
+    return job;
+}
+
 
 /***************************************************************************
  *  Description:

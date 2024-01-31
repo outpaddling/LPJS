@@ -57,7 +57,8 @@ LIBEXEC     = nodes jobs submit
 # List object files that comprise BIN.
 
 LIB_OBJS    = config.o misc.o scheduler.o network.o job.o job-list.o \
-	      node.o node-mutators.o node-list.o node-list-mutators.o
+	      node.o node-mutators.o node-list.o node-list-mutators.o \
+	      job-accessors.o job-mutators.o
 
 ############################################################################
 # Compile, link, and install options

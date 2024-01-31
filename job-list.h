@@ -10,7 +10,7 @@
 typedef struct
 {
     unsigned    count;
-    job_t       jobs[LPJS_MAX_JOBS];
+    job_t       *jobs[LPJS_MAX_JOBS];
 }   job_list_t;
 
 /* job-list.c */

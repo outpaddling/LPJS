@@ -33,7 +33,7 @@ int     main (int argc, char *argv[])
 	    *cred,
 	    *script_name;
     node_list_t node_list;
-    job_t       job;
+    job_t       *job;
     munge_err_t munge_status;
     // Shared functions may use lpjs_log
     extern FILE *Log_stream;
@@ -47,7 +47,8 @@ int     main (int argc, char *argv[])
     }
     script_name =argv[1];
     
-    job_parse_script(&job, script_name);
+    job = job_new();    // Exits if malloc fails, no need to check
+    job_parse_script(job, script_name);
     
     // Get hostname of head node
     lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, stderr);
@@ -69,7 +70,7 @@ int     main (int argc, char *argv[])
     
     // FIXME: Send full job specs from job_t class and entire script
     if ( (munge_status = munge_encode(&cred, NULL, script_name,
-				strlen(JOB_SCRIPT_PATH(&job)) + 1)) != EMUNGE_SUCCESS )
+				strlen(job_get_script_path(job)) + 1)) != EMUNGE_SUCCESS )
     {
 	lpjs_log("lpjs-submit: munge_encode() failed.\n");
 	lpjs_log("Return code = %s\n", munge_strerror(munge_status));

@@ -1,0 +1,28 @@
+#ifndef _LPJS_JOB_PRIVATE_H_
+#define _LPJS_JOB_PRIVATE_H_
+
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
+struct job
+{
+    unsigned long   jobid;
+    char            *script_path;
+    char            *working_directory;
+    char            *user_name;
+    unsigned        jobs;
+    unsigned        cores_per_job;
+    unsigned        cores_per_node;
+    unsigned long   mem_per_core;
+};
+
+#ifndef __JOB_H__
+#include "job.h"
+#endif
+
+#ifdef  __cplusplus
+}
+#endif
+
+#endif  // #ifndef _LPJS_JOB_PRIVATE_H_

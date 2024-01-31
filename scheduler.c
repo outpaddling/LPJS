@@ -2,6 +2,8 @@
 #include <dirent.h>     // opendir(), ...
 #include <stdlib.h>     // strtoul()
 #include <limits.h>     // ULONG_MAX
+#include <string.h>     // strerror()
+#include <errno.h>
 
 #include <xtend/file.h>
 
@@ -50,14 +52,14 @@ int     lpjs_select_nodes()
 int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 
 {
-    job_t   job;
+    job_t   *job = job_new();    // exits if malloc fails, no need to check
     
     /*
      *  Look through spool dir and determine requirements of the
      *  next job in the queue
      */
     
-    if ( lpjs_select_next_job(&job) == 0 )
+    if ( lpjs_select_next_job(job) == 0 )
 	return 0;
     
     /*
@@ -131,7 +133,13 @@ int     lpjs_select_next_job(job_t *job)
     /*
      *  Find spooled job with lowest job id
      */
-    dp = opendir(LPJS_PENDING_DIR);
+    if ( (dp = opendir(LPJS_PENDING_DIR)) == NULL )
+    {
+	lpjs_log("%s(): Cannot open %s: %s\n", __FUNCTION__,
+		LPJS_PENDING_DIR, strerror(errno));
+	return -1;  // FIXME: Define error codes
+    }
+    
     low_job_id = ULONG_MAX;
     while ( (entry = readdir(dp)) != NULL )
     {
