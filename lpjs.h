@@ -19,6 +19,8 @@
 #define LPJS_JOB_LOG            LPJS_LOG_DIR "/jobs"
 
 #define LPJS_SPOOL_DIR          PREFIX "/var/spool/lpjs"
+#define LPJS_PENDING_DIR        LPJS_SPOOL_DIR "/pending"
+#define LPJS_RUNNING_DIR        LPJS_SPOOL_DIR "/running"
 
 // Don't start codes at 0.  It will be interpreted as a null-terminator
 enum

@@ -131,7 +131,7 @@ int     lpjs_select_next_job(job_t *job)
     /*
      *  Find spooled job with lowest job id
      */
-    dp = opendir(LPJS_SPOOL_DIR);
+    dp = opendir(LPJS_PENDING_DIR);
     low_job_id = ULONG_MAX;
     while ( (entry = readdir(dp)) != NULL )
     {

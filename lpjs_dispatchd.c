@@ -544,8 +544,8 @@ int     lpjs_submit(int msg_fd, node_list_t *node_list, job_list_t *job_list)
 int     lpjs_queue_job(int msg_fd, const char *script_name, node_list_t *node_list)
 
 {
-    char    spool_dir[PATH_MAX + 1],
-	    spool_path[PATH_MAX + 1],
+    char    pending_dir[PATH_MAX + 1],
+	    pending_path[PATH_MAX + 1],
 	    job_num_path[PATH_MAX + 1],
 	    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
     FILE    *fp;
@@ -562,30 +562,30 @@ int     lpjs_queue_job(int msg_fd, const char *script_name, node_list_t *node_li
 	fclose(fp);
     }
 
-    snprintf(spool_dir, PATH_MAX + 1, "%s/%lu", LPJS_SPOOL_DIR,
+    snprintf(pending_dir, PATH_MAX + 1, "%s/%lu", LPJS_PENDING_DIR,
 	    next_job_num);
-    if ( xt_rmkdir(spool_dir, 0755) != 0 )
+    if ( xt_rmkdir(pending_dir, 0755) != 0 )
     {
-	perror("Cannot create " LPJS_SPOOL_DIR);
+	fprintf(stderr, "Cannot create %s: %s\n", pending_dir, strerror(errno));
 	return -1;  // FIXME: Define error codes
     }
 
-    snprintf(spool_path, PATH_MAX + 1, "%s/%s", spool_dir,
+    snprintf(pending_path, PATH_MAX + 1, "%s/%s", pending_dir,
 	    basename((char *)script_name));
     
     // lpjs_log("cwd = %s\n", getcwd(cwd, PATH_MAX + 1));
     
     // FIXME: Use a symlink instead?  Copy is safer in case user
     // modifies the script while a job is running.
-    if ( xt_fast_cp(script_name, spool_path) != 0 )
+    if ( xt_fast_cp(script_name, pending_path) != 0 )
     {
 	lpjs_log("lpjs_queue_job(): Failed to copy %s to %s: %s\n",
-		script_name, spool_path, strerror(errno));
+		script_name, pending_path, strerror(errno));
 	return -1;
     }
     
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX, "Spooled job %lu to %s.\n",
-	    next_job_num, spool_dir);
+	    next_job_num, pending_dir);
     lpjs_send_msg(msg_fd, 0, outgoing_msg);
     
     // FIXME: Send this to the job log, not the daemon log

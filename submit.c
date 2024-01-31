@@ -31,8 +31,7 @@ int     main (int argc, char *argv[])
     int     msg_fd;
     char    outgoing_msg[LPJS_MSG_LEN_MAX + 1],
 	    *cred,
-	    *script_name,
-	    script_path[PATH_MAX + 1];
+	    *script_name;
     node_list_t node_list;
     job_t       job;
     munge_err_t munge_status;
@@ -69,8 +68,8 @@ int     main (int argc, char *argv[])
     }
     
     // FIXME: Send full job specs from job_t class and entire script
-    if ( (munge_status = munge_encode(&cred, NULL, script_path,
-				strlen(script_path) + 1)) != EMUNGE_SUCCESS )
+    if ( (munge_status = munge_encode(&cred, NULL, script_name,
+				strlen(JOB_SCRIPT_PATH(&job)) + 1)) != EMUNGE_SUCCESS )
     {
 	lpjs_log("lpjs-submit: munge_encode() failed.\n");
 	lpjs_log("Return code = %s\n", munge_strerror(munge_status));
