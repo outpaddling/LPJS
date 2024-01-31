@@ -84,6 +84,24 @@ void    job_print_params(job_t *job)
 
 /***************************************************************************
  *  Description:
+ *      Print job parameters in a readable format
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2021-09-28  Jason Bacon Begin
+ ***************************************************************************/
+
+int     job_print_params_to_string(job_t *job, char *str, size_t buff_size)
+
+{
+    return snprintf(str, buff_size, JOB_SPEC_FORMAT,
+	    job->jobid, job->script_path, job->user_name,
+	    job->cores_per_job, job->mem_per_core);
+}
+
+
+/***************************************************************************
+ *  Description:
  *      Send job parameters to msg_fd, e.g. in response to lpjs-jobs request
  *
  *  History: 
@@ -119,11 +137,11 @@ void    job_send_params(job_t *job, int msg_fd)
  *  2024-01-30  Jason Bacon Begin
  ***************************************************************************/
 
-int     job_parse_script(job_t *job, const char *script_path)
+int     job_parse_script(job_t *job, const char *script_name)
 
 {
     FILE    *fp;
-    char    absolute_path[PATH_MAX + 1],
+    char    script_path[PATH_MAX + 1],
 	    field[JOB_FIELD_MAX_LEN + 1],
 	    var[JOB_FIELD_MAX_LEN + 1],
 	    val[JOB_FIELD_MAX_LEN + 1],
@@ -143,8 +161,8 @@ int     job_parse_script(job_t *job, const char *script_path)
     
     job_init(job);
     
-    xt_realpath(script_path, absolute_path, PATH_MAX + 1);
-    if ( (fp = fopen(absolute_path, "r")) == NULL )
+    xt_realpath(script_name, script_path, PATH_MAX + 1);
+    if ( (fp = fopen(script_path, "r")) == NULL )
     {
 	fprintf(stderr, "Cannot open %s: %s\n", script_path, strerror(errno));
 	return -1;  // FIXME: Define error code

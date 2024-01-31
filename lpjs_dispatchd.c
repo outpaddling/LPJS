@@ -501,9 +501,9 @@ int     lpjs_submit(int msg_fd, node_list_t *node_list, job_list_t *job_list)
     gid_t       gid;
     munge_err_t munge_status;
     ssize_t     bytes;
-    int         script_name_len;
+    int         payload_len;
     char        incoming_msg[LPJS_MSG_LEN_MAX + 1],
-		*script_name;
+		*payload;
     
     // FIXME: Don't accept job submissions from root until
     // security issues have been considered
@@ -518,16 +518,21 @@ int     lpjs_submit(int msg_fd, node_list_t *node_list, job_list_t *job_list)
 	// FIXME: Figure out proper return values
 	return EX_IOERR;
     }
-    munge_status = munge_decode(incoming_msg, NULL, (void **)&script_name,
-				&script_name_len, &uid, &gid);
+    munge_status = munge_decode(incoming_msg, NULL, (void **)&payload,
+				&payload_len, &uid, &gid);
     if ( munge_status != EMUNGE_SUCCESS )
+    {
 	lpjs_log("munge_decode() failed.  Error = %s\n",
 		 munge_strerror(munge_status));
-    lpjs_log("Submit script %s from %d, %d\n", script_name, uid, gid);
-    lpjs_queue_job(msg_fd, script_name, node_list);
-    lpjs_server_safe_close(msg_fd);
-    
-    free(script_name);
+    }
+    else
+    {
+	// FIXME: Parse payload using JOB_SPEC_FORMAT
+	lpjs_log("Submit script %s from %d, %d\n", payload, uid, gid);
+	lpjs_queue_job(msg_fd, payload, node_list);
+	lpjs_server_safe_close(msg_fd);
+    }
+    free(payload);
     return EX_OK;
 }
 
