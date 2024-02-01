@@ -8,13 +8,13 @@ extern "C" {
 struct job
 {
     unsigned long   jobid;
-    char            *script_path;
-    char            *working_directory;
-    char            *user_name;
-    unsigned        jobs;
+    unsigned        job_count;
     unsigned        cores_per_job;
     unsigned        cores_per_node;
     unsigned long   mem_per_core;
+    char            *user_name;
+    char            *working_directory;
+    char            *script_name;
 };
 
 #ifndef __JOB_H__

@@ -32,7 +32,7 @@ int     main (int argc, char *argv[])
     char    outgoing_msg[LPJS_MSG_LEN_MAX + 1],
 	    *cred,
 	    *script_name,
-	    *script_path,
+	    *working_directory,
 	    *ext,
 	    payload[LPJS_PAYLOAD_MAX_LEN + 1];
     node_list_t node_list;
@@ -62,8 +62,9 @@ int     main (int argc, char *argv[])
     
     job = job_new();    // Exits if malloc fails, no need to check
     job_parse_script(job, script_name);
-    script_path = job_get_script_path(job);
-    printf("Absolute path =%s\n", script_path);
+    script_name = job_get_script_name(job);
+    working_directory = job_get_working_directory(job);
+    printf("Absolute path = %s/%s\n", working_directory, script_name);
 
     if ( (msg_fd = lpjs_connect_to_dispatchd(&node_list)) == -1 )
     {

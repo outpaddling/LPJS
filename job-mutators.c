@@ -72,17 +72,17 @@ int     job_set_jobid(job_t *job_ptr, unsigned long new_jobid)
  *      
  *
  *  Description:
- *      Mutator for script_path member in a job_t structure.
- *      Use this function to set script_path in a job_t object
+ *      Mutator for job_count member in a job_t structure.
+ *      Use this function to set job_count in a job_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
- *      script_path is a pointer, data previously pointed to should
+ *      job_count is a pointer, data previously pointed to should
  *      be freed before calling this function to avoid memory
  *      leaks.
  *
  *  Arguments:
  *      job_ptr         Pointer to the structure to set
- *      new_script_path The new value for script_path
+ *      new_job_count   The new value for job_count
  *
  *  Returns:
  *      JOB_DATA_OK if the new value is acceptable and assigned
@@ -90,9 +90,9 @@ int     job_set_jobid(job_t *job_ptr, unsigned long new_jobid)
  *
  *  Examples:
  *      job_t           job;
- *      char *          new_script_path;
+ *      unsigned        new_job_count;
  *
- *      if ( job_set_script_path(&job, new_script_path)
+ *      if ( job_set_job_count(&job, new_job_count)
  *              == JOB_DATA_OK )
  *      {
  *      }
@@ -105,64 +105,14 @@ int     job_set_jobid(job_t *job_ptr, unsigned long new_jobid)
  *  2024-01-31  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-int     job_set_script_path(job_t *job_ptr, char * new_script_path)
-
-{
-    if ( new_script_path == NULL )
-	return JOB_DATA_OUT_OF_RANGE;
-    else
-    {
-	job_ptr->script_path = new_script_path;
-	return JOB_DATA_OK;
-    }
-}
-
-
-/***************************************************************************
- *  Library:
- *      #include <job.h>
- *      
- *
- *  Description:
- *      Mutator for an array element of script_path member in a job_t
- *      structure. Use this function to set job_ptr->script_path[c]
- *      in a job_t object from non-member functions.
- *
- *  Arguments:
- *      job_ptr         Pointer to the structure to set
- *      c               Subscript to the script_path array
- *      new_script_path_element The new value for script_path[c]
- *
- *  Returns:
- *      JOB_DATA_OK if the new value is acceptable and assigned
- *      JOB_DATA_OUT_OF_RANGE otherwise
- *
- *  Examples:
- *      job_t           job;
- *      size_t          c;
- *      char *          new_script_path_element;
- *
- *      if ( job_set_script_path_ae(&job, c, new_script_path_element)
- *              == JOB_DATA_OK )
- *      {
- *      }
- *
- *  See also:
- *      JOB_SET_SCRIPT_PATH_AE(3)
- *
- *  History: 
- *  Date        Name        Modification
- *  2024-01-31  gen-get-set Auto-generated from job-private.h
- ***************************************************************************/
-
-int     job_set_script_path_ae(job_t *job_ptr, size_t c, char  new_script_path_element)
+int     job_set_job_count(job_t *job_ptr, unsigned new_job_count)
 
 {
     if ( false )
 	return JOB_DATA_OUT_OF_RANGE;
     else
     {
-	job_ptr->script_path[c] = new_script_path_element;
+	job_ptr->job_count = new_job_count;
 	return JOB_DATA_OK;
     }
 }
@@ -174,69 +124,17 @@ int     job_set_script_path_ae(job_t *job_ptr, size_t c, char  new_script_path_e
  *      
  *
  *  Description:
- *      Mutator for script_path member in a job_t structure.
- *      Use this function to set script_path in a job_t object
- *      from non-member functions.  This function copies the array pointed to
- *      by new_script_path to job_ptr->script_path.
- *
- *  Arguments:
- *      job_ptr         Pointer to the structure to set
- *      new_script_path The new value for script_path
- *      array_size      Size of the script_path array.
- *
- *  Returns:
- *      JOB_DATA_OK if the new value is acceptable and assigned
- *      JOB_DATA_OUT_OF_RANGE otherwise
- *
- *  Examples:
- *      job_t           job;
- *      char *          new_script_path;
- *      size_t          array_size;
- *
- *      if ( job_set_script_path_cpy(&job, new_script_path, array_size)
- *              == JOB_DATA_OK )
- *      {
- *      }
- *
- *  See also:
- *      JOB_SET_SCRIPT_PATH(3)
- *
- *  History: 
- *  Date        Name        Modification
- *  2024-01-31  gen-get-set Auto-generated from job-private.h
- ***************************************************************************/
-
-int     job_set_script_path_cpy(job_t *job_ptr, char * new_script_path, size_t array_size)
-
-{
-    if ( new_script_path == NULL )
-	return JOB_DATA_OUT_OF_RANGE;
-    else
-    {
-	// FIXME: Assuming char array is a null-terminated string
-	strlcpy(job_ptr->script_path, new_script_path, array_size);
-	return JOB_DATA_OK;
-    }
-}
-
-
-/***************************************************************************
- *  Library:
- *      #include <job.h>
- *      
- *
- *  Description:
- *      Mutator for working_directory member in a job_t structure.
- *      Use this function to set working_directory in a job_t object
+ *      Mutator for cores_per_job member in a job_t structure.
+ *      Use this function to set cores_per_job in a job_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
- *      working_directory is a pointer, data previously pointed to should
+ *      cores_per_job is a pointer, data previously pointed to should
  *      be freed before calling this function to avoid memory
  *      leaks.
  *
  *  Arguments:
  *      job_ptr         Pointer to the structure to set
- *      new_working_directory The new value for working_directory
+ *      new_cores_per_job The new value for cores_per_job
  *
  *  Returns:
  *      JOB_DATA_OK if the new value is acceptable and assigned
@@ -244,9 +142,9 @@ int     job_set_script_path_cpy(job_t *job_ptr, char * new_script_path, size_t a
  *
  *  Examples:
  *      job_t           job;
- *      char *          new_working_directory;
+ *      unsigned        new_cores_per_job;
  *
- *      if ( job_set_working_directory(&job, new_working_directory)
+ *      if ( job_set_cores_per_job(&job, new_cores_per_job)
  *              == JOB_DATA_OK )
  *      {
  *      }
@@ -259,64 +157,14 @@ int     job_set_script_path_cpy(job_t *job_ptr, char * new_script_path, size_t a
  *  2024-01-31  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-int     job_set_working_directory(job_t *job_ptr, char * new_working_directory)
-
-{
-    if ( new_working_directory == NULL )
-	return JOB_DATA_OUT_OF_RANGE;
-    else
-    {
-	job_ptr->working_directory = new_working_directory;
-	return JOB_DATA_OK;
-    }
-}
-
-
-/***************************************************************************
- *  Library:
- *      #include <job.h>
- *      
- *
- *  Description:
- *      Mutator for an array element of working_directory member in a job_t
- *      structure. Use this function to set job_ptr->working_directory[c]
- *      in a job_t object from non-member functions.
- *
- *  Arguments:
- *      job_ptr         Pointer to the structure to set
- *      c               Subscript to the working_directory array
- *      new_working_directory_element The new value for working_directory[c]
- *
- *  Returns:
- *      JOB_DATA_OK if the new value is acceptable and assigned
- *      JOB_DATA_OUT_OF_RANGE otherwise
- *
- *  Examples:
- *      job_t           job;
- *      size_t          c;
- *      char *          new_working_directory_element;
- *
- *      if ( job_set_working_directory_ae(&job, c, new_working_directory_element)
- *              == JOB_DATA_OK )
- *      {
- *      }
- *
- *  See also:
- *      JOB_SET_WORKING_DIRECTORY_AE(3)
- *
- *  History: 
- *  Date        Name        Modification
- *  2024-01-31  gen-get-set Auto-generated from job-private.h
- ***************************************************************************/
-
-int     job_set_working_directory_ae(job_t *job_ptr, size_t c, char  new_working_directory_element)
+int     job_set_cores_per_job(job_t *job_ptr, unsigned new_cores_per_job)
 
 {
     if ( false )
 	return JOB_DATA_OUT_OF_RANGE;
     else
     {
-	job_ptr->working_directory[c] = new_working_directory_element;
+	job_ptr->cores_per_job = new_cores_per_job;
 	return JOB_DATA_OK;
     }
 }
@@ -328,15 +176,17 @@ int     job_set_working_directory_ae(job_t *job_ptr, size_t c, char  new_working
  *      
  *
  *  Description:
- *      Mutator for working_directory member in a job_t structure.
- *      Use this function to set working_directory in a job_t object
- *      from non-member functions.  This function copies the array pointed to
- *      by new_working_directory to job_ptr->working_directory.
+ *      Mutator for cores_per_node member in a job_t structure.
+ *      Use this function to set cores_per_node in a job_t object
+ *      from non-member functions.  This function performs a direct
+ *      assignment for scalar or pointer structure members.  If
+ *      cores_per_node is a pointer, data previously pointed to should
+ *      be freed before calling this function to avoid memory
+ *      leaks.
  *
  *  Arguments:
  *      job_ptr         Pointer to the structure to set
- *      new_working_directory The new value for working_directory
- *      array_size      Size of the working_directory array.
+ *      new_cores_per_node The new value for cores_per_node
  *
  *  Returns:
  *      JOB_DATA_OK if the new value is acceptable and assigned
@@ -344,31 +194,81 @@ int     job_set_working_directory_ae(job_t *job_ptr, size_t c, char  new_working
  *
  *  Examples:
  *      job_t           job;
- *      char *          new_working_directory;
- *      size_t          array_size;
+ *      unsigned        new_cores_per_node;
  *
- *      if ( job_set_working_directory_cpy(&job, new_working_directory, array_size)
+ *      if ( job_set_cores_per_node(&job, new_cores_per_node)
  *              == JOB_DATA_OK )
  *      {
  *      }
  *
  *  See also:
- *      JOB_SET_WORKING_DIRECTORY(3)
+ *      (3)
  *
  *  History: 
  *  Date        Name        Modification
  *  2024-01-31  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-int     job_set_working_directory_cpy(job_t *job_ptr, char * new_working_directory, size_t array_size)
+int     job_set_cores_per_node(job_t *job_ptr, unsigned new_cores_per_node)
 
 {
-    if ( new_working_directory == NULL )
+    if ( false )
 	return JOB_DATA_OUT_OF_RANGE;
     else
     {
-	// FIXME: Assuming char array is a null-terminated string
-	strlcpy(job_ptr->working_directory, new_working_directory, array_size);
+	job_ptr->cores_per_node = new_cores_per_node;
+	return JOB_DATA_OK;
+    }
+}
+
+
+/***************************************************************************
+ *  Library:
+ *      #include <job.h>
+ *      
+ *
+ *  Description:
+ *      Mutator for mem_per_core member in a job_t structure.
+ *      Use this function to set mem_per_core in a job_t object
+ *      from non-member functions.  This function performs a direct
+ *      assignment for scalar or pointer structure members.  If
+ *      mem_per_core is a pointer, data previously pointed to should
+ *      be freed before calling this function to avoid memory
+ *      leaks.
+ *
+ *  Arguments:
+ *      job_ptr         Pointer to the structure to set
+ *      new_mem_per_core The new value for mem_per_core
+ *
+ *  Returns:
+ *      JOB_DATA_OK if the new value is acceptable and assigned
+ *      JOB_DATA_OUT_OF_RANGE otherwise
+ *
+ *  Examples:
+ *      job_t           job;
+ *      unsigned long   new_mem_per_core;
+ *
+ *      if ( job_set_mem_per_core(&job, new_mem_per_core)
+ *              == JOB_DATA_OK )
+ *      {
+ *      }
+ *
+ *  See also:
+ *      (3)
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-31  gen-get-set Auto-generated from job-private.h
+ ***************************************************************************/
+
+int     job_set_mem_per_core(job_t *job_ptr, unsigned long new_mem_per_core)
+
+{
+    if ( false )
+	return JOB_DATA_OUT_OF_RANGE;
+    else
+    {
+	job_ptr->mem_per_core = new_mem_per_core;
 	return JOB_DATA_OK;
     }
 }
@@ -534,17 +434,17 @@ int     job_set_user_name_cpy(job_t *job_ptr, char * new_user_name, size_t array
  *      
  *
  *  Description:
- *      Mutator for jobs member in a job_t structure.
- *      Use this function to set jobs in a job_t object
+ *      Mutator for working_directory member in a job_t structure.
+ *      Use this function to set working_directory in a job_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
- *      jobs is a pointer, data previously pointed to should
+ *      working_directory is a pointer, data previously pointed to should
  *      be freed before calling this function to avoid memory
  *      leaks.
  *
  *  Arguments:
  *      job_ptr         Pointer to the structure to set
- *      new_jobs        The new value for jobs
+ *      new_working_directory The new value for working_directory
  *
  *  Returns:
  *      JOB_DATA_OK if the new value is acceptable and assigned
@@ -552,9 +452,9 @@ int     job_set_user_name_cpy(job_t *job_ptr, char * new_user_name, size_t array
  *
  *  Examples:
  *      job_t           job;
- *      unsigned        new_jobs;
+ *      char *          new_working_directory;
  *
- *      if ( job_set_jobs(&job, new_jobs)
+ *      if ( job_set_working_directory(&job, new_working_directory)
  *              == JOB_DATA_OK )
  *      {
  *      }
@@ -567,14 +467,14 @@ int     job_set_user_name_cpy(job_t *job_ptr, char * new_user_name, size_t array
  *  2024-01-31  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-int     job_set_jobs(job_t *job_ptr, unsigned new_jobs)
+int     job_set_working_directory(job_t *job_ptr, char * new_working_directory)
 
 {
-    if ( false )
+    if ( new_working_directory == NULL )
 	return JOB_DATA_OUT_OF_RANGE;
     else
     {
-	job_ptr->jobs = new_jobs;
+	job_ptr->working_directory = new_working_directory;
 	return JOB_DATA_OK;
     }
 }
@@ -586,17 +486,14 @@ int     job_set_jobs(job_t *job_ptr, unsigned new_jobs)
  *      
  *
  *  Description:
- *      Mutator for cores_per_job member in a job_t structure.
- *      Use this function to set cores_per_job in a job_t object
- *      from non-member functions.  This function performs a direct
- *      assignment for scalar or pointer structure members.  If
- *      cores_per_job is a pointer, data previously pointed to should
- *      be freed before calling this function to avoid memory
- *      leaks.
+ *      Mutator for an array element of working_directory member in a job_t
+ *      structure. Use this function to set job_ptr->working_directory[c]
+ *      in a job_t object from non-member functions.
  *
  *  Arguments:
  *      job_ptr         Pointer to the structure to set
- *      new_cores_per_job The new value for cores_per_job
+ *      c               Subscript to the working_directory array
+ *      new_working_directory_element The new value for working_directory[c]
  *
  *  Returns:
  *      JOB_DATA_OK if the new value is acceptable and assigned
@@ -604,29 +501,30 @@ int     job_set_jobs(job_t *job_ptr, unsigned new_jobs)
  *
  *  Examples:
  *      job_t           job;
- *      unsigned        new_cores_per_job;
+ *      size_t          c;
+ *      char *          new_working_directory_element;
  *
- *      if ( job_set_cores_per_job(&job, new_cores_per_job)
+ *      if ( job_set_working_directory_ae(&job, c, new_working_directory_element)
  *              == JOB_DATA_OK )
  *      {
  *      }
  *
  *  See also:
- *      (3)
+ *      JOB_SET_WORKING_DIRECTORY_AE(3)
  *
  *  History: 
  *  Date        Name        Modification
  *  2024-01-31  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-int     job_set_cores_per_job(job_t *job_ptr, unsigned new_cores_per_job)
+int     job_set_working_directory_ae(job_t *job_ptr, size_t c, char  new_working_directory_element)
 
 {
     if ( false )
 	return JOB_DATA_OUT_OF_RANGE;
     else
     {
-	job_ptr->cores_per_job = new_cores_per_job;
+	job_ptr->working_directory[c] = new_working_directory_element;
 	return JOB_DATA_OK;
     }
 }
@@ -638,17 +536,15 @@ int     job_set_cores_per_job(job_t *job_ptr, unsigned new_cores_per_job)
  *      
  *
  *  Description:
- *      Mutator for cores_per_node member in a job_t structure.
- *      Use this function to set cores_per_node in a job_t object
- *      from non-member functions.  This function performs a direct
- *      assignment for scalar or pointer structure members.  If
- *      cores_per_node is a pointer, data previously pointed to should
- *      be freed before calling this function to avoid memory
- *      leaks.
+ *      Mutator for working_directory member in a job_t structure.
+ *      Use this function to set working_directory in a job_t object
+ *      from non-member functions.  This function copies the array pointed to
+ *      by new_working_directory to job_ptr->working_directory.
  *
  *  Arguments:
  *      job_ptr         Pointer to the structure to set
- *      new_cores_per_node The new value for cores_per_node
+ *      new_working_directory The new value for working_directory
+ *      array_size      Size of the working_directory array.
  *
  *  Returns:
  *      JOB_DATA_OK if the new value is acceptable and assigned
@@ -656,29 +552,31 @@ int     job_set_cores_per_job(job_t *job_ptr, unsigned new_cores_per_job)
  *
  *  Examples:
  *      job_t           job;
- *      unsigned        new_cores_per_node;
+ *      char *          new_working_directory;
+ *      size_t          array_size;
  *
- *      if ( job_set_cores_per_node(&job, new_cores_per_node)
+ *      if ( job_set_working_directory_cpy(&job, new_working_directory, array_size)
  *              == JOB_DATA_OK )
  *      {
  *      }
  *
  *  See also:
- *      (3)
+ *      JOB_SET_WORKING_DIRECTORY(3)
  *
  *  History: 
  *  Date        Name        Modification
  *  2024-01-31  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-int     job_set_cores_per_node(job_t *job_ptr, unsigned new_cores_per_node)
+int     job_set_working_directory_cpy(job_t *job_ptr, char * new_working_directory, size_t array_size)
 
 {
-    if ( false )
+    if ( new_working_directory == NULL )
 	return JOB_DATA_OUT_OF_RANGE;
     else
     {
-	job_ptr->cores_per_node = new_cores_per_node;
+	// FIXME: Assuming char array is a null-terminated string
+	strlcpy(job_ptr->working_directory, new_working_directory, array_size);
 	return JOB_DATA_OK;
     }
 }
@@ -690,17 +588,17 @@ int     job_set_cores_per_node(job_t *job_ptr, unsigned new_cores_per_node)
  *      
  *
  *  Description:
- *      Mutator for mem_per_core member in a job_t structure.
- *      Use this function to set mem_per_core in a job_t object
+ *      Mutator for script_name member in a job_t structure.
+ *      Use this function to set script_name in a job_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
- *      mem_per_core is a pointer, data previously pointed to should
+ *      script_name is a pointer, data previously pointed to should
  *      be freed before calling this function to avoid memory
  *      leaks.
  *
  *  Arguments:
  *      job_ptr         Pointer to the structure to set
- *      new_mem_per_core The new value for mem_per_core
+ *      new_script_name The new value for script_name
  *
  *  Returns:
  *      JOB_DATA_OK if the new value is acceptable and assigned
@@ -708,9 +606,9 @@ int     job_set_cores_per_node(job_t *job_ptr, unsigned new_cores_per_node)
  *
  *  Examples:
  *      job_t           job;
- *      unsigned long   new_mem_per_core;
+ *      char *          new_script_name;
  *
- *      if ( job_set_mem_per_core(&job, new_mem_per_core)
+ *      if ( job_set_script_name(&job, new_script_name)
  *              == JOB_DATA_OK )
  *      {
  *      }
@@ -723,14 +621,116 @@ int     job_set_cores_per_node(job_t *job_ptr, unsigned new_cores_per_node)
  *  2024-01-31  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-int     job_set_mem_per_core(job_t *job_ptr, unsigned long new_mem_per_core)
+int     job_set_script_name(job_t *job_ptr, char * new_script_name)
+
+{
+    if ( new_script_name == NULL )
+	return JOB_DATA_OUT_OF_RANGE;
+    else
+    {
+	job_ptr->script_name = new_script_name;
+	return JOB_DATA_OK;
+    }
+}
+
+
+/***************************************************************************
+ *  Library:
+ *      #include <job.h>
+ *      
+ *
+ *  Description:
+ *      Mutator for an array element of script_name member in a job_t
+ *      structure. Use this function to set job_ptr->script_name[c]
+ *      in a job_t object from non-member functions.
+ *
+ *  Arguments:
+ *      job_ptr         Pointer to the structure to set
+ *      c               Subscript to the script_name array
+ *      new_script_name_element The new value for script_name[c]
+ *
+ *  Returns:
+ *      JOB_DATA_OK if the new value is acceptable and assigned
+ *      JOB_DATA_OUT_OF_RANGE otherwise
+ *
+ *  Examples:
+ *      job_t           job;
+ *      size_t          c;
+ *      char *          new_script_name_element;
+ *
+ *      if ( job_set_script_name_ae(&job, c, new_script_name_element)
+ *              == JOB_DATA_OK )
+ *      {
+ *      }
+ *
+ *  See also:
+ *      JOB_SET_SCRIPT_NAME_AE(3)
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-31  gen-get-set Auto-generated from job-private.h
+ ***************************************************************************/
+
+int     job_set_script_name_ae(job_t *job_ptr, size_t c, char  new_script_name_element)
 
 {
     if ( false )
 	return JOB_DATA_OUT_OF_RANGE;
     else
     {
-	job_ptr->mem_per_core = new_mem_per_core;
+	job_ptr->script_name[c] = new_script_name_element;
+	return JOB_DATA_OK;
+    }
+}
+
+
+/***************************************************************************
+ *  Library:
+ *      #include <job.h>
+ *      
+ *
+ *  Description:
+ *      Mutator for script_name member in a job_t structure.
+ *      Use this function to set script_name in a job_t object
+ *      from non-member functions.  This function copies the array pointed to
+ *      by new_script_name to job_ptr->script_name.
+ *
+ *  Arguments:
+ *      job_ptr         Pointer to the structure to set
+ *      new_script_name The new value for script_name
+ *      array_size      Size of the script_name array.
+ *
+ *  Returns:
+ *      JOB_DATA_OK if the new value is acceptable and assigned
+ *      JOB_DATA_OUT_OF_RANGE otherwise
+ *
+ *  Examples:
+ *      job_t           job;
+ *      char *          new_script_name;
+ *      size_t          array_size;
+ *
+ *      if ( job_set_script_name_cpy(&job, new_script_name, array_size)
+ *              == JOB_DATA_OK )
+ *      {
+ *      }
+ *
+ *  See also:
+ *      JOB_SET_SCRIPT_NAME(3)
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-31  gen-get-set Auto-generated from job-private.h
+ ***************************************************************************/
+
+int     job_set_script_name_cpy(job_t *job_ptr, char * new_script_name, size_t array_size)
+
+{
+    if ( new_script_name == NULL )
+	return JOB_DATA_OUT_OF_RANGE;
+    else
+    {
+	// FIXME: Assuming char array is a null-terminated string
+	strlcpy(job_ptr->script_name, new_script_name, array_size);
 	return JOB_DATA_OK;
     }
 }

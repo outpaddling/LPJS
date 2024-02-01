@@ -54,241 +54,31 @@ unsigned long    job_get_jobid(job_t *job_ptr)
  *      
  *
  *  Description:
- *      Accessor for script_path member in a job_t structure.
- *      Use this function to get script_path in a job_t object
+ *      Accessor for job_count member in a job_t structure.
+ *      Use this function to get job_count in a job_t object
  *      from non-member functions.
  *
  *  Arguments:
  *      job_ptr         Pointer to the structure to set
  *
  *  Returns:
- *      Value of the structure member script_path.
+ *      Value of the structure member job_count.
  *
  *  Examples:
  *      job_t           job;
- *      char *          script_path;
+ *      unsigned        job_count;
  *
- *      script_path = job_get_script_path(&job);
+ *      job_count = job_get_job_count(&job);
  *
  *  History: 
  *  Date        Name        Modification
  *  2024-01-31  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-char *    job_get_script_path(job_t *job_ptr)
+unsigned    job_get_job_count(job_t *job_ptr)
 
 {
-    return job_ptr->script_path;
-}
-
-
-/***************************************************************************
- *  Library:
- *      #include <job.h>
- *      
- *
- *  Description:
- *      Accessor for an array element of script_path member in a job_t
- *      structure. Use this function to get job_ptr->script_path[c]
- *      in a job_t object from non-member functions.
- *
- *  Arguments:
- *      job_ptr         Pointer to the structure to get
- *      c               Subscript to the script_path array
- *
- *  Returns:
- *      Value of one element of structure member script_path.
- *
- *  Examples:
- *      job_t           job;
- *      size_t          c;
- *      char *          script_path_element;
- *
- *      script_path_element = job_get_script_path_ae(&job, c);
- *
- *  History: 
- *  Date        Name        Modification
- *  2024-01-31  gen-get-set Auto-generated from job-private.h
- ***************************************************************************/
-
-char  job_get_script_path_ae(job_t *job_ptr, size_t c)
-
-{
-    return job_ptr->script_path[c];
-}
-
-
-/***************************************************************************
- *  Library:
- *      #include <job.h>
- *      
- *
- *  Description:
- *      Accessor for working_directory member in a job_t structure.
- *      Use this function to get working_directory in a job_t object
- *      from non-member functions.
- *
- *  Arguments:
- *      job_ptr         Pointer to the structure to set
- *
- *  Returns:
- *      Value of the structure member working_directory.
- *
- *  Examples:
- *      job_t           job;
- *      char *          working_directory;
- *
- *      working_directory = job_get_working_directory(&job);
- *
- *  History: 
- *  Date        Name        Modification
- *  2024-01-31  gen-get-set Auto-generated from job-private.h
- ***************************************************************************/
-
-char *    job_get_working_directory(job_t *job_ptr)
-
-{
-    return job_ptr->working_directory;
-}
-
-
-/***************************************************************************
- *  Library:
- *      #include <job.h>
- *      
- *
- *  Description:
- *      Accessor for an array element of working_directory member in a job_t
- *      structure. Use this function to get job_ptr->working_directory[c]
- *      in a job_t object from non-member functions.
- *
- *  Arguments:
- *      job_ptr         Pointer to the structure to get
- *      c               Subscript to the working_directory array
- *
- *  Returns:
- *      Value of one element of structure member working_directory.
- *
- *  Examples:
- *      job_t           job;
- *      size_t          c;
- *      char *          working_directory_element;
- *
- *      working_directory_element = job_get_working_directory_ae(&job, c);
- *
- *  History: 
- *  Date        Name        Modification
- *  2024-01-31  gen-get-set Auto-generated from job-private.h
- ***************************************************************************/
-
-char  job_get_working_directory_ae(job_t *job_ptr, size_t c)
-
-{
-    return job_ptr->working_directory[c];
-}
-
-
-/***************************************************************************
- *  Library:
- *      #include <job.h>
- *      
- *
- *  Description:
- *      Accessor for user_name member in a job_t structure.
- *      Use this function to get user_name in a job_t object
- *      from non-member functions.
- *
- *  Arguments:
- *      job_ptr         Pointer to the structure to set
- *
- *  Returns:
- *      Value of the structure member user_name.
- *
- *  Examples:
- *      job_t           job;
- *      char *          user_name;
- *
- *      user_name = job_get_user_name(&job);
- *
- *  History: 
- *  Date        Name        Modification
- *  2024-01-31  gen-get-set Auto-generated from job-private.h
- ***************************************************************************/
-
-char *    job_get_user_name(job_t *job_ptr)
-
-{
-    return job_ptr->user_name;
-}
-
-
-/***************************************************************************
- *  Library:
- *      #include <job.h>
- *      
- *
- *  Description:
- *      Accessor for an array element of user_name member in a job_t
- *      structure. Use this function to get job_ptr->user_name[c]
- *      in a job_t object from non-member functions.
- *
- *  Arguments:
- *      job_ptr         Pointer to the structure to get
- *      c               Subscript to the user_name array
- *
- *  Returns:
- *      Value of one element of structure member user_name.
- *
- *  Examples:
- *      job_t           job;
- *      size_t          c;
- *      char *          user_name_element;
- *
- *      user_name_element = job_get_user_name_ae(&job, c);
- *
- *  History: 
- *  Date        Name        Modification
- *  2024-01-31  gen-get-set Auto-generated from job-private.h
- ***************************************************************************/
-
-char  job_get_user_name_ae(job_t *job_ptr, size_t c)
-
-{
-    return job_ptr->user_name[c];
-}
-
-
-/***************************************************************************
- *  Library:
- *      #include <job.h>
- *      
- *
- *  Description:
- *      Accessor for jobs member in a job_t structure.
- *      Use this function to get jobs in a job_t object
- *      from non-member functions.
- *
- *  Arguments:
- *      job_ptr         Pointer to the structure to set
- *
- *  Returns:
- *      Value of the structure member jobs.
- *
- *  Examples:
- *      job_t           job;
- *      unsigned        jobs;
- *
- *      jobs = job_get_jobs(&job);
- *
- *  History: 
- *  Date        Name        Modification
- *  2024-01-31  gen-get-set Auto-generated from job-private.h
- ***************************************************************************/
-
-unsigned    job_get_jobs(job_t *job_ptr)
-
-{
-    return job_ptr->jobs;
+    return job_ptr->job_count;
 }
 
 
@@ -391,4 +181,214 @@ unsigned long    job_get_mem_per_core(job_t *job_ptr)
 
 {
     return job_ptr->mem_per_core;
+}
+
+
+/***************************************************************************
+ *  Library:
+ *      #include <job.h>
+ *      
+ *
+ *  Description:
+ *      Accessor for user_name member in a job_t structure.
+ *      Use this function to get user_name in a job_t object
+ *      from non-member functions.
+ *
+ *  Arguments:
+ *      job_ptr         Pointer to the structure to set
+ *
+ *  Returns:
+ *      Value of the structure member user_name.
+ *
+ *  Examples:
+ *      job_t           job;
+ *      char *          user_name;
+ *
+ *      user_name = job_get_user_name(&job);
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-31  gen-get-set Auto-generated from job-private.h
+ ***************************************************************************/
+
+char *    job_get_user_name(job_t *job_ptr)
+
+{
+    return job_ptr->user_name;
+}
+
+
+/***************************************************************************
+ *  Library:
+ *      #include <job.h>
+ *      
+ *
+ *  Description:
+ *      Accessor for an array element of user_name member in a job_t
+ *      structure. Use this function to get job_ptr->user_name[c]
+ *      in a job_t object from non-member functions.
+ *
+ *  Arguments:
+ *      job_ptr         Pointer to the structure to get
+ *      c               Subscript to the user_name array
+ *
+ *  Returns:
+ *      Value of one element of structure member user_name.
+ *
+ *  Examples:
+ *      job_t           job;
+ *      size_t          c;
+ *      char *          user_name_element;
+ *
+ *      user_name_element = job_get_user_name_ae(&job, c);
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-31  gen-get-set Auto-generated from job-private.h
+ ***************************************************************************/
+
+char  job_get_user_name_ae(job_t *job_ptr, size_t c)
+
+{
+    return job_ptr->user_name[c];
+}
+
+
+/***************************************************************************
+ *  Library:
+ *      #include <job.h>
+ *      
+ *
+ *  Description:
+ *      Accessor for working_directory member in a job_t structure.
+ *      Use this function to get working_directory in a job_t object
+ *      from non-member functions.
+ *
+ *  Arguments:
+ *      job_ptr         Pointer to the structure to set
+ *
+ *  Returns:
+ *      Value of the structure member working_directory.
+ *
+ *  Examples:
+ *      job_t           job;
+ *      char *          working_directory;
+ *
+ *      working_directory = job_get_working_directory(&job);
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-31  gen-get-set Auto-generated from job-private.h
+ ***************************************************************************/
+
+char *    job_get_working_directory(job_t *job_ptr)
+
+{
+    return job_ptr->working_directory;
+}
+
+
+/***************************************************************************
+ *  Library:
+ *      #include <job.h>
+ *      
+ *
+ *  Description:
+ *      Accessor for an array element of working_directory member in a job_t
+ *      structure. Use this function to get job_ptr->working_directory[c]
+ *      in a job_t object from non-member functions.
+ *
+ *  Arguments:
+ *      job_ptr         Pointer to the structure to get
+ *      c               Subscript to the working_directory array
+ *
+ *  Returns:
+ *      Value of one element of structure member working_directory.
+ *
+ *  Examples:
+ *      job_t           job;
+ *      size_t          c;
+ *      char *          working_directory_element;
+ *
+ *      working_directory_element = job_get_working_directory_ae(&job, c);
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-31  gen-get-set Auto-generated from job-private.h
+ ***************************************************************************/
+
+char  job_get_working_directory_ae(job_t *job_ptr, size_t c)
+
+{
+    return job_ptr->working_directory[c];
+}
+
+
+/***************************************************************************
+ *  Library:
+ *      #include <job.h>
+ *      
+ *
+ *  Description:
+ *      Accessor for script_name member in a job_t structure.
+ *      Use this function to get script_name in a job_t object
+ *      from non-member functions.
+ *
+ *  Arguments:
+ *      job_ptr         Pointer to the structure to set
+ *
+ *  Returns:
+ *      Value of the structure member script_name.
+ *
+ *  Examples:
+ *      job_t           job;
+ *      char *          script_name;
+ *
+ *      script_name = job_get_script_name(&job);
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-31  gen-get-set Auto-generated from job-private.h
+ ***************************************************************************/
+
+char *    job_get_script_name(job_t *job_ptr)
+
+{
+    return job_ptr->script_name;
+}
+
+
+/***************************************************************************
+ *  Library:
+ *      #include <job.h>
+ *      
+ *
+ *  Description:
+ *      Accessor for an array element of script_name member in a job_t
+ *      structure. Use this function to get job_ptr->script_name[c]
+ *      in a job_t object from non-member functions.
+ *
+ *  Arguments:
+ *      job_ptr         Pointer to the structure to get
+ *      c               Subscript to the script_name array
+ *
+ *  Returns:
+ *      Value of one element of structure member script_name.
+ *
+ *  Examples:
+ *      job_t           job;
+ *      size_t          c;
+ *      char *          script_name_element;
+ *
+ *      script_name_element = job_get_script_name_ae(&job, c);
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-31  gen-get-set Auto-generated from job-private.h
+ ***************************************************************************/
+
+char  job_get_script_name_ae(job_t *job_ptr, size_t c)
+
+{
+    return job_ptr->script_name[c];
 }

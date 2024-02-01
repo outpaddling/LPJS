@@ -56,7 +56,7 @@ void    job_init(job_t *job)
 
 {
     job->jobid = 0;
-    job->script_path = NULL;
+    job->script_name = NULL;
     job->working_directory = NULL;
     job->user_name = NULL;
     job->cores_per_job = 0;
@@ -77,8 +77,9 @@ void    job_init(job_t *job)
 void    job_print_params(job_t *job)
 
 {
-    printf(JOB_SPEC_FORMAT, job->jobid, job->script_path, job->user_name,
-	   job->cores_per_job, job->mem_per_core);
+    printf(JOB_SPEC_FORMAT, job->jobid, job->job_count, job->cores_per_job,
+	    job->cores_per_node, job->mem_per_core, job->user_name,
+	    job->working_directory, job->script_name);
 }
 
 
@@ -95,8 +96,9 @@ int     job_print_params_to_string(job_t *job, char *str, size_t buff_size)
 
 {
     return snprintf(str, buff_size, JOB_SPEC_FORMAT,
-	    job->jobid, job->script_path, job->user_name,
-	    job->cores_per_job, job->mem_per_core);
+		    job->jobid, job->job_count, job->cores_per_job,
+		    job->cores_per_node, job->mem_per_core, job->user_name,
+		    job->working_directory, job->script_name);
 }
 
 
@@ -116,7 +118,7 @@ void    job_send_params(job_t *job, int msg_fd)
      *  Don't use send_msg() here, since there will be more text to send
      *  and send_msg() terminates the message.
      */
-    if ( xt_dprintf(msg_fd, JOB_SPEC_FORMAT, job->jobid, job->script_path,
+    if ( xt_dprintf(msg_fd, JOB_SPEC_FORMAT, job->jobid, job->script_name,
 	    job->user_name, job->cores_per_job, job->mem_per_core) < 0 )
     {
 	perror("send_job_params(): xt_dprintf() failed");
@@ -168,7 +170,7 @@ int     job_parse_script(job_t *job, const char *script_name)
 	return -1;  // FIXME: Define error code
     }
     
-    if ( (job->script_path = strdup(script_path)) == NULL )
+    if ( (job->script_name = strdup(script_path)) == NULL )
     {
 	fprintf(stderr, "%s: malloc() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
@@ -201,7 +203,7 @@ int     job_parse_script(job_t *job, const char *script_name)
 	    }
 	    if ( strcmp(var, "jobs") == 0 )
 	    {
-		job->jobs = strtoul(val, &end, 10);
+		job->job_count = strtoul(val, &end, 10);
 		if ( *end != '\0' )
 		{
 		    fprintf(stderr, "Error: #lpjs jobs '%s' is not a decimal integer.\n", val);
