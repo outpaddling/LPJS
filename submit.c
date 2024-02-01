@@ -64,7 +64,7 @@ int     main (int argc, char *argv[])
     job_parse_script(job, script_name);
     script_name = job_get_script_name(job);
     working_directory = job_get_working_directory(job);
-    printf("Absolute path = %s/%s\n", working_directory, script_name);
+    // printf("Absolute path = %s/%s\n", working_directory, script_name);
 
     if ( (msg_fd = lpjs_connect_to_dispatchd(&node_list)) == -1 )
     {
@@ -84,6 +84,8 @@ int     main (int argc, char *argv[])
     // FIXME: Send full job specs from job_t class and entire script
     // snprintf(payload, LPJS_PAYLOAD_MAX_LEN, LPJS_JOB_FORMAT
     job_print_params_to_string(job, payload, LPJS_PAYLOAD_MAX_LEN + 1);
+    printf("Sending payload: %s\n", payload);
+    
     if ( (munge_status = munge_encode(&cred, NULL, payload,
 				strlen(payload) + 1)) != EMUNGE_SUCCESS )
     {

@@ -503,6 +503,7 @@ int     lpjs_submit(int msg_fd, node_list_t *node_list, job_list_t *job_list)
     ssize_t     bytes;
     int         payload_len;
     char        incoming_msg[LPJS_MSG_LEN_MAX + 1],
+		script_path[PATH_MAX + 1],
 		*payload;
     job_t       *job = job_new(); // exits if malloc() fails, no need to check
     
@@ -530,8 +531,10 @@ int     lpjs_submit(int msg_fd, node_list_t *node_list, job_list_t *job_list)
     {
 	// FIXME: Parse payload following JOB_SPEC_FORMAT
 	job_read_from_string(job, payload);
-	lpjs_log("Submit script %s from %d, %d\n", payload, uid, gid);
-	lpjs_queue_job(msg_fd, payload, node_list);
+	snprintf(script_path, PATH_MAX + 1, "%s/%s",
+		job_get_working_directory(job), job_get_script_name(job));
+	lpjs_log("Submit script %s from %d, %d\n", script_path, uid, gid);
+	lpjs_queue_job(msg_fd, script_path, node_list);
 	lpjs_server_safe_close(msg_fd);
     }
     free(payload);
@@ -548,7 +551,7 @@ int     lpjs_submit(int msg_fd, node_list_t *node_list, job_list_t *job_list)
  *  2021-09-30  Jason Bacon Begin
  ***************************************************************************/
 
-int     lpjs_queue_job(int msg_fd, const char *script_name, node_list_t *node_list)
+int     lpjs_queue_job(int msg_fd, const char *script_path, node_list_t *node_list)
 
 {
     char    pending_dir[PATH_MAX + 1],
@@ -558,7 +561,7 @@ int     lpjs_queue_job(int msg_fd, const char *script_name, node_list_t *node_li
     FILE    *fp;
     unsigned long    next_job_num;
     
-    // lpjs_log("Spooling %s...\n", script_name);
+    // lpjs_log("Spooling %s...\n", script_path);
     
     snprintf(job_num_path, PATH_MAX + 1, "%s/next-job", LPJS_SPOOL_DIR);
     if ( (fp = fopen(job_num_path, "r")) == NULL )
@@ -578,16 +581,16 @@ int     lpjs_queue_job(int msg_fd, const char *script_name, node_list_t *node_li
     }
 
     snprintf(pending_path, PATH_MAX + 1, "%s/%s", pending_dir,
-	    basename((char *)script_name));
+	    basename((char *)script_path));
     
     // lpjs_log("cwd = %s\n", getcwd(cwd, PATH_MAX + 1));
     
     // FIXME: Use a symlink instead?  Copy is safer in case user
     // modifies the script while a job is running.
-    if ( xt_fast_cp(script_name, pending_path) != 0 )
+    if ( xt_fast_cp(script_path, pending_path) != 0 )
     {
 	lpjs_log("lpjs_queue_job(): Failed to copy %s to %s: %s\n",
-		script_name, pending_path, strerror(errno));
+		script_path, pending_path, strerror(errno));
 	return -1;
     }
     

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -74,10 +75,10 @@ void    job_init(job_t *job)
  *  2021-09-28  Jason Bacon Begin
  ***************************************************************************/
 
-void    job_print_params(job_t *job)
+void    job_print_params(FILE *stream, job_t *job)
 
 {
-    printf(JOB_SPEC_FORMAT, job->job_id, job->job_count, job->cores_per_job,
+    fprintf(stream, JOB_SPEC_FORMAT, job->job_id, job->job_count, job->cores_per_job,
 	    job->cores_per_node, job->mem_per_core, job->user_name,
 	    job->working_directory, job->script_name);
 }
@@ -151,15 +152,9 @@ int     job_parse_script(job_t *job, const char *script_name)
 	    *end;
     size_t  field_len;
     int     var_delim, val_delim;
+    extern FILE *Log_stream;
     
-    /*
-    unsigned long   job_id;          //  Get from dispatchd later
-    char            *script_path;
-    char            *username;
-    char            *working_directory;
-    unsigned        cores;
-    unsigned long   mem_per_core;
-    */
+    // Note: Get job_id from dispatchd later
     
     job_init(job);
     
@@ -170,7 +165,13 @@ int     job_parse_script(job_t *job, const char *script_name)
 	return -1;  // FIXME: Define error code
     }
     
-    if ( (job->script_name = strdup(script_path)) == NULL )
+    if ( (job->working_directory = getcwd(NULL, 0)) == NULL )
+    {
+	fprintf(stderr, "%s: malloc() failed.\n", __FUNCTION__);
+	exit(EX_UNAVAILABLE);
+    }
+    
+    if ( (job->script_name = strdup(script_name)) == NULL )
     {
 	fprintf(stderr, "%s: malloc() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
@@ -254,7 +255,9 @@ int     job_parse_script(job_t *job, const char *script_name)
     }
     fclose(fp);
     
-    job_print_params(job);
+    //lpjs_log("Job parameters:\n");
+    //job_print_spec_header(Log_stream);
+    //job_print_params(Log_stream, job);
     
     return 0;
 }
@@ -290,63 +293,51 @@ int     job_read_from_string(job_t *job, const char *string)
 
 {
     int         items,
-		tokens,
-		length;
-    const char  *p,
-		*start;
+		tokens;
+    const char  *start;
+    char        *temp,
+		*p;
     
     items = sscanf(string, JOB_SPEC_NUMS_FORMAT,
 	    &job->job_id, &job->job_count, &job->cores_per_job,
 	    &job->cores_per_node, &job->mem_per_core);
     
     // Skips past numeric fields
-    for (p = string, tokens = 0;
-	    (*p != '\0') && (tokens < JOB_SPEC_NUMERIC_FIELDS); ++p)
+    for (start = string, tokens = 0;
+	    (*start != '\0') && (tokens < JOB_SPEC_NUMERIC_FIELDS); ++start)
     {
-	if ( *p == ' ' )
-	    ++tokens;
+	while ( (*start != '\0') && isspace(*start) )
+	    ++start;
+	while ( (*start != '\0') && ! isspace(*start) )
+	    ++start;
+	++tokens;
     }
-    if ( *p == '\0' )
+    if ( *start == '\0' )
     {
 	lpjs_log("%s: Malformed job spec string: %s\n", __FUNCTION__, string);
 	exit(EX_DATAERR);
     }
     
-    // Copy working dir
-    start = p + 1;
-    while ( (*p != ' ') && (*p != '\0') )
-	++p;
-    if ( *p == '\0' )
-    {
-	lpjs_log("%s(): Malformed job spec string: %s\n", __FUNCTION__, string);
-	exit(EX_DATAERR);
-    }
-    length = p - start;
-    if ( (job->working_directory = malloc(length + 1)) == NULL )
+    // Duplicate string fields
+    while ( isspace(*start) )
+	++start;
+    // lpjs_log("User name start: %s\n", start);
+    if ( (temp = strdup(start)) == NULL )
     {
 	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
-	exit(EX_DATAERR);
+	exit(EX_UNAVAILABLE);
     }
-    memcpy(job->working_directory, start, length);
-    job->working_directory[length] = '\0';
+    p = temp;
     
-    // Copy script name
-    start = p + 1;
-    while ( (*p != ' ') && (*p != '\0') )
-	++p;
-    if ( *p == '\0' )
-    {
-	lpjs_log("%s(): Malformed job spec string: %s\n", __FUNCTION__, string);
-	exit(EX_DATAERR);
-    }
-    length = p - start;
-    if ( (job->script_name = malloc(length + 1)) == NULL )
-    {
-	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
-	exit(EX_DATAERR);
-    }
-    memcpy(job->script_name, start, length);
-    job->script_name[length] = '\0';
+    // FIXME: Check malloc() results
+    job->user_name = strdup(strsep(&p, " \t"));
+    // lpjs_log("user_name = %s\n", job->user_name);
+    job->working_directory = strdup(strsep(&p, " \t"));
+    // lpjs_log("working_directory = %s\n", job->working_directory);
+    job->script_name = strdup(strsep(&p, " \t"));
+    // lpjs_log("script_name = %s\n", job->script_name);
+    
+    free(temp);
     
     return items;
 }
@@ -385,4 +376,42 @@ void    job_free(job_t **job)
     free((*job)->working_directory);
     free((*job)->script_name);
     free(*job);
+}
+
+
+/***************************************************************************
+ *  Description:
+ *  
+ *  Returns:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-02-01  Jason Bacon Begin
+ ***************************************************************************/
+
+void    job_send_spec_header(int msg_fd)
+
+{
+    xt_dprintf(msg_fd, JOB_SPEC_HEADER_FORMAT, "JobID", "Job-count",
+		"Cores/job", "Cores/node", "Mem/core",
+		"User-name", "Working-directory", "Script-name");
+}
+
+
+/***************************************************************************
+ *  Description:
+ *  
+ *  Returns:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-02-01  Jason Bacon Begin
+ ***************************************************************************/
+
+void    job_print_spec_header(FILE *stream)
+
+{
+    fprintf(stream, JOB_SPEC_HEADER_FORMAT, "JobID", "Job-count",
+		"Cores/job", "Cores/node", "Mem/core",
+		"User-name", "Working-directory", "Script-name");
 }
