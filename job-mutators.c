@@ -60,7 +60,7 @@ int     job_set_jobid(job_t *job_ptr, unsigned long new_jobid)
 	return JOB_DATA_OUT_OF_RANGE;
     else
     {
-	job_ptr->jobid = new_jobid;
+	job_ptr->job_id = new_jobid;
 	return JOB_DATA_OK;
     }
 }

@@ -7,7 +7,7 @@ extern "C" {
 
 struct job
 {
-    unsigned long   jobid;
+    unsigned long   job_id;
     unsigned        job_count;
     unsigned        cores_per_job;
     unsigned        cores_per_node;

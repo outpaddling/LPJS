@@ -504,6 +504,7 @@ int     lpjs_submit(int msg_fd, node_list_t *node_list, job_list_t *job_list)
     int         payload_len;
     char        incoming_msg[LPJS_MSG_LEN_MAX + 1],
 		*payload;
+    job_t       *job = job_new(); // exits if malloc() fails, no need to check
     
     // FIXME: Don't accept job submissions from root until
     // security issues have been considered
@@ -527,7 +528,8 @@ int     lpjs_submit(int msg_fd, node_list_t *node_list, job_list_t *job_list)
     }
     else
     {
-	// FIXME: Parse payload using JOB_SPEC_FORMAT
+	// FIXME: Parse payload following JOB_SPEC_FORMAT
+	job_read_from_string(job, payload);
 	lpjs_log("Submit script %s from %d, %d\n", payload, uid, gid);
 	lpjs_queue_job(msg_fd, payload, node_list);
 	lpjs_server_safe_close(msg_fd);

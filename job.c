@@ -55,7 +55,7 @@ job_t   *job_new(void)
 void    job_init(job_t *job)
 
 {
-    job->jobid = 0;
+    job->job_id = 0;
     job->script_name = NULL;
     job->working_directory = NULL;
     job->user_name = NULL;
@@ -77,7 +77,7 @@ void    job_init(job_t *job)
 void    job_print_params(job_t *job)
 
 {
-    printf(JOB_SPEC_FORMAT, job->jobid, job->job_count, job->cores_per_job,
+    printf(JOB_SPEC_FORMAT, job->job_id, job->job_count, job->cores_per_job,
 	    job->cores_per_node, job->mem_per_core, job->user_name,
 	    job->working_directory, job->script_name);
 }
@@ -96,7 +96,7 @@ int     job_print_params_to_string(job_t *job, char *str, size_t buff_size)
 
 {
     return snprintf(str, buff_size, JOB_SPEC_FORMAT,
-		    job->jobid, job->job_count, job->cores_per_job,
+		    job->job_id, job->job_count, job->cores_per_job,
 		    job->cores_per_node, job->mem_per_core, job->user_name,
 		    job->working_directory, job->script_name);
 }
@@ -118,7 +118,7 @@ void    job_send_params(job_t *job, int msg_fd)
      *  Don't use send_msg() here, since there will be more text to send
      *  and send_msg() terminates the message.
      */
-    if ( xt_dprintf(msg_fd, JOB_SPEC_FORMAT, job->jobid, job->script_name,
+    if ( xt_dprintf(msg_fd, JOB_SPEC_FORMAT, job->job_id, job->script_name,
 	    job->user_name, job->cores_per_job, job->mem_per_core) < 0 )
     {
 	perror("send_job_params(): xt_dprintf() failed");
@@ -153,7 +153,7 @@ int     job_parse_script(job_t *job, const char *script_name)
     int     var_delim, val_delim;
     
     /*
-    unsigned long   jobid;          //  Get from dispatchd later
+    unsigned long   job_id;          //  Get from dispatchd later
     char            *script_path;
     char            *username;
     char            *working_directory;
@@ -257,4 +257,132 @@ int     job_parse_script(job_t *job, const char *script_name)
     job_print_params(job);
     
     return 0;
+}
+
+
+/***************************************************************************
+ *  Use auto-c2man to generate a man page from this comment
+ *
+ *  Library:
+ *      #include <>
+ *      -l
+ *
+ *  Description:
+ *  
+ *  Arguments:
+ *
+ *  Returns:
+ *
+ *  Examples:
+ *
+ *  Files:
+ *
+ *  Environment
+ *
+ *  See also:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-31  Jason Bacon Begin
+ ***************************************************************************/
+
+int     job_read_from_string(job_t *job, const char *string)
+
+{
+    int         items,
+		tokens,
+		length;
+    const char  *p,
+		*start;
+    
+    items = sscanf(string, JOB_SPEC_NUMS_FORMAT,
+	    &job->job_id, &job->job_count, &job->cores_per_job,
+	    &job->cores_per_node, &job->mem_per_core);
+    
+    // Skips past numeric fields
+    for (p = string, tokens = 0;
+	    (*p != '\0') && (tokens < JOB_SPEC_NUMERIC_FIELDS); ++p)
+    {
+	if ( *p == ' ' )
+	    ++tokens;
+    }
+    if ( *p == '\0' )
+    {
+	lpjs_log("%s: Malformed job spec string: %s\n", __FUNCTION__, string);
+	exit(EX_DATAERR);
+    }
+    
+    // Copy working dir
+    start = p + 1;
+    while ( (*p != ' ') && (*p != '\0') )
+	++p;
+    if ( *p == '\0' )
+    {
+	lpjs_log("%s(): Malformed job spec string: %s\n", __FUNCTION__, string);
+	exit(EX_DATAERR);
+    }
+    length = p - start;
+    if ( (job->working_directory = malloc(length + 1)) == NULL )
+    {
+	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
+	exit(EX_DATAERR);
+    }
+    memcpy(job->working_directory, start, length);
+    job->working_directory[length] = '\0';
+    
+    // Copy script name
+    start = p + 1;
+    while ( (*p != ' ') && (*p != '\0') )
+	++p;
+    if ( *p == '\0' )
+    {
+	lpjs_log("%s(): Malformed job spec string: %s\n", __FUNCTION__, string);
+	exit(EX_DATAERR);
+    }
+    length = p - start;
+    if ( (job->script_name = malloc(length + 1)) == NULL )
+    {
+	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
+	exit(EX_DATAERR);
+    }
+    memcpy(job->script_name, start, length);
+    job->script_name[length] = '\0';
+    
+    return items;
+}
+
+
+/***************************************************************************
+ *  Use auto-c2man to generate a man page from this comment
+ *
+ *  Library:
+ *      #include <>
+ *      -l
+ *
+ *  Description:
+ *  
+ *  Arguments:
+ *
+ *  Returns:
+ *
+ *  Examples:
+ *
+ *  Files:
+ *
+ *  Environment
+ *
+ *  See also:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-31  Jason Bacon Begin
+ ***************************************************************************/
+
+void    job_free(job_t **job)
+
+{
+    free((*job)->user_name);
+    free((*job)->working_directory);
+    free((*job)->script_name);
+    free(*job);
 }

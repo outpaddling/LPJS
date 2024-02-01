@@ -44,7 +44,7 @@
 unsigned long    job_get_jobid(job_t *job_ptr)
 
 {
-    return job_ptr->jobid;
+    return job_ptr->job_id;
 }
 
 
