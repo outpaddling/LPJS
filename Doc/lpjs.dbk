@@ -11,7 +11,10 @@
         </para>
         
         <para>
-        See Research Computing User's Guide.
+        This manual is aimed at the systems manager, covering
+        installation and configuration of LPJS.  For a user's guide
+        on HPC clusters, HTC grids, and LPJS operation,
+        see the Research Computing User's Guide.
         </para>
     </chapter>
     
@@ -54,54 +57,5 @@
         on each compute node.  Compute nodes will only be able to run jobs
         under the same user name that submitted them.
         </para>
-    </chapter>
-    
-    <chapter>
-        <title>Monitoring the Cluster/Grid</title>
-        
-        <para>
-        Learn to do this <emphasis>before</emphasis> running your
-        own jobs.
-        </para>
-    </chapter>
-    
-    <chapter>
-        <title>Running Jobs</title>
-        
-        <section>
-            <title>File Access</title>
-            
-            <para>
-            It is assumed that most compute nodes will have direct access
-            to the same files as the submit node, via NFS or similar
-            file sharing protocols.  In this case, the LPJS chaperon
-            process will run the job on the compute node in the same
-            absolute directory from which it was submitted on the submit
-            node.
-            </para>
-            
-            <para>
-            This is not a requirement, however.  If the working directory
-            from which a job was submitted does not exist on a compute node,
-            LPJS will create a temporary working directory and run the
-            job within it.  It is the job script's responsibility then,
-            to download any input files needed, and upload the results
-            to the appropriate location (which could be anywhere: This is
-            entirely up to the user).  The temporary directory is
-            automatically removed upon completion of the job, so scripts
-            that fail to transfer the results to a permanent location
-            will have to be rerun.
-            </para>
-            
-            <para>
-            LPJS is not a file transfer tool.  There are numerous,
-            highly-evolved tools for this purpose, such as
-            <command>rsync</command>, <command>curl</command>, etc.,
-            and no reason to reinvent this wheel.  The system administrator
-            of whatever computer is meant to store the results must
-            allow file transfers from all compute nodes, using whatever
-            transfer tool they choose to support.
-            </para>
-        </section>
     </chapter>
 </book>
