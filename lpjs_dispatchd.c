@@ -560,6 +560,7 @@ int     lpjs_queue_job(int msg_fd, const char *script_path, node_list_t *node_li
 	    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
     FILE    *fp;
     unsigned long    next_job_num;
+    int     status;
     
     // lpjs_log("Spooling %s...\n", script_path);
     
@@ -587,10 +588,13 @@ int     lpjs_queue_job(int msg_fd, const char *script_path, node_list_t *node_li
     
     // FIXME: Use a symlink instead?  Copy is safer in case user
     // modifies the script while a job is running.
-    if ( xt_fast_cp(script_path, pending_path) != 0 )
+    lpjs_log("CWD = %s  script = '%s'\n", getcwd(NULL, 0), script_path);
+    struct stat st;
+    lpjs_log("stat(): %d\n", stat(script_path, &st));
+    if ( (status = xt_fast_cp(script_path, pending_path)) != 0 )
     {
-	lpjs_log("lpjs_queue_job(): Failed to copy %s to %s: %s\n",
-		script_path, pending_path, strerror(errno));
+	lpjs_log("lpjs_queue_job(): Failed to copy %s to %s: %d %s\n",
+		script_path, pending_path, status, strerror(errno));
 	return -1;
     }
     

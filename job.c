@@ -177,7 +177,7 @@ int     job_parse_script(job_t *job, const char *script_name)
 	exit(EX_UNAVAILABLE);
     }
     
-    // FIXME: Make all functions take actual array size, including '\0'?
+    // FIXME: Make all functions here and in libs take actual array size, including '\0'?
     xt_get_user_name(temp_user_name, 64);
     if ( (job->user_name = strdup(temp_user_name)) == NULL )
     {
@@ -255,10 +255,6 @@ int     job_parse_script(job_t *job, const char *script_name)
     }
     fclose(fp);
     
-    //lpjs_log("Job parameters:\n");
-    //job_print_spec_header(Log_stream);
-    //job_print_params(Log_stream, job);
-    
     return 0;
 }
 
@@ -321,7 +317,6 @@ int     job_read_from_string(job_t *job, const char *string)
     // Duplicate string fields
     while ( isspace(*start) )
 	++start;
-    // lpjs_log("User name start: %s\n", start);
     if ( (temp = strdup(start)) == NULL )
     {
 	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
@@ -329,13 +324,21 @@ int     job_read_from_string(job_t *job, const char *string)
     }
     p = temp;
     
-    // FIXME: Check malloc() results
-    job->user_name = strdup(strsep(&p, " \t"));
-    // lpjs_log("user_name = %s\n", job->user_name);
-    job->working_directory = strdup(strsep(&p, " \t"));
-    // lpjs_log("working_directory = %s\n", job->working_directory);
-    job->script_name = strdup(strsep(&p, " \t"));
-    // lpjs_log("script_name = %s\n", job->script_name);
+    if ( (job->user_name = strdup(strsep(&p, " \t"))) == NULL )
+    {
+	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
+	exit(EX_UNAVAILABLE);
+    }
+    if ( (job->working_directory = strdup(strsep(&p, " \t"))) == NULL )
+    {
+	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
+	exit(EX_UNAVAILABLE);
+    }
+    if ( (job->script_name = strdup(strsep(&p, " \t\n"))) == NULL )
+    {
+	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
+	exit(EX_UNAVAILABLE);
+    }
     
     free(temp);
     
