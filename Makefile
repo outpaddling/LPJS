@@ -59,7 +59,7 @@ LIBEXEC     = nodes jobs submit
 LIB_OBJS    = config.o misc.o scheduler.o network.o job.o job-list.o \
 	      node.o node-mutators.o node-list.o \
 	      node-accessors.o node-list-mutators.o \
-	      job-accessors.o job-mutators.o
+	      job-accessors.o job-mutators.o realpath.o
 
 ############################################################################
 # Compile, link, and install options
