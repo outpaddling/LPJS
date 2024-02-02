@@ -131,14 +131,14 @@ int     lpjs_process_events(node_list_t *node_list, job_list_t *job_list)
 	highest_fd = listen_fd;
 	for (unsigned c = 0; c < NODE_LIST_COUNT(node_list); ++c)
 	{
-	    node_t *node = &NODE_LIST_COMPUTE_NODES_AE(node_list, c);
+	    node_t *node = NODE_LIST_COMPUTE_NODES_AE(node_list, c);
 	    //lpjs_log("Checking node %s, fd = %d...\n",
-	    //        NODE_HOSTNAME(node), NODE_MSG_FD(node));
-	    if ( NODE_MSG_FD(node) != NODE_MSG_FD_NOT_OPEN )
+	    //        node_get_hostname(node), node_get_msg_fd(node));
+	    if ( node_get_msg_fd(node) != NODE_MSG_FD_NOT_OPEN )
 	    {
-		FD_SET(NODE_MSG_FD(node), &read_fds);
-		if ( NODE_MSG_FD(node) > highest_fd )
-		    highest_fd = NODE_MSG_FD(node);
+		FD_SET(node_get_msg_fd(node), &read_fds);
+		if ( node_get_msg_fd(node) > highest_fd )
+		    highest_fd = node_get_msg_fd(node);
 	    }
 	}
 	// lpjs_log("highest_fd = %d\n", highest_fd);
@@ -192,7 +192,7 @@ void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
 			    job_list_t *job_list)
 
 {
-    node_t  *node;
+    node_t  *node = node_new();
     int     fd;
     ssize_t bytes;
     char    incoming_msg[LPJS_MSG_LEN_MAX + 1];
@@ -202,8 +202,8 @@ void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
     // Lowest priority: User commands
     for (unsigned c = 0; c < NODE_LIST_COUNT(node_list); ++c)
     {
-	node = &NODE_LIST_COMPUTE_NODES_AE(node_list, c);
-	fd = NODE_MSG_FD(node);
+	node = NODE_LIST_COMPUTE_NODES_AE(node_list, c);
+	fd = node_get_msg_fd(node);
 	if ( (fd != NODE_MSG_FD_NOT_OPEN) && FD_ISSET(fd, read_fds) )
 	{
 	    lpjs_log("Activity on fd %d\n", fd);
@@ -217,7 +217,7 @@ void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
 	    if ( bytes == 0 )
 	    {
 		lpjs_log("Lost connection to %s.  Closing...\n",
-			NODE_HOSTNAME(node));
+			node_get_hostname(node));
 		close(fd);
 		node_set_msg_fd(node, NODE_MSG_FD_NOT_OPEN);
 		node_set_state(node, "Down");
@@ -403,7 +403,7 @@ void    lpjs_compute_node_checkin(int msg_fd, node_list_t *node_list)
 
 {
     munge_err_t munge_status;
-    node_t      new_node;
+    node_t      *new_node = node_new();
     uid_t       uid;
     gid_t       gid;
     ssize_t     bytes;
@@ -446,11 +446,11 @@ void    lpjs_compute_node_checkin(int msg_fd, node_list_t *node_list)
 	    
 	    lpjs_send_msg(msg_fd, 0, MUNGE_CRED_VERIFIED);
 	    
-	    node_recv_specs(&new_node, msg_fd);
+	    node_recv_specs(new_node, msg_fd);
 	    
 	    // Keep in sync with node_list_send_status()
 	    node_print_status_header(Log_stream);
-	    node_print_status(Log_stream, &new_node);
+	    node_print_status(Log_stream, new_node);
 	    
 	    // Make sure node name is valid
 	    // Note: For real security, only authorized
@@ -459,25 +459,26 @@ void    lpjs_compute_node_checkin(int msg_fd, node_list_t *node_list)
 	    bool valid_node = false;
 	    for (unsigned c = 0; c < NODE_LIST_COUNT(node_list); ++c)
 	    {
-		node_t *node = &NODE_LIST_COMPUTE_NODES_AE(node_list, c);
+		node_t *node = NODE_LIST_COMPUTE_NODES_AE(node_list, c);
 		// If config has short hostnames, just match that
-		int valid_hostname_len = strlen(NODE_HOSTNAME(node));
-		if ( memcmp(NODE_HOSTNAME(node), NODE_HOSTNAME(&new_node), valid_hostname_len) == 0 )
+		int valid_hostname_len = strlen(node_get_hostname(node));
+		if ( memcmp(node_get_hostname(node), node_get_hostname(new_node), valid_hostname_len) == 0 )
 		    valid_node = true;
 	    }
 	    if ( ! valid_node )
 	    {
-		lpjs_log("Unauthorized checkin request from %s.\n", NODE_HOSTNAME(&new_node));
+		lpjs_log("Unauthorized checkin request from %s.\n",
+			node_get_hostname(new_node));
 		close(msg_fd);
 	    }
 	    else
 	    {
 		lpjs_send_msg(msg_fd, 0, "Node authorized");
-		node_set_msg_fd(&new_node, msg_fd);
+		node_set_msg_fd(new_node, msg_fd);
 		
 		// Nodes were added to node_list by lpjs_load_config()
 		// Just update the fields here
-		node_list_update_compute(node_list, &new_node);
+		node_list_update_compute(node_list, new_node);
 		// FIXME: Acknowledge checkin
 	    }
 	}

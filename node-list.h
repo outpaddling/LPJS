@@ -11,7 +11,7 @@ typedef struct
 {
     char        *head_node;
     unsigned    count;
-    node_t      compute_nodes[LPJS_MAX_NODES];
+    node_t      *compute_nodes[LPJS_MAX_NODES];
 }   node_list_t;
 
 /* Return values for mutator functions */
@@ -68,8 +68,8 @@ int node_list_set_head_node(node_list_t *node_list_ptr, char *new_head_node);
 int node_list_set_head_node_ae(node_list_t *node_list_ptr, size_t c, char new_head_node_element);
 int node_list_set_head_node_cpy(node_list_t *node_list_ptr, char *new_head_node, size_t array_size);
 int node_list_set_count(node_list_t *node_list_ptr, unsigned new_count);
-int node_list_set_compute_nodes_ae(node_list_t *node_list_ptr, size_t c, node_t new_compute_nodes_element);
-int node_list_set_compute_nodes_cpy(node_list_t *node_list_ptr, node_t new_compute_nodes[], size_t array_size);
+int node_list_set_compute_nodes_ae(node_list_t *node_list_ptr, size_t c, node_t *new_compute_nodes_element);
+int node_list_set_compute_nodes_cpy(node_list_t *node_list_ptr, node_t *new_compute_nodes[], size_t array_size);
 void node_list_update_compute(node_list_t *node_list, node_t *node);
 
 #endif  // _LPJS_NODE_LIST_H_

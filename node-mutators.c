@@ -10,15 +10,13 @@
 #include <ctype.h>
 #include <stdbool.h>        // In case of bool
 #include <stdint.h>         // In case of int64_t, etc
-
 #include <xtend/string.h>   // strlcpy() on Linux
-
-#include "node.h"
+#include "node-private.h"
 
 
 /***************************************************************************
  *  Library:
- *      #include <./node.h>
+ *      #include <node.h>
  *      
  *
  *  Description:
@@ -35,15 +33,15 @@
  *      new_hostname    The new value for hostname
  *
  *  Returns:
- *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
+ *      NODE_DATA_OK if the new value is acceptable and assigned
+ *      NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      char *          new_hostname;
  *
  *      if ( node_set_hostname(&node, new_hostname)
- *              == LPJS_NODE_DATA_OK )
+ *              == NODE_DATA_OK )
  *      {
  *      }
  *
@@ -52,25 +50,25 @@
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-21  gen-get-set Auto-generated from node.h
+ *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_hostname(node_t *node_ptr, char * new_hostname)
 
 {
     if ( new_hostname == NULL )
-	return LPJS_NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->hostname = new_hostname;
-	return LPJS_NODE_DATA_OK;
+	return NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <./node.h>
+ *      #include <node.h>
  *      
  *
  *  Description:
@@ -84,8 +82,8 @@ int     node_set_hostname(node_t *node_ptr, char * new_hostname)
  *      new_hostname_element The new value for hostname[c]
  *
  *  Returns:
- *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
+ *      NODE_DATA_OK if the new value is acceptable and assigned
+ *      NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
@@ -93,7 +91,7 @@ int     node_set_hostname(node_t *node_ptr, char * new_hostname)
  *      char *          new_hostname_element;
  *
  *      if ( node_set_hostname_ae(&node, c, new_hostname_element)
- *              == LPJS_NODE_DATA_OK )
+ *              == NODE_DATA_OK )
  *      {
  *      }
  *
@@ -102,25 +100,25 @@ int     node_set_hostname(node_t *node_ptr, char * new_hostname)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-21  gen-get-set Auto-generated from node.h
+ *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_hostname_ae(node_t *node_ptr, size_t c, char  new_hostname_element)
 
 {
     if ( false )
-	return LPJS_NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->hostname[c] = new_hostname_element;
-	return LPJS_NODE_DATA_OK;
+	return NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <./node.h>
+ *      #include <node.h>
  *      
  *
  *  Description:
@@ -135,8 +133,8 @@ int     node_set_hostname_ae(node_t *node_ptr, size_t c, char  new_hostname_elem
  *      array_size      Size of the hostname array.
  *
  *  Returns:
- *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
+ *      NODE_DATA_OK if the new value is acceptable and assigned
+ *      NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
@@ -144,7 +142,7 @@ int     node_set_hostname_ae(node_t *node_ptr, size_t c, char  new_hostname_elem
  *      size_t          array_size;
  *
  *      if ( node_set_hostname_cpy(&node, new_hostname, array_size)
- *              == LPJS_NODE_DATA_OK )
+ *              == NODE_DATA_OK )
  *      {
  *      }
  *
@@ -153,26 +151,26 @@ int     node_set_hostname_ae(node_t *node_ptr, size_t c, char  new_hostname_elem
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-21  gen-get-set Auto-generated from node.h
+ *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_hostname_cpy(node_t *node_ptr, char * new_hostname, size_t array_size)
 
 {
     if ( new_hostname == NULL )
-	return LPJS_NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
 	// FIXME: Assuming char array is a null-terminated string
 	strlcpy(node_ptr->hostname, new_hostname, array_size);
-	return LPJS_NODE_DATA_OK;
+	return NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <./node.h>
+ *      #include <node.h>
  *      
  *
  *  Description:
@@ -189,15 +187,15 @@ int     node_set_hostname_cpy(node_t *node_ptr, char * new_hostname, size_t arra
  *      new_cores       The new value for cores
  *
  *  Returns:
- *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
+ *      NODE_DATA_OK if the new value is acceptable and assigned
+ *      NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      unsigned        new_cores;
  *
  *      if ( node_set_cores(&node, new_cores)
- *              == LPJS_NODE_DATA_OK )
+ *              == NODE_DATA_OK )
  *      {
  *      }
  *
@@ -206,25 +204,25 @@ int     node_set_hostname_cpy(node_t *node_ptr, char * new_hostname, size_t arra
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-21  gen-get-set Auto-generated from node.h
+ *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_cores(node_t *node_ptr, unsigned new_cores)
 
 {
     if ( false )
-	return LPJS_NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->cores = new_cores;
-	return LPJS_NODE_DATA_OK;
+	return NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <./node.h>
+ *      #include <node.h>
  *      
  *
  *  Description:
@@ -241,15 +239,15 @@ int     node_set_cores(node_t *node_ptr, unsigned new_cores)
  *      new_cores_used  The new value for cores_used
  *
  *  Returns:
- *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
+ *      NODE_DATA_OK if the new value is acceptable and assigned
+ *      NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      unsigned        new_cores_used;
  *
  *      if ( node_set_cores_used(&node, new_cores_used)
- *              == LPJS_NODE_DATA_OK )
+ *              == NODE_DATA_OK )
  *      {
  *      }
  *
@@ -258,25 +256,25 @@ int     node_set_cores(node_t *node_ptr, unsigned new_cores)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-21  gen-get-set Auto-generated from node.h
+ *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_cores_used(node_t *node_ptr, unsigned new_cores_used)
 
 {
     if ( false )
-	return LPJS_NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->cores_used = new_cores_used;
-	return LPJS_NODE_DATA_OK;
+	return NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <./node.h>
+ *      #include <node.h>
  *      
  *
  *  Description:
@@ -293,15 +291,15 @@ int     node_set_cores_used(node_t *node_ptr, unsigned new_cores_used)
  *      new_phys_mem    The new value for phys_mem
  *
  *  Returns:
- *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
+ *      NODE_DATA_OK if the new value is acceptable and assigned
+ *      NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      unsigned long   new_phys_mem;
  *
  *      if ( node_set_phys_mem(&node, new_phys_mem)
- *              == LPJS_NODE_DATA_OK )
+ *              == NODE_DATA_OK )
  *      {
  *      }
  *
@@ -310,25 +308,25 @@ int     node_set_cores_used(node_t *node_ptr, unsigned new_cores_used)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-21  gen-get-set Auto-generated from node.h
+ *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_phys_mem(node_t *node_ptr, unsigned long new_phys_mem)
 
 {
     if ( false )
-	return LPJS_NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->phys_mem = new_phys_mem;
-	return LPJS_NODE_DATA_OK;
+	return NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <./node.h>
+ *      #include <node.h>
  *      
  *
  *  Description:
@@ -345,15 +343,15 @@ int     node_set_phys_mem(node_t *node_ptr, unsigned long new_phys_mem)
  *      new_phys_mem_used The new value for phys_mem_used
  *
  *  Returns:
- *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
+ *      NODE_DATA_OK if the new value is acceptable and assigned
+ *      NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      unsigned long   new_phys_mem_used;
  *
  *      if ( node_set_phys_mem_used(&node, new_phys_mem_used)
- *              == LPJS_NODE_DATA_OK )
+ *              == NODE_DATA_OK )
  *      {
  *      }
  *
@@ -362,25 +360,25 @@ int     node_set_phys_mem(node_t *node_ptr, unsigned long new_phys_mem)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-21  gen-get-set Auto-generated from node.h
+ *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_phys_mem_used(node_t *node_ptr, unsigned long new_phys_mem_used)
 
 {
     if ( false )
-	return LPJS_NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->phys_mem_used = new_phys_mem_used;
-	return LPJS_NODE_DATA_OK;
+	return NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <./node.h>
+ *      #include <node.h>
  *      
  *
  *  Description:
@@ -397,15 +395,15 @@ int     node_set_phys_mem_used(node_t *node_ptr, unsigned long new_phys_mem_used
  *      new_zfs         The new value for zfs
  *
  *  Returns:
- *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
+ *      NODE_DATA_OK if the new value is acceptable and assigned
+ *      NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      int             new_zfs;
  *
  *      if ( node_set_zfs(&node, new_zfs)
- *              == LPJS_NODE_DATA_OK )
+ *              == NODE_DATA_OK )
  *      {
  *      }
  *
@@ -414,25 +412,25 @@ int     node_set_phys_mem_used(node_t *node_ptr, unsigned long new_phys_mem_used
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-21  gen-get-set Auto-generated from node.h
+ *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_zfs(node_t *node_ptr, int new_zfs)
 
 {
     if ( false )
-	return LPJS_NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->zfs = new_zfs;
-	return LPJS_NODE_DATA_OK;
+	return NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <./node.h>
+ *      #include <node.h>
  *      
  *
  *  Description:
@@ -449,15 +447,15 @@ int     node_set_zfs(node_t *node_ptr, int new_zfs)
  *      new_os          The new value for os
  *
  *  Returns:
- *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
+ *      NODE_DATA_OK if the new value is acceptable and assigned
+ *      NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      char *          new_os;
  *
  *      if ( node_set_os(&node, new_os)
- *              == LPJS_NODE_DATA_OK )
+ *              == NODE_DATA_OK )
  *      {
  *      }
  *
@@ -466,25 +464,25 @@ int     node_set_zfs(node_t *node_ptr, int new_zfs)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-21  gen-get-set Auto-generated from node.h
+ *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_os(node_t *node_ptr, char * new_os)
 
 {
     if ( new_os == NULL )
-	return LPJS_NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->os = new_os;
-	return LPJS_NODE_DATA_OK;
+	return NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <./node.h>
+ *      #include <node.h>
  *      
  *
  *  Description:
@@ -498,8 +496,8 @@ int     node_set_os(node_t *node_ptr, char * new_os)
  *      new_os_element  The new value for os[c]
  *
  *  Returns:
- *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
+ *      NODE_DATA_OK if the new value is acceptable and assigned
+ *      NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
@@ -507,7 +505,7 @@ int     node_set_os(node_t *node_ptr, char * new_os)
  *      char *          new_os_element;
  *
  *      if ( node_set_os_ae(&node, c, new_os_element)
- *              == LPJS_NODE_DATA_OK )
+ *              == NODE_DATA_OK )
  *      {
  *      }
  *
@@ -516,25 +514,25 @@ int     node_set_os(node_t *node_ptr, char * new_os)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-21  gen-get-set Auto-generated from node.h
+ *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_os_ae(node_t *node_ptr, size_t c, char  new_os_element)
 
 {
     if ( false )
-	return LPJS_NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->os[c] = new_os_element;
-	return LPJS_NODE_DATA_OK;
+	return NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <./node.h>
+ *      #include <node.h>
  *      
  *
  *  Description:
@@ -549,8 +547,8 @@ int     node_set_os_ae(node_t *node_ptr, size_t c, char  new_os_element)
  *      array_size      Size of the os array.
  *
  *  Returns:
- *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
+ *      NODE_DATA_OK if the new value is acceptable and assigned
+ *      NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
@@ -558,7 +556,7 @@ int     node_set_os_ae(node_t *node_ptr, size_t c, char  new_os_element)
  *      size_t          array_size;
  *
  *      if ( node_set_os_cpy(&node, new_os, array_size)
- *              == LPJS_NODE_DATA_OK )
+ *              == NODE_DATA_OK )
  *      {
  *      }
  *
@@ -567,26 +565,26 @@ int     node_set_os_ae(node_t *node_ptr, size_t c, char  new_os_element)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-21  gen-get-set Auto-generated from node.h
+ *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_os_cpy(node_t *node_ptr, char * new_os, size_t array_size)
 
 {
     if ( new_os == NULL )
-	return LPJS_NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
 	// FIXME: Assuming char array is a null-terminated string
 	strlcpy(node_ptr->os, new_os, array_size);
-	return LPJS_NODE_DATA_OK;
+	return NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <./node.h>
+ *      #include <node.h>
  *      
  *
  *  Description:
@@ -603,15 +601,15 @@ int     node_set_os_cpy(node_t *node_ptr, char * new_os, size_t array_size)
  *      new_arch        The new value for arch
  *
  *  Returns:
- *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
+ *      NODE_DATA_OK if the new value is acceptable and assigned
+ *      NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      char *          new_arch;
  *
  *      if ( node_set_arch(&node, new_arch)
- *              == LPJS_NODE_DATA_OK )
+ *              == NODE_DATA_OK )
  *      {
  *      }
  *
@@ -620,25 +618,25 @@ int     node_set_os_cpy(node_t *node_ptr, char * new_os, size_t array_size)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-21  gen-get-set Auto-generated from node.h
+ *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_arch(node_t *node_ptr, char * new_arch)
 
 {
     if ( new_arch == NULL )
-	return LPJS_NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->arch = new_arch;
-	return LPJS_NODE_DATA_OK;
+	return NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <./node.h>
+ *      #include <node.h>
  *      
  *
  *  Description:
@@ -652,8 +650,8 @@ int     node_set_arch(node_t *node_ptr, char * new_arch)
  *      new_arch_element The new value for arch[c]
  *
  *  Returns:
- *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
+ *      NODE_DATA_OK if the new value is acceptable and assigned
+ *      NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
@@ -661,7 +659,7 @@ int     node_set_arch(node_t *node_ptr, char * new_arch)
  *      char *          new_arch_element;
  *
  *      if ( node_set_arch_ae(&node, c, new_arch_element)
- *              == LPJS_NODE_DATA_OK )
+ *              == NODE_DATA_OK )
  *      {
  *      }
  *
@@ -670,25 +668,25 @@ int     node_set_arch(node_t *node_ptr, char * new_arch)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-21  gen-get-set Auto-generated from node.h
+ *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_arch_ae(node_t *node_ptr, size_t c, char  new_arch_element)
 
 {
     if ( false )
-	return LPJS_NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->arch[c] = new_arch_element;
-	return LPJS_NODE_DATA_OK;
+	return NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <./node.h>
+ *      #include <node.h>
  *      
  *
  *  Description:
@@ -703,8 +701,8 @@ int     node_set_arch_ae(node_t *node_ptr, size_t c, char  new_arch_element)
  *      array_size      Size of the arch array.
  *
  *  Returns:
- *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
+ *      NODE_DATA_OK if the new value is acceptable and assigned
+ *      NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
@@ -712,7 +710,7 @@ int     node_set_arch_ae(node_t *node_ptr, size_t c, char  new_arch_element)
  *      size_t          array_size;
  *
  *      if ( node_set_arch_cpy(&node, new_arch, array_size)
- *              == LPJS_NODE_DATA_OK )
+ *              == NODE_DATA_OK )
  *      {
  *      }
  *
@@ -721,26 +719,26 @@ int     node_set_arch_ae(node_t *node_ptr, size_t c, char  new_arch_element)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-21  gen-get-set Auto-generated from node.h
+ *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_arch_cpy(node_t *node_ptr, char * new_arch, size_t array_size)
 
 {
     if ( new_arch == NULL )
-	return LPJS_NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
 	// FIXME: Assuming char array is a null-terminated string
 	strlcpy(node_ptr->arch, new_arch, array_size);
-	return LPJS_NODE_DATA_OK;
+	return NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <./node.h>
+ *      #include <node.h>
  *      
  *
  *  Description:
@@ -757,15 +755,15 @@ int     node_set_arch_cpy(node_t *node_ptr, char * new_arch, size_t array_size)
  *      new_state       The new value for state
  *
  *  Returns:
- *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
+ *      NODE_DATA_OK if the new value is acceptable and assigned
+ *      NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      char *          new_state;
  *
  *      if ( node_set_state(&node, new_state)
- *              == LPJS_NODE_DATA_OK )
+ *              == NODE_DATA_OK )
  *      {
  *      }
  *
@@ -774,25 +772,25 @@ int     node_set_arch_cpy(node_t *node_ptr, char * new_arch, size_t array_size)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-21  gen-get-set Auto-generated from node.h
+ *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_state(node_t *node_ptr, char * new_state)
 
 {
     if ( new_state == NULL )
-	return LPJS_NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->state = new_state;
-	return LPJS_NODE_DATA_OK;
+	return NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <./node.h>
+ *      #include <node.h>
  *      
  *
  *  Description:
@@ -806,8 +804,8 @@ int     node_set_state(node_t *node_ptr, char * new_state)
  *      new_state_element The new value for state[c]
  *
  *  Returns:
- *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
+ *      NODE_DATA_OK if the new value is acceptable and assigned
+ *      NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
@@ -815,7 +813,7 @@ int     node_set_state(node_t *node_ptr, char * new_state)
  *      char *          new_state_element;
  *
  *      if ( node_set_state_ae(&node, c, new_state_element)
- *              == LPJS_NODE_DATA_OK )
+ *              == NODE_DATA_OK )
  *      {
  *      }
  *
@@ -824,25 +822,25 @@ int     node_set_state(node_t *node_ptr, char * new_state)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-21  gen-get-set Auto-generated from node.h
+ *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_state_ae(node_t *node_ptr, size_t c, char  new_state_element)
 
 {
     if ( false )
-	return LPJS_NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->state[c] = new_state_element;
-	return LPJS_NODE_DATA_OK;
+	return NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <./node.h>
+ *      #include <node.h>
  *      
  *
  *  Description:
@@ -857,8 +855,8 @@ int     node_set_state_ae(node_t *node_ptr, size_t c, char  new_state_element)
  *      array_size      Size of the state array.
  *
  *  Returns:
- *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
+ *      NODE_DATA_OK if the new value is acceptable and assigned
+ *      NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
@@ -866,7 +864,7 @@ int     node_set_state_ae(node_t *node_ptr, size_t c, char  new_state_element)
  *      size_t          array_size;
  *
  *      if ( node_set_state_cpy(&node, new_state, array_size)
- *              == LPJS_NODE_DATA_OK )
+ *              == NODE_DATA_OK )
  *      {
  *      }
  *
@@ -875,26 +873,26 @@ int     node_set_state_ae(node_t *node_ptr, size_t c, char  new_state_element)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-21  gen-get-set Auto-generated from node.h
+ *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_state_cpy(node_t *node_ptr, char * new_state, size_t array_size)
 
 {
     if ( new_state == NULL )
-	return LPJS_NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
 	// FIXME: Assuming char array is a null-terminated string
 	strlcpy(node_ptr->state, new_state, array_size);
-	return LPJS_NODE_DATA_OK;
+	return NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <./node.h>
+ *      #include <node.h>
  *      
  *
  *  Description:
@@ -911,15 +909,15 @@ int     node_set_state_cpy(node_t *node_ptr, char * new_state, size_t array_size
  *      new_msg_fd      The new value for msg_fd
  *
  *  Returns:
- *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
+ *      NODE_DATA_OK if the new value is acceptable and assigned
+ *      NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      int             new_msg_fd;
  *
  *      if ( node_set_msg_fd(&node, new_msg_fd)
- *              == LPJS_NODE_DATA_OK )
+ *              == NODE_DATA_OK )
  *      {
  *      }
  *
@@ -928,25 +926,25 @@ int     node_set_state_cpy(node_t *node_ptr, char * new_state, size_t array_size
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-21  gen-get-set Auto-generated from node.h
+ *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_msg_fd(node_t *node_ptr, int new_msg_fd)
 
 {
     if ( false )
-	return LPJS_NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->msg_fd = new_msg_fd;
-	return LPJS_NODE_DATA_OK;
+	return NODE_DATA_OK;
     }
 }
 
 
 /***************************************************************************
  *  Library:
- *      #include <./node.h>
+ *      #include <node.h>
  *      
  *
  *  Description:
@@ -963,15 +961,15 @@ int     node_set_msg_fd(node_t *node_ptr, int new_msg_fd)
  *      new_last_ping   The new value for last_ping
  *
  *  Returns:
- *      LPJS_NODE_DATA_OK if the new value is acceptable and assigned
- *      LPJS_NODE_DATA_OUT_OF_RANGE otherwise
+ *      NODE_DATA_OK if the new value is acceptable and assigned
+ *      NODE_DATA_OUT_OF_RANGE otherwise
  *
  *  Examples:
  *      node_t          node;
  *      time_t          new_last_ping;
  *
  *      if ( node_set_last_ping(&node, new_last_ping)
- *              == LPJS_NODE_DATA_OK )
+ *              == NODE_DATA_OK )
  *      {
  *      }
  *
@@ -980,17 +978,17 @@ int     node_set_msg_fd(node_t *node_ptr, int new_msg_fd)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-21  gen-get-set Auto-generated from node.h
+ *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_last_ping(node_t *node_ptr, time_t new_last_ping)
 
 {
     if ( false )
-	return LPJS_NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
 	node_ptr->last_ping = new_last_ping;
-	return LPJS_NODE_DATA_OK;
+	return NODE_DATA_OK;
     }
 }

@@ -283,7 +283,7 @@ int     node_list_set_count(node_list_t *node_list_ptr, unsigned new_count)
  *  2021-09-27  gen-get-set Auto-generated from node-list.h
  ***************************************************************************/
 
-int     node_list_set_compute_nodes_ae(node_list_t *node_list_ptr, size_t c, node_t new_compute_nodes_element)
+int     node_list_set_compute_nodes_ae(node_list_t *node_list_ptr, size_t c, node_t *new_compute_nodes_element)
 
 {
     /* FIXME: Replace this with a proper sanity check */
@@ -339,7 +339,8 @@ int     node_list_set_compute_nodes_ae(node_list_t *node_list_ptr, size_t c, nod
  *  2021-09-27  gen-get-set Auto-generated from node-list.h
  ***************************************************************************/
 
-int     node_list_set_compute_nodes_cpy(node_list_t *node_list_ptr, node_t new_compute_nodes[], size_t array_size)
+int     node_list_set_compute_nodes_cpy(node_list_t *node_list_ptr,
+	    node_t *new_compute_nodes[], size_t array_size)
 
 {
     /* FIXME: Replace this with a proper sanity check */

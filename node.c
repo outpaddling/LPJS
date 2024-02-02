@@ -9,10 +9,37 @@
 
 #include <xtend/file.h>     // xt_dprintf()
 
-#include "node.h"
+#include "node-private.h"
 #include "network.h"
 #include "lpjs.h"
 #include "misc.h"
+
+
+/***************************************************************************
+ *  Description:
+ *  
+ *  Returns:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-02-01  Jason Bacon Begin
+ ***************************************************************************/
+
+node_t  *node_new(void)
+
+{
+    node_t  *node;
+    
+    if ( (node = malloc(sizeof(node_t))) == NULL )
+    {
+	lpjs_log("%s(): malloc failed.\n", __FUNCTION__);
+	exit(EX_UNAVAILABLE);
+    }
+    node_init(node);
+    
+    return node;
+}
+
 
 /***************************************************************************
  *  Description:

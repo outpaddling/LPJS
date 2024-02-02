@@ -33,7 +33,7 @@ int     main (int argc, char *argv[])
 
 {
     node_list_t node_list;
-    node_t      node;
+    node_t      *node = node_new();
     char        incoming_msg[LPJS_MSG_LEN_MAX + 1];
     ssize_t     bytes;
     int         msg_fd;
@@ -69,7 +69,7 @@ int     main (int argc, char *argv[])
     // Get hostname of head node
     lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, Log_stream);
 
-    msg_fd = checkin(&node_list, &node);
+    msg_fd = checkin(&node_list, node);
     poll_fd.fd = msg_fd;
     poll_fd.events = POLLIN | LPJS_POLLHUP;    // POLLERR and POLLHUP always set
     
@@ -91,7 +91,7 @@ int     main (int argc, char *argv[])
 	    close(msg_fd);
 	    lpjs_log("Lost connection to dispatchd: HUP received.\n");
 	    sleep(LPJS_RETRY_TIME);  // No point trying immediately after drop
-	    msg_fd = checkin(&node_list, &node);
+	    msg_fd = checkin(&node_list, node);
 	}
 	
 	if (poll_fd.revents & POLLERR) {
@@ -111,7 +111,7 @@ int     main (int argc, char *argv[])
 		close(msg_fd);
 		lpjs_log("Lost connection to dispatchd: EOT received.\n");
 		sleep(LPJS_RETRY_TIME);  // No point trying immediately after drop
-		msg_fd = checkin(&node_list, &node);
+		msg_fd = checkin(&node_list, node);
 	    }
 	    lpjs_log("Received from dispatchd: %s\n", incoming_msg);
 	}

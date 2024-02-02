@@ -50,8 +50,8 @@ int     node_list_add_compute(node_list_t *node_list, FILE *input_stream,
 	    (delim != EOF) )
     {
 	xt_strtrim(field, " ");
-	node_init(&node_list->compute_nodes[node_list->count]);
-	node_set_hostname(&node_list->compute_nodes[node_list->count], strdup(field));
+	node_list->compute_nodes[node_list->count] = node_new();
+	node_set_hostname(node_list->compute_nodes[node_list->count], strdup(field));
 	++node_list->count;
     }
     if ( delim == EOF )
@@ -62,8 +62,8 @@ int     node_list_add_compute(node_list_t *node_list, FILE *input_stream,
     
     // Add last node read by while condition
     xt_strtrim(field, " ");
-    node_init(&node_list->compute_nodes[node_list->count]);
-    node_set_hostname(&node_list->compute_nodes[node_list->count], strdup(field));
+    node_list->compute_nodes[node_list->count] = node_new();
+    node_set_hostname(node_list->compute_nodes[node_list->count], strdup(field));
     ++node_list->count;
     return 0;   // NL_OK?
 }
@@ -86,22 +86,22 @@ void    node_list_update_compute(node_list_t *node_list, node_t *node)
     char    short_hostname[64],
 	    *first_dot;
     
-    strlcpy(short_hostname, NODE_HOSTNAME(node), 64);
+    strlcpy(short_hostname, node_get_hostname(node), 64);
     if ( (first_dot = strchr(short_hostname, '.')) != NULL )
 	*first_dot = '\0';
     for (c = 0; c < node_list->count; ++c)
     {
-	if ( strcmp(NODE_HOSTNAME(&node_list->compute_nodes[c]), short_hostname) == 0 )
+	if ( strcmp(node_get_hostname(node_list->compute_nodes[c]), short_hostname) == 0 )
 	{
-	    // lpjs_log("Updating compute node %zu %s\n", c, NODE_HOSTNAME(&node_list->compute_nodes[c]));
-	    node_set_state(&node_list->compute_nodes[c], "Up");
-	    node_set_cores(&node_list->compute_nodes[c], NODE_CORES(node));
-	    node_set_phys_mem(&node_list->compute_nodes[c], NODE_PHYS_MEM(node));
-	    node_set_zfs(&node_list->compute_nodes[c], NODE_ZFS(node));
-	    node_set_os(&node_list->compute_nodes[c], strdup(NODE_OS(node)));
-	    node_set_arch(&node_list->compute_nodes[c], strdup(NODE_ARCH(node)));
-	    node_set_msg_fd(&node_list->compute_nodes[c], NODE_MSG_FD(node));
-	    node_set_last_ping(&node_list->compute_nodes[c], NODE_LAST_PING(node));
+	    // lpjs_log("Updating compute node %zu %s\n", c, NODE_HOSTNAME(node_list->compute_nodes[c]));
+	    node_set_state(node_list->compute_nodes[c], "Up");
+	    node_set_cores(node_list->compute_nodes[c], node_get_cores(node));
+	    node_set_phys_mem(node_list->compute_nodes[c], node_get_phys_mem(node));
+	    node_set_zfs(node_list->compute_nodes[c], node_get_zfs(node));
+	    node_set_os(node_list->compute_nodes[c], strdup(node_get_os(node)));
+	    node_set_arch(node_list->compute_nodes[c], strdup(node_get_arch(node)));
+	    node_set_msg_fd(node_list->compute_nodes[c], node_get_msg_fd(node));
+	    node_set_last_ping(node_list->compute_nodes[c], node_get_last_ping(node));
 	    return;
 	}
     }
@@ -131,13 +131,13 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
     cores = cores_used = mem = mem_used = 0;
     for (c = 0; c < node_list->count; ++c)
     {
-	node_send_status(&node_list->compute_nodes[c], msg_fd);
-	if ( strcmp(NODE_STATE(&node_list->compute_nodes[c]), "Up") == 0 )
+	node_send_status(node_list->compute_nodes[c], msg_fd);
+	if ( strcmp(node_get_state(node_list->compute_nodes[c]), "Up") == 0 )
 	{
-	    cores += NODE_CORES(&node_list->compute_nodes[c]);
-	    cores_used += NODE_CORES_USED(&node_list->compute_nodes[c]);
-	    mem += NODE_PHYS_MEM(&node_list->compute_nodes[c]);
-	    mem_used += NODE_PHYS_MEM_USED(&node_list->compute_nodes[c]);
+	    cores += node_get_cores(node_list->compute_nodes[c]);
+	    cores_used += node_get_cores_used(node_list->compute_nodes[c]);
+	    mem += node_get_phys_mem(node_list->compute_nodes[c]);
+	    mem_used += node_get_phys_mem_used(node_list->compute_nodes[c]);
 	}
     }
     

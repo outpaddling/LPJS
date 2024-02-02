@@ -67,17 +67,17 @@ int     lpjs_log(const char *format, ...)
 void    lpjs_terminate_handler(int s2)
 
 {
-    node_t  *node;
+    node_t  *node = node_new();
     int     c;
     
     lpjs_log("Received signal, shutting down...\n");
     for (c = 0; c < NODE_LIST_COUNT(Node_list); ++c)
     {
-	node = &NODE_LIST_COMPUTE_NODES_AE(Node_list, c);
-	if ( NODE_MSG_FD(node) != -1 )
+	node = NODE_LIST_COMPUTE_NODES_AE(Node_list, c);
+	if ( node_get_msg_fd(node) != -1 )
 	{
-	    lpjs_log("Closing connection with %s...\n", NODE_HOSTNAME(node));
-	    lpjs_server_safe_close(NODE_MSG_FD(node));
+	    lpjs_log("Closing connection with %s...\n", node_get_hostname(node));
+	    lpjs_server_safe_close(node_get_msg_fd(node));
 	}
     }
     exit(EX_OK);
