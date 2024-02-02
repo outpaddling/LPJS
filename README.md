@@ -2,8 +2,9 @@
 
 ## Status
 
-LPJS is currently slithering around the primordial ooze as we lay out the
-framework and prioritize development phases.
+LPJS is undergoing intensive development of basic functions, such
+as socket communication, job queuing, node selection, and job
+dispatch.
 Early development will move slowly as we carefully deliberate the
 specification, design, and implementation of each new feature to ensure
 the highest possible quality.
@@ -17,6 +18,19 @@ early 2024.  Stay tuned...
 
 LPJS will be integrated with [SPCM](https://github.com/outpaddling/SPCM)
 (replacing SLURM) when it is sufficiently functional.
+
+## Security
+
+LPJS, like other job schedulers and resource managers, is a tool that
+facilitates *remote execution of arbitrary code*.  These words should
+instill a healthy level fear in you, and motivate you to take extra-careful
+precautions to protect your own data security.  LPJS is designed with
+security in mind, but no software system can protect you from your
+own carelessness.  Follow all the usual best practices regarding
+password strength, password secrecy (we recommend tools such as
+KeePassXC), etc.  No software system is perfect, either.  We fully
+expect to discover vulnerabilities in LPJS and in the software on
+which it depends.
 
 ## Description
 
