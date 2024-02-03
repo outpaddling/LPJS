@@ -69,13 +69,12 @@ int     main (int argc, char *argv[])
     // Get hostname of head node
     lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, Log_stream);
 
-    msg_fd = checkin(&node_list, node);
+    msg_fd = lpjs_checkin_loop(&node_list, node);
     poll_fd.fd = msg_fd;
     poll_fd.events = POLLIN | LPJS_POLLHUP;    // POLLERR and POLLHUP always set
     
     // Now keep daemon running, awaiting jobs
     // Almost correct: https://unix.stackexchange.com/questions/581426/how-to-get-notified-when-the-other-end-of-a-socketpair-is-closed
-    lpjs_log("Waiting for submissions...\n");
     while ( true )
     {
 	poll(&poll_fd, 1, 2000);
@@ -86,21 +85,26 @@ int     main (int argc, char *argv[])
 	
 	if (poll_fd.revents & LPJS_POLLHUP)
 	{
+	    poll_fd.revents &= ~LPJS_POLLHUP;
+	    
 	    // Close this end, or dispatchd gets "address already in use"
 	    // When trying to restart
 	    close(msg_fd);
 	    lpjs_log("Lost connection to dispatchd: HUP received.\n");
 	    sleep(LPJS_RETRY_TIME);  // No point trying immediately after drop
-	    msg_fd = checkin(&node_list, node);
+	    msg_fd = lpjs_checkin_loop(&node_list, node);
 	}
 	
-	if (poll_fd.revents & POLLERR) {
+	if (poll_fd.revents & POLLERR)
+	{
+	    poll_fd.revents &= ~POLLERR;
 	    lpjs_log("Error occurred polling dispatchd: %s\n", strerror(errno));
 	    break;
 	}
 	
 	if (poll_fd.revents & POLLIN)
 	{
+	    poll_fd.revents &= ~POLLIN;
 	    bytes = lpjs_recv_msg(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0);
 	    incoming_msg[bytes] = '\0';
 	    
@@ -111,11 +115,15 @@ int     main (int argc, char *argv[])
 		close(msg_fd);
 		lpjs_log("Lost connection to dispatchd: EOT received.\n");
 		sleep(LPJS_RETRY_TIME);  // No point trying immediately after drop
-		msg_fd = checkin(&node_list, node);
+
+		// Ignore HUP that follows EOT
+		// FIXME: This might be bad timing
+		poll_fd.revents &= ~LPJS_POLLHUP;
+		
+		msg_fd = lpjs_checkin_loop(&node_list, node);
 	    }
 	    lpjs_log("Received from dispatchd: %s\n", incoming_msg);
 	}
-	poll_fd.revents = 0;
     }
 
     close(msg_fd);
@@ -191,7 +199,7 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
  *  2024-01-23  Jason Bacon Begin
  ***************************************************************************/
 
-int     checkin(node_list_t *node_list, node_t *node)
+int     lpjs_checkin_loop(node_list_t *node_list, node_t *node)
 
 {
     int     msg_fd,
