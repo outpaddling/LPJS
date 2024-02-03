@@ -141,8 +141,8 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
 	}
     }
     
-    xt_dprintf(msg_fd, NODE_STATUS_FORMAT, "Totals", "",
-		  cores, cores_used, mem, mem_used, "", "");
+    xt_dprintf(msg_fd, NODE_STATUS_FORMAT, "Total Up", "Up",
+		  cores, cores_used, mem, mem_used, "-", "-");
     
     /*
      *  Closing the listener first results in "address already in use"

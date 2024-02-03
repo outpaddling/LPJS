@@ -15,8 +15,8 @@
 #include "job-private.h"
 #include "network.h"
 #include "lpjs.h"
-#include "misc.h"       // xt_realpath(), change to libxtend
-
+#include "misc.h"
+#include "realpath-protos.h"
 
 /***************************************************************************
  *  Description:

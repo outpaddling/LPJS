@@ -43,14 +43,15 @@ LPJS will be integrated with [SPCM](https://github.com/outpaddling/SPCM)
 
 LPJS, like other job schedulers and resource managers, is a tool that
 facilitates *remote execution of arbitrary code*.  These words should
-instill a healthy level fear in you, and motivate you to take extra-careful
-precautions to protect your own data security.  LPJS is designed with
+instill a healthy level of fear, and motivate you to be extra careful
+to protect your own data security.  LPJS is designed with
 security in mind, but no software system can protect you from your
 own carelessness.  Follow all the usual best practices regarding
 password strength, password secrecy (we recommend tools such as
-KeePassXC), etc.  No software system is perfect, either.  We fully
-expect to discover vulnerabilities in LPJS and in the software on
-which it depends.
+KeePassXC), etc., with extra diligence.
+No software system is perfect, either.  We fully
+expect to discover vulnerabilities in LPJS and in the tools and libraries
+on which it depends.
 
 ## Description
 
