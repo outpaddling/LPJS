@@ -121,28 +121,41 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
 
 {
     unsigned        c,
-		    cores,
-		    cores_used;
-    unsigned long   mem,
-		    mem_used;
+		    cores_up,
+		    cores_up_used,
+		    cores_down;
+    unsigned long   mem_up,
+		    mem_up_used,
+		    mem_down;
     
     xt_dprintf(msg_fd, NODE_STATUS_HEADER_FORMAT, "Hostname", "State",
 	    "Cores", "Used", "Physmem", "Used", "OS", "Arch");
-    cores = cores_used = mem = mem_used = 0;
+    
+    cores_up = cores_up_used = cores_down = 0;
+    mem_up = mem_up_used = mem_down = 0;
+    
     for (c = 0; c < node_list->count; ++c)
     {
 	node_send_status(node_list->compute_nodes[c], msg_fd);
 	if ( strcmp(node_get_state(node_list->compute_nodes[c]), "Up") == 0 )
 	{
-	    cores += node_get_cores(node_list->compute_nodes[c]);
-	    cores_used += node_get_cores_used(node_list->compute_nodes[c]);
-	    mem += node_get_phys_mem(node_list->compute_nodes[c]);
-	    mem_used += node_get_phys_mem_used(node_list->compute_nodes[c]);
+	    cores_up += node_get_cores(node_list->compute_nodes[c]);
+	    cores_up_used += node_get_cores_used(node_list->compute_nodes[c]);
+	    mem_up += node_get_phys_mem(node_list->compute_nodes[c]);
+	    mem_up_used += node_get_phys_mem_used(node_list->compute_nodes[c]);
+	}
+	else
+	{
+	    cores_down += node_get_cores(node_list->compute_nodes[c]);
+	    mem_down += node_get_phys_mem(node_list->compute_nodes[c]);
 	}
     }
     
-    xt_dprintf(msg_fd, NODE_STATUS_FORMAT, "Total Up", "Up",
-		  cores, cores_used, mem, mem_used, "-", "-");
+    xt_dprintf(msg_fd, "\n");
+    xt_dprintf(msg_fd, NODE_STATUS_FORMAT, "Total", "Up",
+		  cores_up, cores_up_used, mem_up, mem_up_used, "-", "-");
+    xt_dprintf(msg_fd, NODE_STATUS_FORMAT, "Total", "Down",
+		  cores_down, 0, mem_down, 0, "-", "-");
     
     /*
      *  Closing the listener first results in "address already in use"
