@@ -1,5 +1,25 @@
 # LPJS - High Performance Computing for Everyone...
 
+## Overview
+
+LPJS (Lightweight Portable Job Scheduler) is a batch system, i.e. a job
+scheduler and resource manager for HPC (High Performance Computing) clusters
+and HTC (High Throughput Computing) grids.
+A cluster or grid is anywhere from one to thousands of computers
+(called nodes)
+with managed CPU and memory resources, for the purpose of performing
+computationally intensive jobs in parallel (simultaneously).
+
+Unlike other batch systems, LPJS is designed to be simple, easy to deploy and
+manage, and portable to __any__ POSIX platform.
+
+Users are often forced to use a particular operating system by
+software vendors, who only support one or a few systems.  In contrast,
+LPJS will never limit your freedom to choose an operating system.
+This choice should be based on the technical merits of the OS, such
+as reliability and performance, not on what platforms will run the
+software you need.
+
 ## Status
 
 LPJS is undergoing intensive development of basic functions, such
@@ -33,14 +53,6 @@ expect to discover vulnerabilities in LPJS and in the software on
 which it depends.
 
 ## Description
-
-LPJS (Lightweight Portable Job Scheduler) is a batch system, i.e. a job
-scheduler and resource manager for HPC (High Performance Computing) clusters
-and HTC (High Throughput Computing) grids.
-A cluster or grid is anywhere from one to thousands of computers
-(called nodes)
-with managed CPU and memory resources, for the purpose of performing
-computationally intensive jobs in parallel (simultaneously).
 
 Most clusters consist of a few or many dedicated rack-mounted computers
 linked together with a private high-speed network, to
@@ -81,9 +93,7 @@ Users should, however, keep a close eye on their running jobs to make sure
 they are working properly.  This avoids wasting resources and shows common
 courtesy to other cluster users.
 
-Unlike other batch systems, LPJS is designed to be simple, easy to deploy and
-manage, and portable to __any__
-POSIX platform.  Most existing batch systems are extremely complex, including
+Most existing batch systems are extremely complex, including
 our long-time favorite, SLURM, which stands for "Simple Linux Utility
 for Resource Management", but is no longer simple by any stretch of the
 imagination.  The 'S' in SLURM has become somewhat of an irony as it has
