@@ -6,6 +6,7 @@
 #include <limits.h>
 
 #include <xtend/proc.h>
+#include <xtend/string.h>   // strlcpy() on Linux
 
 /***************************************************************************
  *  Use auto-c2man to generate a man page from this comment

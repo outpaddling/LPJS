@@ -152,7 +152,6 @@ int     job_parse_script(job_t *job, const char *script_name)
 	    *end;
     size_t  field_len;
     int     var_delim, val_delim;
-    extern FILE *Log_stream;
     
     // Note: Get job_id from dispatchd later
     
