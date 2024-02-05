@@ -20,6 +20,14 @@ This choice should be based on the technical merits of the OS, such
 as reliability and performance, not on what platforms will run the
 software you need.
 
+With LPJS, you are even free to use multiple
+operating systems in the same cluster or grid.  E.g., use RHEL to
+run commercial software, Debian or FreeBSD for easy installation from
+huge collections of open source packages, DragonFly for optimal
+multithreading, macOS to capitalize on the power of Apple Silicon
+systems.  Use NetBSD's highly portable pkgsrc package manager to
+install common software on all of them.
+
 ## Status
 
 LPJS is undergoing intensive development of basic functions, such
