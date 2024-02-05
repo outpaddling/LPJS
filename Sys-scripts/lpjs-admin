@@ -229,7 +229,7 @@ EOM
 	$EDITOR $CONF_FILE
 	
 	# FIXME: Is this necessary?  If so, should it be?
-	service dispatchd restart
+	lpjs-restart
 	;;
 
     03)
@@ -243,23 +243,7 @@ EOM
 	;;
 
     05)
-	# FIXME: Maybe make auto-service-restart wrapper for portability
-	service munged restart
-	
-	# FIXME: Any termination of dispatchd should trigger compd
-	# on all compute nodes to reconnect (maybe just a full restart)
-	if auto-service-enabled lpjs_dispatchd; then
-	    service lpjs_dispatchd restart;
-	fi
-	
-	# Restart compd after dispatchd to establish a new connection
-	if auto-service-enabled lpjs_compd; then
-	    service lpjs_compd restart;
-	fi
-	
-	# Debug
-	ps ax | grep lpjs
-	sockstat | grep lpjs
+	lpjs-restart
 	pause
 	;;
     
