@@ -44,7 +44,7 @@ char    *xt_realpath(const char *path,
 		    char *absolute_path, size_t buff_size)
 
 {
-    struct passwd   pw_ent, *ptr;
+    struct passwd   pw_ent;
     char            buff[PW_BUFF_SIZE],
 		    user_name[USER_NAME_MAX + 1],
 		    my_home_dir[PATH_MAX + 1];
@@ -75,6 +75,15 @@ char    *xt_realpath(const char *path,
 		user_name[c] = path[c+1];
 	    user_name[c] = 0;
 	    
+	    #ifdef __sun
+	    if ( getpwnam_r(user_name, &pw_ent, buff, PW_BUFF_SIZE) != 0 )
+	    {
+		fprintf(stderr, "%s(): getpwnam_r(): %s\n", __FUNCTION__,
+			strerror(errno));
+		return NULL;
+	    }
+	    #else
+	    struct passwd   *ptr;
 	    if ( getpwnam_r(user_name, &pw_ent, buff, PW_BUFF_SIZE, &ptr) != 0 )
 	    {
 		fprintf(stderr, "%s(): getpwnam_r(): %s\n", __FUNCTION__,
@@ -88,6 +97,7 @@ char    *xt_realpath(const char *path,
 		    return NULL;
 		}
 	    }
+	    #endif
 		    
 	    strlcpy(absolute_path, pw_ent.pw_dir, buff_size);
 	    strlcat(absolute_path, path + c + 1, buff_size);
