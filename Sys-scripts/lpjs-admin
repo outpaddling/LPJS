@@ -23,8 +23,6 @@ usage()
 
 pause()
 {
-    local junk
-    
     printf "Press return to continue..."
     read junk
 }
@@ -62,10 +60,13 @@ dispatchd_enable()
 	    auto-enable-service -s $plist org.pkgsrc.lpjs_dispatchd lpjs-admin
 	fi
     elif [ $(uname) = Linux ]; then
+	# FIXME: systemd-specific
 	script = $(auto-localbase)/share/lpjs/Systemd/lpjs_dispatchd.service
 	if [ -e $script ]; then
 	    auto-enable-service -s $script lpjs_dispatchd lpjs-admin
 	fi
+    elif [ $(uname) = SunOS ]; then
+	printf "lpjs daemons not yet implemented for SunOS.\n"
     else
 	auto-enable-service lpjs_dispatchd $0
     fi
@@ -104,12 +105,11 @@ compd_enable()
 	if [ -e $script ]; then
 	    auto-enable-service -s $script lpjs_compd lpjs-admin
 	fi
+    elif [ $(uname) = SunOS ]; then
+	printf "lpjs daemons not yet implemented for SunOS.\n"
     else
 	auto-enable-service lpjs_compd $0
     fi
-    
-    sleep 2
-    lpjs nodes
 }
 
 
@@ -130,7 +130,8 @@ munge_enable()
     else
 	printf "Copy munge.key from $head_node to $(auto-localbase)/etc/munge.\n"
     fi
-    printf "Permissions should be -rw------- and ownership root:root or root:wheel.\n"
+    printf "Permissions should be -rw-------\n"
+    printf "and ownership root:root or root:wheel or daemon:daemon.\n"
     printf "If they are not, you may have a security breach.\n"
     printf "Current ownership and permissions:\n"
     ls -l $munge_key
@@ -149,6 +150,14 @@ munge_enable()
 	if [ -e $script ]; then
 	    auto-enable-service -s $script munge lpjs-admin
 	fi
+    elif [ $(uname) = SunOS ]; then
+	# pkgsrc-specific
+	chown daemon:daemon /usr/pkg/var/run/munge /usr/pkg/var/log/munge \
+			    /usr/pkg/etc/munge/munge.key
+	# FIXME: Can we enable an init script directly under /usr/pkg?
+	# FIXME: Add SunOS support to auto-enable-service
+	cp /usr/pkg/etc/init.d/munge /etc/init.d
+	/etc/init.d/munge restart
     else
 	printf "Could not find munge RC script.  Enable munge manually\n"
 	printf "before continuing.  Press return after munged is running.\n"
@@ -201,7 +210,8 @@ Q.. Quit
 
 EOM
 
-    read -p 'Selection? ' resp
+    printf 'Selection? '
+    read resp
     case 0$resp in
     01)
 	dispatchd_enable
@@ -217,8 +227,10 @@ EOM
 	    generate=y
 	fi
 	if [ 0"$generate" = 0y ]; then
-	    read -p "Host name of head node? " head_host
-	    read -p "Host names of compute nodes (comma-separated) " compute_hosts
+	    printf "Host name of head node? "
+	    read head_host
+	    printf "Host names of compute nodes (comma-separated) "
+	    read compute_hosts
 	    cat << EOM > $CONF_FILE
 head    $head_host
 compute $compute_hosts
