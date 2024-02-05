@@ -213,7 +213,7 @@ void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
 	     *  lpjs_recv_msg() will return 0 in this case.
 	     */
 	    
-	    bytes = lpjs_recv_msg(fd, incoming_msg, LPJS_MSG_LEN_MAX, 0);
+	    bytes = lpjs_recv_msg(fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 0);
 	    if ( bytes == 0 )
 	    {
 		lpjs_log("Lost connection to %s.  Closing...\n",
@@ -347,7 +347,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 
 	    /* Read a message through the socket */
 	    while ( (bytes = lpjs_recv_msg(msg_fd,
-			 incoming_msg, LPJS_MSG_LEN_MAX, 0)) < 1 )
+			 incoming_msg, LPJS_MSG_LEN_MAX, 0, 0)) < 1 )
 	    {
 		lpjs_log("lpjs_recv_msg() failed: %s", strerror(errno));
 		sleep(1);
@@ -417,7 +417,7 @@ void    lpjs_compute_node_checkin(int msg_fd, node_list_t *node_list)
     
     /* Get munge credential */
     // FIXME: What is the maximum cred length?
-    if ( (bytes = lpjs_recv_msg(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0)) < 1 )
+    if ( (bytes = lpjs_recv_msg(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 2)) < 1 )
     {
 	lpjs_server_safe_close(msg_fd);
 	lpjs_log("Failed to read munge credential: %s", strerror(errno));
@@ -427,6 +427,7 @@ void    lpjs_compute_node_checkin(int msg_fd, node_list_t *node_list)
 	// lpjs_log("Munge credential message length = %zd\n", bytes);
 	// lpjs_log("munge msg: %s\n", incoming_msg);
 	
+	lpjs_log("Decoding munged checkin data...\n");
 	munge_status = munge_decode(incoming_msg, NULL, NULL, 0, &uid, &gid);
 	if ( munge_status != EMUNGE_SUCCESS )
 	{
@@ -515,7 +516,7 @@ int     lpjs_submit(int msg_fd, node_list_t *node_list, job_list_t *job_list)
     
     /* Get munge credential */
     // FIXME: What is the maximum cred length?
-    if ( (bytes = lpjs_recv_msg(msg_fd, incoming_msg, 4096, 0)) == - 1)
+    if ( (bytes = lpjs_recv_msg(msg_fd, incoming_msg, 4096, 0, 0)) == - 1)
     {
 	lpjs_log("lpjs_recv_msg() failed: %s", strerror(errno));
 	// FIXME: Figure out proper return values

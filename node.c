@@ -223,7 +223,7 @@ ssize_t node_recv_specs(node_t *node, int msg_fd)
     
     node_init(node);
     
-    msg_len = lpjs_recv_msg(msg_fd, specs_msg, LPJS_MSG_LEN_MAX, MSG_WAITALL);
+    msg_len = lpjs_recv_msg(msg_fd, specs_msg, LPJS_MSG_LEN_MAX, MSG_WAITALL, 0);
     if ( msg_len < 0 )
     {
 	lpjs_log("node_recv_specs(): Failed to receive message.\n");

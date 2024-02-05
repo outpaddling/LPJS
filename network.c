@@ -170,12 +170,24 @@ ssize_t lpjs_send_msg(int msg_fd, int send_flags, const char *format, ...)
  *  2024-01-19  Jason Bacon Begin
  ***************************************************************************/
 
-ssize_t lpjs_recv_msg(int msg_fd, char *buff, size_t buff_len, int flags)
+ssize_t lpjs_recv_msg(int msg_fd, char *buff, size_t buff_len, int flags,
+		      int timeout)
 
 {
     uint16_t    msg_len;
     ssize_t     bytes_read;
+    fd_set      read_fds;
+    struct timeval  timeout_tv = { timeout, 0 };    // timeout sec, 0 us
     
+    // Use select() to implement timeout without using non-blocking fds
+    if ( timeout != 0 )
+    {
+	FD_ZERO(&read_fds);
+	FD_SET(msg_fd, &read_fds);
+	if ( select(msg_fd + 1, &read_fds, NULL, NULL, &timeout_tv) == 0 )
+	    return 0;
+    }
+
     bytes_read = recv(msg_fd, &msg_len, sizeof(uint16_t), flags | MSG_WAITALL);
     if ( bytes_read == 0 )
 	return 0;
@@ -270,7 +282,7 @@ ssize_t lpjs_send_munge_msg(int msg_fd, char *msg)
     free(cred);
     
     // Read acknowledgment from dispatchd before node_send_specs().
-    bytes = lpjs_recv_msg(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0);
+    bytes = lpjs_recv_msg(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 0);
     // lpjs_log("Response: %zu '%s'\n", bytes, incoming_msg);
     if ( (bytes == 0) || (strcmp(incoming_msg, MUNGE_CRED_VERIFIED) != 0) )
     {

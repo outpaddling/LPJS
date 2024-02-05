@@ -105,7 +105,7 @@ int     main (int argc, char *argv[])
 	if (poll_fd.revents & POLLIN)
 	{
 	    poll_fd.revents &= ~POLLIN;
-	    bytes = lpjs_recv_msg(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0);
+	    bytes = lpjs_recv_msg(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 0);
 	    incoming_msg[bytes] = '\0';
 	    
 	    if ( incoming_msg[0] == 4 )
@@ -160,7 +160,7 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
     node_detect_specs(node);
     node_send_specs(node, msg_fd);
     
-    lpjs_recv_msg(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0);
+    lpjs_recv_msg(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 0);
     if ( strcmp(incoming_msg, "Node authorized") != 0 )
     {
 	lpjs_log("This node is not authorized to connect.\n");
