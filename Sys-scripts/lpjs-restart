@@ -1,41 +1,10 @@
 #!/bin/sh -e
 
-if [ $(uname) = FreeBSD ] || [ $(uname) == DragonFly ]; then
-    service munged restart
-    # FIXME: Verify ="YES"
-    if grep -q '^lpjs_dispatchd=' /etc/rc.conf; then
-	service lpjs_dispatchd restart
-    elif grep -q '^lpjs_compd=' /etc/rc.conf; then
-	service lpjs_compd restart
-    fi
-elif [ $(uname) = Linux ]; then
-    if which systemctl; then
-    set -x
-    systemctl daemon-reload
-    systemctl restart munge
-    
-    if systemctl | fgrep -q lpjs_dispatchd; then
-	systemctl stop lpjs_dispatchd
-	sleep 5 # Temp hack until systemctl restart is fixed
-	systemctl start lpjs_dispatchd
-    fi
-    
-    if systemctl | fgrep -q lpjs_compd; then
-	systemctl stop lpjs_compd
-	sleep 5 # Temp hack until systemctl restart is fixed
-	systemctl start lpjs_compd
-    fi
-    else
-	printf "$0: Only systemd is currently supported.\n" >> /dev/stderr
-	printf "Please consider adding support for other Linux init systems.\n"
-	exit 1
-    fi
-elif [ $(uname) = Darwin ]; then
+if [ $(uname) = Darwin ]; then
     set -x
     launchctl bootout system /Library/LaunchDaemons/org.pkgsrc.munged.plist || true
     launchctl bootstrap system /Library/LaunchDaemons/org.pkgsrc.munged.plist
     
-    # FIXME: Check which services are enabled
     if [ -e /Library/LaunchDaemons/org.pkgsrc.lpjs_dispatchd.plist ]; then
 	launchctl bootout system /Library/LaunchDaemons/org.pkgsrc.lpjs_dispatchd.plist || true
 	launchctl bootstrap system /Library/LaunchDaemons/org.pkgsrc.lpjs_dispatchd.plist
@@ -45,17 +14,50 @@ elif [ $(uname) = Darwin ]; then
 	launchctl bootout system /Library/LaunchDaemons/org.pkgsrc.lpjs_compd.plist || true
 	launchctl bootstrap system /Library/LaunchDaemons/org.pkgsrc.lpjs_compd.plist
     fi
+
+elif [ $(uname) == DragonFly ] || [ $(uname) = FreeBSD ]; then
+    service munged restart
+    if grep -E '^lpjs_dispatchd_enable=\"?[Yy][Ee][Ss]"?' /etc/rc.conf; then
+	service lpjs_dispatchd restart
+    elif grep -E '^lpjs_compd_enable=\"?[Yy][Ee][Ss]"?' /etc/rc.conf; then
+	service lpjs_compd restart
+    fi
+
+elif [ $(uname) = Linux ]; then
+    if which systemctl; then
+	set -x
+	systemctl daemon-reload
+	systemctl restart munge
+	
+	if systemctl | fgrep -q lpjs_dispatchd; then
+	    systemctl stop lpjs_dispatchd
+	    sleep 5 # Temp hack until systemctl restart is fixed
+	    systemctl start lpjs_dispatchd
+	fi
+	
+	if systemctl | fgrep -q lpjs_compd; then
+	    systemctl stop lpjs_compd
+	    sleep 5 # Temp hack until systemctl restart is fixed
+	    systemctl start lpjs_compd
+	fi
+    else
+	printf "$0: Only systemd is currently supported.\n" >> /dev/stderr
+	printf "Please consider adding support for other Linux init systems.\n"
+	exit 1
+    fi
+    
 elif [ $(uname) = NetBSD ]; then
     set -x
     service munge restart
-    # FIXME: Verify ="YES"
-    if grep -q '^lpjs_dispatchd=' /etc/rc.conf; then
+    if grep -E '^lpjs_dispatchd=\"?[Yy][Ee][Ss]"?' /etc/rc.conf; then
 	service lpjs_dispatchd restart
-    elif grep -q '^lpjs_compd=' /etc/rc.conf; then
+    elif grep -E '^lpjs_compd=\"?[Yy][Ee][Ss]"?' /etc/rc.conf; then
 	service lpjs_compd restart
     fi
+
 elif [ $(uname) = SunOS ]; then
     auto-unsupported-os $0
+
 else
     auto-unsupported-os $0
 fi
