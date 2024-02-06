@@ -205,9 +205,9 @@ install: all
 		    ${DESTDIR}${PREFIX}/etc/lpjs \
 		    ${DESTDIR}${LIBEXECDIR} \
 		    ${DESTDIR}${DATADIR}
-	${INSTALL} -s -m 0755 ${BIN} ${DESTDIR}${PREFIX}/bin
-	${INSTALL} -s -m 0755 ${LIBEXEC} ${DESTDIR}${LIBEXECDIR}
-	${INSTALL} -s -m 0755 ${SYS_BINS} ${DESTDIR}${PREFIX}/sbin
+	${INSTALL} -m 0755 ${BIN} ${DESTDIR}${PREFIX}/bin
+	${INSTALL} -m 0755 ${LIBEXEC} ${DESTDIR}${LIBEXECDIR}
+	${INSTALL} -m 0755 ${SYS_BINS} ${DESTDIR}${PREFIX}/sbin
 	${INSTALL} -m 0755 Sys-scripts/* ${DESTDIR}${PREFIX}/sbin
 	${SED} -e "s|/usr/local|`realpath ${PREFIX}`|g" \
 		Sys-scripts/lpjs-admin > ${DESTDIR}${PREFIX}/sbin/lpjs-admin
