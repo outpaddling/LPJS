@@ -66,6 +66,7 @@ dispatchd_enable()
 	    auto-enable-service -s $script lpjs_dispatchd lpjs-admin
 	fi
     elif [ $(uname) = SunOS ]; then
+	# FIXME: Copying to /etc/init.d doesn't cause startup at boot
 	cp $(auto-localbase)/etc/init.d/munge /etc/init.d
 	/etc/init.d/munge restart
 	printf "lpjs daemons not yet implemented for SunOS.\n"
@@ -108,6 +109,7 @@ compd_enable()
 	    auto-enable-service -s $script lpjs_compd lpjs-admin
 	fi
     elif [ $(uname) = SunOS ]; then
+	# FIXME: Copying to /etc/init.d doesn't cause startup at boot
 	cp $(auto-localbase)/etc/init.d/munge /etc/init.d
 	/etc/init.d/munge restart
 	printf "lpjs daemons not yet implemented for SunOS.\n"
