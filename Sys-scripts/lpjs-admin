@@ -66,6 +66,8 @@ dispatchd_enable()
 	    auto-enable-service -s $script lpjs_dispatchd lpjs-admin
 	fi
     elif [ $(uname) = SunOS ]; then
+	cp $(auto-localbase)/etc/init.d/munge /etc/init.d
+	/etc/init.d/munge restart
 	printf "lpjs daemons not yet implemented for SunOS.\n"
     else
 	auto-enable-service lpjs_dispatchd $0
@@ -106,6 +108,8 @@ compd_enable()
 	    auto-enable-service -s $script lpjs_compd lpjs-admin
 	fi
     elif [ $(uname) = SunOS ]; then
+	cp $(auto-localbase)/etc/init.d/munge /etc/init.d
+	/etc/init.d/munge restart
 	printf "lpjs daemons not yet implemented for SunOS.\n"
     else
 	auto-enable-service lpjs_compd $0
