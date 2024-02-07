@@ -25,7 +25,7 @@
 
 usage()
 {
-    printf "Usage: $0 \n"
+    printf "Usage: $0 script-name[.lpjs]\n" >> /dev/stderr
     exit 1
 }
 
@@ -38,6 +38,30 @@ if [ $# != 1 ]; then
     usage
 fi
 script=$1
+
+shell=${script##*.}
+if [ 0"$shell" = 0"$script" ]; then # No extension
+    shell="sh"
+fi
+printf "Shell = '%s'\n" $shell
+case $shell in
+sh)
+    shebang="#!/bin/sh -e"
+    ;;
+
+bash)
+    shebang="#!/usr/bin/env bash\n\nset -e"
+    ;;
+
+dash)
+    shebang="#!/usr/bin/env dash\n\nset -e"
+    ;;
+
+*)
+    shebang="#!/usr/bin/env $shell"
+    ;;
+
+esac
 
 if [ ${script##*.} != lpjs ]; then
     script=$script.lpjs
@@ -52,21 +76,62 @@ while [ $selection != 1 ] && [ $selection != 2 ] && [ $selection != 3 ]; do
 3.. Parallel program (shared memory, MPI, etc)
 
 EOM
-    read -p 'Selection? ' selection
+    printf 'Selection? '
+    read selection
 done
 
-read -p 'Command? ' command
-read -p 'Memory per process? (MiB) ' mem_per_proc
-if [ $selection = 2 ]; then
-    read -p 'Array index list? E.g. 1..10 or 1,2,3,5,7,11 ' index_list
-elif [ $selection = 3 ]; then
-    read -p 'Total cores? ' cores
-    read -p 'Cores per node? (0 = flexible) ' cores_per_node
-fi
-cat << EOM > $script
-#!/bin/sh -e
+printf 'Command to run on compute node[s]? '
+read command
+valid_mem=no
+while [ $valid_mem != yes ]; do
+    cat << EOM
 
-#LPJS --mem-per-proc $mem_per_proc
+Memory requirements must be followed by one of the following:
+
+MB = megabytes  = 10^6 bytes
+MiB = mibibytes = 2^20 bytes
+GB = gigabytes  = 10^9 bytes
+GiB = gibibytes = 2^30 bytes
+
+Examples: 100MB, 100MiB, 2GB, 4GiB
+
+EOM
+    printf 'Memory per core? '
+    read mem_per_core
+    if echo $mem_per_core | grep -Eq '^[0-9]+[MG]i?B'; then
+	valid_mem=yes
+    else
+	printf "Invalid memory specification.\n"
+    fi
+done
+
+jobs=1
+cores_per_job=1
+cores_per_node=all
+if [ $selection = 2 ]; then
+    printf 'Number of jobs? '
+    read jobs
+elif [ $selection = 3 ]; then
+    printf 'Cores per job? '
+    read cores_per_job
+    printf 'Cores per node? ("any" = flexible, "all" = do not share) ' cores_per_node
+fi
+
+printf "$shebang\n" > $script
+cat << EOM >> $script
+
+#########################################################################
+# Caution:
+#
+# Make sure your command syntax is correct for the $shell shell.
+# It is a common mistake, for example, to use bash extensions with
+# #!/bin/sh, which is not portable.  (sh is the same as bash on some
+# systems, but not on most.)
+
+#lpjs jobs $jobs
+#lpjs cores-per-job $cores_per_job
+#lpjs cores-per-node $cores_per_node
+#lpjs mem-per-core $mem_per_core
 
 $command
 EOM

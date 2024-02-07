@@ -68,7 +68,7 @@ EOM
 	;;
 
     03)
-	read -p 'Script name? ' script
+	read -p 'Script name? (".lpjs" will be added) ' script
 	if [ ${script##*.} != lpjs ]; then
 	    script=$script.lpjs
 	fi
