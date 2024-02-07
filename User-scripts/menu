@@ -48,7 +48,8 @@ do
 
 1.. Node status
 2.. Job status
-3.. Submit job
+3.. Generate or edit job script
+4.. Submit a job
 Q.. Quit
 
 EOM
@@ -56,13 +57,13 @@ EOM
     read -p 'Selection? ' resp
     case 0$resp in
     01)
-	printf "Running lpjs nodes...\n"
+	printf "Running lpjs nodes...\n\n"
 	lpjs nodes
 	pause
 	;;
     
     02)
-	printf "Running lpjs jobs...\n"
+	printf "Running lpjs jobs...\n\n"
 	lpjs jobs
 	pause
 	;;
@@ -74,13 +75,22 @@ EOM
 	fi
 	if [ ! -e $script ]; then
 	    printf "Running lpjs create-script $script...\n"
+	    pause
 	    lpjs create-script $script
 	else
 	    $EDITOR $script
 	fi
+	;;
+    
+    04)
+	ls *.lpjs
+	read -p 'Script name? (".lpjs" will be added) ' script
+	if [ ${script##*.} != lpjs ]; then
+	    script=$script.lpjs
+	fi
 	read -p 'Submit? y/[n] ' submit
 	if [ 0"$submit" = 0y ]; then
-	    printf "Running lpjs submit $script...\n"
+	    printf "Running lpjs submit $script...\n\n"
 	    lpjs submit $script
 	fi
 	pause
