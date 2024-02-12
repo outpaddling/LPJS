@@ -413,7 +413,6 @@ void    lpjs_compute_node_checkin(int msg_fd, node_list_t *node_list)
     // FIXME: Check for duplicate checkins.  We should not get
     // a checkin request while one is already open
     lpjs_log("compd-checkin requested.\n");
-    // lpjs_log(Log_stream, "compd checkin.\n");
     
     /* Get munge credential */
     // FIXME: What is the maximum cred length?

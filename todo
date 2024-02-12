@@ -1,4 +1,27 @@
 
+Make sure dispatchd doesn't hang waiting for munge credentials after checkin
+
+More robust RC scripts, e.g.:
+
+munged_stop()
+{
+    echo "Stopping $name."
+    pids="$(pgrep -d ' ' $name)"
+    if [ -n "$pids" ]; then
+	echo "Waiting for PIDs: $pids"
+	for signal in TERM INT QUIT KILL
+	do
+	    kill -s $signal $pids
+	    sleep 1
+	    pids=$(pgrep -d ' ' $name)
+	    if [ -z "$pids" ]; then
+		break
+	    fi
+	done
+    fi
+    rm -f $pidfile
+}
+
 Require MB, MiB, GB, or GiB on all memory specs in job scripts
 
 Allow running compd as non-root
