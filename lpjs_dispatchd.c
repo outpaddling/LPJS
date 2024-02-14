@@ -80,6 +80,13 @@ int     main(int argc,char *argv[])
     lpjs_load_config(&node_list, LPJS_CONFIG_ALL, Log_stream);
     job_list_init(&job_list);
 
+    // Parent of all new job directories
+    if ( xt_rmkdir(LPJS_PENDING_DIR, 0755) != 0 )
+    {
+	fprintf(stderr, "Cannot create %s: %s\n", LPJS_PENDING_DIR, strerror(errno));
+	return -1;  // FIXME: Define error codes
+    }
+    
     /*
      *  bind(): address already in use during testing with frequent restarts.
      *  Best approach is to ensure that client completes a close
@@ -418,8 +425,11 @@ void    lpjs_compute_node_checkin(int msg_fd, node_list_t *node_list)
     // FIXME: What is the maximum cred length?
     if ( (bytes = lpjs_recv_msg(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 2)) < 1 )
     {
-	lpjs_server_safe_close(msg_fd);
-	lpjs_log("Failed to read munge credential: %s", strerror(errno));
+	lpjs_log("%s: lpjs_recv_msg() returned %zd\n", __FUNCTION__, bytes);
+	// Don't use lpjs_server_safe_close() here.
+	// Compute node is not listening.
+	close(msg_fd);
+	lpjs_log("Failed to read munge credential. Is munged running on the compute node?\n");
     }
     else
     {

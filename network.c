@@ -184,10 +184,15 @@ ssize_t lpjs_recv_msg(int msg_fd, char *buff, size_t buff_len, int flags,
     {
 	FD_ZERO(&read_fds);
 	FD_SET(msg_fd, &read_fds);
+	lpjs_log("%s: Entering select()...\n", __FUNCTION__);
 	if ( select(msg_fd + 1, &read_fds, NULL, NULL, &timeout_tv) == 0 )
+	{
+	    lpjs_log("select() returned 0.\n");
 	    return 0;
+	}
     }
 
+    lpjs_log("Receiving message...\n");
     bytes_read = recv(msg_fd, &msg_len, sizeof(uint16_t), flags | MSG_WAITALL);
     if ( bytes_read == 0 )
 	return 0;
