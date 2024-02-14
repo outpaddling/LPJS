@@ -352,6 +352,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	{
 	    // lpjs_log("Accepted connection. fd = %d\n", msg_fd);
 
+	    // FIXME: munge() all incoming messages?
 	    /* Read a message through the socket */
 	    while ( (bytes = lpjs_recv_msg(msg_fd,
 			 incoming_msg, LPJS_MSG_LEN_MAX, 0, 0)) < 1 )
