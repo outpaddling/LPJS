@@ -25,6 +25,18 @@
         Use FreeBSD ports or pkgsrc.  Other package managers may be
         supported by third parties.
         </para>
+        
+        <para>
+        LPJS uses <command>munge</command>
+        <ulink url="https://github.com/dun/munge">(https://github.com/dun/munge)</ulink>
+        to authenticate messages
+        between nodes.  This requires all nodes to have a shared munge key file.
+        
+        THE MUNGE KEY FILE MUST BE KEPT SECURE AT ALL TIMES ON ALL NODES.
+        Use secure procedures
+        to distribute it to all nodes, so that it is never visible to unauthorized
+        users.
+        </para>
     </chapter>
     
     <chapter>

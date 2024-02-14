@@ -61,6 +61,14 @@ No software system is perfect, either.  We fully
 expect to discover vulnerabilities in LPJS and in the tools and libraries
 on which it depends.
 
+LPJS uses [munge](https://github.com/dun/munge) to authenticate messages
+between nodes.  This requires all nodes to have a shared munge key file.
+
+THE MUNGE KEY FILE MUST BE KEPT SECURE AT ALL TIMES ON ALL NODES.
+Use secure procedures
+to distribute it to all nodes, so that it is never visible to unauthorized
+users.
+
 ## Description
 
 Most clusters consist of a few or many dedicated rack-mounted computers
