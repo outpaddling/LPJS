@@ -1,18 +1,19 @@
 [Unit]
 Description=Lightweight, Portable Job Scheduler dispatch service
 Documentation=man:lpjs_dispatchd(8)
-After=network.target
+Wants=network-online.target
+After=network-online.target
 After=time-sync.target
 After=munge.service
 
 [Service]
 Type=forking
 ExecStart=/usr/pkg/sbin/lpjs_dispatchd --daemonize
-# FIXME: Get this working
-# PIDFile=/var/run/lpjs/lpjs_dispatchd.pid
+# FIXME: Get this working: Create pidfile within daemon code
+# PIDFile=/usr/pkg/var/run/lpjs/lpjs_dispatchd.pid
+RuntimeDirectory=lpjs_dispatchd
+RuntimeDirectoryMode=0755
 # FIXME: Probably shouldn't have to run dispatchd as root
-# User=lpjs
-# Group=lpjs
 User=root
 Group=root
 Restart=on-abort

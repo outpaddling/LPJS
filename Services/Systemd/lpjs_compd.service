@@ -1,15 +1,19 @@
 [Unit]
 Description=Lightweight, Portable, Job Scheduler compute node service
 Documentation=man:lpjs_compd(8)
-After=network.target
+Wants=network-online.target
+After=network-online.target
 After=time-sync.target
 After=munge.service
 
 [Service]
 Type=forking
 ExecStart=/usr/pkg/sbin/lpjs_compd --daemonize
-# FIXME: Get this working
-# PIDFile=/var/run/lpjs/lpjs_compd.pid
+# FIXME: Get this working: Create pidfile within daemon code
+# PIDFile=/usr/pkg/var/run/lpjs/lpjs_compd.pid
+RuntimeDirectory=lpjs_compd
+RuntimeDirectoryMode=0755
+# FIXME: Probably shouldn't have to run compd as root
 User=root
 Group=root
 Restart=on-abort
