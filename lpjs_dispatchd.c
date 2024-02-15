@@ -76,7 +76,14 @@ int     main(int argc,char *argv[])
     }
     else
 	Log_stream = stderr;
-    
+
+#ifdef __linux__    // systemd needs a pid file for forking daemons
+    int         status;
+    status = xt_create_pid_file(LPJS_RUN_DIR, "lpjs_dispatchd", Log_stream);
+    if ( status != EX_OK )
+	return status;
+#endif
+
     lpjs_load_config(&node_list, LPJS_CONFIG_ALL, Log_stream);
     job_list_init(&job_list);
 
@@ -632,3 +639,4 @@ int     lpjs_queue_job(int msg_fd, const char *script_path, node_list_t *node_li
     
     return 0;   // FIXME: Define error codes
 }
+

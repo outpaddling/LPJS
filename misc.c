@@ -5,7 +5,7 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <errno.h>
-
+#include <limits.h>     // PATH_MAX
 #include <xtend/file.h> // xt_rmkdir()
 
 #include "lpjs.h"
@@ -129,4 +129,42 @@ FILE    *lpjs_log_output(char *pathname)
 	return NULL;
     }
     return fp;
+}
+
+
+int     xt_create_pid_file(const char *run_dir, const char *program_name,
+			    FILE *log_stream)
+
+{
+    char        pid_path[PATH_MAX + 1];
+    struct stat st;
+    FILE        *fp;
+    
+    if ( xt_rmkdir(run_dir, 0755) != 0 )
+	return EX_CANTCREAT;
+    
+    snprintf(pid_path, PATH_MAX + 1, "%s/%s.pid", run_dir, program_name);
+    if ( stat(pid_path, &st) == 0 )
+    {
+	fprintf(log_stream, "%s: %s already exists.\n", __FUNCTION__,
+		pid_path);
+	return EX_CANTCREAT;
+    }
+    
+    if ( (fp = fopen(pid_path, "w")) == NULL )
+    {
+	fprintf(log_stream, "%s: fopen() failed on %s: %s.\n", __FUNCTION__,
+		pid_path, strerror(errno));
+	return EX_CANTCREAT;
+    }
+    
+    if ( fprintf(fp, "%d\n", getpid()) < 0 )
+    {
+	fprintf(log_stream, "%s: fprintf() failed on %s: %s.\n", __FUNCTION__,
+		pid_path, strerror(errno));
+	return EX_IOERR;
+    }
+    
+    fclose(fp);
+    return EX_OK;
 }

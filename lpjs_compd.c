@@ -66,6 +66,13 @@ int     main (int argc, char *argv[])
     else
 	Log_stream = stderr;
     
+#ifdef __linux__    // systemd needs a pid file for forking daemons
+    int     status;
+    status = xt_create_pid_file(LPJS_RUN_DIR, "lpjs_compd", Log_stream);
+    if ( status != EX_OK )
+	return status;
+#endif
+
     // Get hostname of head node
     lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, Log_stream);
 
