@@ -8,6 +8,8 @@ After=munge.service
 
 [Service]
 Type=forking
+# This is a temporary hack, since ExecStop fails to remove the pid file
+ExecStartPre=/usr/bin/rm -f /usr/pkg/var/run/lpjs/lpjs_compd.pid
 ExecStart=/usr/pkg/sbin/lpjs_compd --daemonize
 PIDFile=/usr/pkg/var/run/lpjs/lpjs_compd.pid
 RuntimeDirectory=lpjs_compd

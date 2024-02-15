@@ -21,6 +21,7 @@
 
 #include <xtend/string.h>
 #include <xtend/proc.h>
+#include <xtend/file.h>     // xt_rmkdir()
 
 #include "lpjs.h"
 #include "node-list.h"
@@ -67,8 +68,15 @@ int     main (int argc, char *argv[])
 	Log_stream = stderr;
     
 #ifdef __linux__    // systemd needs a pid file for forking daemons
+    // FIXME: Make sure Pid_path is removed no matter where the program exits
     int     status;
-    status = xt_create_pid_file(LPJS_RUN_DIR, "lpjs_compd", Log_stream);
+    extern char *Pid_path;
+    
+    if ( xt_rmkdir(LPJS_RUN_DIR, 0755) != 0 )
+	return EX_CANTCREAT;
+    
+    snprintf(Pid_path, PATH_MAX + 1, "%s/%s.pid", LPJS_RUN_DIR, "lpjs_compd");
+    status = xt_create_pid_file(Pid_path, Log_stream);
     if ( status != EX_OK )
 	return status;
 #endif

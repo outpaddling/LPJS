@@ -20,6 +20,7 @@
  */
 FILE        *Log_stream;
 node_list_t *Node_list;
+char        *Pid_path;
 
 /***************************************************************************
  *  Description:
@@ -80,6 +81,9 @@ void    lpjs_terminate_handler(int s2)
 	    lpjs_server_safe_close(node_get_msg_fd(node));
 	}
     }
+#ifdef __linux__
+    remove(Pid_path);
+#endif
     exit(EX_OK);
 }
 
@@ -132,18 +136,12 @@ FILE    *lpjs_log_output(char *pathname)
 }
 
 
-int     xt_create_pid_file(const char *run_dir, const char *program_name,
-			    FILE *log_stream)
+int     xt_create_pid_file(const char *pid_path, FILE *log_stream)
 
 {
-    char        pid_path[PATH_MAX + 1];
     struct stat st;
     FILE        *fp;
     
-    if ( xt_rmkdir(run_dir, 0755) != 0 )
-	return EX_CANTCREAT;
-    
-    snprintf(pid_path, PATH_MAX + 1, "%s/%s.pid", run_dir, program_name);
     if ( stat(pid_path, &st) == 0 )
     {
 	fprintf(log_stream, "%s: %s already exists.\n", __FUNCTION__,

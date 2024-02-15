@@ -77,22 +77,28 @@ int     main(int argc,char *argv[])
     else
 	Log_stream = stderr;
 
-#ifdef __linux__    // systemd needs a pid file for forking daemons
-    int         status;
-    status = xt_create_pid_file(LPJS_RUN_DIR, "lpjs_dispatchd", Log_stream);
-    if ( status != EX_OK )
-	return status;
-#endif
-
-    lpjs_load_config(&node_list, LPJS_CONFIG_ALL, Log_stream);
-    job_list_init(&job_list);
-
     // Parent of all new job directories
     if ( xt_rmkdir(LPJS_PENDING_DIR, 0755) != 0 )
     {
 	fprintf(stderr, "Cannot create %s: %s\n", LPJS_PENDING_DIR, strerror(errno));
 	return -1;  // FIXME: Define error codes
     }
+
+#ifdef __linux__    // systemd needs a pid file for forking daemons
+    int         status;
+    extern char *Pid_path;
+    
+    if ( xt_rmkdir(LPJS_RUN_DIR, 0755) != 0 )
+	return EX_CANTCREAT;
+    
+    snprintf(Pid_path, PATH_MAX + 1, "%s/%s.pid", LPJS_RUN_DIR, "lpjs_compd");
+    status = xt_create_pid_file(Pid_path, Log_stream);
+    if ( status != EX_OK )
+	return status;
+#endif
+
+    lpjs_load_config(&node_list, LPJS_CONFIG_ALL, Log_stream);
+    job_list_init(&job_list);
     
     /*
      *  bind(): address already in use during testing with frequent restarts.
