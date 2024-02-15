@@ -52,22 +52,29 @@ LPJS will be integrated with [SPCM](https://github.com/outpaddling/SPCM)
 LPJS, like other job schedulers and resource managers, is a tool that
 facilitates *remote execution of arbitrary code*.  These words should
 instill a healthy level of fear, and motivate you to be extra careful
-to protect your own data security.  LPJS is designed with
-security in mind, but no software system can protect you from your
-own carelessness.  Follow all the usual best practices regarding
+to protect your own data security.
+
+LPJS is designed with
+security in mind, but no software system can protect you from the   
+carelessness of its users.  To the extent possible,
+enforce the usual best practices regarding
 password strength, password secrecy (we recommend tools such as
 KeePassXC), etc., with extra diligence.
+
 No software system is perfect, either.  We fully
 expect to discover vulnerabilities in LPJS and in the tools and libraries
 on which it depends.
 
+LPJS should not be relied on as the primary security layer.  All nodes
+should have appropriate firewall settings to prohibit unauthorized
+network connections.  We recommend only accepting incoming connections from
+known and trusted hosts.
+
 LPJS uses [munge](https://github.com/dun/munge) to authenticate messages
 between nodes.  This requires all nodes to have a shared munge key file.
-
 THE MUNGE KEY FILE MUST BE KEPT SECURE AT ALL TIMES ON ALL NODES.
-Use secure procedures
-to distribute it to all nodes, so that it is never visible to unauthorized
-users.
+Use secure procedures to distribute it to all nodes, ensuring that it
+is never visible to unauthorized users, even for a moment.
 
 ## Description
 
