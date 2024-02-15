@@ -339,6 +339,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
     char        incoming_msg[LPJS_MSG_LEN_MAX + 1];
     socklen_t   address_len = sizeof (struct sockaddr_in);
     
+    bytes = 0;
     if ( FD_ISSET(listen_fd, read_fds) )
     {
 	/* Accept a connection request */
@@ -354,11 +355,11 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 
 	    // FIXME: munge() all incoming messages?
 	    /* Read a message through the socket */
-	    while ( (bytes = lpjs_recv_msg(msg_fd,
+	    if ( (bytes = lpjs_recv_msg(msg_fd,
 			 incoming_msg, LPJS_MSG_LEN_MAX, 0, 0)) < 1 )
 	    {
-		lpjs_log("lpjs_recv_msg() failed: %s", strerror(errno));
-		sleep(1);
+		lpjs_log("lpjs_check_listen_fd(): lpjs_recv_msg() failed: %s", strerror(errno));
+		return bytes;
 	    }
     
 	    /* Process request */
@@ -394,7 +395,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	}
     }
     
-    return EX_OK;
+    return bytes;
 }
 
 
