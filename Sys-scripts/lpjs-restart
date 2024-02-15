@@ -15,7 +15,7 @@ if [ $(uname) = Darwin ]; then
 	launchctl bootstrap system /Library/LaunchDaemons/org.pkgsrc.lpjs_compd.plist
     fi
 
-elif [ $(uname) == DragonFly ] || [ $(uname) = FreeBSD ]; then
+elif [ $(uname) = DragonFly ] || [ $(uname) = FreeBSD ]; then
     service munged restart
     if grep -E '^lpjs_dispatchd_enable=\"?[Yy][Ee][Ss]"?' /etc/rc.conf; then
 	service lpjs_dispatchd restart
