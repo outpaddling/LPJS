@@ -258,8 +258,10 @@ effort on __any__ POSIX platform, including but not limited to:
 - Job accounting (maintaining records of completed jobs)
 
 This does not preclude support for operating system specific features such
-as cgroups, CUDA, FreeBSD jails, NUMA, etc. but all such features shall be
-optional, implemented and installed separately as 3rd-party plugins.
+as cgroups, CUDA, FreeBSD jails, NUMA, CPU affinity, etc.,
+but all such features shall be
+optional, implemented and installed separately as 3rd-party plugins
+or other types of add-ons.
 
 ## Design and Implementation
 
