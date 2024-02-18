@@ -86,7 +86,7 @@ int     main(int argc,char *argv[])
 
 #ifdef __linux__    // systemd needs a pid file for forking daemons
     int         status;
-    extern char *Pid_path;
+    extern char Pid_path[PATH_MAX + 1];
     
     if ( xt_rmkdir(LPJS_RUN_DIR, 0755) != 0 )
 	return EX_CANTCREAT;

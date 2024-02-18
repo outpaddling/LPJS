@@ -20,7 +20,7 @@
  */
 FILE        *Log_stream;
 node_list_t *Node_list;
-char        *Pid_path;
+char        Pid_path[PATH_MAX + 1];
 
 /***************************************************************************
  *  Description:
