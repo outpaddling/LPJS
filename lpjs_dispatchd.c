@@ -230,10 +230,10 @@ void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
 	    
 	    /*
 	     *  select() returns when a peer has closed the connection.
-	     *  lpjs_recv_msg() will return 0 in this case.
+	     *  lpjs_recv() will return 0 in this case.
 	     */
 	    
-	    bytes = lpjs_recv_msg(fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 0);
+	    bytes = lpjs_recv(fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 0);
 	    if ( bytes == 0 )
 	    {
 		lpjs_log("Lost connection to %s.  Closing...\n",
@@ -368,10 +368,10 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 
 	    // FIXME: munge() all incoming messages?
 	    /* Read a message through the socket */
-	    if ( (bytes = lpjs_recv_msg(msg_fd,
+	    if ( (bytes = lpjs_recv(msg_fd,
 			 incoming_msg, LPJS_MSG_LEN_MAX, 0, 0)) < 1 )
 	    {
-		lpjs_log("lpjs_check_listen_fd(): lpjs_recv_msg() failed: %s", strerror(errno));
+		lpjs_log("lpjs_check_listen_fd(): lpjs_recv() failed: %s", strerror(errno));
 		return bytes;
 	    }
     
@@ -438,9 +438,9 @@ void    lpjs_compute_node_checkin(int msg_fd, node_list_t *node_list)
     
     /* Get munge credential */
     // FIXME: What is the maximum cred length?
-    if ( (bytes = lpjs_recv_msg(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 2)) < 1 )
+    if ( (bytes = lpjs_recv(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 2)) < 1 )
     {
-	lpjs_log("%s: lpjs_recv_msg() returned %zd\n", __FUNCTION__, bytes);
+	lpjs_log("%s: lpjs_recv() returned %zd\n", __FUNCTION__, bytes);
 	// Don't use lpjs_server_safe_close() here.
 	// Compute node is not listening.
 	close(msg_fd);
@@ -469,7 +469,7 @@ void    lpjs_compute_node_checkin(int msg_fd, node_list_t *node_list)
 	     *  Get specs from node and add msg_fd
 	     */
 	    
-	    lpjs_send_msg(msg_fd, 0, MUNGE_CRED_VERIFIED);
+	    lpjs_send(msg_fd, 0, MUNGE_CRED_VERIFIED);
 	    
 	    node_recv_specs(new_node, msg_fd);
 	    
@@ -498,7 +498,7 @@ void    lpjs_compute_node_checkin(int msg_fd, node_list_t *node_list)
 	    }
 	    else
 	    {
-		lpjs_send_msg(msg_fd, 0, "Node authorized");
+		lpjs_send(msg_fd, 0, "Node authorized");
 		node_set_msg_fd(new_node, msg_fd);
 		
 		// Nodes were added to node_list by lpjs_load_config()
@@ -540,9 +540,9 @@ int     lpjs_submit(int msg_fd, node_list_t *node_list, job_list_t *job_list)
     
     /* Get munge credential */
     // FIXME: What is the maximum cred length?
-    if ( (bytes = lpjs_recv_msg(msg_fd, incoming_msg, 4096, 0, 0)) == - 1)
+    if ( (bytes = lpjs_recv(msg_fd, incoming_msg, 4096, 0, 0)) == - 1)
     {
-	lpjs_log("lpjs_recv_msg() failed: %s", strerror(errno));
+	lpjs_log("lpjs_recv() failed: %s", strerror(errno));
 	// FIXME: Figure out proper return values
 	return EX_IOERR;
     }
@@ -626,7 +626,7 @@ int     lpjs_queue_job(int msg_fd, const char *script_path, node_list_t *node_li
     
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX, "Spooled job %lu to %s.\n",
 	    next_job_num, pending_dir);
-    lpjs_send_msg(msg_fd, 0, outgoing_msg);
+    lpjs_send(msg_fd, 0, outgoing_msg);
     
     // FIXME: Send this to the job log, not the daemon log
     lpjs_log(outgoing_msg);

@@ -158,8 +158,8 @@ void    node_send_status(node_t *node, int msg_fd)
 
 {
     /*
-     *  Don't use send_msg() here, since there will be more text to send
-     *  and send_msg() terminates the message.
+     *  Don't use send() here, since there will be more text to send
+     *  and send() terminates the message.
      */
     if ( xt_dprintf(msg_fd, NODE_STATUS_FORMAT, node->hostname, node->state,        
 		node->cores, node->cores_used,                                 
@@ -198,7 +198,7 @@ ssize_t node_send_specs(node_t *node, int msg_fd)
 	exit(EX_IOERR);
     }
     
-    return lpjs_send_msg(msg_fd, 0, specs_msg);
+    return lpjs_send(msg_fd, 0, specs_msg);
 }
 
 
@@ -223,7 +223,7 @@ ssize_t node_recv_specs(node_t *node, int msg_fd)
     
     node_init(node);
     
-    msg_len = lpjs_recv_msg(msg_fd, specs_msg, LPJS_MSG_LEN_MAX, MSG_WAITALL, 0);
+    msg_len = lpjs_recv(msg_fd, specs_msg, LPJS_MSG_LEN_MAX, MSG_WAITALL, 0);
     if ( msg_len < 0 )
     {
 	lpjs_log("node_recv_specs(): Failed to receive message.\n");

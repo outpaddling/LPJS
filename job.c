@@ -116,8 +116,8 @@ void    job_send_params(job_t *job, int msg_fd)
 
 {
     /*
-     *  Don't use send_msg() here, since there will be more text to send
-     *  and send_msg() terminates the message.
+     *  Don't use send() here, since there will be more text to send
+     *  and send() terminates the message.
      */
     if ( xt_dprintf(msg_fd, JOB_SPEC_FORMAT, job->job_id, job->script_name,
 	    job->user_name, job->cores_per_job, job->mem_per_core) < 0 )

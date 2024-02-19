@@ -73,7 +73,7 @@ int     main (int argc, char *argv[])
 
     outgoing_msg[0] = LPJS_REQUEST_SUBMIT;
     outgoing_msg[1] = '\0';
-    if ( lpjs_send_msg(msg_fd, 0, outgoing_msg, 0) < 1 )
+    if ( lpjs_send(msg_fd, 0, outgoing_msg, 0) < 1 )
     {
 	perror("lpjs-submit: Failed to send submit request to dispatch");
 	close(msg_fd);
@@ -93,7 +93,7 @@ int     main (int argc, char *argv[])
 	return EX_UNAVAILABLE; // FIXME: Check actual error
     }
 
-    if ( lpjs_send_msg(msg_fd, 0, cred) < 0 )
+    if ( lpjs_send(msg_fd, 0, cred) < 0 )
     {
 	perror("lpjs-submit: Failed to send credential to dispatch");
 	close(msg_fd);

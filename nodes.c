@@ -47,7 +47,7 @@ int     main (int argc, char *argv[])
 
     outgoing_msg[0] = LPJS_REQUEST_NODE_STATUS;
     outgoing_msg[1] = '\0';
-    if ( lpjs_send_msg(msg_fd, 0, outgoing_msg) < 0 )
+    if ( lpjs_send(msg_fd, 0, outgoing_msg) < 0 )
     {
 	perror("lpjs-nodes: Failed to send message to dispatch");
 	close(msg_fd);

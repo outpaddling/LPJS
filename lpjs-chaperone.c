@@ -68,7 +68,7 @@ int     main (int argc, char *argv[])
     
     /* Send a message to the server */
     /* Need to send \0, so xt_dprintf() doesn't work here */
-    if ( lpjs_send_msg(msg_fd, 0, "job-complete\ncmd: %s\nstatus: %d\n",
+    if ( lpjs_send(msg_fd, 0, "job-complete\ncmd: %s\nstatus: %d\n",
 		  cmd, status) < 0 )
     {
 	lpjs_log("lpjs-chaperone: Failed to send message to dispatch: %s",
