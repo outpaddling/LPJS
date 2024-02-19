@@ -235,11 +235,23 @@ int     job_parse_script(job_t *job, const char *script_name)
 	    }
 	    else if ( strcmp(var, "mem-per-core") == 0 )
 	    {
-		// FIXME: Support 'm' and 'g' suffixes
 		job->mem_per_core = strtoul(val, &end, 10);
-		if ( *end != '\0' )
+		
+		// Convert to MiB
+		// Careful with the integer arithmetic, to avoid overflows
+		// and 0 results
+		if ( strcmp(end, "MB") == 0 )
+		    job->mem_per_core = job->mem_per_core * LPJS_MB / LPJS_MiB;
+		else if ( strcmp(end, "MiB") == 0 )
+		    ;
+		else if ( strcmp(end, "GB") == 0 )
+		    job->mem_per_core = job->mem_per_core * LPJS_GB / LPJS_MiB;
+		else if ( strcmp(end, "GiB") == 0 )
+		    job->mem_per_core = job->mem_per_core * LPJS_GiB / LPJS_MiB;
+		else
 		{
-		    fprintf(stderr, "Error: #lpjs mem_per_core '%s' is not a decimal integer.\n", val);
+		    fprintf(stderr, "Error: #lpjs mem_per_core '%s':\n", val);
+		    fprintf(stderr, "Requires a decimal number followed by MB, MiB, GB, or GiB.\n");
 		    exit(EX_DATAERR);
 		}
 	    }
@@ -254,6 +266,9 @@ int     job_parse_script(job_t *job, const char *script_name)
     }
     fclose(fp);
     
+    fprintf(stderr, "%u job, %u cores per job, %u cores per node, %zu MiB\n",
+	    job->job_count, job->cores_per_job,
+	    job->cores_per_node, job->mem_per_core);
     return 0;
 }
 

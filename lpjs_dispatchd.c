@@ -424,12 +424,11 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 void    lpjs_compute_node_checkin(int msg_fd, node_list_t *node_list)
 
 {
-    munge_err_t munge_status;
     node_t      *new_node = node_new();
     uid_t       uid;
     gid_t       gid;
     ssize_t     bytes;
-    char        incoming_msg[LPJS_MSG_LEN_MAX + 1];
+    char        *incoming_msg;
     extern FILE *Log_stream;
     
     // FIXME: Check for duplicate checkins.  We should not get
@@ -438,9 +437,9 @@ void    lpjs_compute_node_checkin(int msg_fd, node_list_t *node_list)
     
     /* Get munge credential */
     // FIXME: What is the maximum cred length?
-    if ( (bytes = lpjs_recv(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 2)) < 1 )
+    if ( (bytes = lpjs_recv_munge(msg_fd, &incoming_msg, 0, 2, &uid, &gid)) < 0 )
     {
-	lpjs_log("%s: lpjs_recv() returned %zd\n", __FUNCTION__, bytes);
+	lpjs_log("%s: lpjs_recv_munge() returned %zd\n", __FUNCTION__, bytes);
 	// Don't use lpjs_server_safe_close() here.
 	// Compute node is not listening.
 	close(msg_fd);
@@ -451,63 +450,53 @@ void    lpjs_compute_node_checkin(int msg_fd, node_list_t *node_list)
 	// lpjs_log("Munge credential message length = %zd\n", bytes);
 	// lpjs_log("munge msg: %s\n", incoming_msg);
 	
-	lpjs_log("Decoding munged checkin data...\n");
-	munge_status = munge_decode(incoming_msg, NULL, NULL, 0, &uid, &gid);
-	if ( munge_status != EMUNGE_SUCCESS )
+	lpjs_log("Checkin from uid %d, gid %d\n", uid, gid);
+	
+	// FIXME: Only accept compd checkins from root
+
+	/*
+	 *  Get specs from node and add msg_fd
+	 */
+	
+	lpjs_send(msg_fd, 0, MUNGE_CRED_VERIFIED);
+	
+	node_recv_specs(new_node, msg_fd);
+	
+	// Keep in sync with node_list_send_status()
+	node_print_status_header(Log_stream);
+	node_print_status(Log_stream, new_node);
+	
+	// Make sure node name is valid
+	// Note: For real security, only authorized
+	// nodes should be allowed to pass through
+	// the network firewall.
+	bool valid_node = false;
+	for (unsigned c = 0; c < NODE_LIST_COUNT(node_list); ++c)
 	{
-	    lpjs_server_safe_close(msg_fd);
-	    lpjs_log("munge_decode() failed.  Error = %s\n",
-		     munge_strerror(munge_status));
+	    node_t *node = NODE_LIST_COMPUTE_NODES_AE(node_list, c);
+	    // If config has short hostnames, just match that
+	    int valid_hostname_len = strlen(node_get_hostname(node));
+	    if ( memcmp(node_get_hostname(node), node_get_hostname(new_node), valid_hostname_len) == 0 )
+		valid_node = true;
+	}
+	if ( ! valid_node )
+	{
+	    lpjs_log("Unauthorized checkin request from %s.\n",
+		    node_get_hostname(new_node));
+	    close(msg_fd);
 	}
 	else
 	{
-	    lpjs_log("Checkin from uid %d, gid %d\n", uid, gid);
+	    lpjs_send(msg_fd, 0, "Node authorized");
+	    node_set_msg_fd(new_node, msg_fd);
 	    
-	    // FIXME: Only accept compd checkins from root
-
-	    /*
-	     *  Get specs from node and add msg_fd
-	     */
-	    
-	    lpjs_send(msg_fd, 0, MUNGE_CRED_VERIFIED);
-	    
-	    node_recv_specs(new_node, msg_fd);
-	    
-	    // Keep in sync with node_list_send_status()
-	    node_print_status_header(Log_stream);
-	    node_print_status(Log_stream, new_node);
-	    
-	    // Make sure node name is valid
-	    // Note: For real security, only authorized
-	    // nodes should be allowed to pass through
-	    // the network firewall.
-	    bool valid_node = false;
-	    for (unsigned c = 0; c < NODE_LIST_COUNT(node_list); ++c)
-	    {
-		node_t *node = NODE_LIST_COMPUTE_NODES_AE(node_list, c);
-		// If config has short hostnames, just match that
-		int valid_hostname_len = strlen(node_get_hostname(node));
-		if ( memcmp(node_get_hostname(node), node_get_hostname(new_node), valid_hostname_len) == 0 )
-		    valid_node = true;
-	    }
-	    if ( ! valid_node )
-	    {
-		lpjs_log("Unauthorized checkin request from %s.\n",
-			node_get_hostname(new_node));
-		close(msg_fd);
-	    }
-	    else
-	    {
-		lpjs_send(msg_fd, 0, "Node authorized");
-		node_set_msg_fd(new_node, msg_fd);
-		
-		// Nodes were added to node_list by lpjs_load_config()
-		// Just update the fields here
-		node_list_update_compute(node_list, new_node);
-		// FIXME: Acknowledge checkin
-	    }
+	    // Nodes were added to node_list by lpjs_load_config()
+	    // Just update the fields here
+	    node_list_update_compute(node_list, new_node);
+	    // FIXME: Acknowledge checkin
 	}
     }
+    free(incoming_msg);
 }
 
 
@@ -525,12 +514,9 @@ int     lpjs_submit(int msg_fd, node_list_t *node_list, job_list_t *job_list)
 {
     uid_t       uid;
     gid_t       gid;
-    munge_err_t munge_status;
     ssize_t     bytes;
-    int         payload_len;
-    char        incoming_msg[LPJS_MSG_LEN_MAX + 1],
-		script_path[PATH_MAX + 1],
-		*payload;
+    char        *incoming_msg,
+		script_path[PATH_MAX + 1];
     job_t       *job = job_new(); // exits if malloc() fails, no need to check
     
     // FIXME: Don't accept job submissions from root until
@@ -540,31 +526,26 @@ int     lpjs_submit(int msg_fd, node_list_t *node_list, job_list_t *job_list)
     
     /* Get munge credential */
     // FIXME: What is the maximum cred length?
-    if ( (bytes = lpjs_recv(msg_fd, incoming_msg, 4096, 0, 0)) == - 1)
+    if ( (bytes = lpjs_recv_munge(msg_fd, &incoming_msg, 0, 2, &uid, &gid)) == - 1)
     {
 	lpjs_log("lpjs_recv() failed: %s", strerror(errno));
+	free(incoming_msg);
 	// FIXME: Figure out proper return values
 	return EX_IOERR;
-    }
-    munge_status = munge_decode(incoming_msg, NULL, (void **)&payload,
-				&payload_len, &uid, &gid);
-    if ( munge_status != EMUNGE_SUCCESS )
-    {
-	lpjs_log("munge_decode() failed.  Error = %s\n",
-		 munge_strerror(munge_status));
     }
     else
     {
 	// FIXME: Parse payload following JOB_SPEC_FORMAT
-	job_read_from_string(job, payload);
+	job_read_from_string(job, incoming_msg);
 	snprintf(script_path, PATH_MAX + 1, "%s/%s",
 		job_get_working_directory(job), job_get_script_name(job));
 	lpjs_log("Submit script %s from %d, %d\n", script_path, uid, gid);
 	lpjs_queue_job(msg_fd, script_path, node_list);
 	lpjs_server_safe_close(msg_fd);
+
+	free(incoming_msg);
+	return EX_OK;
     }
-    free(payload);
-    return EX_OK;
 }
 
 

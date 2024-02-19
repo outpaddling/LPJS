@@ -3,6 +3,6 @@
 #lpjs jobs 1
 #lpjs cores-per-job 2
 #lpjs cores-per-node all
-#lpjs mem-per-core 100MiB
+#lpjs mem-per-core 100GiB
 
 hostname

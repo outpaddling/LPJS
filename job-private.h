@@ -11,7 +11,7 @@ struct job
     unsigned        job_count;
     unsigned        cores_per_job;
     unsigned        cores_per_node;
-    unsigned long   mem_per_core;
+    size_t          mem_per_core;
     char            *user_name;
     char            *working_directory;
     char            *script_name;

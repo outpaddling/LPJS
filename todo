@@ -1,6 +1,4 @@
 
-Require MB, MiB, GB, or GiB on all memory specs in job scripts
-
 Allow running compd as non-root
     Only the user running compd can execute jobs on that node
     as only root can impersonate another user using setuid()

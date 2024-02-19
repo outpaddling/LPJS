@@ -25,6 +25,11 @@
 
 #define LPJS_RUN_DIR            PREFIX "/var/run/lpjs"
 
+#define LPJS_MB                 1000000
+#define LPJS_MiB                1048576
+#define LPJS_GB                 1000000000
+#define LPJS_GiB                1073741824
+
 // Don't start codes at 0.  It will be interpreted as a null-terminator
 enum
 {
