@@ -59,8 +59,21 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
      *  next job in the queue
      */
     
-    if ( lpjs_select_next_job(job) == 0 )
+    if ( lpjs_select_next_job(job) < 1 )
 	return 0;
+    
+    /*
+     *  Get job specs and script from spool dir
+     */
+    
+    /*
+     *  Move from pending to running
+     */
+    
+    /*
+     *  Update job in job_list.  This is only a cache of information stored
+     *  on disk, for quick access during queries.
+     */
     
     /*
      *  Look through available nodes and select the best match
@@ -137,7 +150,7 @@ int     lpjs_select_next_job(job_t *job)
     {
 	lpjs_log("%s(): Cannot open %s: %s\n", __FUNCTION__,
 		LPJS_PENDING_DIR, strerror(errno));
-	return -1;  // FIXME: Define error codes
+	return 0;  // FIXME: Define error codes
     }
     
     low_job_id = ULONG_MAX;
@@ -152,20 +165,15 @@ int     lpjs_select_next_job(job_t *job)
 	}
     }
     closedir(dp);
-    lpjs_log("%s(): Selected job %lu to dispatch.\n", __FUNCTION__, low_job_id);
     
-    /*
-     *  Get job specs and script from spool dir
-     */
-    
-    /*
-     *  Move from pending to running
-     */
-    
-    /*
-     *  Update job in job_list.  This is only a cache of information stored
-     *  on disk, for quick access during queries.
-     */
-    
-    return 0;
+    if ( low_job_id == ULONG_MAX )
+    {
+	lpjs_log("%s(): No pending jobs.\n", __FUNCTION__);
+	return 0;
+    }
+    else
+    {
+	lpjs_log("%s(): Selected job %lu to dispatch.\n", __FUNCTION__, low_job_id);
+	return low_job_id;
+    }
 }
