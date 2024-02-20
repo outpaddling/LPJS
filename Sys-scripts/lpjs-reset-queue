@@ -1,0 +1,70 @@
+#!/bin/sh -e
+
+##########################################################################
+#   Synopsis:
+#       
+#   Description:
+#       
+#   Arguments:
+#       
+#   Returns:
+#
+#   Examples:
+#
+#   Files:
+#
+#   Environment:
+#
+#   See also:
+#       
+#   History:
+#   Date        Name        Modification
+#   2024-02-20  Jason Bacon Begin
+##########################################################################
+
+usage()
+{
+    printf "Usage: $0\n"
+    exit 1
+}
+
+
+##########################################################################
+#   Main
+##########################################################################
+
+if [ $# != 0 ]; then
+    usage
+fi
+prefix=/usr/local
+
+cat << EOM
+
+********************************* WARNING *********************************
+
+The purpose of this command is to erase all previous job history and
+restart the job ID sequence.
+
+This will remove all pending jobs and reset the next job number to 1
+in $prefix/var/spool/lpjs.
+
+All job IDs from previously completed jobs will become redundant, as
+they will be reused for future jobs.
+
+This should generally only be done to remove test jobs during installation
+of a new cluster.  Once the cluster is opened for business, job IDs
+should be left intact.
+
+EOM
+printf "Are you sure you want to do this?  yes/[no] "
+read sure
+if [ 0"$sure" = 0yes ]; then
+    rm -rf $prefix/var/spool/lpjs/pending/*
+    printf "1\n" > $prefix/var/spool/lpjs/next-job
+    printf "\n$prefix/var/spool/lpjs/pending:\n"
+    ls -al $prefix/var/spool/lpjs/pending
+    printf "\n$prefix/var/spool/lpjs/next-job:\n"
+    cat $prefix/var/spool/lpjs/next-job
+else
+    printf "Reset canceled.\n"
+fi
