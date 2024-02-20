@@ -150,13 +150,18 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
 
 {
     char        outgoing_msg[LPJS_MSG_LEN_MAX + 1],
-		incoming_msg[LPJS_MSG_LEN_MAX + 1];
+		incoming_msg[LPJS_MSG_LEN_MAX + 1],
+		specs[NODE_SPECS_LEN + 1];
     
     /* Send a message to the server */
     /* Need to send \0, so xt_dprintf() doesn't work here */
-    outgoing_msg[0] = LPJS_REQUEST_COMPD_CHECKIN;
-    outgoing_msg[1] = '\0';
-    if ( lpjs_send(msg_fd, 0, outgoing_msg) < 0 )
+    node_detect_specs(node);
+    node_print_status(node, stderr);
+    snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1,
+	    "%c%s", LPJS_REQUEST_COMPD_CHECKIN,
+	    node_specs_to_str(node, specs, NODE_SPECS_LEN + 1));
+    lpjs_log("%s(): Sending %s\n", __FUNCTION__, outgoing_msg + 1);
+    if ( lpjs_send_munge(msg_fd, outgoing_msg) < 0 )
     {
 	lpjs_log("lpjs_compd: Failed to send checkin message to dispatchd: %s",
 		strerror(errno));
@@ -169,12 +174,9 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
     // authenticate the socket connection.  Not sure if we should worry
     // about a connection-oriented socket getting hijacked and
     // munge other communication as well.
-    if ( lpjs_send_munge(msg_fd, NULL) != EX_OK )
-	return EX_DATAERR;
+    // if ( lpjs_send_munge(msg_fd, NULL) != EX_OK )
+    //     return EX_DATAERR;
 
-    node_detect_specs(node);
-    node_send_specs(node, msg_fd);
-    
     lpjs_recv(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 0);
     if ( strcmp(incoming_msg, "Node authorized") != 0 )
     {

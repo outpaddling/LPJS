@@ -14,6 +14,7 @@ typedef struct node node_t;
 #define NODE_MSG_FD_NOT_OPEN        -1
 #define NODE_STATUS_HEADER_FORMAT   "%-20s %-8s %5s %4s %7s %7s %-9s %-9s\n"
 #define NODE_STATUS_FORMAT          "%-20s %-8s %5u %4u %7lu %7lu %-9s %-9s\n"
+#define NODE_SPECS_LEN              1024
 
 #include "node-rvs.h"
 #include "node-accessors.h"

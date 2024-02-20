@@ -135,7 +135,7 @@ void    node_print_status_header(FILE *stream)
  *  2021-09-23  Jason Bacon Begin
  ***************************************************************************/
 
-void    node_print_status(FILE *stream, node_t *node)
+void    node_print_status(node_t *node, FILE *stream)
 
 {
     fprintf(stream, NODE_STATUS_FORMAT, node->hostname, node->state,
@@ -188,7 +188,7 @@ ssize_t node_send_specs(node_t *node, int msg_fd)
     extern FILE *Log_stream;
     
     node_print_status_header(Log_stream);
-    node_print_status(Log_stream, node);
+    node_print_status(node, Log_stream);
     if ( snprintf(specs_msg, LPJS_MSG_LEN_MAX + 1,
 		  "%s\t%s\t%u\t%lu\t%u\t%s\t%s\n",
 		  node->hostname, node->state, node->cores,
@@ -202,6 +202,22 @@ ssize_t node_send_specs(node_t *node, int msg_fd)
 }
 
 
+char    *node_specs_to_str(node_t *node, char *str, size_t buff_len)
+
+{
+    if ( snprintf(str, buff_len,
+		  "%s\t%s\t%u\t%lu\t%u\t%s\t%s\n",
+		  node->hostname, node->state, node->cores,
+		  node->phys_mem, node->zfs, node->os, node->arch) < 0 )
+    {
+	lpjs_log("%s(): snprintf() failed\n", __FUNCTION__);
+	exit(EX_IOERR);
+    }
+    
+    return str;
+}
+
+
 /***************************************************************************
  *  Description:
  *      Receive node hardware and OS specs via msg_fd in
@@ -212,93 +228,91 @@ ssize_t node_send_specs(node_t *node, int msg_fd)
  *  2021-10-02  Jason Bacon Begin
  ***************************************************************************/
 
-ssize_t node_recv_specs(node_t *node, int msg_fd)
+ssize_t node_str_to_specs(node_t *node, const char *str)
 
 {
-    char    specs_msg[LPJS_MSG_LEN_MAX + 1],
+    char    *temp_str,
 	    *field,
 	    *stringp,
 	    *end;
-    ssize_t msg_len;
     
     node_init(node);
     
-    msg_len = lpjs_recv(msg_fd, specs_msg, LPJS_MSG_LEN_MAX, MSG_WAITALL, 0);
-    if ( msg_len < 0 )
+    if ( (temp_str = strdup(str)) == NULL )
     {
-	lpjs_log("node_recv_specs(): Failed to receive message.\n");
-	node->state = "Unknown";
-	node->os = "Unknown";
-	node->arch = "Unknown";
+	lpjs_log("%s(): strdup() failed.\n", __FUNCTION__);
+	exit(EX_UNAVAILABLE);
+    }
+    
+    node->state = "Unknown";
+    node->os = "Unknown";
+    node->arch = "Unknown";
+
+    stringp = temp_str;
+    
+    if ( (field = strsep(&stringp, "\t")) == NULL )
+    {
+	lpjs_log("node_recv_specs(): Failed to extract hostname from specs.\n");
 	return -1;
     }
-    else
+    node->hostname = strdup(field);
+
+    if ( (field = strsep(&stringp, "\t")) == NULL )
     {
-	stringp = specs_msg;
-	
-	if ( (field = strsep(&stringp, "\t")) == NULL )
-	{
-	    lpjs_log("node_recv_specs(): Failed to extract hostname from specs.\n");
-	    return -1;
-	}
-	node->hostname = strdup(field);
-
-	if ( (field = strsep(&stringp, "\t")) == NULL )
-	{
-	    lpjs_log("node_recv_specs(): Failed to extract state from specs.\n");
-	    return -1;
-	}
-	node->state = strdup(field);
-
-	if ( (field = strsep(&stringp, "\t")) == NULL )
-	{
-	    lpjs_log("node_recv_specs(): Failed to extract cores from specs.\n");
-	    return -1;
-	}
-	node->cores = strtoul(field, &end, 10);
-	if ( *end != '\0' )
-	{
-	    lpjs_log("node_recv_specs(): Cores field is not a valid number.\n");
-	    return -1;
-	}
-
-	if ( (field = strsep(&stringp, "\t")) == NULL )
-	{
-	    lpjs_log("node_recv_specs(): Failed to extract physmem from specs.\n");
-	    return -1;
-	}
-	node->phys_mem = strtoul(field, &end, 10);
-	if ( *end != '\0' )
-	{
-	    lpjs_log("node_recv_specs(): Physmem field is not a valid number.\n");
-	    return -1;
-	}
-
-	if ( (field = strsep(&stringp, "\t")) == NULL )
-	{
-	    lpjs_log("node_recv_specs(): Failed to extract ZFS Boolean from specs.\n");
-	    return -1;
-	}
-	node->zfs = strtoul(field, &end, 10);
-	if ( *end != '\0' )
-	{
-	    lpjs_log("node_recv_specs(): ZFS field is not a valid number (should be 0 or 1).\n");
-	    return -1;
-	}
-
-	if ( (field = strsep(&stringp, "\t")) == NULL )
-	{
-	    lpjs_log("node_recv_specs(): Failed to extract OS from specs.\n");
-	    return -1;
-	}
-	node->os = strdup(field);
-    
-	if ( (field = strsep(&stringp, "\t\n")) == NULL )
-	{
-	    lpjs_log("node_recv_specs(): Failed to extract arch from specs.\n");
-	    return -1;
-	}
-	node->arch = strdup(field);
+	lpjs_log("node_recv_specs(): Failed to extract state from specs.\n");
+	return -1;
     }
+    node->state = strdup(field);
+
+    if ( (field = strsep(&stringp, "\t")) == NULL )
+    {
+	lpjs_log("node_recv_specs(): Failed to extract cores from specs.\n");
+	return -1;
+    }
+    node->cores = strtoul(field, &end, 10);
+    if ( *end != '\0' )
+    {
+	lpjs_log("node_recv_specs(): Cores field is not a valid number.\n");
+	return -1;
+    }
+
+    if ( (field = strsep(&stringp, "\t")) == NULL )
+    {
+	lpjs_log("node_recv_specs(): Failed to extract physmem from specs.\n");
+	return -1;
+    }
+    node->phys_mem = strtoul(field, &end, 10);
+    if ( *end != '\0' )
+    {
+	lpjs_log("node_recv_specs(): Physmem field is not a valid number.\n");
+	return -1;
+    }
+
+    if ( (field = strsep(&stringp, "\t")) == NULL )
+    {
+	lpjs_log("node_recv_specs(): Failed to extract ZFS Boolean from specs.\n");
+	return -1;
+    }
+    node->zfs = strtoul(field, &end, 10);
+    if ( *end != '\0' )
+    {
+	lpjs_log("node_recv_specs(): ZFS field is not a valid number (should be 0 or 1).\n");
+	return -1;
+    }
+
+    if ( (field = strsep(&stringp, "\t")) == NULL )
+    {
+	lpjs_log("node_recv_specs(): Failed to extract OS from specs.\n");
+	return -1;
+    }
+    node->os = strdup(field);
+
+    if ( (field = strsep(&stringp, "\t\n")) == NULL )
+    {
+	lpjs_log("node_recv_specs(): Failed to extract arch from specs.\n");
+	return -1;
+    }
+    node->arch = strdup(field);
+
     return 0;
 }

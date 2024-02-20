@@ -349,8 +349,10 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 {
     int         msg_fd;
     ssize_t     bytes;
-    char        incoming_msg[LPJS_MSG_LEN_MAX + 1];
+    char        *incoming_msg;
     socklen_t   address_len = sizeof (struct sockaddr_in);
+    uid_t       uid;
+    gid_t       gid;
     
     bytes = 0;
     if ( FD_ISSET(listen_fd, read_fds) )
@@ -368,18 +370,24 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 
 	    // FIXME: munge() all incoming messages?
 	    /* Read a message through the socket */
-	    if ( (bytes = lpjs_recv(msg_fd,
-			 incoming_msg, LPJS_MSG_LEN_MAX, 0, 0)) < 1 )
+	    if ( (bytes = lpjs_recv_munge(msg_fd,
+			 &incoming_msg, 0, 0, &uid, &gid)) < 0 )
 	    {
-		lpjs_log("lpjs_check_listen_fd(): lpjs_recv() failed: %s", strerror(errno));
+		lpjs_log("lpjs_check_listen_fd(): lpjs_recv_munge() failed: %s", strerror(errno));
+		close(msg_fd);
 		return bytes;
 	    }
-    
+	    lpjs_log("%s(): Got %zd byte message.\n", __FUNCTION__, bytes);
+	    incoming_msg[bytes] = '\0';
+	    lpjs_log("%s(): Request code = %d\n", __FUNCTION__, incoming_msg[0]);
+	    lpjs_log("%s(): %s\n", __FUNCTION__, incoming_msg + 1);
 	    /* Process request */
 	    switch(incoming_msg[0])
 	    {
 		case    LPJS_REQUEST_COMPD_CHECKIN:
-		    lpjs_compute_node_checkin(msg_fd, node_list);
+		    lpjs_log("LPJS_REQUEST_COMPD_CHECKIN\n");
+		    lpjs_process_compute_node_checkin(msg_fd, incoming_msg,
+						      node_list, uid, gid);
 		    lpjs_dispatch_jobs(node_list, job_list);
 		    break;
 		
@@ -421,82 +429,68 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
  *  2024-01-22  Jason Bacon Factor out from lpjs_process_events()
  ***************************************************************************/
 
-void    lpjs_compute_node_checkin(int msg_fd, node_list_t *node_list)
+void    lpjs_process_compute_node_checkin(int msg_fd, const char *incoming_msg,
+					  node_list_t *node_list,
+					  uid_t uid, gid_t gid)
 
 {
     node_t      *new_node = node_new();
-    uid_t       uid;
-    gid_t       gid;
-    ssize_t     bytes;
-    char        *incoming_msg;
     extern FILE *Log_stream;
     
     // FIXME: Check for duplicate checkins.  We should not get
     // a checkin request while one is already open
-    lpjs_log("compd-checkin requested.\n");
+    // lpjs_log("Munge credential message length = %zd\n", bytes);
+    // lpjs_log("munge msg: %s\n", incoming_msg);
     
-    /* Get munge credential */
-    // FIXME: What is the maximum cred length?
-    if ( (bytes = lpjs_recv_munge(msg_fd, &incoming_msg, 0, 2, &uid, &gid)) < 0 )
+    lpjs_log("Checkin from uid %d, gid %d\n", uid, gid);
+    
+    // FIXME: Only accept compd checkins from root
+
+    /*
+     *  Get specs from node and add msg_fd
+     */
+    
+    lpjs_send(msg_fd, 0, MUNGE_CRED_VERIFIED);
+    
+    // Extract specs from incoming_msg + 1
+    // node_recv_specs(new_node, msg_fd);
+    
+    // +1 to skip command code
+    node_str_to_specs(new_node, incoming_msg + 1);
+    
+    // Keep in sync with node_list_send_status()
+    node_print_status_header(Log_stream);
+    node_print_status(new_node, Log_stream);
+    
+    // Make sure node name is valid
+    // Note: For real security, only authorized
+    // nodes should be allowed to pass through
+    // the network firewall.
+    bool valid_node = false;
+    for (unsigned c = 0; c < NODE_LIST_COUNT(node_list); ++c)
     {
-	lpjs_log("%s: lpjs_recv_munge() returned %zd\n", __FUNCTION__, bytes);
-	// Don't use lpjs_server_safe_close() here.
-	// Compute node is not listening.
+	node_t *node = NODE_LIST_COMPUTE_NODES_AE(node_list, c);
+	// If config has short hostnames, just match that
+	int valid_hostname_len = strlen(node_get_hostname(node));
+	if ( memcmp(node_get_hostname(node), node_get_hostname(new_node), valid_hostname_len) == 0 )
+	    valid_node = true;
+    }
+    if ( ! valid_node )
+    {
+	lpjs_log("Unauthorized checkin request from %s.\n",
+		node_get_hostname(new_node));
 	close(msg_fd);
-	lpjs_log("Failed to read munge credential. Is munged running on the compute node?\n");
     }
     else
     {
-	// lpjs_log("Munge credential message length = %zd\n", bytes);
-	// lpjs_log("munge msg: %s\n", incoming_msg);
+	lpjs_send(msg_fd, 0, "Node authorized");
+	node_set_msg_fd(new_node, msg_fd);
 	
-	lpjs_log("Checkin from uid %d, gid %d\n", uid, gid);
-	
-	// FIXME: Only accept compd checkins from root
-
-	/*
-	 *  Get specs from node and add msg_fd
-	 */
-	
-	lpjs_send(msg_fd, 0, MUNGE_CRED_VERIFIED);
-	
-	node_recv_specs(new_node, msg_fd);
-	
-	// Keep in sync with node_list_send_status()
-	node_print_status_header(Log_stream);
-	node_print_status(Log_stream, new_node);
-	
-	// Make sure node name is valid
-	// Note: For real security, only authorized
-	// nodes should be allowed to pass through
-	// the network firewall.
-	bool valid_node = false;
-	for (unsigned c = 0; c < NODE_LIST_COUNT(node_list); ++c)
-	{
-	    node_t *node = NODE_LIST_COMPUTE_NODES_AE(node_list, c);
-	    // If config has short hostnames, just match that
-	    int valid_hostname_len = strlen(node_get_hostname(node));
-	    if ( memcmp(node_get_hostname(node), node_get_hostname(new_node), valid_hostname_len) == 0 )
-		valid_node = true;
-	}
-	if ( ! valid_node )
-	{
-	    lpjs_log("Unauthorized checkin request from %s.\n",
-		    node_get_hostname(new_node));
-	    close(msg_fd);
-	}
-	else
-	{
-	    lpjs_send(msg_fd, 0, "Node authorized");
-	    node_set_msg_fd(new_node, msg_fd);
-	    
-	    // Nodes were added to node_list by lpjs_load_config()
-	    // Just update the fields here
-	    node_list_update_compute(node_list, new_node);
-	    // FIXME: Acknowledge checkin
-	}
+	// Nodes were added to node_list by lpjs_load_config()
+	// Just update the fields here
+	node_list_update_compute(node_list, new_node);
+	// FIXME: Acknowledge checkin
     }
-    free(incoming_msg);
 }
 
 

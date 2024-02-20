@@ -256,8 +256,10 @@ ssize_t lpjs_recv_munge(int msg_fd, char **payload,
     
     if ( bytes_read > 0 )
     {
+	lpjs_log("%s(): Unmunging %zd bytes...\n", __FUNCTION__, bytes_read);
 	munge_status = munge_decode(incoming_msg, NULL, (void **)payload,
 				    &payload_len, uid, gid);
+	lpjs_log("%s(): Payload len = %d\n", __FUNCTION__, payload_len);
 	if ( munge_status != EMUNGE_SUCCESS )
 	{
 	    lpjs_server_safe_close(msg_fd);
@@ -317,7 +319,7 @@ ssize_t lpjs_send_munge(int msg_fd, char *msg)
     ssize_t     bytes;
     munge_err_t munge_status;
     
-    if ( (munge_status = munge_encode(&cred, NULL, NULL, 0)) != EMUNGE_SUCCESS )
+    if ( (munge_status = munge_encode(&cred, NULL, msg, strlen(msg))) != EMUNGE_SUCCESS )
     {
 	lpjs_log("lpjs_compd: munge_encode() failed.\n");
 	lpjs_log("Return code = %s\n", munge_strerror(munge_status));
