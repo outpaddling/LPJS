@@ -404,7 +404,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    break;
 		
 		case    LPJS_REQUEST_SUBMIT:
-		    lpjs_submit(msg_fd, node_list, job_list);
+		    lpjs_submit(msg_fd, incoming_msg, node_list, job_list,
+				uid, gid);
 		    lpjs_dispatch_jobs(node_list, job_list);
 		    break;
 		
@@ -449,8 +450,6 @@ void    lpjs_process_compute_node_checkin(int msg_fd, const char *incoming_msg,
     /*
      *  Get specs from node and add msg_fd
      */
-    
-    lpjs_send(msg_fd, 0, MUNGE_CRED_VERIFIED);
     
     // Extract specs from incoming_msg + 1
     // node_recv_specs(new_node, msg_fd);
@@ -503,14 +502,12 @@ void    lpjs_process_compute_node_checkin(int msg_fd, const char *incoming_msg,
  *  2024-01-22  Jason Bacon Factor out from lpjs_process_events()
  ***************************************************************************/
 
-int     lpjs_submit(int msg_fd, node_list_t *node_list, job_list_t *job_list)
+int     lpjs_submit(int msg_fd, const char *incoming_msg,
+		    node_list_t *node_list, job_list_t *job_list,
+		    uid_t uid, gid_t gid)
 
 {
-    uid_t       uid;
-    gid_t       gid;
-    ssize_t     bytes;
-    char        *incoming_msg,
-		script_path[PATH_MAX + 1];
+    char        script_path[PATH_MAX + 1];
     job_t       *job = job_new(); // exits if malloc() fails, no need to check
     
     // FIXME: Don't accept job submissions from root until
@@ -518,28 +515,15 @@ int     lpjs_submit(int msg_fd, node_list_t *node_list, job_list_t *job_list)
     
     lpjs_log("Request for job submission.\n");
     
-    /* Get munge credential */
-    // FIXME: What is the maximum cred length?
-    if ( (bytes = lpjs_recv_munge(msg_fd, &incoming_msg, 0, 2, &uid, &gid)) == - 1)
-    {
-	lpjs_log("lpjs_recv() failed: %s", strerror(errno));
-	free(incoming_msg);
-	// FIXME: Figure out proper return values
-	return EX_IOERR;
-    }
-    else
-    {
-	// FIXME: Parse payload following JOB_SPEC_FORMAT
-	job_read_from_string(job, incoming_msg);
-	snprintf(script_path, PATH_MAX + 1, "%s/%s",
-		job_get_working_directory(job), job_get_script_name(job));
-	lpjs_log("Submit script %s from %d, %d\n", script_path, uid, gid);
-	lpjs_queue_job(msg_fd, script_path, node_list);
-	lpjs_server_safe_close(msg_fd);
+    // FIXME: Parse payload following JOB_SPEC_FORMAT
+    job_read_from_string(job, incoming_msg + 1);
+    snprintf(script_path, PATH_MAX + 1, "%s/%s",
+	    job_get_working_directory(job), job_get_script_name(job));
+    lpjs_log("Submit script %s from %d, %d\n", script_path, uid, gid);
+    lpjs_queue_job(msg_fd, script_path, node_list);
+    lpjs_server_safe_close(msg_fd);
 
-	free(incoming_msg);
-	return EX_OK;
-    }
+    return EX_OK;
 }
 
 
@@ -563,7 +547,7 @@ int     lpjs_queue_job(int msg_fd, const char *script_path, node_list_t *node_li
     unsigned long    next_job_num;
     int     status;
     
-    // lpjs_log("Spooling %s...\n", script_path);
+    lpjs_log("Spooling %s...\n", script_path);
     
     snprintf(job_num_path, PATH_MAX + 1, "%s/next-job", LPJS_SPOOL_DIR);
     if ( (fp = fopen(job_num_path, "r")) == NULL )

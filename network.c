@@ -192,7 +192,7 @@ ssize_t lpjs_recv(int msg_fd, char *buff, size_t buff_len, int flags,
 	}
     }
 
-    lpjs_log("Receiving message...\n");
+    // lpjs_log("Receiving message...\n");
     bytes_read = recv(msg_fd, &msg_len, sizeof(uint16_t), flags | MSG_WAITALL);
     if ( bytes_read == 0 )
 	return 0;
@@ -233,7 +233,7 @@ ssize_t lpjs_recv(int msg_fd, char *buff, size_t buff_len, int flags,
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-19  Jason Bacon Begin
+ *  2024-02-19  Jason Bacon Begin
  ***************************************************************************/
 
 ssize_t lpjs_recv_munge(int msg_fd, char **payload,
@@ -263,12 +263,14 @@ ssize_t lpjs_recv_munge(int msg_fd, char **payload,
 	if ( munge_status != EMUNGE_SUCCESS )
 	{
 	    lpjs_server_safe_close(msg_fd);
-	    lpjs_log("%s: munge_decode() failed.  Error = %s\n",
+	    lpjs_log("%s(): munge_decode() failed.  Error = %s\n",
 		     __FUNCTION__, munge_strerror(munge_status));
 	    return -1;
 	}
-	else
-	    return payload_len;
+	
+	// Acknolwedge successful receipt of message
+	lpjs_send(msg_fd, 0, LPJS_MUNGE_CRED_VERIFIED);
+	return payload_len;
     }
     else
 	return 0;
@@ -311,7 +313,7 @@ ssize_t lpjs_send_eot(int msg_fd)
  *  2024-01-21  Jason Bacon Begin
  ***************************************************************************/
 
-ssize_t lpjs_send_munge(int msg_fd, char *msg)
+int     lpjs_send_munge(int msg_fd, char *msg)
 
 {
     char        *cred,
@@ -339,12 +341,13 @@ ssize_t lpjs_send_munge(int msg_fd, char *msg)
     // Read acknowledgment from dispatchd before node_send_specs().
     bytes = lpjs_recv(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 0);
     // lpjs_log("Response: %zu '%s'\n", bytes, incoming_msg);
-    if ( (bytes == 0) || (strcmp(incoming_msg, MUNGE_CRED_VERIFIED) != 0) )
+    if ( (bytes == 0) || (strcmp(incoming_msg, LPJS_MUNGE_CRED_VERIFIED) != 0) )
     {
-	lpjs_log("lpjs_compd_checkin(): Expected %s.\n", MUNGE_CRED_VERIFIED);
+	lpjs_log("lpjs_compd_checkin(): Expected %s.\n", LPJS_MUNGE_CRED_VERIFIED);
 	return EX_DATAERR;
     }
-    
+    // lpjs_log("%s(): Munge message acknolwedged.\n", __FUNCTION__);
+
     return EX_OK;
 }
 

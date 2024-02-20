@@ -50,8 +50,6 @@ char    *xt_realpath(const char *path,
 		    my_home_dir[PATH_MAX + 1];
     int             c;
     
-    printf("%s = ", path);
-    
     if ( path[0] == '/' )
 	strlcpy(absolute_path, path, buff_size);
     else if ( path[0] == '~' )

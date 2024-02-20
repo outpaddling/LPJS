@@ -30,13 +30,11 @@ int     main (int argc, char *argv[])
 {
     int     msg_fd;
     char    outgoing_msg[LPJS_MSG_LEN_MAX + 1],
-	    *cred,
 	    *script_name,
 	    *ext,
 	    payload[LPJS_PAYLOAD_MAX_LEN + 1];
     node_list_t node_list;
     job_t       *job;
-    munge_err_t munge_status;
     // Shared functions may use lpjs_log
     extern FILE *Log_stream;
     
@@ -70,38 +68,22 @@ int     main (int argc, char *argv[])
 	perror("lpjs-submit: Failed to connect to dispatch");
 	return EX_IOERR;
     }
+    
+    // FIXME: Send full job specs from job_t class and entire script
+    // snprintf(payload, LPJS_PAYLOAD_MAX_LEN, LPJS_JOB_FORMAT
+    job_print_params_to_string(job, payload, LPJS_PAYLOAD_MAX_LEN + 1);
+    // lpjs_log("Sending payload: %s\n", payload);
 
-    outgoing_msg[0] = LPJS_REQUEST_SUBMIT;
-    outgoing_msg[1] = '\0';
-    if ( lpjs_send(msg_fd, 0, outgoing_msg, 0) < 1 )
+    snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%s",
+	    LPJS_REQUEST_SUBMIT, payload);
+
+    if ( lpjs_send_munge(msg_fd, outgoing_msg) != EX_OK )
     {
 	perror("lpjs-submit: Failed to send submit request to dispatch");
 	close(msg_fd);
 	return EX_IOERR;
     }
     
-    // FIXME: Send full job specs from job_t class and entire script
-    // snprintf(payload, LPJS_PAYLOAD_MAX_LEN, LPJS_JOB_FORMAT
-    job_print_params_to_string(job, payload, LPJS_PAYLOAD_MAX_LEN + 1);
-    printf("Sending payload: %s\n", payload);
-    
-    if ( (munge_status = munge_encode(&cred, NULL, payload,
-				strlen(payload) + 1)) != EMUNGE_SUCCESS )
-    {
-	lpjs_log("lpjs-submit: munge_encode() failed.\n");
-	lpjs_log("Return code = %s\n", munge_strerror(munge_status));
-	return EX_UNAVAILABLE; // FIXME: Check actual error
-    }
-
-    if ( lpjs_send(msg_fd, 0, cred) < 0 )
-    {
-	perror("lpjs-submit: Failed to send credential to dispatch");
-	close(msg_fd);
-	free(cred);
-	return EX_IOERR;
-    }
-    free(cred);
-
     lpjs_print_response(msg_fd, "lpjs submit");
     
     return EX_OK;

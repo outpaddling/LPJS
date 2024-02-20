@@ -161,7 +161,7 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
 	    "%c%s", LPJS_REQUEST_COMPD_CHECKIN,
 	    node_specs_to_str(node, specs, NODE_SPECS_LEN + 1));
     lpjs_log("%s(): Sending %s\n", __FUNCTION__, outgoing_msg + 1);
-    if ( lpjs_send_munge(msg_fd, outgoing_msg) < 0 )
+    if ( lpjs_send_munge(msg_fd, outgoing_msg) != EX_OK )
     {
 	lpjs_log("lpjs_compd: Failed to send checkin message to dispatchd: %s",
 		strerror(errno));

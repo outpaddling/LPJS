@@ -18,6 +18,7 @@
 #include "config.h"
 #include "network.h"
 #include "lpjs.h"
+#include "misc.h"
 
 int     main (int argc, char *argv[])
 
@@ -47,13 +48,14 @@ int     main (int argc, char *argv[])
 
     outgoing_msg[0] = LPJS_REQUEST_NODE_STATUS;
     outgoing_msg[1] = '\0';
-    if ( lpjs_send(msg_fd, 0, outgoing_msg) < 0 )
+    if ( lpjs_send_munge(msg_fd, outgoing_msg) != EX_OK )
     {
 	perror("lpjs-nodes: Failed to send message to dispatch");
 	close(msg_fd);
 	return EX_IOERR;
     }
 
+    fprintf(stderr, "LPJS_REQUEST_NODE_STATUS sent.\n");
     lpjs_print_response(msg_fd, "lpjs-nodes");
     close(msg_fd);
 

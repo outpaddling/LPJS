@@ -47,7 +47,7 @@ int     main(int argc,char *argv[])
 
     outgoing_msg[0] = LPJS_REQUEST_JOB_STATUS;
     outgoing_msg[1] = '\0';
-    if ( lpjs_send(msg_fd, 0, outgoing_msg) < 0 )
+    if ( lpjs_send_munge(msg_fd, outgoing_msg) != EX_OK )
     {
 	perror("lpjs-jobs: Failed to send message to dispatch");
 	close(msg_fd);

@@ -266,9 +266,14 @@ int     job_parse_script(job_t *job, const char *script_name)
     }
     fclose(fp);
     
-    fprintf(stderr, "%u job, %u cores per job, %u cores per node, %zu MiB\n",
-	    job->job_count, job->cores_per_job,
-	    job->cores_per_node, job->mem_per_core);
+    if ( job->cores_per_node == 0 )
+	fprintf(stderr, "%u job, %u cores per job, all cores per node, %zu MiB\n",
+		job->job_count, job->cores_per_job,
+		job->mem_per_core);
+    else
+	fprintf(stderr, "%u job, %u cores per job, %u cores per node, %zu MiB\n",
+		job->job_count, job->cores_per_job,
+		job->cores_per_node, job->mem_per_core);
     return 0;
 }
 
