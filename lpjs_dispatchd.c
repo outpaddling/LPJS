@@ -509,6 +509,7 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
 {
     char        script_path[PATH_MAX + 1];
     job_t       *job = job_new(); // exits if malloc() fails, no need to check
+    int         c;
     
     // FIXME: Don't accept job submissions from root until
     // security issues have been considered
@@ -519,8 +520,11 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
     job_read_from_string(job, incoming_msg + 1);
     snprintf(script_path, PATH_MAX + 1, "%s/%s",
 	    job_get_working_directory(job), job_get_script_name(job));
-    lpjs_log("Submit script %s from %d, %d\n", script_path, uid, gid);
-    lpjs_queue_job(msg_fd, script_path, node_list);
+    for (c = 0; c < job_get_job_count(job); ++c)
+    {
+	lpjs_log("Submit script %s from %d, %d\n", script_path, uid, gid);
+	lpjs_queue_job(msg_fd, script_path, node_list);
+    }
     lpjs_server_safe_close(msg_fd);
 
     return EX_OK;
