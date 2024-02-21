@@ -232,7 +232,8 @@ int     lpjs_checkin_loop(node_list_t *node_list, node_t *node)
     
     while ( (status = lpjs_compd_checkin(msg_fd, node)) != EX_OK )
     {
-	lpjs_log("compd-checkin failed.  Retry in %d seconds...\n", LPJS_RETRY_TIME);
+	lpjs_log("lpjs_compd: compd-checkin failed.  Retry in %d seconds...\n",
+		 LPJS_RETRY_TIME);
 	sleep(LPJS_RETRY_TIME);
     }
     lpjs_log("Checkin successful.\n");

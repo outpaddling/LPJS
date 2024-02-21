@@ -42,6 +42,8 @@ int     lpjs_log(const char *format, ...)
     
     va_start(ap, format);
     
+    fprintf(Log_stream, "%s ", xt_str_localtime());
+    
     // FIXME: Add time stamp?
     status = vfprintf(Log_stream, format, ap);
     
@@ -165,4 +167,47 @@ int     xt_create_pid_file(const char *pid_path, FILE *log_stream)
     
     fclose(fp);
     return EX_OK;
+}
+
+
+/***************************************************************************
+ *  Use auto-c2man to generate a man page from this comment
+ *
+ *  Library:
+ *      #include <>
+ *      -l
+ *
+ *  Description:
+ *  
+ *  Arguments:
+ *
+ *  Returns:
+ *
+ *  Examples:
+ *
+ *  Files:
+ *
+ *  Environment
+ *
+ *  See also:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-02-21  Jason Bacon Begin
+ ***************************************************************************/
+
+#define TIME_STR_MAX    32
+
+char    *xt_str_localtime(void)
+
+{
+    time_t      time_sec;
+    struct tm   *tm;
+    static char str[TIME_STR_MAX + 1];
+    
+    time(&time_sec);
+    tm = localtime(&time_sec);
+    strftime(str, TIME_STR_MAX + 1, "%Y-%m-%d %H:%M:%S", tm);
+    
+    return str;
 }
