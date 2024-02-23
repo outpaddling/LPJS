@@ -78,9 +78,30 @@ void    job_init(job_t *job)
 int     job_print(job_t *job, FILE *stream)
 
 {
-    return fprintf(stream, JOB_SPEC_FORMAT, job->job_id, job->job_count, job->cores_per_job,
+    return fprintf(stream, JOB_SPEC_FORMAT, job->job_id, job->job_count,
+	    job->cores_per_job,
 	    job->cores_per_node, job->mem_per_core, job->user_name,
 	    job->working_directory, job->script_name);
+}
+
+
+/***************************************************************************
+ *  Description:
+ *      Read job parameters output by job_print()
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2021-09-28  Jason Bacon Begin
+ ***************************************************************************/
+
+int     job_read(job_t *job, FILE *stream)
+
+{
+    char    buff[JOB_STR_MAX_LEN + 1];
+    
+    // FIXME: Check for errors
+    fgets(buff, JOB_STR_MAX_LEN + 1, stream);
+    return job_read_from_string(job, buff);
 }
 
 

@@ -136,10 +136,13 @@ int     lpjs_select_next_job(job_t *job)
 
 {
     DIR             *dp;
+    FILE            *specs_stream;
     struct dirent   *entry;
     unsigned long   low_job_id,
 		    int_dir_name;
-    char            *end;
+    char            specs_path[PATH_MAX + 1],
+		    *end;
+    extern FILE     *Log_stream;
     
     /*
      *  Find spooled job with lowest job id
@@ -181,8 +184,18 @@ int     lpjs_select_next_job(job_t *job)
 	 *  Get job specs and script from spool dir
 	 */
 	
-	// snprintf(script_path, PATH_MAX + 1, "%s/%u/%s",
-	//          LPJS_PENDING_DIR, low_job_id, script_name);
+	snprintf(specs_path, PATH_MAX + 1, "%s/%lu/job.specs",
+		LPJS_PENDING_DIR, low_job_id);
+	if ( (specs_stream = fopen(specs_path, "r")) == NULL )
+	{
+	    fprintf(stderr, ": Could not open %s for read: %s.\n",
+		    specs_path, strerror(errno));
+	    return 0;
+	}
+	job_read(job, specs_stream);
+	job_print(job, Log_stream);
+	fclose(specs_stream);
+	
 	// job_parse_script(&job, script_path);
 	
 	return low_job_id;

@@ -12,6 +12,7 @@
 #define JOB_SPEC_NUMERIC_FIELDS 5
 #define JOB_SPEC_FORMAT         JOB_SPEC_NUMS_FORMAT " %s %s %s\n"
 #define JOB_FIELD_MAX_LEN       1024
+#define JOB_STR_MAX_LEN         2048    // Fixme: MAX_PATH + x?
 
 typedef struct job  job_t;
 

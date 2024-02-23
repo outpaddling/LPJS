@@ -2,6 +2,7 @@
 job_t *job_new(void);
 void job_init(job_t *job);
 int job_print(job_t *job, FILE *stream);
+int job_read(job_t *job, FILE *stream);
 int job_print_to_string(job_t *job, char *str, size_t buff_size);
 void job_send_as_msg(job_t *job, int msg_fd);
 int job_parse_script(job_t *job, const char *script_name);
