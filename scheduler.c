@@ -63,31 +63,29 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	return 0;
     
     /*
-     *  Get job specs and script from spool dir
-     */
-    
-    /*
-     *  Move from pending to running
-     */
-    
-    /*
-     *  Update job in job_list.  This is only a cache of information stored
-     *  on disk, for quick access during queries.
-     */
-    
-    /*
      *  Look through available nodes and select the best match
      *  for the job requirements
      */
     
-    /*
-     *  Log submission time and stats
-     */
+    // if ( match )
+	/*
+	 *  Move from pending to running
+	 */
+	
+	/*
+	 *  Update job in job_list.  This is only a cache of information stored
+	 *  on disk, for quick access during queries.
+	 */
+	
+	/*
+	 *  Log submission time and stats
+	 */
     
-    /*
-     *  Update job in job_list.  This is only a cache of information stored
-     *  on disk, for quick access during queries.
-     */
+    // else do nothing until next event that might make it possible to dispatch
+    // Qualifying events: job completion, new node addition
+    // maybe set a flag indicating that we're stuck until one of these
+    // things happens, to avoid wasting time trying to dispatch this
+    // job again when nothing has changed
     
     return 0;
 }
@@ -173,7 +171,17 @@ int     lpjs_select_next_job(job_t *job)
     }
     else
     {
-	lpjs_log("%s(): Selected job %lu to dispatch.\n", __FUNCTION__, low_job_id);
+	lpjs_log("%s(): Selected job %lu to dispatch.\n",
+		 __FUNCTION__, low_job_id);
+	
+	/*
+	 *  Get job specs and script from spool dir
+	 */
+	
+	// snprintf(script_path, PATH_MAX + 1, "%s/%u/%s",
+	//          spool_dir, low_job_id, script_name);
+	// job_parse_script(&job, script_path);
+	
 	return low_job_id;
     }
 }
