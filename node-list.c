@@ -2,15 +2,60 @@
 #include <stdlib.h>
 #include <sysexits.h>
 #include <string.h>
+#include <stdlib.h>         // malloc()
 
 #include <xtend/dsv.h>      // xt_dsv_read_field()
 #include <xtend/string.h>   // xt_strtrim()
 #include <xtend/file.h>
 
-#include "node-list.h"
+#include "node-list-private.h"
 #include "network.h"
 #include "lpjs.h"
 #include "misc.h"
+
+
+/***************************************************************************
+ *  Use auto-c2man to generate a man page from this comment
+ *
+ *  Name:
+ *      -
+ *
+ *  Library:
+ *      #include <>
+ *      -l
+ *
+ *  Description:
+ *  
+ *  Arguments:
+ *
+ *  Returns:
+ *
+ *  Examples:
+ *
+ *  Files:
+ *
+ *  Environment
+ *
+ *  See also:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-02-23  Jason Bacon Begin
+ ***************************************************************************/
+
+node_list_t *node_list_new(void)
+
+{
+    node_list_t *new_list;
+    
+    if ( (new_list = malloc(sizeof(node_list_t))) == NULL )
+    {
+	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
+	exit(EX_UNAVAILABLE);
+    }
+    return new_list;
+}
+
 
 /***************************************************************************
  *  Description:
@@ -24,7 +69,8 @@
 void    node_list_init(node_list_t *node_list)
 
 {
-    node_list->count = 0;
+    node_list->head_node = NULL;
+    node_list->compute_node_count = 0;
 }
 
 
@@ -50,9 +96,9 @@ int     node_list_add_compute(node_list_t *node_list, FILE *input_stream,
 	    (delim != EOF) )
     {
 	xt_strtrim(field, " ");
-	node_list->compute_nodes[node_list->count] = node_new();
-	node_set_hostname(node_list->compute_nodes[node_list->count], strdup(field));
-	++node_list->count;
+	node_list->compute_nodes[node_list->compute_node_count] = node_new();
+	node_set_hostname(node_list->compute_nodes[node_list->compute_node_count], strdup(field));
+	++node_list->compute_node_count;
     }
     if ( delim == EOF )
     {
@@ -62,9 +108,9 @@ int     node_list_add_compute(node_list_t *node_list, FILE *input_stream,
     
     // Add last node read by while condition
     xt_strtrim(field, " ");
-    node_list->compute_nodes[node_list->count] = node_new();
-    node_set_hostname(node_list->compute_nodes[node_list->count], strdup(field));
-    ++node_list->count;
+    node_list->compute_nodes[node_list->compute_node_count] = node_new();
+    node_set_hostname(node_list->compute_nodes[node_list->compute_node_count], strdup(field));
+    ++node_list->compute_node_count;
     return 0;   // NL_OK?
 }
 
@@ -89,7 +135,7 @@ void    node_list_update_compute(node_list_t *node_list, node_t *node)
     strlcpy(short_hostname, node_get_hostname(node), 64);
     if ( (first_dot = strchr(short_hostname, '.')) != NULL )
 	*first_dot = '\0';
-    for (c = 0; c < node_list->count; ++c)
+    for (c = 0; c < node_list->compute_node_count; ++c)
     {
 	if ( strcmp(node_get_hostname(node_list->compute_nodes[c]), short_hostname) == 0 )
 	{
@@ -134,7 +180,7 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
     cores_up = cores_up_used = cores_down = 0;
     mem_up = mem_up_used = mem_down = 0;
     
-    for (c = 0; c < node_list->count; ++c)
+    for (c = 0; c < node_list->compute_node_count; ++c)
     {
 	node_send_status(node_list->compute_nodes[c], msg_fd);
 	if ( strcmp(node_get_state(node_list->compute_nodes[c]), "Up") == 0 )

@@ -9,6 +9,10 @@
 #include <stdio.h>
 #endif
 
+#ifndef _LPJS_NODE_H_
+#include "node.h"
+#endif
+
 typedef struct node node_t;
 
 #define NODE_MSG_FD_NOT_OPEN        -1

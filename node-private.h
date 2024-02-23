@@ -21,6 +21,8 @@ struct node
     char            *arch;
     char            *state;     // FIXME: Use an enum, not a string
     int             msg_fd;
+    // For detecting odd comm issues, where socket connection drop
+    // cannot be detected directly
     time_t          last_ping;
 };
 

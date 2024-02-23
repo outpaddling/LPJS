@@ -83,7 +83,8 @@ int     lpjs_load_config(node_list_t *node_list, int flags, FILE *error_stream)
 	}
     }
     if ( flags == LPJS_CONFIG_ALL )
-	fprintf(error_stream, "%u compute nodes found.\n", node_list->count);
+	fprintf(error_stream, "%u compute nodes found.\n",
+		node_list_get_compute_node_count(node_list));
     fclose(config_fp);
     return delim;
 }

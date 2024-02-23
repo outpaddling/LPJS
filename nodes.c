@@ -24,7 +24,7 @@ int     main (int argc, char *argv[])
 
 {
     int         msg_fd;
-    node_list_t node_list;
+    node_list_t *node_list = node_list_new();
     char        outgoing_msg[LPJS_MSG_LEN_MAX + 1];
     extern FILE *Log_stream;
     
@@ -38,9 +38,9 @@ int     main (int argc, char *argv[])
     Log_stream = stderr;
     
     // Get hostname of head node
-    lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, stderr);
+    lpjs_load_config(node_list, LPJS_CONFIG_HEAD_ONLY, stderr);
 
-    if ( (msg_fd = lpjs_connect_to_dispatchd(&node_list)) == -1 )
+    if ( (msg_fd = lpjs_connect_to_dispatchd(node_list)) == -1 )
     {
 	perror("lpjs-nodes: Failed to connect to dispatch");
 	return EX_IOERR;

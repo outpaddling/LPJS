@@ -52,7 +52,8 @@ int     lpjs_select_nodes()
 int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 
 {
-    job_t   *job = job_new();    // exits if malloc fails, no need to check
+    job_t       *job = job_new();    // exits if malloc fails, no need to check
+    node_list_t *matching_nodes;
     
     /*
      *  Look through spool dir and determine requirements of the
@@ -60,32 +61,44 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
      */
     
     if ( lpjs_select_next_job(job) < 1 )
+    {
+	free(job);
 	return 0;
+    }
     
     /*
      *  Look through available nodes and select the best match
      *  for the job requirements
      */
     
-    // if ( match )
+    if ( lpjs_matching_nodes(job, node_list, &matching_nodes) > 1 )
+    {
 	/*
 	 *  Move from pending to running
 	 */
 	
 	/*
-	 *  Update job in job_list.  This is only a cache of information stored
-	 *  on disk, for quick access during queries.
+	 *  For each matching node
+	 *      Update mem and core availability
+	 *      Run job script on node
 	 */
 	
 	/*
 	 *  Log submission time and stats
 	 */
+	
+	free(matching_nodes);
+    }
+    else
+    {
+	// do nothing until next event that might make it possible to dispatch
+	// Qualifying events: job completion, new node addition
+	// maybe set a flag indicating that we're stuck until one of these
+	// things happens, to avoid wasting time trying to dispatch this
+	// job again when nothing has changed
+    }
     
-    // else do nothing until next event that might make it possible to dispatch
-    // Qualifying events: job completion, new node addition
-    // maybe set a flag indicating that we're stuck until one of these
-    // things happens, to avoid wasting time trying to dispatch this
-    // job again when nothing has changed
+    free(job);
     
     return 0;
 }
@@ -200,4 +213,41 @@ int     lpjs_select_next_job(job_t *job)
 	
 	return low_job_id;
     }
+}
+
+
+/***************************************************************************
+ *  Use auto-c2man to generate a man page from this comment
+ *
+ *  Name:
+ *      -
+ *
+ *  Library:
+ *      #include <>
+ *      -l
+ *
+ *  Description:
+ *  
+ *  Arguments:
+ *
+ *  Returns:
+ *
+ *  Examples:
+ *
+ *  Files:
+ *
+ *  Environment
+ *
+ *  See also:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-02-23  Jason Bacon Begin
+ ***************************************************************************/
+
+int     lpjs_matching_nodes(job_t *job, node_list_t *node_list,
+			    node_list_t **matching_nodes)
+
+{
+    return 0;
 }

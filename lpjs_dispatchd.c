@@ -40,7 +40,7 @@
 int     main(int argc,char *argv[])
 
 {
-    node_list_t node_list;
+    node_list_t *node_list = node_list_new();
     job_list_t  job_list;
     
     // Must be global for signal handler
@@ -48,7 +48,7 @@ int     main(int argc,char *argv[])
     extern FILE         *Log_stream;
     extern node_list_t  *Node_list;
     
-    Node_list = &node_list;
+    Node_list = node_list;
     
     if ( argc > 2 )
     {
@@ -96,7 +96,7 @@ int     main(int argc,char *argv[])
 	return status;
 #endif
 
-    lpjs_load_config(&node_list, LPJS_CONFIG_ALL, Log_stream);
+    lpjs_load_config(node_list, LPJS_CONFIG_ALL, Log_stream);
     job_list_init(&job_list);
     
     /*
@@ -109,7 +109,7 @@ int     main(int argc,char *argv[])
     signal(SIGINT, lpjs_terminate_handler);
     signal(SIGTERM, lpjs_terminate_handler);
 
-    return lpjs_process_events(&node_list, &job_list);
+    return lpjs_process_events(node_list, &job_list);
 }
 
 
@@ -148,9 +148,9 @@ int     lpjs_process_events(node_list_t *node_list, job_list_t *job_list)
 	FD_ZERO(&read_fds);
 	FD_SET(listen_fd, &read_fds);
 	highest_fd = listen_fd;
-	for (unsigned c = 0; c < NODE_LIST_COUNT(node_list); ++c)
+	for (unsigned c = 0; c < node_list_get_compute_node_count(node_list); ++c)
 	{
-	    node_t *node = NODE_LIST_COMPUTE_NODES_AE(node_list, c);
+	    node_t *node = node_list_get_compute_nodes_ae(node_list, c);
 	    //lpjs_log("Checking node %s, fd = %d...\n",
 	    //        node_get_hostname(node), node_get_msg_fd(node));
 	    if ( node_get_msg_fd(node) != NODE_MSG_FD_NOT_OPEN )
@@ -219,9 +219,9 @@ void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
     // Top priority: Active compute nodes (move existing jobs along)
     // Second priority: New compute node checkins (make resources available)
     // Lowest priority: User commands
-    for (unsigned c = 0; c < NODE_LIST_COUNT(node_list); ++c)
+    for (unsigned c = 0; c < node_list_get_compute_node_count(node_list); ++c)
     {
-	node = NODE_LIST_COMPUTE_NODES_AE(node_list, c);
+	node = node_list_get_compute_nodes_ae(node_list, c);
 	fd = node_get_msg_fd(node);
 	if ( (fd != NODE_MSG_FD_NOT_OPEN) && FD_ISSET(fd, read_fds) )
 	{
@@ -472,9 +472,9 @@ void    lpjs_process_compute_node_checkin(int msg_fd, const char *incoming_msg,
     // nodes should be allowed to pass through
     // the network firewall.
     bool valid_node = false;
-    for (unsigned c = 0; c < NODE_LIST_COUNT(node_list); ++c)
+    for (unsigned c = 0; c < node_list_get_compute_node_count(node_list); ++c)
     {
-	node_t *node = NODE_LIST_COMPUTE_NODES_AE(node_list, c);
+	node_t *node = node_list_get_compute_nodes_ae(node_list, c);
 	// If config has short hostnames, just match that
 	int valid_hostname_len = strlen(node_get_hostname(node));
 	if ( memcmp(node_get_hostname(node), node_get_hostname(new_node), valid_hostname_len) == 0 )

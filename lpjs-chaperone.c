@@ -32,7 +32,7 @@ int     main (int argc, char *argv[])
 {
     int         msg_fd,
 		status;
-    node_list_t node_list;
+    node_list_t *node_list = node_list_new();
     char        cmd[LPJS_CMD_MAX + 1] = "",
 		log_file[PATH_MAX + 1];
     extern FILE *Log_stream;
@@ -52,9 +52,9 @@ int     main (int argc, char *argv[])
 	return EX_CANTCREAT;
     
     // Get hostname of head node
-    lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, stderr);
+    lpjs_load_config(node_list, LPJS_CONFIG_HEAD_ONLY, stderr);
 
-    if ( (msg_fd = lpjs_connect_to_dispatchd(&node_list)) == -1 )
+    if ( (msg_fd = lpjs_connect_to_dispatchd(node_list)) == -1 )
     {
 	lpjs_log("lpjs-chaperone: Failed to connect to dispatch: %s",
 		strerror(errno));

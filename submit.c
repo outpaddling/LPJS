@@ -33,7 +33,7 @@ int     main (int argc, char *argv[])
 	    *script_name,
 	    *ext,
 	    payload[LPJS_PAYLOAD_MAX_LEN + 1];
-    node_list_t node_list;
+    node_list_t *node_list = node_list_new();
     job_t       *job;
     // Shared functions may use lpjs_log
     extern FILE *Log_stream;
@@ -55,7 +55,7 @@ int     main (int argc, char *argv[])
     // FIXME: Warn about misleading shell extensions, e.g. .sh for bash
     
     // Get hostname of head node
-    lpjs_load_config(&node_list, LPJS_CONFIG_HEAD_ONLY, stderr);
+    lpjs_load_config(node_list, LPJS_CONFIG_HEAD_ONLY, stderr);
     
     job = job_new();    // Exits if malloc fails, no need to check
     job_parse_script(job, script_name);
@@ -63,7 +63,7 @@ int     main (int argc, char *argv[])
     // working_directory = job_get_working_directory(job);
     // printf("Absolute path = %s/%s\n", working_directory, script_name);
 
-    if ( (msg_fd = lpjs_connect_to_dispatchd(&node_list)) == -1 )
+    if ( (msg_fd = lpjs_connect_to_dispatchd(node_list)) == -1 )
     {
 	perror("lpjs-submit: Failed to connect to dispatch");
 	return EX_IOERR;

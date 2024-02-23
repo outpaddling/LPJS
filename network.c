@@ -54,7 +54,7 @@ int     lpjs_connect_to_dispatchd(node_list_t *node_list)
     server_address.sin_family = AF_INET;
     
     // Convert head node hostname from LPJS config file to IP
-    if ( xt_resolve_hostname(NODE_LIST_HEAD_NODE(node_list), head_text_ip,
+    if ( xt_resolve_hostname(node_list_get_head_node(node_list), head_text_ip,
 			  LPJS_TEXT_IP_ADDRESS_MAX + 1) != XT_OK )
 	exit(EX_OSERR);
     
@@ -70,7 +70,7 @@ int     lpjs_connect_to_dispatchd(node_list_t *node_list)
     {
 	lpjs_log("connect_to_dispatchd(): connect() failed: %s\n", strerror(errno));
 	lpjs_log("hostname %s, ip = %s\n", 
-		NODE_LIST_HEAD_NODE(node_list), head_text_ip);
+		node_list_get_head_node(node_list), head_text_ip);
 	return -1;
     }
     

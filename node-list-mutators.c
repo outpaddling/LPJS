@@ -8,10 +8,10 @@
 
 #include <string.h>
 #include <ctype.h>
-
+#include <stdbool.h>        // In case of bool
+#include <stdint.h>         // In case of int64_t, etc
 #include <xtend/string.h>   // strlcpy() on Linux
-
-#include "node-list.h"
+#include "node-list-private.h"
 
 
 /***************************************************************************
@@ -21,18 +21,12 @@
  *
  *  Description:
  *      Mutator for head_node member in a node_list_t structure.
- *      Use this function to set head_node in a node_list_t variable
+ *      Use this function to set head_node in a node_list_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
  *      head_node is a pointer, data previously pointed to should
- *      generally be freed before calling this function to avoid memory
+ *      be freed before calling this function to avoid memory
  *      leaks.
- *
- *      Note that there is an equivalent macro (), which performs
- *      this function with no data verification or function call overhead.
- *      Use the macro version to maximize performance where the validity
- *      of new_head_node is guaranteed by other means.
- *      
  *
  *  Arguments:
  *      node_list_ptr   Pointer to the structure to set
@@ -46,7 +40,8 @@
  *      node_list_t     node_list;
  *      char *          new_head_node;
  *
- *      if ( node_list_set_head_node(&node_list, new_head_node) == NODE_LIST_DATA_OK )
+ *      if ( node_list_set_head_node(&node_list, new_head_node)
+ *              == NODE_LIST_DATA_OK )
  *      {
  *      }
  *
@@ -55,13 +50,12 @@
  *
  *  History: 
  *  Date        Name        Modification
- *  2021-09-27  gen-get-set Auto-generated from node-list.h
+ *  2024-02-23  gen-get-set Auto-generated from node-list-private.h
  ***************************************************************************/
 
 int     node_list_set_head_node(node_list_t *node_list_ptr, char * new_head_node)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
     if ( new_head_node == NULL )
 	return NODE_LIST_DATA_OUT_OF_RANGE;
     else
@@ -79,13 +73,8 @@ int     node_list_set_head_node(node_list_t *node_list_ptr, char * new_head_node
  *
  *  Description:
  *      Mutator for an array element of head_node member in a node_list_t
- *      structure. Use this function to set an element of the array
- *      head_node in a node_list_t variable from non-member functions.
- *
- *      Note that there is an equivalent macro NODE_LIST_SET_HEAD_NODE_AE(), which performs
- *      this function with no data verification or function call overhead.
- *      Use the macro version to maximize performance where the validity
- *      of new_head_node_element is guaranteed by other means.
+ *      structure. Use this function to set node_list_ptr->head_node[c]
+ *      in a node_list_t object from non-member functions.
  *
  *  Arguments:
  *      node_list_ptr   Pointer to the structure to set
@@ -101,7 +90,8 @@ int     node_list_set_head_node(node_list_t *node_list_ptr, char * new_head_node
  *      size_t          c;
  *      char *          new_head_node_element;
  *
- *      if ( node_list_set_head_node(&node_list, c, new_head_node_element) == NODE_LIST_DATA_OK )
+ *      if ( node_list_set_head_node_ae(&node_list, c, new_head_node_element)
+ *              == NODE_LIST_DATA_OK )
  *      {
  *      }
  *
@@ -110,14 +100,13 @@ int     node_list_set_head_node(node_list_t *node_list_ptr, char * new_head_node
  *
  *  History: 
  *  Date        Name        Modification
- *  2021-09-27  gen-get-set Auto-generated from node-list.h
+ *  2024-02-23  gen-get-set Auto-generated from node-list-private.h
  ***************************************************************************/
 
 int     node_list_set_head_node_ae(node_list_t *node_list_ptr, size_t c, char  new_head_node_element)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
-    if ( 0 )
+    if ( false )
 	return NODE_LIST_DATA_OUT_OF_RANGE;
     else
     {
@@ -134,14 +123,9 @@ int     node_list_set_head_node_ae(node_list_t *node_list_ptr, size_t c, char  n
  *
  *  Description:
  *      Mutator for head_node member in a node_list_t structure.
- *      Use this function to set head_node in a node_list_t variable
+ *      Use this function to set head_node in a node_list_t object
  *      from non-member functions.  This function copies the array pointed to
- *      by new_head_node to ->head_node.
- *
- *      Note that there is an equivalent macro NODE_LIST_SET_HEAD_NODE(), which performs
- *      this function with no data verification or function call overhead.
- *      Use the macro version to maximize performance where the validity
- *      of new_head_node is guaranteed by other means.
+ *      by new_head_node to node_list_ptr->head_node.
  *
  *  Arguments:
  *      node_list_ptr   Pointer to the structure to set
@@ -157,7 +141,8 @@ int     node_list_set_head_node_ae(node_list_t *node_list_ptr, size_t c, char  n
  *      char *          new_head_node;
  *      size_t          array_size;
  *
- *      if ( node_list_set_head_node(&node_list, new_head_node, array_size) == NODE_LIST_DATA_OK )
+ *      if ( node_list_set_head_node_cpy(&node_list, new_head_node, array_size)
+ *              == NODE_LIST_DATA_OK )
  *      {
  *      }
  *
@@ -166,13 +151,12 @@ int     node_list_set_head_node_ae(node_list_t *node_list_ptr, size_t c, char  n
  *
  *  History: 
  *  Date        Name        Modification
- *  2021-09-27  gen-get-set Auto-generated from node-list.h
+ *  2024-02-23  gen-get-set Auto-generated from node-list-private.h
  ***************************************************************************/
 
 int     node_list_set_head_node_cpy(node_list_t *node_list_ptr, char * new_head_node, size_t array_size)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
     if ( new_head_node == NULL )
 	return NODE_LIST_DATA_OUT_OF_RANGE;
     else
@@ -190,23 +174,17 @@ int     node_list_set_head_node_cpy(node_list_t *node_list_ptr, char * new_head_
  *      
  *
  *  Description:
- *      Mutator for count member in a node_list_t structure.
- *      Use this function to set count in a node_list_t variable
+ *      Mutator for compute_node_count member in a node_list_t structure.
+ *      Use this function to set compute_node_count in a node_list_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
- *      count is a pointer, data previously pointed to should
- *      generally be freed before calling this function to avoid memory
+ *      compute_node_count is a pointer, data previously pointed to should
+ *      be freed before calling this function to avoid memory
  *      leaks.
- *
- *      Note that there is an equivalent macro (), which performs
- *      this function with no data verification or function call overhead.
- *      Use the macro version to maximize performance where the validity
- *      of new_count is guaranteed by other means.
- *      
  *
  *  Arguments:
  *      node_list_ptr   Pointer to the structure to set
- *      new_count       The new value for count
+ *      new_compute_node_count The new value for compute_node_count
  *
  *  Returns:
  *      NODE_LIST_DATA_OK if the new value is acceptable and assigned
@@ -214,9 +192,10 @@ int     node_list_set_head_node_cpy(node_list_t *node_list_ptr, char * new_head_
  *
  *  Examples:
  *      node_list_t     node_list;
- *      unsigned        new_count;
+ *      unsigned        new_compute_node_count;
  *
- *      if ( node_list_set_count(&node_list, new_count) == NODE_LIST_DATA_OK )
+ *      if ( node_list_set_compute_node_count(&node_list, new_compute_node_count)
+ *              == NODE_LIST_DATA_OK )
  *      {
  *      }
  *
@@ -225,18 +204,17 @@ int     node_list_set_head_node_cpy(node_list_t *node_list_ptr, char * new_head_
  *
  *  History: 
  *  Date        Name        Modification
- *  2021-09-27  gen-get-set Auto-generated from node-list.h
+ *  2024-02-23  gen-get-set Auto-generated from node-list-private.h
  ***************************************************************************/
 
-int     node_list_set_count(node_list_t *node_list_ptr, unsigned new_count)
+int     node_list_set_compute_node_count(node_list_t *node_list_ptr, unsigned new_compute_node_count)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
-    if ( 0 )
+    if ( false )
 	return NODE_LIST_DATA_OUT_OF_RANGE;
     else
     {
-	node_list_ptr->count = new_count;
+	node_list_ptr->compute_node_count = new_compute_node_count;
 	return NODE_LIST_DATA_OK;
     }
 }
@@ -249,13 +227,8 @@ int     node_list_set_count(node_list_t *node_list_ptr, unsigned new_count)
  *
  *  Description:
  *      Mutator for an array element of compute_nodes member in a node_list_t
- *      structure. Use this function to set an element of the array
- *      compute_nodes in a node_list_t variable from non-member functions.
- *
- *      Note that there is an equivalent macro NODE_LIST_SET_COMPUTE_NODES_AE(), which performs
- *      this function with no data verification or function call overhead.
- *      Use the macro version to maximize performance where the validity
- *      of new_compute_nodes_element is guaranteed by other means.
+ *      structure. Use this function to set node_list_ptr->compute_nodes[c]
+ *      in a node_list_t object from non-member functions.
  *
  *  Arguments:
  *      node_list_ptr   Pointer to the structure to set
@@ -269,9 +242,10 @@ int     node_list_set_count(node_list_t *node_list_ptr, unsigned new_count)
  *  Examples:
  *      node_list_t     node_list;
  *      size_t          c;
- *      node_t          new_compute_nodes_element;
+ *      node_t *        new_compute_nodes_element;
  *
- *      if ( node_list_set_compute_nodes(&node_list, c, new_compute_nodes_element) == NODE_LIST_DATA_OK )
+ *      if ( node_list_set_compute_nodes_ae(&node_list, c, new_compute_nodes_element)
+ *              == NODE_LIST_DATA_OK )
  *      {
  *      }
  *
@@ -280,14 +254,13 @@ int     node_list_set_count(node_list_t *node_list_ptr, unsigned new_count)
  *
  *  History: 
  *  Date        Name        Modification
- *  2021-09-27  gen-get-set Auto-generated from node-list.h
+ *  2024-02-23  gen-get-set Auto-generated from node-list-private.h
  ***************************************************************************/
 
 int     node_list_set_compute_nodes_ae(node_list_t *node_list_ptr, size_t c, node_t *new_compute_nodes_element)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
-    if ( 0 )
+    if ( false )
 	return NODE_LIST_DATA_OUT_OF_RANGE;
     else
     {
@@ -304,14 +277,9 @@ int     node_list_set_compute_nodes_ae(node_list_t *node_list_ptr, size_t c, nod
  *
  *  Description:
  *      Mutator for compute_nodes member in a node_list_t structure.
- *      Use this function to set compute_nodes in a node_list_t variable
+ *      Use this function to set compute_nodes in a node_list_t object
  *      from non-member functions.  This function copies the array pointed to
- *      by new_compute_nodes to ->compute_nodes.
- *
- *      Note that there is an equivalent macro NODE_LIST_SET_COMPUTE_NODES(), which performs
- *      this function with no data verification or function call overhead.
- *      Use the macro version to maximize performance where the validity
- *      of new_compute_nodes is guaranteed by other means.
+ *      by new_compute_nodes to node_list_ptr->compute_nodes.
  *
  *  Arguments:
  *      node_list_ptr   Pointer to the structure to set
@@ -324,10 +292,11 @@ int     node_list_set_compute_nodes_ae(node_list_t *node_list_ptr, size_t c, nod
  *
  *  Examples:
  *      node_list_t     node_list;
- *      node_t          new_compute_nodes;
+ *      node_t *        new_compute_nodes;
  *      size_t          array_size;
  *
- *      if ( node_list_set_compute_nodes(&node_list, new_compute_nodes, array_size) == NODE_LIST_DATA_OK )
+ *      if ( node_list_set_compute_nodes_cpy(&node_list, new_compute_nodes, array_size)
+ *              == NODE_LIST_DATA_OK )
  *      {
  *      }
  *
@@ -336,25 +305,21 @@ int     node_list_set_compute_nodes_ae(node_list_t *node_list_ptr, size_t c, nod
  *
  *  History: 
  *  Date        Name        Modification
- *  2021-09-27  gen-get-set Auto-generated from node-list.h
+ *  2024-02-23  gen-get-set Auto-generated from node-list-private.h
  ***************************************************************************/
 
-int     node_list_set_compute_nodes_cpy(node_list_t *node_list_ptr,
-	    node_t *new_compute_nodes[], size_t array_size)
+int     node_list_set_compute_nodes_cpy(node_list_t *node_list_ptr, node_t * new_compute_nodes[], size_t array_size)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
     if ( new_compute_nodes == NULL )
 	return NODE_LIST_DATA_OUT_OF_RANGE;
     else
     {
-	{
-	    size_t  c;
-	    
-	    // FIXME: Assuming all elements should be copied
-	    for (c = 0; c < array_size; ++c)
-		node_list_ptr->compute_nodes[c] = new_compute_nodes[c];
-	}
+	size_t  c;
+	
+	// FIXME: Assuming all elements should be copied
+	for (c = 0; c < array_size; ++c)
+	    node_list_ptr->compute_nodes[c] = new_compute_nodes[c];
 	return NODE_LIST_DATA_OK;
     }
 }
