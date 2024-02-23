@@ -1,4 +1,6 @@
 
+Use restrict wherever possible
+
 Allow running compd as non-root
     Only the user running compd can execute jobs on that node
     as only root can impersonate another user using setuid()

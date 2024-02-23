@@ -75,10 +75,10 @@ void    job_init(job_t *job)
  *  2021-09-28  Jason Bacon Begin
  ***************************************************************************/
 
-void    job_print_params(FILE *stream, job_t *job)
+int     job_print(job_t *job, FILE *stream)
 
 {
-    fprintf(stream, JOB_SPEC_FORMAT, job->job_id, job->job_count, job->cores_per_job,
+    return fprintf(stream, JOB_SPEC_FORMAT, job->job_id, job->job_count, job->cores_per_job,
 	    job->cores_per_node, job->mem_per_core, job->user_name,
 	    job->working_directory, job->script_name);
 }
@@ -93,7 +93,7 @@ void    job_print_params(FILE *stream, job_t *job)
  *  2021-09-28  Jason Bacon Begin
  ***************************************************************************/
 
-int     job_print_params_to_string(job_t *job, char *str, size_t buff_size)
+int     job_print_to_string(job_t *job, char *str, size_t buff_size)
 
 {
     return snprintf(str, buff_size, JOB_SPEC_FORMAT,
@@ -112,7 +112,7 @@ int     job_print_params_to_string(job_t *job, char *str, size_t buff_size)
  *  2021-09-28  Jason Bacon Begin
  ***************************************************************************/
 
-void    job_send_params(job_t *job, int msg_fd)
+void    job_send_as_msg(job_t *job, int msg_fd)
 
 {
     /*

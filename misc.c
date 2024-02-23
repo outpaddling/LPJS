@@ -211,3 +211,44 @@ char    *xt_str_localtime(void)
     
     return str;
 }
+
+
+/***************************************************************************
+ *  Use auto-c2man to generate a man page from this comment
+ *
+ *  Name:
+ *      -
+ *
+ *  Library:
+ *      #include <>
+ *      -l
+ *
+ *  Description:
+ *  
+ *  Arguments:
+ *
+ *  Returns:
+ *
+ *  Examples:
+ *
+ *  Files:
+ *
+ *  Environment
+ *
+ *  See also:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-02-22  Jason Bacon Begin
+ ***************************************************************************/
+
+const char    *xt_basename(const char *restrict str)
+
+{
+    char    *p;
+    
+    if ( (p = strrchr(str, '/')) == NULL )
+	return str;     // No '/' in path, path is a basename
+    else
+	return p + 1;   // Next char after last '/'
+}

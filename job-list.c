@@ -58,5 +58,5 @@ void    job_list_send_params(int msg_fd, job_list_t *job_list)
 
     job_send_spec_header(msg_fd);
     for (c = 0; c < job_list->count; ++c)
-	job_send_params(job_list->jobs[c], msg_fd);
+	job_send_as_msg(job_list->jobs[c], msg_fd);
 }

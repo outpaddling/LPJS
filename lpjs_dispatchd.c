@@ -16,7 +16,6 @@
 #include <stdlib.h>
 #include <sysexits.h>
 #include <unistd.h>
-#include <libgen.h>     // basename()
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <netinet/in.h>
@@ -247,6 +246,13 @@ void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
 		switch(incoming_msg[0])
 		{
 		    case    LPJS_NOTICE_JOB_COMPLETE:
+		    
+			/*
+			 *  Remove job from running dir and write a
+			 *  completed job record
+			 *  Note the job completion in the main log
+			 */
+			
 			lpjs_log("Job completion report.\n");
 			lpjs_log_job(incoming_msg);
 			lpjs_dispatch_jobs(node_list, job_list);
@@ -516,14 +522,18 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
     
     lpjs_log("Request for job submission.\n");
     
-    // FIXME: Parse payload following JOB_SPEC_FORMAT
+    // Payload in message from lpjs submit is a job description
+    // in JOB_SPEC_FORMAT
     job_read_from_string(job, incoming_msg + 1);
+    
+    // Need the absolute pathname of the script.  Might be the same
+    // on compute nodes if NFS or other file server is used
     snprintf(script_path, PATH_MAX + 1, "%s/%s",
 	    job_get_working_directory(job), job_get_script_name(job));
     for (c = 0; c < job_get_job_count(job); ++c)
     {
 	lpjs_log("Submit script %s from %d, %d\n", script_path, uid, gid);
-	lpjs_queue_job(msg_fd, script_path, node_list);
+	lpjs_queue_job(msg_fd, job, script_path);
     }
     lpjs_server_safe_close(msg_fd);
 
@@ -540,11 +550,12 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
  *  2021-09-30  Jason Bacon Begin
  ***************************************************************************/
 
-int     lpjs_queue_job(int msg_fd, const char *script_path, node_list_t *node_list)
+int     lpjs_queue_job(int msg_fd, job_t *job, const char *script_path)
 
 {
     char    pending_dir[PATH_MAX + 1],
 	    pending_path[PATH_MAX + 1],
+	    specs_path[PATH_MAX + 1],
 	    job_num_path[PATH_MAX + 1],
 	    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
     FILE    *fp;
@@ -571,7 +582,7 @@ int     lpjs_queue_job(int msg_fd, const char *script_path, node_list_t *node_li
     }
 
     snprintf(pending_path, PATH_MAX + 1, "%s/%s", pending_dir,
-	    basename((char *)script_path));
+	    xt_basename(script_path));
     
     // lpjs_log("cwd = %s\n", getcwd(cwd, PATH_MAX + 1));
     
@@ -586,6 +597,22 @@ int     lpjs_queue_job(int msg_fd, const char *script_path, node_list_t *node_li
 		script_path, pending_path, status, strerror(errno));
 	return -1;
     }
+    
+    /*
+     *  Write basic job specs to a file for the dispatcher
+     */
+    
+    snprintf(specs_path, PATH_MAX + 1, "%s/job.specs", pending_dir);
+    lpjs_log("Storing specs to %s.\n", specs_path);
+    // Bump job num after successful spool
+    if ( (fp = fopen(specs_path, "w")) == NULL )
+    {
+	lpjs_log("Cannot create %s: %s\n", specs_path, strerror(errno));
+	return -1;
+    }
+    
+    job_print(job, fp);
+    fclose(fp);
     
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX, "Spooled job %lu to %s.\n",
 	    next_job_num, pending_dir);

@@ -159,7 +159,10 @@ int     lpjs_select_next_job(job_t *job)
 	if ( *end == '\0' )
 	{
 	    if ( int_dir_name < low_job_id )
+	    {
 		low_job_id = int_dir_name;
+		// script_name = 
+	    }
 	}
     }
     closedir(dp);
@@ -179,7 +182,7 @@ int     lpjs_select_next_job(job_t *job)
 	 */
 	
 	// snprintf(script_path, PATH_MAX + 1, "%s/%u/%s",
-	//          spool_dir, low_job_id, script_name);
+	//          LPJS_PENDING_DIR, low_job_id, script_name);
 	// job_parse_script(&job, script_path);
 	
 	return low_job_id;

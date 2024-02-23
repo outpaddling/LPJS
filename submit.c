@@ -71,7 +71,7 @@ int     main (int argc, char *argv[])
     
     // FIXME: Send full job specs from job_t class and entire script
     // snprintf(payload, LPJS_PAYLOAD_MAX_LEN, LPJS_JOB_FORMAT
-    job_print_params_to_string(job, payload, LPJS_PAYLOAD_MAX_LEN + 1);
+    job_print_to_string(job, payload, LPJS_PAYLOAD_MAX_LEN + 1);
     // lpjs_log("Sending payload: %s\n", payload);
 
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%s",
