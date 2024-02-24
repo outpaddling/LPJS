@@ -263,6 +263,66 @@ but all such features shall be
 optional, implemented and installed separately as 3rd-party plugins
 or other types of add-ons.
 
+## Software Deployment
+
+LPJS is designed for running *properly installed* software on clusters
+and grids.  Properly installed generally means installed via a
+[package manager](https://en.wikipedia.org/wiki/Package_manager),
+following the [filesystem hierarchy standard](https://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard).
+There are many package managers available.  See
+[https://repology.org/](https://repology.org/) for a summary of the
+most popular ones.
+
+Which package manager is best for you depends on that platform(s) you
+use.  If you run Debian-based systems, Debian packages might be best.
+If you run FreeBSD, use the FreeBSD ports system.  If you run multiple
+operating systems, we *strongly* recommend [pkgsrc](https://pkgsrc.org).
+The pkgsrc system is the only truly portable and strongly quality-controlled
+package manager in existence.  Using pkgsrc will allow you to easily deploy
+the exact same versions of the software you need on BSD, Linux, and macOS,
+for example.  It also has one of the larger collections among all package
+mangers, nearly 20,000 packages and growing at the time of this writing.
+
+Beware "community-based" package managers, to which just about anyone can
+commit packages.  The quality of the packages will be about what you would
+expect from such a project, and you will waste a lot of time dealing with
+bugs.  For quality-controlled package managers such as Debian packages,
+FreeBSD ports, MacPorts, and pkgsrc, only trained committers can make
+changes to the system.  Commit rights generally come only after making
+substantial contributions as a package maintainer, while relying on
+more experienced users to review and commit changes.
+
+If there is no package for the software you need in your chosen package
+manager, *learn to create one*.  The modest, one-time investment in learning
+how to create packages will require a tiny fraction of the time you will
+waste doing ad hoc software installs over your entire career.  Creating
+your own packages will save *you* an enormous amount of time in the long
+run, as well as help others, as others have helped you by creating the
+packages that already exist.  This is how open source works.  Contribute
+a grain of sand and get the rest of the mountain in return.
+
+You can, of course, deploy your computational software using any half-baked
+method you choose.  Common software-deployment follies in HPC and HTC
+include, but are not limited to, the following:
+
+1. "cave-man" installs, where software is manually downloaded, patched,
+   and built.  This includes writing ad hoc scripts that serve the same
+   purpose as an established package manager, but do a very poor job
+   in comparison.  This often involves installing libraries and other
+   dependencies to separate locations, requiring the user to load numerous
+   "environment modules" of the correct versions just to get one
+   application to run.
+
+2. Containerizing software for no other reason than to work around a
+   bad design or build system.  This is often a strategy to avoid fixing
+   the software and build system so that it will play nice with other
+   software.  The containers often contain ad hoc "cave-man" installs,
+   and the container serves only to bundle the various components and
+   prevent poorly designed applications from conflicting with each other.
+   This system is extremely high-maintenance compared to maintaining a
+   package for a package manager, where most dependencies are
+   well-maintained by other contributors.
+   
 ## Design and Implementation
 
 The code is organized following basic object-oriented design principals, but
