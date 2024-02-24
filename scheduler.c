@@ -53,7 +53,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 
 {
     job_t       *job = job_new();    // exits if malloc fails, no need to check
-    node_list_t *matching_nodes;
+    node_list_t *matched_nodes;
     
     /*
      *  Look through spool dir and determine requirements of the
@@ -71,7 +71,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
      *  for the job requirements
      */
     
-    if ( lpjs_matching_nodes(job, node_list, &matching_nodes) > 1 )
+    if ( lpjs_match_nodes(job, node_list, &matched_nodes) > 1 )
     {
 	/*
 	 *  Move from pending to running
@@ -87,7 +87,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	 *  Log submission time and stats
 	 */
 	
-	free(matching_nodes);
+	free(matched_nodes);
     }
     else
     {
@@ -245,9 +245,92 @@ int     lpjs_select_next_job(job_t *job)
  *  2024-02-23  Jason Bacon Begin
  ***************************************************************************/
 
-int     lpjs_matching_nodes(job_t *job, node_list_t *node_list,
-			    node_list_t **matching_nodes)
+int     lpjs_match_nodes(job_t *job, node_list_t *node_list,
+			    node_list_t **matched_nodes)
 
 {
-    return 0;
+    node_t      *node;
+    unsigned    node_count,
+		c,
+		usable_cores;
+    
+    *matched_nodes = node_list_new();
+
+    lpjs_log("Job %u requires %u cores, %lu MiB / core.\n",
+	    job_get_jobid(job), job_get_cores_per_node(job),
+	    job_get_mem_per_core(job));
+    lpjs_log("%u nodes to check.\n", node_list_get_compute_node_count(node_list));
+    for (c = node_count = 0; c < node_list_get_compute_node_count(node_list); ++c)
+    {
+	node = node_list_get_compute_nodes_ae(node_list, c);
+	lpjs_log("Checking %s...\n", node_get_hostname(node));
+	usable_cores = lpjs_get_usable_cores(job, node);
+	lpjs_log("Using %u cores on %s.\n", usable_cores,
+		node_get_hostname(node));
+	
+	/*
+	 *  Update used cores and mem on node
+	 */
+	
+    }
+    
+    if ( node_count == 0 )
+	free(*matched_nodes);
+    
+    return node_count;
+}
+
+
+/***************************************************************************
+ *  Use auto-c2man to generate a man page from this comment
+ *
+ *  Name:
+ *      -
+ *
+ *  Library:
+ *      #include <>
+ *      -l
+ *
+ *  Description:
+ *  
+ *  Arguments:
+ *
+ *  Returns:
+ *
+ *  Examples:
+ *
+ *  Files:
+ *
+ *  Environment
+ *
+ *  See also:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-02-23  Jason Bacon Begin
+ ***************************************************************************/
+
+int     lpjs_get_usable_cores(job_t *job, node_t *node)
+
+{
+    int         required_cores,
+		available_cores,
+		usable_cores;
+    uint64_t    available_mem;
+    
+    required_cores = job_get_cores_per_node(job);
+    available_mem = node_get_phys_mem(node) - node_get_phys_mem_used(node);
+    available_cores = node_get_cores(node) - node_get_cores_used(node);
+    lpjs_log("cores = %u  mem = %lu\n", available_cores, available_mem);
+    if ( (available_cores >= required_cores ) &&
+	 (available_mem >= job_get_mem_per_core(job)) )
+    {
+	lpjs_log("%s can be used: %u cores and %lu MiB.\n",
+		node_get_hostname(node), available_cores, available_mem);
+	usable_cores = required_cores;
+    }
+    else
+	usable_cores = 0;
+    
+    return usable_cores;
 }

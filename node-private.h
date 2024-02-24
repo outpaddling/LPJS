@@ -14,8 +14,8 @@ struct node
     char            *hostname;
     unsigned        cores;
     unsigned        cores_used;
-    unsigned long   phys_mem;
-    unsigned long   phys_mem_used;
+    uint64_t        phys_mem;
+    uint64_t        phys_mem_used;
     int             zfs;        // 0 or 1
     char            *os;
     char            *arch;
