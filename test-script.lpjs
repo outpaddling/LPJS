@@ -2,7 +2,7 @@
 
 #lpjs jobs 3
 #lpjs cores-per-job 2
-#lpjs cores-per-node 1
+#lpjs min-cores-per-node all
 #lpjs mem-per-core 1GiB
 
 hostname

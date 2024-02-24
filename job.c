@@ -61,7 +61,7 @@ void    job_init(job_t *job)
     job->working_directory = NULL;
     job->user_name = NULL;
     job->cores_per_job = 0;
-    job->cores_per_node = 0;
+    job->min_cores_per_node = 0;
     job->mem_per_core = 0;
 }
 
@@ -80,7 +80,7 @@ int     job_print(job_t *job, FILE *stream)
 {
     return fprintf(stream, JOB_SPEC_FORMAT, job->job_id, job->job_count,
 	    job->cores_per_job,
-	    job->cores_per_node, job->mem_per_core, job->user_name,
+	    job->min_cores_per_node, job->mem_per_core, job->user_name,
 	    job->working_directory, job->script_name);
 }
 
@@ -119,7 +119,7 @@ int     job_print_to_string(job_t *job, char *str, size_t buff_size)
 {
     return snprintf(str, buff_size, JOB_SPEC_FORMAT,
 		    job->job_id, job->job_count, job->cores_per_job,
-		    job->cores_per_node, job->mem_per_core, job->user_name,
+		    job->min_cores_per_node, job->mem_per_core, job->user_name,
 		    job->working_directory, job->script_name);
 }
 
@@ -236,20 +236,25 @@ int     job_parse_script(job_t *job, const char *script_name)
 		job->cores_per_job = strtoul(val, &end, 10);
 		if ( *end != '\0' )
 		{
-		    fprintf(stderr, "Error: #lpjs cores_per_job '%s' is not a decimal integer.\n", val);
+		    fprintf(stderr, "Error: #lpjs cores-per-job '%s' is not a decimal integer.\n", val);
 		    exit(EX_DATAERR);
 		}
 	    }
-	    else if ( strcmp(var, "cores-per-node") == 0 )
+	    else if ( strcmp(var, "min-cores-per-node") == 0 )
 	    {
 		if ( strcmp(val, "all") == 0 )
-		    job->cores_per_node = 0;
+		    job->min_cores_per_node = job->cores_per_job;
 		else
 		{
-		    job->cores_per_node = strtoul(val, &end, 10);
+		    job->min_cores_per_node = strtoul(val, &end, 10);
 		    if ( *end != '\0' )
 		    {
-			fprintf(stderr, "Error: #lpjs cores_per_node '%s' is not a decimal integer.\n", val);
+			fprintf(stderr, "Error: #lpjs min-cores-per-node '%s' is not a decimal integer.\n", val);
+			exit(EX_DATAERR);
+		    }
+		    if ( job->min_cores_per_node > job->cores_per_job )
+		    {
+			fprintf(stderr, "Error: #lpjs min-cores-per-node cannot be greater then cores-per-job.\n");
 			exit(EX_DATAERR);
 		    }
 		}
@@ -271,7 +276,7 @@ int     job_parse_script(job_t *job, const char *script_name)
 		    job->mem_per_core = job->mem_per_core * LPJS_GiB / LPJS_MiB;
 		else
 		{
-		    fprintf(stderr, "Error: #lpjs mem_per_core '%s':\n", val);
+		    fprintf(stderr, "Error: #lpjs mem-per-core '%s':\n", val);
 		    fprintf(stderr, "Requires a decimal number followed by MB, MiB, GB, or GiB.\n");
 		    exit(EX_DATAERR);
 		}
@@ -287,14 +292,14 @@ int     job_parse_script(job_t *job, const char *script_name)
     }
     fclose(fp);
     
-    if ( job->cores_per_node == 0 )
+    if ( job->min_cores_per_node == 0 )
 	fprintf(stderr, "%u job, %u cores per job, all cores per node, %zu MiB\n",
 		job->job_count, job->cores_per_job,
 		job->mem_per_core);
     else
 	fprintf(stderr, "%u job, %u cores per job, %u cores per node, %zu MiB\n",
 		job->job_count, job->cores_per_job,
-		job->cores_per_node, job->mem_per_core);
+		job->min_cores_per_node, job->mem_per_core);
     return 0;
 }
 
@@ -336,7 +341,7 @@ int     job_read_from_string(job_t *job, const char *string)
     
     items = sscanf(string, JOB_SPEC_NUMS_FORMAT,
 	    &job->job_id, &job->job_count, &job->cores_per_job,
-	    &job->cores_per_node, &job->mem_per_core);
+	    &job->min_cores_per_node, &job->mem_per_core);
     
     // Skips past numeric fields
     for (start = string, tokens = 0;

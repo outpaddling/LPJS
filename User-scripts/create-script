@@ -42,7 +42,7 @@ usage()
 #   2024-02-07  Jason Bacon Begin
 ##########################################################################
 
-get_cores_per_node()
+get_min_cores_per_node()
 
 {
     valid_selection=no
@@ -64,12 +64,12 @@ EOM
 	read parallel_type
 	case 0"$parallel_type" in
 	01)
-	    cores_per_node=$cores_per_job
+	    min_cores_per_node=$cores_per_job
 	    valid_selection=yes
 	    ;;
 	
 	02)
-	    cores_per_node=any
+	    min_cores_per_node=1
 	    valid_selection=yes
 	    ;;
 	
@@ -136,21 +136,21 @@ case 0"$submission_type" in
 01)
     jobs=1
     cores_per_job=1
-    cores_per_node=1
+    min_cores_per_node=1
     ;;
 
 02)
     printf 'Number of jobs? '
     read jobs
     cores_per_job=1
-    cores_per_node=1
+    min_cores_per_node=1
     ;;
 
 03)
     jobs=1
     printf 'Cores per job? '
     read cores_per_job
-    get_cores_per_node
+    get_min_cores_per_node
     ;;
 
 04)
@@ -158,7 +158,7 @@ case 0"$submission_type" in
     read jobs
     printf 'Cores per job? '
     read cores_per_job
-    get_cores_per_node
+    get_min_cores_per_node
     ;;
 
 *)
@@ -208,7 +208,7 @@ cat << EOM >> $script
 
 #lpjs jobs $jobs
 #lpjs cores-per-job $cores_per_job
-#lpjs cores-per-node $cores_per_node
+#lpjs min-cores-per-node $min_cores_per_node
 #lpjs mem-per-core $mem_per_core
 
 $command

@@ -257,7 +257,7 @@ int     lpjs_match_nodes(job_t *job, node_list_t *node_list,
     *matched_nodes = node_list_new();
 
     lpjs_log("Job %u requires %u cores, %lu MiB / core.\n",
-	    job_get_jobid(job), job_get_cores_per_node(job),
+	    job_get_jobid(job), job_get_min_cores_per_node(job),
 	    job_get_mem_per_core(job));
     lpjs_log("%u nodes to check.\n", node_list_get_compute_node_count(node_list));
     for (c = node_count = 0; c < node_list_get_compute_node_count(node_list); ++c)
@@ -318,7 +318,7 @@ int     lpjs_get_usable_cores(job_t *job, node_t *node)
 		usable_cores;
     uint64_t    available_mem;
     
-    required_cores = job_get_cores_per_node(job);
+    required_cores = job_get_min_cores_per_node(job);
     available_mem = node_get_phys_mem(node) - node_get_phys_mem_used(node);
     available_cores = node_get_cores(node) - node_get_cores_used(node);
     lpjs_log("cores = %u  mem = %lu\n", available_cores, available_mem);

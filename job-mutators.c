@@ -176,17 +176,17 @@ int     job_set_cores_per_job(job_t *job_ptr, unsigned new_cores_per_job)
  *      
  *
  *  Description:
- *      Mutator for cores_per_node member in a job_t structure.
- *      Use this function to set cores_per_node in a job_t object
+ *      Mutator for min_cores_per_node member in a job_t structure.
+ *      Use this function to set min_cores_per_node in a job_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
- *      cores_per_node is a pointer, data previously pointed to should
+ *      min_cores_per_node is a pointer, data previously pointed to should
  *      be freed before calling this function to avoid memory
  *      leaks.
  *
  *  Arguments:
  *      job_ptr         Pointer to the structure to set
- *      new_cores_per_node The new value for cores_per_node
+ *      new_min_cores_per_node The new value for min_cores_per_node
  *
  *  Returns:
  *      JOB_DATA_OK if the new value is acceptable and assigned
@@ -194,9 +194,9 @@ int     job_set_cores_per_job(job_t *job_ptr, unsigned new_cores_per_job)
  *
  *  Examples:
  *      job_t           job;
- *      unsigned        new_cores_per_node;
+ *      unsigned        new_min_cores_per_node;
  *
- *      if ( job_set_cores_per_node(&job, new_cores_per_node)
+ *      if ( job_set_min_cores_per_node(&job, new_min_cores_per_node)
  *              == JOB_DATA_OK )
  *      {
  *      }
@@ -209,14 +209,14 @@ int     job_set_cores_per_job(job_t *job_ptr, unsigned new_cores_per_job)
  *  2024-01-31  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-int     job_set_cores_per_node(job_t *job_ptr, unsigned new_cores_per_node)
+int     job_set_min_cores_per_node(job_t *job_ptr, unsigned new_min_cores_per_node)
 
 {
     if ( false )
 	return JOB_DATA_OUT_OF_RANGE;
     else
     {
-	job_ptr->cores_per_node = new_cores_per_node;
+	job_ptr->min_cores_per_node = new_min_cores_per_node;
 	return JOB_DATA_OK;
     }
 }
