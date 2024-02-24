@@ -6,6 +6,7 @@
 #include <errno.h>
 
 #include <xtend/file.h>
+#include <xtend/math.h> // XT_MIN()
 
 #include "lpjs.h"
 #include "node-list.h"
@@ -252,7 +253,9 @@ int     lpjs_match_nodes(job_t *job, node_list_t *node_list,
     node_t      *node;
     unsigned    node_count,
 		c,
-		usable_cores;
+		usable_cores,   // Cores with enough mem
+		total_usable,
+		total_required;
     
     *matched_nodes = node_list_new();
 
@@ -260,22 +263,47 @@ int     lpjs_match_nodes(job_t *job, node_list_t *node_list,
 	    job_get_jobid(job), job_get_min_cores_per_node(job),
 	    job_get_mem_per_core(job));
     lpjs_log("%u nodes to check.\n", node_list_get_compute_node_count(node_list));
-    for (c = node_count = 0; c < node_list_get_compute_node_count(node_list); ++c)
+    
+    total_usable = 0;
+    total_required = job_get_cores_per_job(job);
+    for (c = node_count = 0;
+	 (c < node_list_get_compute_node_count(node_list)) &&
+	 (total_usable < total_required); ++c)
     {
 	node = node_list_get_compute_nodes_ae(node_list, c);
-	lpjs_log("Checking %s...\n", node_get_hostname(node));
-	usable_cores = lpjs_get_usable_cores(job, node);
-	lpjs_log("Using %u cores on %s.\n", usable_cores,
-		node_get_hostname(node));
-	
-	/*
-	 *  Update used cores and mem on node
-	 */
-	
+	if ( strcmp(node_get_state(node), "Up") != 0 )
+	    lpjs_log("%s is unavailable.\n", node_get_hostname(node));
+	else
+	{
+	    lpjs_log("Checking %s...\n", node_get_hostname(node));
+	    usable_cores = lpjs_get_usable_cores(job, node);
+	    usable_cores = XT_MIN(usable_cores, total_required - total_usable);
+	    lpjs_log("Using %u cores on %s.\n", usable_cores,
+		    node_get_hostname(node));
+	    
+	    if ( usable_cores > 0 )
+	    {
+		// FIXME: Set # cores to use on node
+		node_list_add_compute_node(*matched_nodes, node);
+		total_usable += usable_cores;
+		++node_count;
+	    }
+	}
     }
     
-    if ( node_count == 0 )
-	free(*matched_nodes);
+    if ( total_usable == total_required )
+    {
+	lpjs_log("Using nodes:\n");
+	for (c = 0; c < node_list_get_compute_node_count(*matched_nodes); ++c)
+	{
+	    node = node_list_get_compute_nodes_ae(*matched_nodes, c);
+	    lpjs_log("%s\n", node_get_hostname(node));
+	}
+    }
+    else
+	lpjs_log("Insufficient resources available.\n");
+    
+    free(*matched_nodes);
     
     return node_count;
 }
@@ -314,8 +342,8 @@ int     lpjs_get_usable_cores(job_t *job, node_t *node)
 
 {
     int         required_cores,
-		available_cores,
-		usable_cores;
+		available_cores,    // Total free
+		usable_cores;       // Total free with enough mem
     uint64_t    available_mem;
     
     required_cores = job_get_min_cores_per_node(job);

@@ -5,6 +5,7 @@
 #include <limits.h>
 
 #include <xtend/dsv.h>
+#include <xtend/string.h>   // xt_strtrim()
 
 #include "node-list.h"
 #include "config.h"
@@ -71,7 +72,7 @@ int     lpjs_load_config(node_list_t *node_list, int flags, FILE *error_stream)
 	    if ( delim != EOF )
 	    {
 		if ( flags == LPJS_CONFIG_ALL )
-		    node_list_add_compute(node_list, config_fp, config_file);
+		    lpjs_load_compute_config(node_list, config_fp, config_file);
 		else
 		    xt_dsv_skip_rest_of_line(config_fp);
 	    }
@@ -88,3 +89,67 @@ int     lpjs_load_config(node_list_t *node_list, int flags, FILE *error_stream)
     fclose(config_fp);
     return delim;
 }
+
+
+/***************************************************************************
+ *  Use auto-c2man to generate a man page from this comment
+ *
+ *  Name:
+ *      -
+ *
+ *  Library:
+ *      #include <>
+ *      -l
+ *
+ *  Description:
+ *  
+ *  Arguments:
+ *
+ *  Returns:
+ *
+ *  Examples:
+ *
+ *  Files:
+ *
+ *  Environment
+ *
+ *  See also:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-02-24  Jason Bacon Begin
+ ***************************************************************************/
+
+int     lpjs_load_compute_config(node_list_t *node_list, FILE *input_stream,
+			      const char *conf_file)
+
+{
+    int     delim;
+    char    field[LPJS_FIELD_MAX + 1];
+    size_t  len;
+    node_t  *node;
+    
+    while ( ((delim = xt_dsv_read_field(input_stream, field, LPJS_FIELD_MAX + 1,
+				     ",", &len)) != '\n') &&
+	    (delim != EOF) )
+    {
+	xt_strtrim(field, " ");
+	node = node_new();
+	node_set_hostname(node, strdup(field));
+	node_list_add_compute_node(node_list, node);
+    }
+    if ( delim == EOF )
+    {
+	lpjs_log("Unexpected EOF reading %s.\n", conf_file);
+	exit(EX_DATAERR);
+    }
+    
+    // Add last node read by while condition
+    xt_strtrim(field, " ");
+    node = node_new();
+    node_set_hostname(node, strdup(field));
+    node_list_add_compute_node(node_list, node);
+    
+    return 0;   // NL_OK?
+}
+
