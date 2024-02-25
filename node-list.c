@@ -6,6 +6,7 @@
 
 #include <xtend/dsv.h>      // xt_dsv_read_field()
 #include <xtend/file.h>
+#include <xtend/string.h>   // strlcpy() on Linux
 
 #include "node-list-private.h"
 #include "network.h"
