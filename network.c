@@ -71,6 +71,7 @@ int     lpjs_connect_to_dispatchd(node_list_t *node_list)
 	lpjs_log("connect_to_dispatchd(): connect() failed: %s\n", strerror(errno));
 	lpjs_log("hostname %s, ip = %s\n", 
 		node_list_get_head_node(node_list), head_text_ip);
+	close(msg_fd);
 	return -1;
     }
     

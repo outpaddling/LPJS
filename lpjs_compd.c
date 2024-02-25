@@ -224,16 +224,16 @@ int     lpjs_checkin_loop(node_list_t *node_list, node_t *node)
     
     while ( (msg_fd = lpjs_connect_to_dispatchd(node_list)) == -1 )
     {
-	lpjs_log("lpjs_compd: Failed to reconnect to dispatchd: %s\n",
-		strerror(errno));
+	lpjs_log("%s(): Failed to connect to dispatchd: %s\n",
+		__FUNCTION__, strerror(errno));
 	lpjs_log("Retry in %d seconds...\n", LPJS_RETRY_TIME);
 	sleep(LPJS_RETRY_TIME);
     }
     
     while ( (status = lpjs_compd_checkin(msg_fd, node)) != EX_OK )
     {
-	lpjs_log("lpjs_compd: compd-checkin failed.  Retry in %d seconds...\n",
-		 LPJS_RETRY_TIME);
+	lpjs_log("%s(): compd-checkin failed.  Retry in %d seconds...\n",
+		 __FUNCTION__, LPJS_RETRY_TIME);
 	sleep(LPJS_RETRY_TIME);
     }
     lpjs_log("Checkin successful.\n");
