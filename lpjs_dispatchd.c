@@ -377,13 +377,15 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	    // FIXME: munge() all incoming messages?
 	    /* Read a message through the socket */
 	    if ( (bytes = lpjs_recv_munge(msg_fd,
-			 &incoming_msg, 0, 0, &uid, &gid)) < 0 )
+			 &incoming_msg, 0, 0, &uid, &gid)) < 1 )
 	    {
-		lpjs_log("lpjs_check_listen_fd(): lpjs_recv_munge() failed: %s", strerror(errno));
+		lpjs_log("lpjs_check_listen_fd(): lpjs_recv_munge() failed (%zd bytes): %s",
+			bytes, strerror(errno));
 		close(msg_fd);
 		return bytes;
 	    }
 	    lpjs_log("%s(): Got %zd byte message.\n", __FUNCTION__, bytes);
+	    // bytes must be at least 1, or no mem is allocated
 	    incoming_msg[bytes] = '\0';
 	    lpjs_log("%s(): Request code = %d\n", __FUNCTION__, incoming_msg[0]);
 	    lpjs_log("%s(): %s\n", __FUNCTION__, incoming_msg + 1);
