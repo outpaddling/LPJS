@@ -18,8 +18,9 @@ struct node
     char            *hostname;
     unsigned        cores;
     unsigned        cores_used;
-    uint64_t        phys_mem;
-    uint64_t        phys_mem_used;
+    // size_t will suffice even if head node is 32-bit (2^32-1 MiB)
+    size_t          phys_mem;
+    size_t          phys_mem_used;
     int             zfs;        // 0 or 1
     char            *os;
     char            *arch;
