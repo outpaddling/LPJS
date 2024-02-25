@@ -5,10 +5,6 @@
 extern "C" {
 #endif
 
-#ifndef _SYS_STDINT_H_
-#include <stdint.h>
-#endif
-
 #ifndef _TIME_H_
 #include <time.h>
 #endif

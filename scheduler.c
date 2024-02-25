@@ -344,7 +344,7 @@ int     lpjs_get_usable_cores(job_t *job, node_t *node)
     int         required_cores,
 		available_cores,    // Total free
 		usable_cores;       // Total free with enough mem
-    uint64_t    available_mem;
+    size_t      available_mem;
     
     required_cores = job_get_min_cores_per_node(job);
     available_mem = node_get_phys_mem(node) - node_get_phys_mem_used(node);
