@@ -21,12 +21,14 @@ as reliability and performance, not on what platforms will run the
 software you need.
 
 With LPJS, you are even free to use multiple
-operating systems in the same cluster or grid.  E.g., use RHEL to
-run commercial software, Debian or FreeBSD for easy installation from
-huge collections of open source packages, DragonFly for optimal
+operating systems in the same cluster or grid.  E.g., use RHEL on some nodes
+to run commercial software, Debian or FreeBSD for easy installation from
+huge collections of the latest open source packages, DragonFly for optimal
 multithreading, macOS to capitalize on the power of Apple Silicon
-systems.  Use NetBSD's highly portable pkgsrc package manager to
-install common software on all of them.
+systems, or OpenBSD for maximum security.  Use the highly portable NetBSD
+to utilize hardware not supported by other platforms, and use NetBSD's
+portable pkgsrc package manager to install common software on all of
+your nodes, whether running BSD, Linux, macOS, or any other POSIX platform.
 
 ## Status
 
