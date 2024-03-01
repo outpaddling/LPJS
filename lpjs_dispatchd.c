@@ -374,7 +374,6 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	{
 	    // lpjs_log("Accepted connection. fd = %d\n", msg_fd);
 
-	    // FIXME: munge() all incoming messages?
 	    /* Read a message through the socket */
 	    if ( (bytes = lpjs_recv_munge(msg_fd,
 			 &incoming_msg, 0, 0, &uid, &gid)) < 1 )
@@ -453,7 +452,8 @@ void    lpjs_process_compute_node_checkin(int msg_fd, const char *incoming_msg,
     
     lpjs_log("Checkin from uid %d, gid %d\n", uid, gid);
     
-    // FIXME: Only accept compd checkins from root
+    // FIXME: Record username of compd checkin.  If not root, then only
+    // that user can submit jobs to the node.
 
     /*
      *  Get specs from node and add msg_fd
@@ -496,7 +496,6 @@ void    lpjs_process_compute_node_checkin(int msg_fd, const char *incoming_msg,
 	// Nodes were added to node_list by lpjs_load_config()
 	// Just update the fields here
 	node_list_update_compute(node_list, new_node);
-	// FIXME: Acknowledge checkin
     }
 }
 
