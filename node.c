@@ -203,11 +203,21 @@ ssize_t node_send_specs(node_t *node, int msg_fd)
 }
 
 
+int     node_print_specs_header(FILE *stream)
+
+{
+    return fprintf(stream,
+		  "%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
+		  "Hostname", "state", "cores",
+		  "phys_mem", "zfs", "os", "arch");
+}
+
+
 char    *node_specs_to_str(node_t *node, char *str, size_t buff_len)
 
 {
     if ( snprintf(str, buff_len,
-		  "%s\t%s\t%u\t%lu\t%u\t%s\t%s\n",
+		  "%s\t%s\t%u\t%lu\t%u\t%s\t%s",
 		  node->hostname, node->state, node->cores,
 		  node->phys_mem, node->zfs, node->os, node->arch) < 0 )
     {

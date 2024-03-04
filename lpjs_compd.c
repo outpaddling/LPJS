@@ -35,7 +35,8 @@ int     main (int argc, char *argv[])
 {
     node_list_t *node_list = node_list_new();
     node_t      *node = node_new(); // FIXME: Does this new to be allocated?
-    char        incoming_msg[LPJS_MSG_LEN_MAX + 1];
+    char        incoming_msg[LPJS_MSG_LEN_MAX + 1],
+		vis_msg[LPJS_MSG_LEN_MAX + 1];
     ssize_t     bytes;
     int         msg_fd;
     struct pollfd   poll_fd;
@@ -86,7 +87,9 @@ int     main (int argc, char *argv[])
 
     msg_fd = lpjs_checkin_loop(node_list, node);
     poll_fd.fd = msg_fd;
-    poll_fd.events = POLLIN | LPJS_POLLHUP;    // POLLERR and POLLHUP always set
+    // POLLERR and POLLHUP are actually always set.  Listing POLLHUP here just
+    // for documentation.
+    poll_fd.events = POLLIN | POLLHUP;
     
     // Now keep daemon running, awaiting jobs
     // Almost correct: https://unix.stackexchange.com/questions/581426/how-to-get-notified-when-the-other-end-of-a-socketpair-is-closed
@@ -98,9 +101,9 @@ int     main (int argc, char *argv[])
 	// Or monitor compd daemons with a separate process that
 	// sends events to dispatchd?
 	
-	if (poll_fd.revents & LPJS_POLLHUP)
+	if (poll_fd.revents & POLLHUP)
 	{
-	    poll_fd.revents &= ~LPJS_POLLHUP;
+	    poll_fd.revents &= ~POLLHUP;
 	    
 	    // Close this end, or dispatchd gets "address already in use"
 	    // When trying to restart
@@ -122,6 +125,10 @@ int     main (int argc, char *argv[])
 	    poll_fd.revents &= ~POLLIN;
 	    bytes = lpjs_recv(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 0);
 	    incoming_msg[bytes] = '\0';
+	    xt_strviscpy((unsigned char *)vis_msg,
+			 (unsigned char *)incoming_msg, LPJS_MSG_LEN_MAX + 1);
+	    lpjs_log("Received %zd bytes from dispatchd: \"%s\"\n",
+		     bytes, vis_msg);
 	    
 	    if ( incoming_msg[0] == 4 )
 	    {
@@ -133,11 +140,10 @@ int     main (int argc, char *argv[])
 
 		// Ignore HUP that follows EOT
 		// FIXME: This might be bad timing
-		poll_fd.revents &= ~LPJS_POLLHUP;
+		poll_fd.revents &= ~POLLHUP;
 		
 		msg_fd = lpjs_checkin_loop(node_list, node);
 	    }
-	    lpjs_log("Received from dispatchd: %s\n", incoming_msg);
 	}
     }
 
@@ -152,15 +158,17 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
     char        outgoing_msg[LPJS_MSG_LEN_MAX + 1],
 		incoming_msg[LPJS_MSG_LEN_MAX + 1],
 		specs[NODE_SPECS_LEN + 1];
+    extern FILE *Log_stream;
     
     /* Send a message to the server */
     /* Need to send \0, so xt_dprintf() doesn't work here */
     node_detect_specs(node);
-    node_print_status(node, stderr);
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1,
 	    "%c%s", LPJS_REQUEST_COMPD_CHECKIN,
 	    node_specs_to_str(node, specs, NODE_SPECS_LEN + 1));
-    lpjs_log("%s(): Sending %s\n", __FUNCTION__, outgoing_msg + 1);
+    lpjs_log("%s(): Sending node specs:\n", __FUNCTION__);
+    node_print_specs_header(Log_stream);
+    fprintf(Log_stream, "%s\n", outgoing_msg + 1);
     if ( lpjs_send_munge(msg_fd, outgoing_msg) != EX_OK )
     {
 	lpjs_log("lpjs_compd: Failed to send checkin message to dispatchd: %s",
@@ -168,7 +176,7 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
 	close(msg_fd);
 	return EX_IOERR;
     }
-    lpjs_log("Sent checkin request.\n");
+    lpjs_log("%s(): Sent checkin request.\n", __FUNCTION__);
 
     // FIXME: Just sending a credential with no payload for now, to
     // authenticate the socket connection.  Not sure if we should worry
@@ -180,10 +188,14 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
     lpjs_recv(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 0);
     if ( strcmp(incoming_msg, "Node authorized") != 0 )
     {
-	lpjs_log("This node is not authorized to connect.\n");
-	lpjs_log("It must be added to the etc/lpjs/config on the head node.\n");
+	lpjs_log("%s(): This node is not authorized to connect.\n"
+		 "It must be added to the etc/lpjs/config on the head node.\n",
+		 __FUNCTION__);
 	exit(EX_NOPERM);
     }
+    else
+	lpjs_log("%s(): Received authorization from lpjs_dispatchd.\n",
+		__FUNCTION__);
 
     return EX_OK;
 }
@@ -222,6 +234,7 @@ int     lpjs_checkin_loop(node_list_t *node_list, node_t *node)
     int     msg_fd,
 	    status;
     
+    // Retry socket connection indefinitely
     while ( (msg_fd = lpjs_connect_to_dispatchd(node_list)) == -1 )
     {
 	lpjs_log("%s(): Failed to connect to dispatchd: %s\n",
@@ -230,13 +243,15 @@ int     lpjs_checkin_loop(node_list_t *node_list, node_t *node)
 	sleep(LPJS_RETRY_TIME);
     }
     
+    // Retry checking request indefinitely
     while ( (status = lpjs_compd_checkin(msg_fd, node)) != EX_OK )
     {
 	lpjs_log("%s(): compd-checkin failed.  Retry in %d seconds...\n",
 		 __FUNCTION__, LPJS_RETRY_TIME);
 	sleep(LPJS_RETRY_TIME);
     }
-    lpjs_log("Checkin successful.\n");
+    
+    lpjs_log("%s(): Checkin successful.\n", __FUNCTION__);
     
     return msg_fd;
 }
