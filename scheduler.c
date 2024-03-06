@@ -72,8 +72,10 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
      *  for the job requirements
      */
     
-    if ( lpjs_match_nodes(job, node_list, &matched_nodes) > 1 )
+    if ( lpjs_match_nodes(job, node_list, &matched_nodes) > 0 )
     {
+	lpjs_log("%s(): Found available nodes.  Dispatching...\n", __FUNCTION__);
+	
 	/*
 	 *  Move from pending to running
 	 */
@@ -218,29 +220,8 @@ int     lpjs_select_next_job(job_t *job)
 
 
 /***************************************************************************
- *  Use auto-c2man to generate a man page from this comment
- *
- *  Name:
- *      -
- *
- *  Library:
- *      #include <>
- *      -l
- *
  *  Description:
  *  
- *  Arguments:
- *
- *  Returns:
- *
- *  Examples:
- *
- *  Files:
- *
- *  Environment
- *
- *  See also:
- *
  *  History: 
  *  Date        Name        Modification
  *  2024-02-23  Jason Bacon Begin
@@ -310,29 +291,8 @@ int     lpjs_match_nodes(job_t *job, node_list_t *node_list,
 
 
 /***************************************************************************
- *  Use auto-c2man to generate a man page from this comment
- *
- *  Name:
- *      -
- *
- *  Library:
- *      #include <>
- *      -l
- *
  *  Description:
  *  
- *  Arguments:
- *
- *  Returns:
- *
- *  Examples:
- *
- *  Files:
- *
- *  Environment
- *
- *  See also:
- *
  *  History: 
  *  Date        Name        Modification
  *  2024-02-23  Jason Bacon Begin
