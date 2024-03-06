@@ -2,10 +2,11 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
-#include <unistd.h>
+#include <unistd.h>     // close(), ??
 #include <sysexits.h>
 #include <limits.h>     // PATH_MAX
 #include <errno.h>
+#include <fcntl.h>      // open()
 
 #include <xtend/dsv.h>
 #include <xtend/file.h>
@@ -83,26 +84,6 @@ int     job_print(job_t *job, FILE *stream)
 	    job->cores_per_job,
 	    job->min_cores_per_node, job->mem_per_core, job->user_name,
 	    job->working_directory, job->script_name);
-}
-
-
-/***************************************************************************
- *  Description:
- *      Read job parameters output by job_print()
- *
- *  History: 
- *  Date        Name        Modification
- *  2021-09-28  Jason Bacon Begin
- ***************************************************************************/
-
-int     job_read(job_t *job, FILE *stream)
-
-{
-    char    buff[JOB_STR_MAX_LEN + 1];
-    
-    // FIXME: Check for errors
-    fgets(buff, JOB_STR_MAX_LEN + 1, stream);
-    return job_read_from_string(job, buff);
 }
 
 
@@ -293,6 +274,9 @@ int     job_parse_script(job_t *job, const char *script_name)
     }
     fclose(fp);
     
+    // FIXME: Error out if not all required parameters present
+    // jobs, cores-per-job, mem-per-core
+    
     if ( job->min_cores_per_node == 0 )
 	fprintf(stderr, "%u job, %u cores per job, all cores per node, %zu MiB\n",
 		job->job_count, job->cores_per_job,
@@ -375,16 +359,21 @@ int     job_read_from_string(job_t *job, const char *string)
 	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
     }
+    ++items;
+    
     if ( (job->working_directory = strdup(strsep(&p, " \t"))) == NULL )
     {
 	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
     }
+    ++items;
+    
     if ( (job->script_name = strdup(strsep(&p, " \t\n"))) == NULL )
     {
 	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
     }
+    ++items;
     
     free(temp);
     
@@ -394,6 +383,9 @@ int     job_read_from_string(job_t *job, const char *string)
 
 /***************************************************************************
  *  Use auto-c2man to generate a man page from this comment
+ *
+ *  Name:
+ *      -
  *
  *  Library:
  *      #include <>
@@ -412,6 +404,47 @@ int     job_read_from_string(job_t *job, const char *string)
  *  Environment
  *
  *  See also:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-03-06  Jason Bacon Begin
+ ***************************************************************************/
+
+int     job_read_from_file(job_t *job, const char *path)
+
+{
+    int     fd;
+    char    buff[JOB_STR_MAX_LEN + 1];
+    ssize_t bytes;
+    
+    lpjs_log("%s(): Reading job specs from %s...\n", __FUNCTION__, path);
+
+    if ( (fd = open(path, O_RDONLY)) == -1 )
+	return -1;
+    
+    bytes = read(fd, buff, JOB_STR_MAX_LEN);
+    close(fd);
+    
+    if ( bytes < 1 )
+    {
+	lpjs_log("%s(): Read error: %s\n", __FUNCTION__, strerror(errno));
+	return -1;
+    }
+    
+    if ( bytes == JOB_STR_MAX_LEN )
+    {
+	lpjs_log("%s(): Buffer full reading specs file\n", __FUNCTION__);
+	return -1;
+    }
+    
+    buff[bytes] = '\0';
+    
+    return job_read_from_string(job, buff);
+}
+
+
+/***************************************************************************
+ *  Description:
  *
  *  History: 
  *  Date        Name        Modification

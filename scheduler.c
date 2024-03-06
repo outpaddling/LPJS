@@ -8,7 +8,8 @@
 #include <unistd.h>     // close()
 
 #include <xtend/file.h>
-#include <xtend/math.h> // XT_MIN()
+#include <xtend/math.h>     // XT_MIN()
+#include <xtend/string.h>   // strlcat() on Linux
 
 #include "lpjs.h"
 #include "node-list.h"
@@ -60,9 +61,11 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
     char        pending_path[PATH_MAX + 1],
 		running_path[PATH_MAX + 1],
 		script_path[PATH_MAX + 1],
-		buff[LPJS_SCRIPT_SIZE_MAX + 1];
+		script_buff[LPJS_SCRIPT_SIZE_MAX + 1],
+		outgoing_msg[LPJS_JOB_MSG_MAX + 1];
     int         msg_fd;
     ssize_t     script_size;
+    extern FILE *Log_stream;
     
     /*
      *  Look through spool dir and determine requirements of the
@@ -101,8 +104,18 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	
 	snprintf(script_path, PATH_MAX + 1, "%s/%s",
 		running_path, job_get_script_name(job));
-	script_size = lpjs_load_script(script_path, buff, LPJS_SCRIPT_SIZE_MAX + 1);
+	script_size = lpjs_load_script(script_path, script_buff, LPJS_SCRIPT_SIZE_MAX + 1);
+	// FIXME: Determine a real minimum script size
+	if ( script_size < 1 )
+	{
+	    lpjs_log("%s(): Error reading script.\n", __FUNCTION__);
+	    return 0;  // FIXME: Define return codes
+	}
+	
 	lpjs_log("Script %s is %zd bytes.\n", script_path, script_size);
+	// FIXME: Script is coming up blank here
+	fprintf(Log_stream, "strlen = %lu\n", strlen(script_buff));
+	fprintf(Log_stream, "Script in %s():\n%s\n", __FUNCTION__, script_buff);
 	
 	/*
 	 *  For each matching node
@@ -120,6 +133,10 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	    lpjs_log("Dispatching job %lu to %s on socket fd %d...\n",
 		    job_get_job_id(job), node_get_hostname(node), msg_fd);
 	    
+	    job_print_to_string(job, outgoing_msg, LPJS_JOB_MSG_MAX + 1);
+	    strlcat(outgoing_msg, script_buff, LPJS_JOB_MSG_MAX + 1);
+	    // FIXME: Check for truncation
+	    lpjs_log("%s():\n%s\n", __FUNCTION__, outgoing_msg);
 	    // FIXME: Send job script to compd on node
 	}
 	
@@ -189,7 +206,6 @@ int     lpjs_select_next_job(job_t *job)
 
 {
     DIR             *dp;
-    FILE            *specs_stream;
     struct dirent   *entry;
     unsigned long   low_job_id,
 		    int_dir_name;
@@ -234,22 +250,18 @@ int     lpjs_select_next_job(job_t *job)
 		 __FUNCTION__, low_job_id);
 	
 	/*
-	 *  Get job specs and script from spool dir
+	 *  Load job specs from file
 	 */
 	
-	snprintf(specs_path, PATH_MAX + 1, "%s/%lu/job.specs",
-		LPJS_PENDING_DIR, low_job_id);
-	if ( (specs_stream = fopen(specs_path, "r")) == NULL )
+	snprintf(specs_path, PATH_MAX + 1, "%s/%lu/%s",
+		LPJS_PENDING_DIR, low_job_id, LPJS_SPECS_FILE_NAME);
+	if ( job_read_from_file(job, specs_path) != LPJS_SPECS_ITEMS )
 	{
-	    fprintf(stderr, ": Could not open %s for read: %s.\n",
-		    specs_path, strerror(errno));
+	    lpjs_log("%s(): Error reading specs for job %lu.\n",
+		    __FUNCTION__, low_job_id);
 	    return 0;
 	}
-	job_read(job, specs_stream);
 	job_print(job, Log_stream);
-	fclose(specs_stream);
-	
-	// job_parse_script(&job, script_path);
 	
 	return low_job_id;
     }
@@ -361,11 +373,13 @@ int     lpjs_get_usable_cores(job_t *job, node_t *node)
 }
 
 
-ssize_t lpjs_load_script(const char *script_path, char *buff, ssize_t buff_size)
+ssize_t lpjs_load_script(const char *script_path,
+			 char *script_buff, ssize_t buff_size)
 
 {
     ssize_t bytes;
     int     fd;
+    extern FILE *Log_stream;
     
     if ( (fd = open(script_path, O_RDONLY)) == -1 )
     {
@@ -374,13 +388,13 @@ ssize_t lpjs_load_script(const char *script_path, char *buff, ssize_t buff_size)
 	return -1;
     }
     
-    if ( (buff = malloc(buff_size)) == NULL )
+    if ( (script_buff = malloc(buff_size)) == NULL )
     {
 	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
 	return -1;
     }
     
-    bytes = read(fd, buff, buff_size);
+    bytes = read(fd, script_buff, buff_size);
     if ( bytes == buff_size )
     {
 	lpjs_log("%s(): Script exceeds %zd.  Reduce script size or increase script_size_max.\n",
@@ -389,7 +403,9 @@ ssize_t lpjs_load_script(const char *script_path, char *buff, ssize_t buff_size)
 	return -1;
     }
     close(fd);
-    buff[bytes] = '\0';
-
+    script_buff[bytes] = '\0';
+    fprintf(Log_stream, "strlen = %lu\n", strlen(script_buff));
+    fprintf(Log_stream, "Script in %s():\n%s\n", __FUNCTION__, script_buff);
+    
     return bytes;
 }
