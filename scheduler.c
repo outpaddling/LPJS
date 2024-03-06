@@ -4,6 +4,8 @@
 #include <limits.h>     // ULONG_MAX
 #include <string.h>     // strerror()
 #include <errno.h>
+#include <fcntl.h>      // open()
+#include <unistd.h>     // close()
 
 #include <xtend/file.h>
 #include <xtend/math.h> // XT_MIN()
@@ -56,7 +58,11 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
     job_t       *job = job_new();    // exits if malloc fails, no need to check
     node_list_t *matched_nodes;
     char        pending_path[PATH_MAX + 1],
-		running_path[PATH_MAX + 1];
+		running_path[PATH_MAX + 1],
+		script_path[PATH_MAX + 1],
+		buff[LPJS_SCRIPT_SIZE_MAX + 1];
+    int         msg_fd;
+    ssize_t     script_size;
     
     /*
      *  Look through spool dir and determine requirements of the
@@ -83,11 +89,20 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	 */
 	
 	snprintf(pending_path, PATH_MAX + 1,
-		LPJS_PENDING_DIR "/%lu", job_get_jobid(job));
+		LPJS_PENDING_DIR "/%lu", job_get_job_id(job));
 	snprintf(running_path, PATH_MAX + 1,
-		LPJS_RUNNING_DIR "/%lu", job_get_jobid(job));
+		LPJS_RUNNING_DIR "/%lu", job_get_job_id(job));
 	lpjs_log("Moving %s to %s...\n", pending_path, running_path);
 	rename(pending_path, running_path);
+	
+	/*
+	 *  Load script from spool/lpjs/running
+	 */
+	
+	snprintf(script_path, PATH_MAX + 1, "%s/%s",
+		running_path, job_get_script_name(job));
+	script_size = lpjs_load_script(script_path, buff, LPJS_SCRIPT_SIZE_MAX + 1);
+	lpjs_log("Script %s is %zd bytes.\n", script_path, script_size);
 	
 	/*
 	 *  For each matching node
@@ -95,6 +110,18 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	 *      Send script to node and run
 	 *          Use script cached in spool dir at submission
 	 */
+	
+	for (int c = 0; c < node_list_get_compute_node_count(matched_nodes); ++c)
+	{
+	    node_t *node = node_list_get_compute_nodes_ae(node_list, c);
+	    
+	    msg_fd = node_get_msg_fd(node);
+
+	    lpjs_log("Dispatching job %lu to %s on socket fd %d...\n",
+		    job_get_job_id(job), node_get_hostname(node), msg_fd);
+	    
+	    // FIXME: Send job script to compd on node
+	}
 	
 	/*
 	 *  Log submission time and job specs
@@ -251,7 +278,7 @@ int     lpjs_match_nodes(job_t *job, node_list_t *node_list,
     *matched_nodes = node_list_new();
 
     lpjs_log("Job %u requires %u cores, %lu MiB / core.\n",
-	    job_get_jobid(job), job_get_min_cores_per_node(job),
+	    job_get_job_id(job), job_get_min_cores_per_node(job),
 	    job_get_mem_per_core(job));
     lpjs_log("%u nodes to check.\n", node_list_get_compute_node_count(node_list));
     
@@ -331,4 +358,38 @@ int     lpjs_get_usable_cores(job_t *job, node_t *node)
 	usable_cores = 0;
     
     return usable_cores;
+}
+
+
+ssize_t lpjs_load_script(const char *script_path, char *buff, ssize_t buff_size)
+
+{
+    ssize_t bytes;
+    int     fd;
+    
+    if ( (fd = open(script_path, O_RDONLY)) == -1 )
+    {
+	lpjs_log("%s(): Failed to open %s: %s\n", __FUNCTION__,
+		script_path, strerror(errno));
+	return -1;
+    }
+    
+    if ( (buff = malloc(buff_size)) == NULL )
+    {
+	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
+	return -1;
+    }
+    
+    bytes = read(fd, buff, buff_size);
+    if ( bytes == buff_size )
+    {
+	lpjs_log("%s(): Script exceeds %zd.  Reduce script size or increase script_size_max.\n",
+		__FUNCTION__, buff_size);
+	close(fd);
+	return -1;
+    }
+    close(fd);
+    buff[bytes] = '\0';
+
+    return bytes;
 }

@@ -57,12 +57,13 @@ void    job_init(job_t *job)
 
 {
     job->job_id = 0;
-    job->script_name = NULL;
-    job->working_directory = NULL;
-    job->user_name = NULL;
+    job->job_count = 0;
     job->cores_per_job = 0;
     job->min_cores_per_node = 0;
     job->mem_per_core = 0;
+    job->user_name = NULL;
+    job->working_directory = NULL;
+    job->script_name = NULL;
 }
 
 

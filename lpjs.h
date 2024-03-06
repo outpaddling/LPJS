@@ -25,6 +25,8 @@
 
 #define LPJS_RUN_DIR            PREFIX "/var/run/lpjs"
 
+#define LPJS_SCRIPT_SIZE_MAX    64 * 1024
+
 #define LPJS_MB                 1000000
 #define LPJS_MiB                1048576
 #define LPJS_GB                 1000000000

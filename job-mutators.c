@@ -20,17 +20,17 @@
  *      
  *
  *  Description:
- *      Mutator for jobid member in a job_t structure.
- *      Use this function to set jobid in a job_t object
+ *      Mutator for job_id member in a job_t structure.
+ *      Use this function to set job_id in a job_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
- *      jobid is a pointer, data previously pointed to should
+ *      job_id is a pointer, data previously pointed to should
  *      be freed before calling this function to avoid memory
  *      leaks.
  *
  *  Arguments:
  *      job_ptr         Pointer to the structure to set
- *      new_jobid       The new value for jobid
+ *      new_job_id      The new value for job_id
  *
  *  Returns:
  *      JOB_DATA_OK if the new value is acceptable and assigned
@@ -38,9 +38,9 @@
  *
  *  Examples:
  *      job_t           job;
- *      unsigned long   new_jobid;
+ *      unsigned long   new_job_id;
  *
- *      if ( job_set_jobid(&job, new_jobid)
+ *      if ( job_set_job_id(&job, new_job_id)
  *              == JOB_DATA_OK )
  *      {
  *      }
@@ -50,17 +50,17 @@
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-31  gen-get-set Auto-generated from job-private.h
+ *  2024-03-06  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-int     job_set_jobid(job_t *job_ptr, unsigned long new_jobid)
+int     job_set_job_id(job_t *job_ptr, unsigned long new_job_id)
 
 {
     if ( false )
 	return JOB_DATA_OUT_OF_RANGE;
     else
     {
-	job_ptr->job_id = new_jobid;
+	job_ptr->job_id = new_job_id;
 	return JOB_DATA_OK;
     }
 }
@@ -102,7 +102,7 @@ int     job_set_jobid(job_t *job_ptr, unsigned long new_jobid)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-31  gen-get-set Auto-generated from job-private.h
+ *  2024-03-06  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_job_count(job_t *job_ptr, unsigned new_job_count)
@@ -154,7 +154,7 @@ int     job_set_job_count(job_t *job_ptr, unsigned new_job_count)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-31  gen-get-set Auto-generated from job-private.h
+ *  2024-03-06  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_cores_per_job(job_t *job_ptr, unsigned new_cores_per_job)
@@ -206,7 +206,7 @@ int     job_set_cores_per_job(job_t *job_ptr, unsigned new_cores_per_job)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-31  gen-get-set Auto-generated from job-private.h
+ *  2024-03-06  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_min_cores_per_node(job_t *job_ptr, unsigned new_min_cores_per_node)
@@ -246,7 +246,7 @@ int     job_set_min_cores_per_node(job_t *job_ptr, unsigned new_min_cores_per_no
  *
  *  Examples:
  *      job_t           job;
- *      unsigned long   new_mem_per_core;
+ *      size_t          new_mem_per_core;
  *
  *      if ( job_set_mem_per_core(&job, new_mem_per_core)
  *              == JOB_DATA_OK )
@@ -258,10 +258,10 @@ int     job_set_min_cores_per_node(job_t *job_ptr, unsigned new_min_cores_per_no
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-31  gen-get-set Auto-generated from job-private.h
+ *  2024-03-06  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-int     job_set_mem_per_core(job_t *job_ptr, unsigned long new_mem_per_core)
+int     job_set_mem_per_core(job_t *job_ptr, size_t new_mem_per_core)
 
 {
     if ( false )
@@ -310,7 +310,7 @@ int     job_set_mem_per_core(job_t *job_ptr, unsigned long new_mem_per_core)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-31  gen-get-set Auto-generated from job-private.h
+ *  2024-03-06  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_user_name(job_t *job_ptr, char * new_user_name)
@@ -360,7 +360,7 @@ int     job_set_user_name(job_t *job_ptr, char * new_user_name)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-31  gen-get-set Auto-generated from job-private.h
+ *  2024-03-06  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_user_name_ae(job_t *job_ptr, size_t c, char  new_user_name_element)
@@ -411,7 +411,7 @@ int     job_set_user_name_ae(job_t *job_ptr, size_t c, char  new_user_name_eleme
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-31  gen-get-set Auto-generated from job-private.h
+ *  2024-03-06  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_user_name_cpy(job_t *job_ptr, char * new_user_name, size_t array_size)
@@ -464,7 +464,7 @@ int     job_set_user_name_cpy(job_t *job_ptr, char * new_user_name, size_t array
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-31  gen-get-set Auto-generated from job-private.h
+ *  2024-03-06  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_working_directory(job_t *job_ptr, char * new_working_directory)
@@ -514,7 +514,7 @@ int     job_set_working_directory(job_t *job_ptr, char * new_working_directory)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-31  gen-get-set Auto-generated from job-private.h
+ *  2024-03-06  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_working_directory_ae(job_t *job_ptr, size_t c, char  new_working_directory_element)
@@ -565,7 +565,7 @@ int     job_set_working_directory_ae(job_t *job_ptr, size_t c, char  new_working
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-31  gen-get-set Auto-generated from job-private.h
+ *  2024-03-06  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_working_directory_cpy(job_t *job_ptr, char * new_working_directory, size_t array_size)
@@ -618,7 +618,7 @@ int     job_set_working_directory_cpy(job_t *job_ptr, char * new_working_directo
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-31  gen-get-set Auto-generated from job-private.h
+ *  2024-03-06  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_script_name(job_t *job_ptr, char * new_script_name)
@@ -668,7 +668,7 @@ int     job_set_script_name(job_t *job_ptr, char * new_script_name)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-31  gen-get-set Auto-generated from job-private.h
+ *  2024-03-06  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_script_name_ae(job_t *job_ptr, size_t c, char  new_script_name_element)
@@ -719,7 +719,7 @@ int     job_set_script_name_ae(job_t *job_ptr, size_t c, char  new_script_name_e
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-01-31  gen-get-set Auto-generated from job-private.h
+ *  2024-03-06  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_script_name_cpy(job_t *job_ptr, char * new_script_name, size_t array_size)

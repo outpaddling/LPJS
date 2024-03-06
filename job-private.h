@@ -5,6 +5,10 @@
 extern "C" {
 #endif
 
+#ifndef __NODE_LIST_H__
+#include "node-list.h"
+#endif
+
 struct job
 {
     unsigned long   job_id;
