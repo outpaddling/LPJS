@@ -55,6 +55,8 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 {
     job_t       *job = job_new();    // exits if malloc fails, no need to check
     node_list_t *matched_nodes;
+    char        pending_path[PATH_MAX + 1],
+		running_path[PATH_MAX + 1];
     
     /*
      *  Look through spool dir and determine requirements of the
@@ -80,14 +82,22 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	 *  Move from pending to running
 	 */
 	
+	snprintf(pending_path, PATH_MAX + 1,
+		LPJS_PENDING_DIR "/%lu", job_get_jobid(job));
+	snprintf(running_path, PATH_MAX + 1,
+		LPJS_RUNNING_DIR "/%lu", job_get_jobid(job));
+	lpjs_log("Moving %s to %s...\n", pending_path, running_path);
+	rename(pending_path, running_path);
+	
 	/*
 	 *  For each matching node
 	 *      Update mem and core availability
-	 *      Run job script on node
+	 *      Send script to node and run
+	 *          Use script cached in spool dir at submission
 	 */
 	
 	/*
-	 *  Log submission time and stats
+	 *  Log submission time and job specs
 	 */
 	
 	free(matched_nodes);

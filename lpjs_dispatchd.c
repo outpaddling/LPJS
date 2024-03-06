@@ -83,6 +83,13 @@ int     main(int argc,char *argv[])
 	return -1;  // FIXME: Define error codes
     }
 
+    // Parent of all running job directories
+    if ( xt_rmkdir(LPJS_RUNNING_DIR, 0755) != 0 )
+    {
+	fprintf(stderr, "Cannot create %s: %s\n", LPJS_RUNNING_DIR, strerror(errno));
+	return -1;  // FIXME: Define error codes
+    }
+
 #ifdef __linux__    // systemd needs a pid file for forking daemons
     int         status;
     extern char Pid_path[PATH_MAX + 1];
@@ -557,25 +564,27 @@ int     lpjs_queue_job(int msg_fd, job_t *job, const char *script_path)
     char    pending_dir[PATH_MAX + 1],
 	    pending_path[PATH_MAX + 1],
 	    specs_path[PATH_MAX + 1],
-	    job_num_path[PATH_MAX + 1],
+	    jobid_path[PATH_MAX + 1],
 	    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
     FILE    *fp;
-    unsigned long    next_job_num;
     int     status;
+    unsigned long   next_jobid;
+    struct          stat st;
     
     lpjs_log("Spooling %s...\n", script_path);
     
-    snprintf(job_num_path, PATH_MAX + 1, "%s/next-job", LPJS_SPOOL_DIR);
-    if ( (fp = fopen(job_num_path, "r")) == NULL )
-	next_job_num = 1;
+    snprintf(jobid_path, PATH_MAX + 1, "%s/next-job", LPJS_SPOOL_DIR);
+    if ( (fp = fopen(jobid_path, "r")) == NULL )
+	next_jobid = 1;
     else
     {
-	fscanf(fp, "%lu", &next_job_num);
+	fscanf(fp, "%lu", &next_jobid);
 	fclose(fp);
     }
-
+    job_set_jobid(job, next_jobid);
+    
     snprintf(pending_dir, PATH_MAX + 1, "%s/%lu", LPJS_PENDING_DIR,
-	    next_job_num);
+	    next_jobid);
     if ( xt_rmkdir(pending_dir, 0755) != 0 )
     {
 	fprintf(stderr, "Cannot create %s: %s\n", pending_dir, strerror(errno));
@@ -590,7 +599,6 @@ int     lpjs_queue_job(int msg_fd, job_t *job, const char *script_path)
     // FIXME: Use a symlink instead?  Copy is safer in case user
     // modifies the script while a job is running.
     lpjs_log("CWD = %s  script = '%s'\n", getcwd(NULL, 0), script_path);
-    struct stat st;
     lpjs_log("stat(): %d\n", stat(script_path, &st));
     if ( (status = xt_fast_cp(script_path, pending_path)) != 0 )
     {
@@ -616,21 +624,21 @@ int     lpjs_queue_job(int msg_fd, job_t *job, const char *script_path)
     fclose(fp);
     
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX, "Spooled job %lu to %s.\n",
-	    next_job_num, pending_dir);
+	    next_jobid, pending_dir);
     lpjs_send(msg_fd, 0, outgoing_msg);
     
     // FIXME: Send this to the job log, not the daemon log
     lpjs_log(outgoing_msg);
     
     // Bump job num after successful spool
-    if ( (fp = fopen(job_num_path, "w")) == NULL )
+    if ( (fp = fopen(jobid_path, "w")) == NULL )
     {
-	lpjs_log("Cannot update %s: %s\n", job_num_path, strerror(errno));
+	lpjs_log("Cannot update %s: %s\n", jobid_path, strerror(errno));
 	return -1;
     }
     else
     {
-	fprintf(fp, "%lu\n", ++next_job_num);
+	fprintf(fp, "%lu\n", ++next_jobid);
 	fclose(fp);
     }
     
