@@ -65,3 +65,11 @@ if [ $(uname) = SunOS ]; then
 fi
 export PREFIX LOCALBASE
 make clean install
+
+: ${TTY:=`tty`}
+: ${EDITOR:=vi}
+config=$PREFIX/etc/lpjs/config
+if [ ! -e $config ]; then
+    cp $config.sample $config
+    $EDITOR $config < $TTY
+fi
