@@ -130,7 +130,14 @@ int     main (int argc, char *argv[])
 	    lpjs_log("Received %zd bytes from dispatchd: \"%s\"\n",
 		     bytes, vis_msg);
 	    
-	    if ( incoming_msg[0] == 4 )
+	    if ( bytes == 0 )
+	    {
+		// Likely lost connection due to crash or other ungraceful event
+		lpjs_log("%s(): Error reading from dispatchd.  Aborting...\n",
+			__FUNCTION__);
+		sleep(LPJS_RETRY_TIME);
+	    }
+	    else if ( incoming_msg[0] == 4 )
 	    {
 		// Close this end, or dispatchd gets "address already in use"
 		// When trying to restart

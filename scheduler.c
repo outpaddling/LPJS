@@ -57,7 +57,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 
 {
     job_t       *job = job_new();    // exits if malloc fails, no need to check
-    node_list_t *matched_nodes;
+    node_list_t *matched_nodes = node_list_new();
     char        pending_path[PATH_MAX + 1],
 		running_path[PATH_MAX + 1],
 		script_path[PATH_MAX + 1],
@@ -104,7 +104,8 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	
 	snprintf(script_path, PATH_MAX + 1, "%s/%s",
 		running_path, job_get_script_name(job));
-	script_size = lpjs_load_script(script_path, script_buff, LPJS_SCRIPT_SIZE_MAX + 1);
+	script_size = lpjs_load_script(script_path, script_buff,
+				       LPJS_SCRIPT_SIZE_MAX + 1);
 	// FIXME: Determine a real minimum script size
 	if ( script_size < 1 )
 	{
@@ -113,9 +114,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	}
 	
 	lpjs_log("Script %s is %zd bytes.\n", script_path, script_size);
-	// FIXME: Script is coming up blank here
-	fprintf(Log_stream, "strlen = %lu\n", strlen(script_buff));
-	fprintf(Log_stream, "Script in %s():\n%s\n", __FUNCTION__, script_buff);
+	fprintf(Log_stream, "Script:\n%s\n", script_buff);
 	
 	/*
 	 *  For each matching node
@@ -136,7 +135,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	    job_print_to_string(job, outgoing_msg, LPJS_JOB_MSG_MAX + 1);
 	    strlcat(outgoing_msg, script_buff, LPJS_JOB_MSG_MAX + 1);
 	    // FIXME: Check for truncation
-	    lpjs_log("%s():\n%s\n", __FUNCTION__, outgoing_msg);
+	    lpjs_log("%s(): outgoing job msg:\n%s\n", __FUNCTION__, outgoing_msg);
 	    // FIXME: Send job script to compd on node
 	}
 	
@@ -156,6 +155,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
     }
     
     free(job);
+    free(matched_nodes);
     
     return 0;
 }
@@ -374,7 +374,7 @@ int     lpjs_get_usable_cores(job_t *job, node_t *node)
 
 
 ssize_t lpjs_load_script(const char *script_path,
-			 char *script_buff, ssize_t buff_size)
+			 char *script_buff, size_t buff_size)
 
 {
     ssize_t bytes;
@@ -388,14 +388,8 @@ ssize_t lpjs_load_script(const char *script_path,
 	return -1;
     }
     
-    if ( (script_buff = malloc(buff_size)) == NULL )
-    {
-	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
-	return -1;
-    }
-    
-    bytes = read(fd, script_buff, buff_size);
-    if ( bytes == buff_size )
+    bytes = read(fd, script_buff, buff_size + 1);
+    if ( bytes == buff_size + 1 )
     {
 	lpjs_log("%s(): Script exceeds %zd.  Reduce script size or increase script_size_max.\n",
 		__FUNCTION__, buff_size);
@@ -404,8 +398,6 @@ ssize_t lpjs_load_script(const char *script_path,
     }
     close(fd);
     script_buff[bytes] = '\0';
-    fprintf(Log_stream, "strlen = %lu\n", strlen(script_buff));
-    fprintf(Log_stream, "Script in %s():\n%s\n", __FUNCTION__, script_buff);
     
     return bytes;
 }
