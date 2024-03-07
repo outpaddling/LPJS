@@ -83,9 +83,10 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
      *  for the job requirements
      */
     
-    if ( lpjs_match_nodes(job, node_list, &matched_nodes) > 0 )
+    if ( lpjs_match_nodes(job, node_list, matched_nodes) > 0 )
     {
-	lpjs_log("%s(): Found available nodes.  Dispatching...\n", __FUNCTION__);
+	lpjs_log("%s(): Found %u available nodes.  Dispatching...\n",
+		__FUNCTION__, node_list_get_compute_node_count(matched_nodes));
 	
 	/*
 	 *  Move from pending to running
@@ -110,11 +111,11 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	if ( script_size < 1 )
 	{
 	    lpjs_log("%s(): Error reading script.\n", __FUNCTION__);
-	    return 0;  // FIXME: Define return codes
+	    return 0;
 	}
 	
-	lpjs_log("Script %s is %zd bytes.\n", script_path, script_size);
-	fprintf(Log_stream, "Script:\n%s\n", script_buff);
+	// lpjs_log("Script %s is %zd bytes.\n", script_path, script_size);
+	// fprintf(Log_stream, "Script:\n%s\n", script_buff);
 	
 	/*
 	 *  For each matching node
@@ -125,6 +126,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	
 	for (int c = 0; c < node_list_get_compute_node_count(matched_nodes); ++c)
 	{
+	    // lpjs_log("Checking node[%d]\n", c);
 	    node_t *node = node_list_get_compute_nodes_ae(node_list, c);
 	    
 	    msg_fd = node_get_msg_fd(node);
@@ -157,7 +159,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
     free(job);
     free(matched_nodes);
     
-    return 0;
+    return 1;   // 1 job successfully dispatched
 }
 
 
@@ -277,7 +279,7 @@ int     lpjs_select_next_job(job_t *job)
  ***************************************************************************/
 
 int     lpjs_match_nodes(job_t *job, node_list_t *node_list,
-			    node_list_t **matched_nodes)
+			    node_list_t *matched_nodes)
 
 {
     node_t      *node;
@@ -287,12 +289,9 @@ int     lpjs_match_nodes(job_t *job, node_list_t *node_list,
 		total_usable,
 		total_required;
     
-    *matched_nodes = node_list_new();
-
     lpjs_log("Job %u requires %u cores, %lu MiB / core.\n",
 	    job_get_job_id(job), job_get_min_cores_per_node(job),
 	    job_get_mem_per_core(job));
-    lpjs_log("%u nodes to check.\n", node_list_get_compute_node_count(node_list));
     
     total_usable = 0;
     total_required = job_get_cores_per_job(job);
@@ -314,7 +313,7 @@ int     lpjs_match_nodes(job_t *job, node_list_t *node_list,
 	    if ( usable_cores > 0 )
 	    {
 		// FIXME: Set # cores to use on node
-		node_list_add_compute_node(*matched_nodes, node);
+		node_list_add_compute_node(matched_nodes, node);
 		total_usable += usable_cores;
 		++node_count;
 	    }
@@ -323,17 +322,16 @@ int     lpjs_match_nodes(job_t *job, node_list_t *node_list,
     
     if ( total_usable == total_required )
     {
+	// FIXME: Getting moray twice for the second dispatch
 	lpjs_log("Using nodes:\n");
-	for (c = 0; c < node_list_get_compute_node_count(*matched_nodes); ++c)
+	for (c = 0; c < node_list_get_compute_node_count(matched_nodes); ++c)
 	{
-	    node = node_list_get_compute_nodes_ae(*matched_nodes, c);
+	    node = node_list_get_compute_nodes_ae(matched_nodes, c);
 	    lpjs_log("%s\n", node_get_hostname(node));
 	}
     }
     else
 	lpjs_log("Insufficient resources available.\n");
-    
-    free(*matched_nodes);
     
     return node_count;
 }
@@ -362,8 +360,6 @@ int     lpjs_get_usable_cores(job_t *job, node_t *node)
     if ( (available_cores >= required_cores ) &&
 	 (available_mem >= job_get_mem_per_core(job)) )
     {
-	lpjs_log("%s can be used: %u cores and %lu MiB.\n",
-		node_get_hostname(node), available_cores, available_mem);
 	usable_cores = required_cores;
     }
     else

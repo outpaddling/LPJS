@@ -417,7 +417,7 @@ int     job_read_from_file(job_t *job, const char *path)
     char    buff[JOB_STR_MAX_LEN + 1];
     ssize_t bytes;
     
-    lpjs_log("%s(): Reading job specs from %s...\n", __FUNCTION__, path);
+    // lpjs_log("%s(): Reading job specs from %s...\n", __FUNCTION__, path);
 
     if ( (fd = open(path, O_RDONLY)) == -1 )
 	return -1;

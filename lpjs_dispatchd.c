@@ -594,12 +594,10 @@ int     lpjs_queue_job(int msg_fd, job_t *job, const char *script_path)
     snprintf(pending_path, PATH_MAX + 1, "%s/%s", pending_dir,
 	    xt_basename(script_path));
     
-    // lpjs_log("cwd = %s\n", getcwd(cwd, PATH_MAX + 1));
-    
     // FIXME: Use a symlink instead?  Copy is safer in case user
     // modifies the script while a job is running.
-    lpjs_log("CWD = %s  script = '%s'\n", getcwd(NULL, 0), script_path);
-    lpjs_log("stat(): %d\n", stat(script_path, &st));
+    // lpjs_log("CWD = %s  script = '%s'\n", getcwd(NULL, 0), script_path);
+    // lpjs_log("stat(): %d\n", stat(script_path, &st));
     if ( (status = xt_fast_cp(script_path, pending_path)) != 0 )
     {
 	lpjs_log("lpjs_queue_job(): Failed to copy %s to %s: %d %s\n",

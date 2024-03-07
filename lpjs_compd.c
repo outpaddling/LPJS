@@ -132,10 +132,18 @@ int     main (int argc, char *argv[])
 	    
 	    if ( bytes == 0 )
 	    {
-		// Likely lost connection due to crash or other ungraceful event
+		/*
+		 *  Likely lost connection due to crash or other ungraceful
+		 *  event.  Close connection so that dispatchd doesn't hang
+		 *  with "address already in use".
+		 */
+		
 		lpjs_log("%s(): Error reading from dispatchd.  Aborting...\n",
 			__FUNCTION__);
-		sleep(LPJS_RETRY_TIME);
+		close(msg_fd);
+		
+		// FIXME: Reconnect instead of exiting
+		exit(EX_DATAERR);
 	    }
 	    else if ( incoming_msg[0] == 4 )
 	    {

@@ -53,6 +53,7 @@ node_list_t *node_list_new(void)
 	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
     }
+    node_list_init(new_list);
     return new_list;
 }
 
@@ -210,7 +211,7 @@ int     node_list_add_compute_node(node_list_t *node_list, node_t *node)
 	return -1;
     }
     
-    lpjs_log("%s(): Adding %s\n", __FUNCTION__, node_get_hostname(node));
+    // lpjs_log("%s(): Adding %s\n", __FUNCTION__, node_get_hostname(node));
     node_list->compute_nodes[node_list->compute_node_count++] = node;
     
     return 0;   // FIXME: Define return codes
