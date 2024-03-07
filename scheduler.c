@@ -134,10 +134,13 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	    lpjs_log("Dispatching job %lu to %s on socket fd %d...\n",
 		    job_get_job_id(job), node_get_hostname(node), msg_fd);
 	    
-	    job_print_to_string(job, outgoing_msg, LPJS_JOB_MSG_MAX + 1);
+	    outgoing_msg[0] = LPJS_COMPD_REQUEST_NEW_JOB;
+	    job_print_to_string(job, outgoing_msg + 1, LPJS_JOB_MSG_MAX + 1);
 	    strlcat(outgoing_msg, script_buff, LPJS_JOB_MSG_MAX + 1);
 	    // FIXME: Check for truncation
-	    lpjs_log("%s(): outgoing job msg:\n%s\n", __FUNCTION__, outgoing_msg);
+	    lpjs_log("%s(): outgoing job msg:\n%s\n",
+		     __FUNCTION__, outgoing_msg + 1);
+	    
 	    // FIXME: Send job script to compd on node
 	}
 	

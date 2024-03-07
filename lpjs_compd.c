@@ -137,15 +137,13 @@ int     main (int argc, char *argv[])
 		 *  event.  Close connection so that dispatchd doesn't hang
 		 *  with "address already in use".
 		 */
-		
-		lpjs_log("%s(): Error reading from dispatchd.  Aborting...\n",
-			__FUNCTION__);
 		close(msg_fd);
-		
-		// FIXME: Reconnect instead of exiting
-		exit(EX_DATAERR);
+		lpjs_log("%s(): Error reading from dispatchd.  Disconnecting...\n",
+			__FUNCTION__);
+		poll_fd.revents = 0;
+		msg_fd = lpjs_checkin_loop(node_list, node);
 	    }
-	    else if ( incoming_msg[0] == 4 )
+	    else if ( incoming_msg[0] == LPJS_EOT )
 	    {
 		// Close this end, or dispatchd gets "address already in use"
 		// When trying to restart
@@ -156,8 +154,26 @@ int     main (int argc, char *argv[])
 		// Ignore HUP that follows EOT
 		// FIXME: This might be bad timing
 		poll_fd.revents &= ~POLLHUP;
-		
 		msg_fd = lpjs_checkin_loop(node_list, node);
+	    }
+	    else if ( incoming_msg[0] == LPJS_COMPD_REQUEST_NEW_JOB )
+	    {
+		/*
+		 *  Pasrse job specs
+		 */
+		
+		/*
+		 *  Save script
+		 */
+		
+		/*
+		 *  Update node status (keep a copy here in case
+		 *  dispatchd is restarted)
+		 */
+		
+		/*
+		 *  Run script under chaperone
+		 */
 	    }
 	}
     }

@@ -569,7 +569,6 @@ int     lpjs_queue_job(int msg_fd, job_t *job, const char *script_path)
     FILE    *fp;
     int     status;
     unsigned long   next_job_id;
-    struct          stat st;
     
     lpjs_log("Spooling %s...\n", script_path);
     

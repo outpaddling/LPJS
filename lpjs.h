@@ -44,7 +44,9 @@
 #define LPJS_GB                 1000000000
 #define LPJS_GiB                1073741824
 
-// Don't start codes at 0.  It will be interpreted as a null-terminator
+#define LPJS_EOT                '\004'
+
+// Don't start codes at 0.  It will be interpreted as a null-terminator.
 enum
 {
     LPJS_REQUEST_COMPD_CHECKIN = 1,
@@ -53,7 +55,13 @@ enum
     LPJS_REQUEST_SUBMIT
 };
 
-// Don't start codes at 0.  It will be interpreted as a null-terminator
+// Don't start codes at 0.  It will be interpreted as a null-terminator.
+enum
+{
+    LPJS_COMPD_REQUEST_NEW_JOB = 1
+};
+
+// Don't start codes at 0.  It will be interpreted as a null-terminator.
 enum
 {
     LPJS_NOTICE_JOB_COMPLETE = 1

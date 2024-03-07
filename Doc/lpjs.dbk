@@ -7,14 +7,27 @@
         <title>Introduction</title>
         
         <para>
-        Small, simple, reliable.  Easy to set up.  Intuitive UI.
+        LPJS is a resource manager and job scheduler for running batch
+        jobs on one or more computers.  It can be used on a single machine
+        in order to maximize utilization of CPUs and memory without
+        oversubscribing the system, or on multiple networked computers
+        organized as an HPC (high performance computing) cluster or
+        HTC (high throughput computing) grid.
+        </para>
+        
+        <para>
+        Unlike most similar tools, LPJS is designed to be small, simple,
+        easy to install and configure, and easy to use.  It provides an
+        intuitive user interface, including menu-based operation for
+        common tasks.
         </para>
         
         <para>
         This manual is aimed at the systems manager, covering
         installation and configuration of LPJS.  For a user's guide
-        on HPC clusters, HTC grids, and LPJS operation,
-        see the Research Computing User's Guide.
+        on LPJS use, including general information on HPC clusters
+        and HTC grids, see the Research Computing User's Guide at
+        <ulink url="https://acadix.biz/publications.php">https://acadix.biz/publications.php</ulink>.
         </para>
     </chapter>
     
@@ -22,20 +35,30 @@
         <title>Installation</title>
         
         <para>
-        Use FreeBSD ports or pkgsrc.  Other package managers may be
-        supported by third parties.
+        Installation should be performed using a package manager, such as
+        FreeBSD ports or pkgsrc.  We maintain a FreeBSD port for use on
+        FreeBSD and Dragonfly BSD, and a pkgsrc package that should work on
+        almost any other POSIX platform, including other BSDs, most Linux
+        distributions, macOS, Solaris-based systems, etc.
+        Other package managers may be supported by third parties.
         </para>
         
         <para>
         LPJS uses <command>munge</command>
         <ulink url="https://github.com/dun/munge">(https://github.com/dun/munge)</ulink>
-        to authenticate messages
-        between nodes.  This requires all nodes to have a shared munge key file.
+        to authenticate messages between nodes.  Munge is installed
+        automatically by the package manager when installing LPJS.
+        </para>
         
+        <para>
+        However, munge also requires all nodes to have a shared munge key
+        file, which is unique to your installation.  It must be generated
+        by you (see the munge documentation) and distributed to all
+        computers that are part of your cluster or grid.
         THE MUNGE KEY FILE MUST BE KEPT SECURE AT ALL TIMES ON ALL NODES.
         Use secure procedures
-        to distribute it to all nodes, so that it is never visible to unauthorized
-        users.
+        to distribute it to all nodes, so that it is never visible to
+        unauthorized users.
         </para>
     </chapter>
     
@@ -43,30 +66,44 @@
         <title>Starting Daemons</title>
         
         <para>
-        munged, lpjs_dispatchd, lpjs_compd.  Install munge key on head
-        node and all compute nodes.
+        All nodes in the cluster or grid must be running munged, using the
+        same munge key.  The head node must run lpjs_dispatchd, and
+        all compute nodes must run lpjs_compd.
         </para>
+        
+        <note>
+        The head node can also serve as a compute node, though this is
+        not generally recommended.  The head node should remain lightly
+        loaded so that it can respond in real time to events that
+        occur such as new job submissions and job completions.  The
+        head node need not be a powerful machine.  A laptop or low-end
+        desktop machine will work just fine.
+        </note>
         
         <para>
         Jobs can be submitted from any node with the same version of
-        LPJS installed.  It need not be running LPJS daemons, but it
+        LPJS and the shared munge key installed.
+        It need not be running LPJS daemons, but it
         does require a configuration file point to the head node and munge
         to authenticate requests.  Hence, other computers on the network
-        can act as submit nodes, even if they are not part of the cluster/grid.
+        can act as submit nodes, even if they are not part of the
+        cluster/grid.
         </para>
         
         <para>
-        Normally run as a service.  Run lpjs-admin and use the menus
-        to set up machine as a head node or compute node.  This will
-        enable the necessary daemons.
+        The lpjs_dispatchd and lpjs_compd commands are normally run as a
+        service.  You can run lpjs-admin as the root user and use the menus
+        to configure a machine as a head node or compute node with the
+        appropriate services enabled.
         </para>
         
         <para>
-        It is possible to use LPJS without having admin access.
-        Start the daemons manually by running <command>munged</command>
+        It is also possible to use LPJS without having admin access.
+        Simply start the daemons manually by running <command>munged</command>
         and <command>lpjs_dispatchd</command> on the head node, and
         <command>munged</command> and <command>lpjs_compd</command>
-        on each compute node.  Compute nodes will only be able to run jobs
+        on each compute node.  Note that if lpjs_compd is not running as root,
+        the compute node will only be able to run jobs
         under the same user name that submitted them.
         </para>
     </chapter>
