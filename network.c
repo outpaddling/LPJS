@@ -294,10 +294,10 @@ ssize_t lpjs_recv_munge(int msg_fd, char **payload,
 ssize_t lpjs_send_eot(int msg_fd)
 
 {
-    char    buff[2] = "\004";
+    char    buff[2] = { LPJS_EOT, '\0' };
     ssize_t bytes;
     
-    bytes = lpjs_send(msg_fd, 0, buff);
+    bytes = lpjs_send_munge(msg_fd, buff);
     if ( bytes != 1 )
 	lpjs_log("send_eot(): Failed to send EOT.\n");
     

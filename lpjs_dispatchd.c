@@ -362,7 +362,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 {
     int         msg_fd;
     ssize_t     bytes;
-    char        *incoming_msg;
+    char        *munge_payload;
     socklen_t   address_len = sizeof (struct sockaddr_in);
     uid_t       uid;
     gid_t       gid;
@@ -383,24 +383,25 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 
 	    /* Read a message through the socket */
 	    if ( (bytes = lpjs_recv_munge(msg_fd,
-			 &incoming_msg, 0, 0, &uid, &gid)) < 1 )
+			 &munge_payload, 0, 0, &uid, &gid)) < 1 )
 	    {
 		lpjs_log("lpjs_check_listen_fd(): lpjs_recv_munge() failed (%zd bytes): %s",
 			bytes, strerror(errno));
 		close(msg_fd);
+		free(munge_payload);
 		return bytes;
 	    }
 	    lpjs_log("%s(): Got %zd byte message.\n", __FUNCTION__, bytes);
 	    // bytes must be at least 1, or no mem is allocated
-	    incoming_msg[bytes] = '\0';
-	    lpjs_log("%s(): Request code = %d\n", __FUNCTION__, incoming_msg[0]);
-	    lpjs_log("%s(): %s\n", __FUNCTION__, incoming_msg + 1);
+	    munge_payload[bytes] = '\0';
+	    lpjs_log("%s(): Request code = %d\n", __FUNCTION__, munge_payload[0]);
+	    lpjs_log("%s(): %s\n", __FUNCTION__, munge_payload + 1);
 	    /* Process request */
-	    switch(incoming_msg[0])
+	    switch(munge_payload[0])
 	    {
 		case    LPJS_REQUEST_COMPD_CHECKIN:
 		    lpjs_log("LPJS_REQUEST_COMPD_CHECKIN\n");
-		    lpjs_process_compute_node_checkin(msg_fd, incoming_msg,
+		    lpjs_process_compute_node_checkin(msg_fd, munge_payload,
 						      node_list, uid, gid);
 		    lpjs_dispatch_jobs(node_list, job_list);
 		    break;
@@ -418,16 +419,17 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    break;
 		
 		case    LPJS_REQUEST_SUBMIT:
-		    lpjs_submit(msg_fd, incoming_msg, node_list, job_list,
+		    lpjs_submit(msg_fd, munge_payload, node_list, job_list,
 				uid, gid);
 		    lpjs_dispatch_jobs(node_list, job_list);
 		    break;
 		
 		default:
 		    lpjs_log("Invalid request on listen_fd: %d\n",
-			    incoming_msg[0]);
+			    munge_payload[0]);
 		    
 	    }   // switch
+	    free(munge_payload);
 	}
     }
     

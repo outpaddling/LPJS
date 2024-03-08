@@ -35,12 +35,14 @@ int     main (int argc, char *argv[])
 {
     node_list_t *node_list = node_list_new();
     node_t      *node = node_new(); // FIXME: Does this new to be allocated?
-    char        incoming_msg[LPJS_MSG_LEN_MAX + 1],
+    char        *munge_payload,
 		vis_msg[LPJS_MSG_LEN_MAX + 1];
     ssize_t     bytes;
     int         msg_fd;
     struct pollfd   poll_fd;
     extern FILE *Log_stream;
+    uid_t       uid;
+    gid_t       gid;
 
     if ( argc > 2 )
     {
@@ -123,10 +125,10 @@ int     main (int argc, char *argv[])
 	if (poll_fd.revents & POLLIN)
 	{
 	    poll_fd.revents &= ~POLLIN;
-	    bytes = lpjs_recv(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 0);
-	    incoming_msg[bytes] = '\0';
+	    bytes = lpjs_recv_munge(msg_fd, &munge_payload, 0, 0, &uid, &gid);
+	    munge_payload[bytes] = '\0';
 	    xt_strviscpy((unsigned char *)vis_msg,
-			 (unsigned char *)incoming_msg, LPJS_MSG_LEN_MAX + 1);
+			 (unsigned char *)munge_payload, LPJS_MSG_LEN_MAX + 1);
 	    lpjs_log("Received %zd bytes from dispatchd: \"%s\"\n",
 		     bytes, vis_msg);
 	    
@@ -143,7 +145,7 @@ int     main (int argc, char *argv[])
 		poll_fd.revents = 0;
 		msg_fd = lpjs_checkin_loop(node_list, node);
 	    }
-	    else if ( incoming_msg[0] == LPJS_EOT )
+	    else if ( munge_payload[0] == LPJS_EOT )
 	    {
 		// Close this end, or dispatchd gets "address already in use"
 		// When trying to restart
@@ -156,7 +158,7 @@ int     main (int argc, char *argv[])
 		poll_fd.revents &= ~POLLHUP;
 		msg_fd = lpjs_checkin_loop(node_list, node);
 	    }
-	    else if ( incoming_msg[0] == LPJS_COMPD_REQUEST_NEW_JOB )
+	    else if ( munge_payload[0] == LPJS_COMPD_REQUEST_NEW_JOB )
 	    {
 		/*
 		 *  Pasrse job specs
@@ -175,6 +177,7 @@ int     main (int argc, char *argv[])
 		 *  Run script under chaperone
 		 */
 	    }
+	    free(munge_payload);
 	}
     }
 
