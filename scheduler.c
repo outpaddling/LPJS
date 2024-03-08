@@ -14,6 +14,7 @@
 #include "lpjs.h"
 #include "node-list.h"
 #include "scheduler.h"
+#include "network.h"
 #include "misc.h"       // lpjs_log()
 
 /***************************************************************************
@@ -142,6 +143,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 		     __FUNCTION__, outgoing_msg + 1);
 	    
 	    // FIXME: Send job script to compd on node
+	    lpjs_send_munge(msg_fd, outgoing_msg);
 	}
 	
 	/*
@@ -160,7 +162,6 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
     }
     
     free(job);
-    free(matched_nodes);
     
     return 1;   // 1 job successfully dispatched
 }

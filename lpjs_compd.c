@@ -102,7 +102,7 @@ int     main (int argc, char *argv[])
 	// FIXME: Send regular pings to lpjs_dispatchd?
 	// Or monitor compd daemons with a separate process that
 	// sends events to dispatchd?
-	
+
 	if (poll_fd.revents & POLLHUP)
 	{
 	    poll_fd.revents &= ~POLLHUP;
@@ -160,6 +160,8 @@ int     main (int argc, char *argv[])
 	    }
 	    else if ( munge_payload[0] == LPJS_COMPD_REQUEST_NEW_JOB )
 	    {
+		lpjs_log("New job dispatch received...\n");
+		
 		/*
 		 *  Pasrse job specs
 		 */

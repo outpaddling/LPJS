@@ -99,20 +99,23 @@ int     lpjs_print_response(int msg_fd, const char *caller_name)
 
 {
     ssize_t bytes;
-    char    buff[LPJS_MSG_LEN_MAX + 1];
+    char    *payload;
     bool    eot_received = false;
+    uid_t   uid;
+    gid_t   gid;
     
     while ( ! eot_received &&
-	    (bytes = recv(msg_fd, buff, LPJS_MSG_LEN_MAX, 0)) > 0 )
+	    (bytes = lpjs_recv_munge(msg_fd, &payload, 0, 0, &uid, &gid)) > 0 )
     {
-	eot_received = (buff[bytes-1] == 4);
+	eot_received = (payload[bytes-1] == 4);
 	if ( eot_received )
 	{
 	    --bytes;
 	    // lpjs_log("EOT received.\n");
 	}
-	buff[bytes] = '\0';
-	printf("%s", buff);
+	payload[bytes] = '\0';
+	printf("%s", payload);
+	free(payload);
     }
     
     if ( bytes == -1 )
@@ -257,10 +260,10 @@ ssize_t lpjs_recv_munge(int msg_fd, char **payload,
     
     if ( bytes_read > 0 )
     {
-	lpjs_log("%s(): Unmunging %zd bytes...\n", __FUNCTION__, bytes_read);
+	// lpjs_log("%s(): Unmunging %zd bytes...\n", __FUNCTION__, bytes_read);
 	munge_status = munge_decode(incoming_msg, NULL, (void **)payload,
 				    &payload_len, uid, gid);
-	lpjs_log("%s(): Payload len = %d\n", __FUNCTION__, payload_len);
+	// lpjs_log("%s(): Payload len = %d\n", __FUNCTION__, payload_len);
 	if ( munge_status != EMUNGE_SUCCESS )
 	{
 	    lpjs_server_safe_close(msg_fd);
@@ -299,7 +302,7 @@ ssize_t lpjs_send_eot(int msg_fd)
     
     bytes = lpjs_send_munge(msg_fd, buff);
     if ( bytes != 1 )
-	lpjs_log("send_eot(): Failed to send EOT.\n");
+	lpjs_log("%s(): Failed to send EOT.\n", __FUNCTION__);
     
     return bytes;
 }
@@ -374,6 +377,7 @@ int     lpjs_server_safe_close(int msg_fd)
      *  Client must be looking for the EOT character at the end of
      *  a read, or this is useless.
      */
+    
     lpjs_send_eot(msg_fd);
     
     /*

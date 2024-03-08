@@ -545,6 +545,7 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
 	lpjs_log("Submit script %s from %d, %d\n", script_path, uid, gid);
 	lpjs_queue_job(msg_fd, job, script_path);
     }
+    
     lpjs_server_safe_close(msg_fd);
 
     return EX_OK;
@@ -624,7 +625,7 @@ int     lpjs_queue_job(int msg_fd, job_t *job, const char *script_path)
     
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX, "Spooled job %lu to %s.\n",
 	    next_job_id, pending_dir);
-    lpjs_send(msg_fd, 0, outgoing_msg);
+    lpjs_send_munge(msg_fd, outgoing_msg);
     
     // FIXME: Send this to the job log, not the daemon log
     lpjs_log(outgoing_msg);
