@@ -523,7 +523,8 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
 		    uid_t uid, gid_t gid)
 
 {
-    char        script_path[PATH_MAX + 1];
+    char        script_path[PATH_MAX + 1],
+		*end;
     job_t       *job = job_new(); // exits if malloc() fails, no need to check
     int         c;
     
@@ -534,7 +535,7 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
     
     // Payload in message from lpjs submit is a job description
     // in JOB_SPEC_FORMAT
-    job_read_from_string(job, incoming_msg + 1);
+    job_read_from_string(job, incoming_msg + 1, &end);
     
     // Need the absolute pathname of the script.  Might be the same
     // on compute nodes if NFS or other file server is used

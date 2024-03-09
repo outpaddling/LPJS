@@ -315,7 +315,7 @@ int     job_parse_script(job_t *job, const char *script_name)
  *  2024-01-31  Jason Bacon Begin
  ***************************************************************************/
 
-int     job_read_from_string(job_t *job, const char *string)
+int     job_read_from_string(job_t *job, const char *string, char **end)
 
 {
     int         items,
@@ -375,6 +375,7 @@ int     job_read_from_string(job_t *job, const char *string)
     }
     ++items;
     
+    *end = p;
     free(temp);
     
     return items;
@@ -414,7 +415,8 @@ int     job_read_from_file(job_t *job, const char *path)
 
 {
     int     fd;
-    char    buff[JOB_STR_MAX_LEN + 1];
+    char    buff[JOB_STR_MAX_LEN + 1],
+	    *end;
     ssize_t bytes;
     
     // lpjs_log("%s(): Reading job specs from %s...\n", __FUNCTION__, path);
@@ -439,7 +441,7 @@ int     job_read_from_file(job_t *job, const char *path)
     
     buff[bytes] = '\0';
     
-    return job_read_from_string(job, buff);
+    return job_read_from_string(job, buff, &end);
 }
 
 

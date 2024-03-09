@@ -18,6 +18,9 @@
 #include <sys/socket.h>
 #include <poll.h>
 #include <stdbool.h>
+#include <sys/stat.h>       // S_ISDIR()
+#include <pwd.h>            // getpwnam()
+#include <fcntl.h>          // open()
 
 #include <xtend/string.h>
 #include <xtend/proc.h>
@@ -28,6 +31,7 @@
 #include "config.h"
 #include "network.h"
 #include "misc.h"
+#include "job.h"
 #include "lpjs_compd.h"
 
 int     main (int argc, char *argv[])
@@ -43,7 +47,10 @@ int     main (int argc, char *argv[])
     extern FILE *Log_stream;
     uid_t       uid;
     gid_t       gid;
-
+    char    wd[PATH_MAX + 1],
+	    script_name[PATH_MAX + 1];
+    int     fd;
+    
     if ( argc > 2 )
     {
 	fprintf (stderr, "Usage: %s [--daemonize|--log-output]\n", argv[0]);
@@ -129,8 +136,7 @@ int     main (int argc, char *argv[])
 	    munge_payload[bytes] = '\0';
 	    xt_strviscpy((unsigned char *)vis_msg,
 			 (unsigned char *)munge_payload, LPJS_MSG_LEN_MAX + 1);
-	    lpjs_log("Received %zd bytes from dispatchd: \"%s\"\n",
-		     bytes, vis_msg);
+	    // lpjs_log("Received %zd bytes from dispatchd: \"%s\"\n", bytes, vis_msg);
 	    
 	    if ( bytes == 0 )
 	    {
@@ -160,15 +166,76 @@ int     main (int argc, char *argv[])
 	    }
 	    else if ( munge_payload[0] == LPJS_COMPD_REQUEST_NEW_JOB )
 	    {
-		lpjs_log("New job dispatch received...\n");
+		// FIXME: Break out new functions for this
+		job_t   *job = job_new();
+		char    *script_start,
+			*working_dir;
+		struct stat st;
 		
 		/*
-		 *  Pasrse job specs
+		 *  Parse job specs
 		 */
+		
+		job_read_from_string(job, munge_payload + 1, &script_start);
+		lpjs_log("New job received:\n");
+		job_print(job, Log_stream);
+		lpjs_log("Script:\n%s", script_start);
+		
+		/*
+		 *  Go to same directory from which job was submitted
+		 *  if it exists here (likely using NFS), otherwise
+		 *  go to user's home dir.
+		 */
+		
+		working_dir = job_get_working_directory(job);
+		if ( (stat(working_dir, &st) == 0) &&
+		     S_ISDIR(st.st_mode) )
+		{
+		    lpjs_log("Running job in %s.\n", working_dir);
+		}
+		else
+		{
+		    struct passwd *pw_ent;
+		    
+		    // Use pwnam_r() if multithreading, not likely
+		    if ( (pw_ent = getpwnam(job_get_user_name(job))) == NULL )
+		    {
+			lpjs_log("No such user: %s\n", job_get_user_name(job));
+			// FIXME: Report job failure to dispatchd
+		    }
+		    else
+		    {
+			// FIXME: Check for failures
+			chdir(pw_ent->pw_dir);
+			snprintf(wd, PATH_MAX + 1, "LPJS-job-%lu",
+				job_get_job_id(job));
+			lpjs_log("%s does not exist.  Using %s.\n",
+				working_dir, wd);
+			mkdir(wd, 0700);
+			working_dir = wd;
+		    }
+		}
+		if ( chdir(working_dir) != 0 )
+		{
+		    lpjs_log("Failed to enter working dir: %s\n", working_dir);
+		    // FIXME: Notify dispatchd of job failure
+		}
 		
 		/*
 		 *  Save script
 		 */
+		
+		snprintf(script_name, PATH_MAX + 1, "lpjs-job-%lu-%s",
+			job_get_job_id(job), job_get_script_name(job));
+		lpjs_log("Saving temporary script to %s.\n", script_name);
+		if ( (fd = open(script_name, O_WRONLY|O_CREAT, 0700)) == -1 )
+		{
+		    lpjs_log("Cannot create %s: %s\n", script_name,
+			    strerror(errno));
+		    // FIXME: Report job failure to dispatchd
+		}
+		write(fd, script_start, strlen(script_start));
+		close(fd);
 		
 		/*
 		 *  Update node status (keep a copy here in case
@@ -239,25 +306,12 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
 
 
 /***************************************************************************
- *  Use auto-c2man to generate a man page from this comment
- *
- *  Library:
- *      #include <>
- *      -l
- *
  *  Description:
- *  
- *  Arguments:
+ *      Connect to dispatchd and send checkin request.
+ *      Retry indefinitely if failure occurs.
  *
  *  Returns:
- *
- *  Examples:
- *
- *  Files:
- *
- *  Environment
- *
- *  See also:
+ *      File descriptor for ongoing connection to dispatchd.
  *
  *  History: 
  *  Date        Name        Modification
