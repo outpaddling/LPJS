@@ -409,7 +409,10 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		case    LPJS_REQUEST_NODE_STATUS:
 		    lpjs_log("Request for node status.\n");
 		    node_list_send_status(msg_fd, node_list);
-		    lpjs_server_safe_close(msg_fd);
+		    // lpjs_server_safe_close(msg_fd);
+		    // node_list_send_status() sends EOT,
+		    // so don't use safe_close here.
+		    close(msg_fd);
 		    break;
 		
 		case    LPJS_REQUEST_JOB_STATUS:

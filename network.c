@@ -257,7 +257,6 @@ ssize_t lpjs_recv_munge(int msg_fd, char **payload,
 	lpjs_log("%s: lpjs_recv() failed: %s", __FUNCTION__, strerror(errno));
 	return -1;
     }
-    
     if ( bytes_read > 0 )
     {
 	// lpjs_log("%s(): Unmunging %zd bytes...\n", __FUNCTION__, bytes_read);
@@ -294,23 +293,27 @@ ssize_t lpjs_recv_munge(int msg_fd, char **payload,
  *  2024-01-17  Jason Bacon Begin
  ***************************************************************************/
 
-ssize_t lpjs_send_eot(int msg_fd)
+int     lpjs_send_eot(int msg_fd)
 
 {
     char    buff[2] = { LPJS_EOT, '\0' };
-    ssize_t bytes;
+    int     status;
     
-    bytes = lpjs_send_munge(msg_fd, buff);
-    if ( bytes != 1 )
+    status = lpjs_send_munge(msg_fd, buff);
+    lpjs_log("%s(): status = %d\n", __FUNCTION__, status);
+    if ( status != EX_OK )
 	lpjs_log("%s(): Failed to send EOT.\n", __FUNCTION__);
     
-    return bytes;
+    return status;
 }
 
 
 /***************************************************************************
  *  Description:
  *      Send a munge-encoded message
+ *
+ *  Returns:
+ *      EX_OK on success, various other error codes
  *
  *  History: 
  *  Date        Name        Modification
@@ -342,12 +345,12 @@ int     lpjs_send_munge(int msg_fd, char *msg)
     }
     free(cred);
     
-    // Read acknowledgment from dispatchd before node_send_specs().
+    // Read acknowledgment
     bytes = lpjs_recv(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 0);
-    // lpjs_log("Response: %zu '%s'\n", bytes, incoming_msg);
+    // lpjs_log("%s(): Response: %zu '%s'\n", __FUNCTION__, bytes, incoming_msg);
     if ( (bytes == 0) || (strcmp(incoming_msg, LPJS_MUNGE_CRED_VERIFIED) != 0) )
     {
-	lpjs_log("lpjs_compd_checkin(): Expected %s.\n", LPJS_MUNGE_CRED_VERIFIED);
+	lpjs_log("%s(): Expected %s.\n", __FUNCTION__, LPJS_MUNGE_CRED_VERIFIED);
 	return EX_DATAERR;
     }
     // lpjs_log("%s(): Munge message acknolwedged.\n", __FUNCTION__);

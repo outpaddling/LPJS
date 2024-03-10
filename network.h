@@ -13,7 +13,7 @@
 #define LPJS_IP_TCP_PORT        (short)6817 // Need short for htons()
 #define LPJS_RETRY_TIME         5
 
-#define LPJS_MUNGE_CRED_VERIFIED     "Munge credentials verified" 
+#define LPJS_MUNGE_CRED_VERIFIED     "MCD"
 
 #ifndef _SYS_POLL_H_
 #include <sys/poll.h>

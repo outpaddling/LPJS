@@ -133,9 +133,13 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
     unsigned long   mem_up,
 		    mem_up_used,
 		    mem_down;
+    char            header[LPJS_MSG_LEN_MAX + 1],
+		    summary[LPJS_MSG_LEN_MAX + 1];
     
-    xt_dprintf(msg_fd, NODE_STATUS_HEADER_FORMAT, "Hostname", "State",
+    snprintf(header, LPJS_MSG_LEN_MAX,
+	    NODE_STATUS_HEADER_FORMAT, "Hostname", "State",
 	    "Cores", "Used", "Physmem", "Used", "OS", "Arch");
+    lpjs_send_munge(msg_fd, header);
     
     cores_up = cores_up_used = cores_down = 0;
     mem_up = mem_up_used = mem_down = 0;
@@ -157,11 +161,17 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
 	}
     }
     
-    xt_dprintf(msg_fd, "\n");
-    xt_dprintf(msg_fd, NODE_STATUS_FORMAT, "Total", "Up",
-		  cores_up, cores_up_used, mem_up, mem_up_used, "-", "-");
-    xt_dprintf(msg_fd, NODE_STATUS_FORMAT, "Total", "Down",
-		  cores_down, 0, mem_down, 0, "-", "-");
+    lpjs_log("Sending summary...\n");
+    lpjs_send_munge(msg_fd, "\n");
+    snprintf(summary, LPJS_MSG_LEN_MAX + 1,
+	    NODE_STATUS_FORMAT, "Total", "Up",
+	    cores_up, cores_up_used, mem_up, mem_up_used, "-", "-");
+    lpjs_send_munge(msg_fd, summary);
+    
+    snprintf(summary, LPJS_MSG_LEN_MAX,
+	    NODE_STATUS_FORMAT, "Total", "Down",
+	    cores_down, 0, mem_down, (size_t)0, "-", "-");
+    lpjs_send_munge(msg_fd, summary);
     
     /*
      *  Closing the listener first results in "address already in use"
@@ -170,6 +180,7 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
      *  state for the socket.
      */
     lpjs_send_eot(msg_fd);
+    lpjs_log("EOT sent.\n");
 }
 
 

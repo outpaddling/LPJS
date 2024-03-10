@@ -118,14 +118,17 @@ int     job_print_to_string(job_t *job, char *str, size_t buff_size)
 void    job_send_as_msg(job_t *job, int msg_fd)
 
 {
-    /*
-     *  Don't use send() here, since there will be more text to send
-     *  and send() terminates the message.
-     */
-    if ( xt_dprintf(msg_fd, JOB_SPEC_FORMAT, job->job_id, job->script_name,
-	    job->user_name, job->cores_per_job, job->mem_per_core) < 0 )
+    char    msg[LPJS_MSG_LEN_MAX + 1];
+    
+    snprintf(msg, LPJS_MSG_LEN_MAX + 1, JOB_SPEC_FORMAT,
+	    job->job_id, job->job_count,
+	    job->cores_per_job,
+	    job->min_cores_per_node, job->mem_per_core, job->user_name,
+	    job->working_directory, job->script_name);
+    
+    if ( lpjs_send_munge(msg_fd, msg) != EX_OK )
     {
-	perror("send_job_params(): xt_dprintf() failed");
+	lpjs_log("%s(): send failed.\n", __FUNCTION__);
 	exit(EX_IOERR);
     }
 }
@@ -476,9 +479,13 @@ void    job_free(job_t **job)
 void    job_send_spec_header(int msg_fd)
 
 {
-    xt_dprintf(msg_fd, JOB_SPEC_HEADER_FORMAT, "JobID", "Job-count",
-		"Cores/job", "Cores/node", "Mem/core",
-		"User-name", "Working-directory", "Script-name");
+    char    msg[LPJS_MSG_LEN_MAX + 1];
+    
+    snprintf(msg, LPJS_MSG_LEN_MAX + 1,
+	    JOB_SPEC_HEADER_FORMAT, "JobID", "Job-count",
+	    "Cores/job", "Cores/node", "Mem/core",
+	    "User-name", "Working-directory", "Script-name");
+    lpjs_send_munge(msg_fd, msg);
 }
 
 

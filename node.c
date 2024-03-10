@@ -158,13 +158,13 @@ void    node_print_status(node_t *node, FILE *stream)
 void    node_send_status(node_t *node, int msg_fd)
 
 {
-    /*
-     *  Don't use send() here, since there will be more text to send
-     *  and send() terminates the message.
-     */
-    if ( xt_dprintf(msg_fd, NODE_STATUS_FORMAT, node->hostname, node->state,        
+    char    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
+     
+    snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1,
+		NODE_STATUS_FORMAT, node->hostname, node->state,        
 		node->cores, node->cores_used,                                 
-		node->phys_mem, node->phys_mem_used, node->os, node->arch) < 0 )
+		node->phys_mem, node->phys_mem_used, node->os, node->arch);
+    if ( lpjs_send_munge(msg_fd, outgoing_msg) < 0 )
     {
 	lpjs_log("send_node_specs(): xt_dprintf() failed: %s", strerror(errno));
 	exit(EX_IOERR);
@@ -182,6 +182,7 @@ void    node_send_status(node_t *node, int msg_fd)
  *  2021-10-02  Jason Bacon Begin
  ***************************************************************************/
 
+/*
 ssize_t node_send_specs(node_t *node, int msg_fd)
 
 {
@@ -199,8 +200,9 @@ ssize_t node_send_specs(node_t *node, int msg_fd)
 	exit(EX_IOERR);
     }
     
-    return lpjs_send(msg_fd, 0, specs_msg);
+    return lpjs_send_munge(msg_fd, specs_msg);
 }
+*/
 
 
 int     node_print_specs_header(FILE *stream)
@@ -263,64 +265,64 @@ ssize_t node_str_to_specs(node_t *node, const char *str)
     
     if ( (field = strsep(&stringp, "\t")) == NULL )
     {
-	lpjs_log("node_recv_specs(): Failed to extract hostname from specs.\n");
+	lpjs_log("%s(): Failed to extract hostname from specs.\n", __FUNCTION__);
 	return -1;
     }
     node->hostname = strdup(field);
 
     if ( (field = strsep(&stringp, "\t")) == NULL )
     {
-	lpjs_log("node_recv_specs(): Failed to extract state from specs.\n");
+	lpjs_log("%s(): Failed to extract state from specs.\n", __FUNCTION__);
 	return -1;
     }
     node->state = strdup(field);
 
     if ( (field = strsep(&stringp, "\t")) == NULL )
     {
-	lpjs_log("node_recv_specs(): Failed to extract cores from specs.\n");
+	lpjs_log("%s(): Failed to extract cores from specs.\n", __FUNCTION__);
 	return -1;
     }
     node->cores = strtoul(field, &end, 10);
     if ( *end != '\0' )
     {
-	lpjs_log("node_recv_specs(): Cores field is not a valid number.\n");
+	lpjs_log("%s(): Cores field is not a valid number.\n", __FUNCTION__);
 	return -1;
     }
 
     if ( (field = strsep(&stringp, "\t")) == NULL )
     {
-	lpjs_log("node_recv_specs(): Failed to extract physmem from specs.\n");
+	lpjs_log("%s(): Failed to extract physmem from specs.\n", __FUNCTION__);
 	return -1;
     }
     node->phys_mem = strtoul(field, &end, 10);
     if ( *end != '\0' )
     {
-	lpjs_log("node_recv_specs(): Physmem field is not a valid number.\n");
+	lpjs_log("%s(): Physmem field is not a valid number.\n", __FUNCTION__);
 	return -1;
     }
 
     if ( (field = strsep(&stringp, "\t")) == NULL )
     {
-	lpjs_log("node_recv_specs(): Failed to extract ZFS Boolean from specs.\n");
+	lpjs_log("%s(): Failed to extract ZFS Boolean from specs.\n", __FUNCTION__);
 	return -1;
     }
     node->zfs = strtoul(field, &end, 10);
     if ( *end != '\0' )
     {
-	lpjs_log("node_recv_specs(): ZFS field is not a valid number (should be 0 or 1).\n");
+	lpjs_log("%s(): ZFS field is not a valid number (should be 0 or 1).\n", __FUNCTION__);
 	return -1;
     }
 
     if ( (field = strsep(&stringp, "\t")) == NULL )
     {
-	lpjs_log("node_recv_specs(): Failed to extract OS from specs.\n");
+	lpjs_log("%s(): Failed to extract OS from specs.\n", __FUNCTION__);
 	return -1;
     }
     node->os = strdup(field);
 
     if ( (field = strsep(&stringp, "\t\n")) == NULL )
     {
-	lpjs_log("node_recv_specs(): Failed to extract arch from specs.\n");
+	lpjs_log("%s(): Failed to extract arch from specs.\n", __FUNCTION__);
 	return -1;
     }
     node->arch = strdup(field);
