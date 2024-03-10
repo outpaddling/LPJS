@@ -37,9 +37,9 @@ int     main (int argc, char *argv[])
 		log_file[PATH_MAX + 1];
     extern FILE *Log_stream;
     
-    if ( argc < 2 )
+    if ( argc != 4 )
     {
-	fprintf (stderr, "Usage: %s command [args]\n", argv[0]);
+	fprintf (stderr, "Usage: %s cores mebibytes script\n", argv[0]);
 	return EX_USAGE;
     }
 
