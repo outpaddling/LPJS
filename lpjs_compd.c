@@ -47,9 +47,6 @@ int     main (int argc, char *argv[])
     extern FILE *Log_stream;
     uid_t       uid;
     gid_t       gid;
-    char    wd[PATH_MAX + 1],
-	    script_name[PATH_MAX + 1];
-    int     fd;
     
     if ( argc > 2 )
     {
@@ -166,11 +163,8 @@ int     main (int argc, char *argv[])
 	    }
 	    else if ( munge_payload[0] == LPJS_COMPD_REQUEST_NEW_JOB )
 	    {
-		// FIXME: Break out new functions for this
 		job_t   *job = job_new();
-		char    *script_start,
-			*working_dir;
-		struct stat st;
+		char    *script_start;
 		
 		/*
 		 *  Parse job specs
@@ -180,71 +174,7 @@ int     main (int argc, char *argv[])
 		lpjs_log("New job received:\n");
 		job_print(job, Log_stream);
 		lpjs_log("Script:\n%s", script_start);
-		
-		/*
-		 *  Go to same directory from which job was submitted
-		 *  if it exists here (likely using NFS), otherwise
-		 *  go to user's home dir.
-		 */
-		
-		working_dir = job_get_working_directory(job);
-		if ( (stat(working_dir, &st) == 0) &&
-		     S_ISDIR(st.st_mode) )
-		{
-		    lpjs_log("Running job in %s.\n", working_dir);
-		}
-		else
-		{
-		    struct passwd *pw_ent;
-		    
-		    // Use pwnam_r() if multithreading, not likely
-		    if ( (pw_ent = getpwnam(job_get_user_name(job))) == NULL )
-		    {
-			lpjs_log("No such user: %s\n", job_get_user_name(job));
-			// FIXME: Report job failure to dispatchd
-		    }
-		    else
-		    {
-			// FIXME: Check for failures
-			chdir(pw_ent->pw_dir);
-			snprintf(wd, PATH_MAX + 1, "LPJS-job-%lu",
-				job_get_job_id(job));
-			lpjs_log("%s does not exist.  Using %s.\n",
-				working_dir, wd);
-			mkdir(wd, 0700);
-			working_dir = wd;
-		    }
-		}
-		if ( chdir(working_dir) != 0 )
-		{
-		    lpjs_log("Failed to enter working dir: %s\n", working_dir);
-		    // FIXME: Notify dispatchd of job failure
-		}
-		
-		/*
-		 *  Save script
-		 */
-		
-		snprintf(script_name, PATH_MAX + 1, "lpjs-job-%lu-%s",
-			job_get_job_id(job), job_get_script_name(job));
-		lpjs_log("Saving temporary script to %s.\n", script_name);
-		if ( (fd = open(script_name, O_WRONLY|O_CREAT, 0700)) == -1 )
-		{
-		    lpjs_log("Cannot create %s: %s\n", script_name,
-			    strerror(errno));
-		    // FIXME: Report job failure to dispatchd
-		}
-		write(fd, script_start, strlen(script_start));
-		close(fd);
-		
-		/*
-		 *  Update node status (keep a copy here in case
-		 *  dispatchd is restarted)
-		 */
-		
-		/*
-		 *  Run script under chaperone
-		 */
+		lpjs_run_script(job, script_start);
 	    }
 	    free(munge_payload);
 	}
@@ -344,4 +274,94 @@ int     lpjs_checkin_loop(node_list_t *node_list, node_t *node)
     lpjs_log("%s(): Checkin successful.\n", __FUNCTION__);
     
     return msg_fd;
+}
+
+
+/***************************************************************************
+ *  Description:
+ *  
+ *  Returns:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-03-10  Jason Bacon Begin
+ ***************************************************************************/
+
+int     lpjs_run_script(job_t *job, const char *script_start)
+
+{
+    char    wd[PATH_MAX + 1],
+	    script_name[PATH_MAX + 1];
+    int     fd;
+    // FIXME: Break out new functions for this
+    char    *working_dir;
+    struct stat st;
+    extern FILE *Log_stream;
+    
+    /*
+     *  Go to same directory from which job was submitted
+     *  if it exists here (likely using NFS), otherwise
+     *  go to user's home dir.
+     */
+    
+    working_dir = job_get_working_directory(job);
+    if ( (stat(working_dir, &st) == 0) &&
+	 S_ISDIR(st.st_mode) )
+    {
+	lpjs_log("Running job in %s.\n", working_dir);
+    }
+    else
+    {
+	struct passwd *pw_ent;
+	
+	// Use pwnam_r() if multithreading, not likely
+	if ( (pw_ent = getpwnam(job_get_user_name(job))) == NULL )
+	{
+	    lpjs_log("No such user: %s\n", job_get_user_name(job));
+	    // FIXME: Report job failure to dispatchd
+	}
+	else
+	{
+	    // FIXME: Check for failures
+	    chdir(pw_ent->pw_dir);
+	    snprintf(wd, PATH_MAX + 1, "LPJS-job-%lu",
+		    job_get_job_id(job));
+	    lpjs_log("%s does not exist.  Using %s.\n",
+		    working_dir, wd);
+	    mkdir(wd, 0700);
+	    working_dir = wd;
+	}
+    }
+    if ( chdir(working_dir) != 0 )
+    {
+	lpjs_log("Failed to enter working dir: %s\n", working_dir);
+	// FIXME: Notify dispatchd of job failure
+    }
+    
+    /*
+     *  Save script
+     */
+    
+    snprintf(script_name, PATH_MAX + 1, "lpjs-job-%lu-%s",
+	    job_get_job_id(job), job_get_script_name(job));
+    lpjs_log("Saving temporary script to %s.\n", script_name);
+    if ( (fd = open(script_name, O_WRONLY|O_CREAT, 0700)) == -1 )
+    {
+	lpjs_log("Cannot create %s: %s\n", script_name,
+		strerror(errno));
+	// FIXME: Report job failure to dispatchd
+    }
+    write(fd, script_start, strlen(script_start));
+    close(fd);
+    
+    /*
+     *  Update node status (keep a copy here in case
+     *  dispatchd is restarted)
+     */
+    
+    /*
+     *  Run script under chaperone
+     */
+    
+    return EX_OK;
 }
