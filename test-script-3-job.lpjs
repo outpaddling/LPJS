@@ -6,3 +6,4 @@
 #lpjs mem-per-core 1GiB
 
 hostname
+printenv

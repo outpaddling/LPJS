@@ -345,7 +345,7 @@ int     lpjs_run_script(job_t *job, const char *script_start, uid_t uid, gid_t g
     snprintf(script_name, PATH_MAX + 1, "lpjs-job-%lu-%s",
 	    job_get_job_id(job), job_get_script_name(job));
     lpjs_log("Saving temporary script to %s.\n", script_name);
-    if ( (fd = open(script_name, O_WRONLY|O_CREAT, 0700)) == -1 )
+    if ( (fd = open(script_name, O_WRONLY|O_CREAT|O_TRUNC, 0700)) == -1 )
     {
 	lpjs_log("Cannot create %s: %s\n", script_name,
 		strerror(errno));
@@ -399,8 +399,8 @@ void    chaperone(job_t *job, const char *script_name, uid_t uid, gid_t gid)
     char        *chaperone_bin = PREFIX "/libexec/lpjs/chaperone",
 		out_file[PATH_MAX + 1],
 		err_file[PATH_MAX + 1],
-		cores_str[10],
-		mem_str[20];
+		cores_str[LPJS_MAX_INT_DIGITS + 1],
+		mem_str[LPJS_MAX_INT_DIGITS + 1];
     unsigned    cores = job_get_cores_per_job(job),
 		mem = job_get_mem_per_core(job);
     
@@ -419,6 +419,11 @@ void    chaperone(job_t *job, const char *script_name, uid_t uid, gid_t gid)
 	    setgid(gid);
 	}
 	
+	/*
+	 *  Set env vars
+	 */
+	job_setenv(job);
+	
 	// FIXME: Make sure filenames are not truncated
 	
 	// Redirect stdout
@@ -433,9 +438,10 @@ void    chaperone(job_t *job, const char *script_name, uid_t uid, gid_t gid)
 	close(2);
 	open(err_file, O_WRONLY|O_CREAT, 0755);
 	
-	snprintf(cores_str, 10, "%u", cores);
-	snprintf(mem_str, 20, "%u", mem);
-	execl(chaperone_bin, chaperone_bin, cores_str, mem_str, script_name, NULL);
+	execl(chaperone_bin, chaperone_bin,
+		xt_ltostrn(cores_str, cores, 10, LPJS_MAX_INT_DIGITS + 1),
+		xt_ltostrn(mem_str, mem, 10, LPJS_MAX_INT_DIGITS + 1),
+		script_name, NULL);
 	
 	// We only get here if execl failed
 	lpjs_log("%s(): Failed to exec %s %u %u %s\n",

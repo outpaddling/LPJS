@@ -506,3 +506,53 @@ void    job_print_spec_header(FILE *stream)
 		"Cores/job", "Cores/node", "Mem/core",
 		"User-name", "Working-directory", "Script-name");
 }
+
+
+/***************************************************************************
+ *  Use auto-c2man to generate a man page from this comment
+ *
+ *  Name:
+ *      -
+ *
+ *  Library:
+ *      #include <>
+ *      -l
+ *
+ *  Description:
+ *  
+ *  Arguments:
+ *
+ *  Returns:
+ *
+ *  Examples:
+ *
+ *  Files:
+ *
+ *  Environment
+ *
+ *  See also:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-03-11  Jason Bacon Begin
+ ***************************************************************************/
+
+void    job_setenv(job_t *job)
+
+{
+    char    str[LPJS_MAX_INT_DIGITS + 1];
+    
+    setenv("LPJS_JOB_ID", xt_ltostrn(str, job->job_id, 10,
+	    LPJS_MAX_INT_DIGITS + 1), 1);
+    setenv("LPJS_JOB_COUNT", xt_ltostrn(str, job->job_count, 10,
+	    LPJS_MAX_INT_DIGITS + 1), 1);
+    setenv("LPJS_JOB_CORES_PER_JOB", xt_ltostrn(str, job->cores_per_job, 10,
+	    LPJS_MAX_INT_DIGITS + 1), 1);
+    setenv("LPJS_JOB_MIN_CORES_PER_NODE", xt_ltostrn(str, job->min_cores_per_node, 10,
+	    LPJS_MAX_INT_DIGITS + 1), 1);
+    setenv("LPJS_JOB_MEM_PER_CORE", xt_ltostrn(str, job->mem_per_core, 10,
+	    LPJS_MAX_INT_DIGITS + 1), 1);
+    setenv("LPJS_JOB_USER_NAME", job->user_name, 1);
+    setenv("LPJS_JOB_WORKING_DIRECTORY", job->working_directory, 1);
+    setenv("LPJS_JOB_SCRIPT_NAME", job->script_name, 1);
+}

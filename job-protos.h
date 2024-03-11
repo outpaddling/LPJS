@@ -10,3 +10,4 @@ int job_read_from_file(job_t *job, const char *path);
 void job_free(job_t **job);
 void job_send_spec_header(int msg_fd);
 void job_print_spec_header(FILE *stream);
+void job_setenv(job_t *job);

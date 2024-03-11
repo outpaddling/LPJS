@@ -45,6 +45,7 @@
 #define LPJS_GiB                1073741824
 
 #define LPJS_EOT                '\004'
+#define LPJS_MAX_INT_DIGITS     64
 
 // Don't start codes at 0.  It will be interpreted as a null-terminator.
 enum
