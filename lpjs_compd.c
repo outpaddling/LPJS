@@ -396,7 +396,7 @@ int     lpjs_run_script(job_t *job, const char *script_start, uid_t uid, gid_t g
 void    chaperone(job_t *job, const char *script_name, uid_t uid, gid_t gid)
 
 {
-    char        *chaperone_bin = PREFIX "libexec/lpjs/chaperone",
+    char        *chaperone_bin = PREFIX "/libexec/lpjs/chaperone",
 		out_file[PATH_MAX + 1],
 		err_file[PATH_MAX + 1],
 		cores_str[10],
@@ -438,8 +438,8 @@ void    chaperone(job_t *job, const char *script_name, uid_t uid, gid_t gid)
 	execl(chaperone_bin, chaperone_bin, cores_str, mem_str, script_name, NULL);
 	
 	// We only get here if execl failed
-	lpjs_log("%s(): Failed to exec chaperone %u %u %s\n",
-		__FUNCTION__, cores, mem, script_name);
+	lpjs_log("%s(): Failed to exec %s %u %u %s\n",
+		__FUNCTION__, chaperone_bin, cores, mem, script_name);
     }
     
     /*
