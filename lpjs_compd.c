@@ -174,7 +174,7 @@ int     main (int argc, char *argv[])
 		lpjs_log("New job received:\n");
 		job_print(job, Log_stream);
 		lpjs_log("Script:\n%s", script_start);
-		lpjs_run_script(job, script_start);
+		lpjs_run_script(job, script_start, uid, gid);
 	    }
 	    free(munge_payload);
 	}
@@ -287,7 +287,7 @@ int     lpjs_checkin_loop(node_list_t *node_list, node_t *node)
  *  2024-03-10  Jason Bacon Begin
  ***************************************************************************/
 
-int     lpjs_run_script(job_t *job, const char *script_start)
+int     lpjs_run_script(job_t *job, const char *script_start, uid_t uid, gid_t gid)
 
 {
     char    wd[PATH_MAX + 1],
@@ -355,7 +355,21 @@ int     lpjs_run_script(job_t *job, const char *script_start)
     close(fd);
     
     /*
-     *  Update node status (keep a copy here in case
+     *  Make sure script is owned by the submitting user.  If lpjs_compd
+     *  is running as non-root, then only that user can run jobs.
+     *  If running as root, chown the script to the appropriate user.
+     */
+    
+    if ( getuid() == 0 )
+    {
+	lpjs_log("Changing script ownership to uid %d, gid %d.\n", uid, gid);
+	chown(script_name, uid, gid);
+    }
+    else
+	lpjs_log("Running as uid %d, can't alter script ownership.\n", getuid());
+    
+    /*
+     *  FIXME: Update node status (keep a copy here in case
      *  dispatchd is restarted)
      */
     
@@ -363,5 +377,73 @@ int     lpjs_run_script(job_t *job, const char *script_start)
      *  Run script under chaperone
      */
     
+    chaperone(job, script_name, uid, gid);
+    
     return EX_OK;
+}
+
+
+/***************************************************************************
+ *  Description:
+ *  
+ *  Returns:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-03-10  Jason Bacon Begin
+ ***************************************************************************/
+
+void    chaperone(job_t *job, const char *script_name, uid_t uid, gid_t gid)
+
+{
+    char        *chaperone_bin = PREFIX "libexec/lpjs/chaperone",
+		out_file[PATH_MAX + 1],
+		err_file[PATH_MAX + 1],
+		cores_str[10],
+		mem_str[20];
+    unsigned    cores = job_get_cores_per_job(job),
+		mem = job_get_mem_per_core(job);
+    
+    if ( fork() == 0 )
+    {
+	/*
+	 *  Child, exec the chaperone command with the script as an arg.
+	 *  The chaperone runs in the background, monitoring the job,
+	 *  enforcing resource limits, and reporting exit status and
+	 *  stats to dispatchd.
+	 */
+	
+	if ( getuid() == 0 )
+	{
+	    setuid(uid);
+	    setgid(gid);
+	}
+	
+	// FIXME: Make sure filenames are not truncated
+	
+	// Redirect stdout
+	strlcpy(out_file, script_name, PATH_MAX + 1);
+	strlcat(out_file, ".stdout", PATH_MAX + 1);
+	close(1);
+	open(out_file, O_WRONLY|O_CREAT, 0755);
+	
+	// Redirect stderr
+	strlcpy(err_file, script_name, PATH_MAX + 1);
+	strlcat(err_file, ".stderr", PATH_MAX + 1);
+	close(2);
+	open(err_file, O_WRONLY|O_CREAT, 0755);
+	
+	snprintf(cores_str, 10, "%u", cores);
+	snprintf(mem_str, 20, "%u", mem);
+	execl(chaperone_bin, chaperone_bin, cores_str, mem_str, script_name, NULL);
+	
+	// We only get here if execl failed
+	lpjs_log("%s(): Failed to exec chaperone %u %u %s\n",
+		__FUNCTION__, cores, mem, script_name);
+    }
+    
+    /*
+     *  lpjs_compd does not wait for chaperone, but resumes listening
+     *  for more jobs.
+     */
 }

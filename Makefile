@@ -50,8 +50,8 @@
 
 BIN         = lpjs
 LIB         = liblpjs.a
-SYS_BINS    = lpjs_dispatchd lpjs_compd lpjs-chaperone
-LIBEXEC     = nodes jobs submit
+SYS_BINS    = lpjs_dispatchd lpjs_compd
+LIBEXEC     = nodes jobs submit chaperone
 
 ############################################################################
 # List object files that comprise BIN.
@@ -148,8 +148,8 @@ lpjs_dispatchd: lpjs_dispatchd.o ${LIB}
 lpjs_compd: lpjs_compd.o ${LIB}
 	${LD} -o lpjs_compd lpjs_compd.o ${LDFLAGS}
 
-lpjs-chaperone: lpjs-chaperone.o ${LIB}
-	${LD} -o lpjs-chaperone lpjs-chaperone.o ${LDFLAGS}
+chaperone: chaperone.o ${LIB}
+	${LD} -o chaperone chaperone.o ${LDFLAGS}
 	
 nodes: nodes.o ${LIB}
 	${LD} -o nodes nodes.o ${LDFLAGS}

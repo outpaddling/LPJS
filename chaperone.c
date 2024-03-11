@@ -33,7 +33,7 @@ int     main (int argc, char *argv[])
     int         msg_fd,
 		status;
     node_list_t *node_list = node_list_new();
-    char        cmd[LPJS_CMD_MAX + 1] = "",
+    char        *script_name,
 		log_file[PATH_MAX + 1];
     extern FILE *Log_stream;
     
@@ -42,6 +42,9 @@ int     main (int argc, char *argv[])
 	fprintf (stderr, "Usage: %s cores mebibytes script\n", argv[0]);
 	return EX_USAGE;
     }
+    // cores = argv[1]
+    // mem = argv[2]
+    script_name = argv[3];
 
     // Open process-specific log file in var/log/lpjs
     // FIXME: Prevent log files from piling up
@@ -63,13 +66,17 @@ int     main (int argc, char *argv[])
     
     // FIXME: Use fork() and exec() or posix_spawn(), and monitor
     // the child process for resource use
-    xt_str_argv_cat(cmd, argv, 1, LPJS_CMD_MAX + 1);
-    status = system(cmd);
+    // xt_str_argv_cat(cmd, argv, 1, LPJS_CMD_MAX + 1);
+    // status = system(cmd);
+    
+    printf("Running %s with %s cores and %s MiB.\n",
+	    argv[3], argv[1], argv[2]);
+    status = 0;
     
     /* Send a message to the server */
     /* Need to send \0, so xt_dprintf() doesn't work here */
     if ( lpjs_send(msg_fd, 0, "job-complete\ncmd: %s\nstatus: %d\n",
-		  cmd, status) < 0 )
+		  script_name, status) < 0 )
     {
 	lpjs_log("lpjs-chaperone: Failed to send message to dispatch: %s",
 		strerror(errno));
