@@ -361,8 +361,14 @@ int     lpjs_run_script(job_t *job, const char *script_start, uid_t uid, gid_t g
     
     if ( getuid() == 0 )
     {
-	lpjs_log("Changing script ownership to uid %d, gid %d.\n", uid, gid);
-	chown(job_script_name, uid, gid);
+	struct passwd *pw_ent;
+	
+	lpjs_log("Changing script ownership to user %s, group %s.\n",
+		job_get_user_name(job), job_get_primary_group_name(job));
+	
+	// FIXME: Use getpwnam_r() if multithreading, unlikely
+	pw_ent = getpwnam(job_get_user_name(job));
+	chown(job_script_name, pw_ent->pw_uid, pw_ent->pw_gid);
     }
     else
 	lpjs_log("Running as uid %d, can't alter script ownership.\n", getuid());

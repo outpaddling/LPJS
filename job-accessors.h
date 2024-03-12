@@ -17,6 +17,8 @@ unsigned job_get_min_cores_per_node(job_t *job_ptr);
 size_t job_get_mem_per_core(job_t *job_ptr);
 char *job_get_user_name(job_t *job_ptr);
 char job_get_user_name_ae(job_t *job_ptr, size_t c);
+char *job_get_primary_group_name(job_t *job_ptr);
+char job_get_primary_group_name_ae(job_t *job_ptr, size_t c);
 char *job_get_working_directory(job_t *job_ptr);
 char job_get_working_directory_ae(job_t *job_ptr, size_t c);
 char *job_get_script_name(job_t *job_ptr);

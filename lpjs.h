@@ -23,7 +23,7 @@
 #define LPJS_PENDING_DIR        LPJS_SPOOL_DIR "/pending"
 #define LPJS_RUNNING_DIR        LPJS_SPOOL_DIR "/running"
 #define LPJS_SPECS_FILE_NAME    "job.specs"
-#define LPJS_SPECS_ITEMS        8       // # fields in the struct
+#define LPJS_SPECS_ITEMS        9       // # fields in the struct
 
 /*
  *  Job scripts should be quite small, usually no more than a few dozen lines.

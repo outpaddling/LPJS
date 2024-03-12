@@ -50,7 +50,7 @@
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-03-06  gen-get-set Auto-generated from job-private.h
+ *  2024-03-12  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_job_id(job_t *job_ptr, unsigned long new_job_id)
@@ -102,7 +102,7 @@ int     job_set_job_id(job_t *job_ptr, unsigned long new_job_id)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-03-06  gen-get-set Auto-generated from job-private.h
+ *  2024-03-12  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_job_count(job_t *job_ptr, unsigned new_job_count)
@@ -154,7 +154,7 @@ int     job_set_job_count(job_t *job_ptr, unsigned new_job_count)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-03-06  gen-get-set Auto-generated from job-private.h
+ *  2024-03-12  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_cores_per_job(job_t *job_ptr, unsigned new_cores_per_job)
@@ -206,7 +206,7 @@ int     job_set_cores_per_job(job_t *job_ptr, unsigned new_cores_per_job)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-03-06  gen-get-set Auto-generated from job-private.h
+ *  2024-03-12  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_min_cores_per_node(job_t *job_ptr, unsigned new_min_cores_per_node)
@@ -258,7 +258,7 @@ int     job_set_min_cores_per_node(job_t *job_ptr, unsigned new_min_cores_per_no
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-03-06  gen-get-set Auto-generated from job-private.h
+ *  2024-03-12  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_mem_per_core(job_t *job_ptr, size_t new_mem_per_core)
@@ -310,7 +310,7 @@ int     job_set_mem_per_core(job_t *job_ptr, size_t new_mem_per_core)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-03-06  gen-get-set Auto-generated from job-private.h
+ *  2024-03-12  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_user_name(job_t *job_ptr, char * new_user_name)
@@ -360,7 +360,7 @@ int     job_set_user_name(job_t *job_ptr, char * new_user_name)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-03-06  gen-get-set Auto-generated from job-private.h
+ *  2024-03-12  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_user_name_ae(job_t *job_ptr, size_t c, char  new_user_name_element)
@@ -411,7 +411,7 @@ int     job_set_user_name_ae(job_t *job_ptr, size_t c, char  new_user_name_eleme
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-03-06  gen-get-set Auto-generated from job-private.h
+ *  2024-03-12  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_user_name_cpy(job_t *job_ptr, char * new_user_name, size_t array_size)
@@ -423,6 +423,160 @@ int     job_set_user_name_cpy(job_t *job_ptr, char * new_user_name, size_t array
     {
 	// FIXME: Assuming char array is a null-terminated string
 	strlcpy(job_ptr->user_name, new_user_name, array_size);
+	return JOB_DATA_OK;
+    }
+}
+
+
+/***************************************************************************
+ *  Library:
+ *      #include <job.h>
+ *      
+ *
+ *  Description:
+ *      Mutator for primary_group_name member in a job_t structure.
+ *      Use this function to set primary_group_name in a job_t object
+ *      from non-member functions.  This function performs a direct
+ *      assignment for scalar or pointer structure members.  If
+ *      primary_group_name is a pointer, data previously pointed to should
+ *      be freed before calling this function to avoid memory
+ *      leaks.
+ *
+ *  Arguments:
+ *      job_ptr         Pointer to the structure to set
+ *      new_primary_group_name The new value for primary_group_name
+ *
+ *  Returns:
+ *      JOB_DATA_OK if the new value is acceptable and assigned
+ *      JOB_DATA_OUT_OF_RANGE otherwise
+ *
+ *  Examples:
+ *      job_t           job;
+ *      char *          new_primary_group_name;
+ *
+ *      if ( job_set_primary_group_name(&job, new_primary_group_name)
+ *              == JOB_DATA_OK )
+ *      {
+ *      }
+ *
+ *  See also:
+ *      (3)
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-03-12  gen-get-set Auto-generated from job-private.h
+ ***************************************************************************/
+
+int     job_set_primary_group_name(job_t *job_ptr, char * new_primary_group_name)
+
+{
+    if ( new_primary_group_name == NULL )
+	return JOB_DATA_OUT_OF_RANGE;
+    else
+    {
+	job_ptr->primary_group_name = new_primary_group_name;
+	return JOB_DATA_OK;
+    }
+}
+
+
+/***************************************************************************
+ *  Library:
+ *      #include <job.h>
+ *      
+ *
+ *  Description:
+ *      Mutator for an array element of primary_group_name member in a job_t
+ *      structure. Use this function to set job_ptr->primary_group_name[c]
+ *      in a job_t object from non-member functions.
+ *
+ *  Arguments:
+ *      job_ptr         Pointer to the structure to set
+ *      c               Subscript to the primary_group_name array
+ *      new_primary_group_name_element The new value for primary_group_name[c]
+ *
+ *  Returns:
+ *      JOB_DATA_OK if the new value is acceptable and assigned
+ *      JOB_DATA_OUT_OF_RANGE otherwise
+ *
+ *  Examples:
+ *      job_t           job;
+ *      size_t          c;
+ *      char *          new_primary_group_name_element;
+ *
+ *      if ( job_set_primary_group_name_ae(&job, c, new_primary_group_name_element)
+ *              == JOB_DATA_OK )
+ *      {
+ *      }
+ *
+ *  See also:
+ *      JOB_SET_PRIMARY_GROUP_NAME_AE(3)
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-03-12  gen-get-set Auto-generated from job-private.h
+ ***************************************************************************/
+
+int     job_set_primary_group_name_ae(job_t *job_ptr, size_t c, char  new_primary_group_name_element)
+
+{
+    if ( false )
+	return JOB_DATA_OUT_OF_RANGE;
+    else
+    {
+	job_ptr->primary_group_name[c] = new_primary_group_name_element;
+	return JOB_DATA_OK;
+    }
+}
+
+
+/***************************************************************************
+ *  Library:
+ *      #include <job.h>
+ *      
+ *
+ *  Description:
+ *      Mutator for primary_group_name member in a job_t structure.
+ *      Use this function to set primary_group_name in a job_t object
+ *      from non-member functions.  This function copies the array pointed to
+ *      by new_primary_group_name to job_ptr->primary_group_name.
+ *
+ *  Arguments:
+ *      job_ptr         Pointer to the structure to set
+ *      new_primary_group_name The new value for primary_group_name
+ *      array_size      Size of the primary_group_name array.
+ *
+ *  Returns:
+ *      JOB_DATA_OK if the new value is acceptable and assigned
+ *      JOB_DATA_OUT_OF_RANGE otherwise
+ *
+ *  Examples:
+ *      job_t           job;
+ *      char *          new_primary_group_name;
+ *      size_t          array_size;
+ *
+ *      if ( job_set_primary_group_name_cpy(&job, new_primary_group_name, array_size)
+ *              == JOB_DATA_OK )
+ *      {
+ *      }
+ *
+ *  See also:
+ *      JOB_SET_PRIMARY_GROUP_NAME(3)
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-03-12  gen-get-set Auto-generated from job-private.h
+ ***************************************************************************/
+
+int     job_set_primary_group_name_cpy(job_t *job_ptr, char * new_primary_group_name, size_t array_size)
+
+{
+    if ( new_primary_group_name == NULL )
+	return JOB_DATA_OUT_OF_RANGE;
+    else
+    {
+	// FIXME: Assuming char array is a null-terminated string
+	strlcpy(job_ptr->primary_group_name, new_primary_group_name, array_size);
 	return JOB_DATA_OK;
     }
 }
@@ -464,7 +618,7 @@ int     job_set_user_name_cpy(job_t *job_ptr, char * new_user_name, size_t array
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-03-06  gen-get-set Auto-generated from job-private.h
+ *  2024-03-12  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_working_directory(job_t *job_ptr, char * new_working_directory)
@@ -514,7 +668,7 @@ int     job_set_working_directory(job_t *job_ptr, char * new_working_directory)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-03-06  gen-get-set Auto-generated from job-private.h
+ *  2024-03-12  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_working_directory_ae(job_t *job_ptr, size_t c, char  new_working_directory_element)
@@ -565,7 +719,7 @@ int     job_set_working_directory_ae(job_t *job_ptr, size_t c, char  new_working
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-03-06  gen-get-set Auto-generated from job-private.h
+ *  2024-03-12  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_working_directory_cpy(job_t *job_ptr, char * new_working_directory, size_t array_size)
@@ -618,7 +772,7 @@ int     job_set_working_directory_cpy(job_t *job_ptr, char * new_working_directo
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-03-06  gen-get-set Auto-generated from job-private.h
+ *  2024-03-12  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_script_name(job_t *job_ptr, char * new_script_name)
@@ -668,7 +822,7 @@ int     job_set_script_name(job_t *job_ptr, char * new_script_name)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-03-06  gen-get-set Auto-generated from job-private.h
+ *  2024-03-12  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_script_name_ae(job_t *job_ptr, size_t c, char  new_script_name_element)
@@ -719,7 +873,7 @@ int     job_set_script_name_ae(job_t *job_ptr, size_t c, char  new_script_name_e
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-03-06  gen-get-set Auto-generated from job-private.h
+ *  2024-03-12  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 int     job_set_script_name_cpy(job_t *job_ptr, char * new_script_name, size_t array_size)

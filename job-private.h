@@ -17,6 +17,7 @@ struct job
     unsigned        min_cores_per_node;
     size_t          mem_per_core;
     char            *user_name;
+    char            *primary_group_name;
     char            *working_directory;
     char            *script_name;
 };
