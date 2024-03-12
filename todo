@@ -1,4 +1,7 @@
 
+chown and setuid to user name, not uid
+    Can't assume that uids and gids are consistent across all nodes
+
 Use restrict wherever possible
 
 Allow running compd as non-root
