@@ -5,7 +5,7 @@ submit
 lpjs_dispatchd
 lpjs_compd
 lpjs-node-specs
-lpjs-chaperone
+chaperone
 .*.bak
 *.o
 *.a

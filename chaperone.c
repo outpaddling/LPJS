@@ -36,19 +36,20 @@ int     main (int argc, char *argv[])
     unsigned    cores;
     unsigned long   mem_per_core;
     node_list_t *node_list = node_list_new();
-    char        *script_name,
+    char        *job_script_name,
 		*temp,
 		*end,
 		log_file[PATH_MAX + 1];
     pid_t       pid;
     extern FILE *Log_stream;
     
-    if ( argc != 1 )
+    if ( argc != 2 )
     {
-	fprintf(stderr, "Usage: %s\n", argv[0]);
+	fprintf(stderr, "Usage: %s job-script.lpjs\n", argv[0]);
 	fprintf(stderr, "Job parameters are retrieved from LPJS_* env vars.\n");
 	return EX_USAGE;
     }
+    job_script_name = argv[1];
     
     temp = getenv("LPJS_CORES_PER_JOB");
     cores = strtoul(temp, &end, 10);
@@ -65,8 +66,6 @@ int     main (int argc, char *argv[])
 	fprintf(stderr, "Invalid LPJS_MEM_PER_CORE: %s\n", temp);
 	exit(EX_USAGE);
     }
-    
-    script_name = getenv("LPJS_SCRIPT_NAME");
 
     // Open process-specific log file in var/log/lpjs
     // FIXME: Prevent log files from piling up
@@ -92,13 +91,14 @@ int     main (int argc, char *argv[])
     // status = system(cmd);
     
     printf("Running %s with %u cores and %lu MiB.\n",
-	    script_name, cores, mem_per_core);
+	    job_script_name, cores, mem_per_core);
+    fflush(stdout); // Avoid race with child process
     
     if ( (pid = fork()) == 0 )
     {
 	// Child, run script
 	// FIXME: Set CPU and memory limits
-	execl(script_name, script_name, NULL);
+	execl(job_script_name, job_script_name, NULL);
 	lpjs_log("%s(): execl() failed: %s\n", __FUNCTION__, strerror(errno));
 	return EX_UNAVAILABLE;
     }
@@ -114,7 +114,7 @@ int     main (int argc, char *argv[])
     // FIXME: Munge messages to dispatchd
     /*
     if ( lpjs_send(msg_fd, 0, "job-complete\ncmd: %s\nstatus: %d\n",
-		  script_name, status) < 0 )
+		  job_script_name, status) < 0 )
     {
 	lpjs_log("lpjs-chaperone: Failed to send message to dispatch: %s",
 		strerror(errno));

@@ -291,7 +291,7 @@ int     lpjs_run_script(job_t *job, const char *script_start, uid_t uid, gid_t g
 
 {
     char    wd[PATH_MAX + 1],
-	    script_name[PATH_MAX + 1];
+	    job_script_name[PATH_MAX + 1];
     int     fd;
     // FIXME: Break out new functions for this
     char    *working_dir;
@@ -342,13 +342,12 @@ int     lpjs_run_script(job_t *job, const char *script_start, uid_t uid, gid_t g
      *  Save script
      */
     
-    snprintf(script_name, PATH_MAX + 1, "lpjs-job-%lu-%s",
+    snprintf(job_script_name, PATH_MAX + 1, "lpjs-job-%lu-%s",
 	    job_get_job_id(job), job_get_script_name(job));
-    lpjs_log("Saving temporary script to %s.\n", script_name);
-    if ( (fd = open(script_name, O_WRONLY|O_CREAT|O_TRUNC, 0700)) == -1 )
+    lpjs_log("Saving job script to %s.\n", job_script_name);
+    if ( (fd = open(job_script_name, O_WRONLY|O_CREAT|O_TRUNC, 0700)) == -1 )
     {
-	lpjs_log("Cannot create %s: %s\n", script_name,
-		strerror(errno));
+	lpjs_log("Cannot create %s: %s\n", job_script_name, strerror(errno));
 	// FIXME: Report job failure to dispatchd
     }
     write(fd, script_start, strlen(script_start));
@@ -363,7 +362,7 @@ int     lpjs_run_script(job_t *job, const char *script_start, uid_t uid, gid_t g
     if ( getuid() == 0 )
     {
 	lpjs_log("Changing script ownership to uid %d, gid %d.\n", uid, gid);
-	chown(script_name, uid, gid);
+	chown(job_script_name, uid, gid);
     }
     else
 	lpjs_log("Running as uid %d, can't alter script ownership.\n", getuid());
@@ -377,7 +376,7 @@ int     lpjs_run_script(job_t *job, const char *script_start, uid_t uid, gid_t g
      *  Run script under chaperone
      */
     
-    chaperone(job, script_name, uid, gid);
+    chaperone(job, job_script_name, uid, gid);
     
     return EX_OK;
 }
@@ -393,14 +392,12 @@ int     lpjs_run_script(job_t *job, const char *script_start, uid_t uid, gid_t g
  *  2024-03-10  Jason Bacon Begin
  ***************************************************************************/
 
-int     chaperone(job_t *job, const char *script_name, uid_t uid, gid_t gid)
+int     chaperone(job_t *job, const char *job_script_name, uid_t uid, gid_t gid)
 
 {
     char        *chaperone_bin = PREFIX "/libexec/lpjs/chaperone",
 		out_file[PATH_MAX + 1],
 		err_file[PATH_MAX + 1];
-    unsigned    cores = job_get_cores_per_job(job),
-		mem = job_get_mem_per_core(job);
     
     if ( fork() == 0 )
     {
@@ -425,22 +422,22 @@ int     chaperone(job_t *job, const char *script_name, uid_t uid, gid_t gid)
 	// FIXME: Make sure filenames are not truncated
 	
 	// Redirect stdout
-	strlcpy(out_file, script_name, PATH_MAX + 1);
+	strlcpy(out_file, job_script_name, PATH_MAX + 1);
 	strlcat(out_file, ".stdout", PATH_MAX + 1);
 	close(1);
 	open(out_file, O_WRONLY|O_CREAT, 0755);
 	
 	// Redirect stderr
-	strlcpy(err_file, script_name, PATH_MAX + 1);
+	strlcpy(err_file, job_script_name, PATH_MAX + 1);
 	strlcat(err_file, ".stderr", PATH_MAX + 1);
 	close(2);
 	open(err_file, O_WRONLY|O_CREAT, 0755);
 	
-	execl(chaperone_bin, chaperone_bin, NULL);
+	execl(chaperone_bin, chaperone_bin, job_script_name, NULL);
 	
 	// We only get here if execl failed
 	lpjs_log("%s(): Failed to exec %s %u %u %s\n",
-		__FUNCTION__, chaperone_bin, cores, mem, script_name);
+		__FUNCTION__, chaperone_bin, job_script_name);
 	return EX_UNAVAILABLE;
     }
     
