@@ -6,4 +6,4 @@
 #lpjs mem-per-core 1GiB
 
 hostname
-printenv
+printenv | fgrep LPJS_

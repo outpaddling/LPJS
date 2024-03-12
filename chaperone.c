@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <sysexits.h>
 #include <errno.h>
+#include <sys/wait.h>       // FIXME: Replace wait() with active monitoring
 
 #include <xtend/string.h>
 #include <xtend/file.h>
@@ -32,19 +33,40 @@ int     main (int argc, char *argv[])
 {
     int         msg_fd,
 		status;
+    unsigned    cores;
+    unsigned long   mem_per_core;
     node_list_t *node_list = node_list_new();
     char        *script_name,
+		*temp,
+		*end,
 		log_file[PATH_MAX + 1];
+    pid_t       pid;
     extern FILE *Log_stream;
     
-    if ( argc != 4 )
+    if ( argc != 1 )
     {
-	fprintf (stderr, "Usage: %s cores mebibytes script\n", argv[0]);
+	fprintf(stderr, "Usage: %s\n", argv[0]);
+	fprintf(stderr, "Job parameters are retrieved from LPJS_* env vars.\n");
 	return EX_USAGE;
     }
-    // cores = argv[1]
-    // mem = argv[2]
-    script_name = argv[3];
+    
+    temp = getenv("LPJS_CORES_PER_JOB");
+    cores = strtoul(temp, &end, 10);
+    if ( *end != '\0' )
+    {
+	fprintf(stderr, "Invalid LPJS_CORES_PER_JOB: %s\n", temp);
+	exit(EX_USAGE);
+    }
+    
+    temp = getenv("LPJS_MEM_PER_CORE");
+    mem_per_core = strtoul(temp, &end, 10);
+    if ( *end != '\0' )
+    {
+	fprintf(stderr, "Invalid LPJS_MEM_PER_CORE: %s\n", temp);
+	exit(EX_USAGE);
+    }
+    
+    script_name = getenv("LPJS_SCRIPT_NAME");
 
     // Open process-specific log file in var/log/lpjs
     // FIXME: Prevent log files from piling up
@@ -69,12 +91,28 @@ int     main (int argc, char *argv[])
     // xt_str_argv_cat(cmd, argv, 1, LPJS_CMD_MAX + 1);
     // status = system(cmd);
     
-    printf("Running %s with %s cores and %s MiB.\n",
-	    argv[3], argv[1], argv[2]);
-    status = 0;
+    printf("Running %s with %u cores and %lu MiB.\n",
+	    script_name, cores, mem_per_core);
+    
+    if ( (pid = fork()) == 0 )
+    {
+	// Child, run script
+	// FIXME: Set CPU and memory limits
+	execl(script_name, script_name, NULL);
+	lpjs_log("%s(): execl() failed: %s\n", __FUNCTION__, strerror(errno));
+	return EX_UNAVAILABLE;
+    }
+    else
+    {
+	// FIXME: Chaperone, monitor resource use of child
+	// Maybe ptrace(), though seemingly not well standardized
+	wait(&status);
+    }
     
     /* Send a message to the server */
     /* Need to send \0, so xt_dprintf() doesn't work here */
+    // FIXME: Munge messages to dispatchd
+    /*
     if ( lpjs_send(msg_fd, 0, "job-complete\ncmd: %s\nstatus: %d\n",
 		  script_name, status) < 0 )
     {
@@ -83,8 +121,9 @@ int     main (int argc, char *argv[])
 	close(msg_fd);
 	return EX_IOERR;
     }
+    */
     close(msg_fd);
     fclose(Log_stream);
 
-    return EX_OK;
+    return status;
 }

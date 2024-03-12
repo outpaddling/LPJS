@@ -393,14 +393,12 @@ int     lpjs_run_script(job_t *job, const char *script_start, uid_t uid, gid_t g
  *  2024-03-10  Jason Bacon Begin
  ***************************************************************************/
 
-void    chaperone(job_t *job, const char *script_name, uid_t uid, gid_t gid)
+int     chaperone(job_t *job, const char *script_name, uid_t uid, gid_t gid)
 
 {
     char        *chaperone_bin = PREFIX "/libexec/lpjs/chaperone",
 		out_file[PATH_MAX + 1],
-		err_file[PATH_MAX + 1],
-		cores_str[LPJS_MAX_INT_DIGITS + 1],
-		mem_str[LPJS_MAX_INT_DIGITS + 1];
+		err_file[PATH_MAX + 1];
     unsigned    cores = job_get_cores_per_job(job),
 		mem = job_get_mem_per_core(job);
     
@@ -438,18 +436,18 @@ void    chaperone(job_t *job, const char *script_name, uid_t uid, gid_t gid)
 	close(2);
 	open(err_file, O_WRONLY|O_CREAT, 0755);
 	
-	execl(chaperone_bin, chaperone_bin,
-		xt_ltostrn(cores_str, cores, 10, LPJS_MAX_INT_DIGITS + 1),
-		xt_ltostrn(mem_str, mem, 10, LPJS_MAX_INT_DIGITS + 1),
-		script_name, NULL);
+	execl(chaperone_bin, chaperone_bin, NULL);
 	
 	// We only get here if execl failed
 	lpjs_log("%s(): Failed to exec %s %u %u %s\n",
 		__FUNCTION__, chaperone_bin, cores, mem, script_name);
+	return EX_UNAVAILABLE;
     }
     
     /*
      *  lpjs_compd does not wait for chaperone, but resumes listening
      *  for more jobs.
      */
+    
+    return EX_OK;
 }

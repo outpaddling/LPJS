@@ -546,13 +546,13 @@ void    job_setenv(job_t *job)
 	    LPJS_MAX_INT_DIGITS + 1), 1);
     setenv("LPJS_JOB_COUNT", xt_ltostrn(str, job->job_count, 10,
 	    LPJS_MAX_INT_DIGITS + 1), 1);
-    setenv("LPJS_JOB_CORES_PER_JOB", xt_ltostrn(str, job->cores_per_job, 10,
+    setenv("LPJS_CORES_PER_JOB", xt_ltostrn(str, job->cores_per_job, 10,
 	    LPJS_MAX_INT_DIGITS + 1), 1);
-    setenv("LPJS_JOB_MIN_CORES_PER_NODE", xt_ltostrn(str, job->min_cores_per_node, 10,
+    setenv("LPJS_MIN_CORES_PER_NODE", xt_ltostrn(str, job->min_cores_per_node, 10,
 	    LPJS_MAX_INT_DIGITS + 1), 1);
-    setenv("LPJS_JOB_MEM_PER_CORE", xt_ltostrn(str, job->mem_per_core, 10,
+    setenv("LPJS_MEM_PER_CORE", xt_ltostrn(str, job->mem_per_core, 10,
 	    LPJS_MAX_INT_DIGITS + 1), 1);
-    setenv("LPJS_JOB_USER_NAME", job->user_name, 1);
-    setenv("LPJS_JOB_WORKING_DIRECTORY", job->working_directory, 1);
-    setenv("LPJS_JOB_SCRIPT_NAME", job->script_name, 1);
+    setenv("LPJS_USER_NAME", job->user_name, 1);
+    setenv("LPJS_WORKING_DIRECTORY", job->working_directory, 1);
+    setenv("LPJS_SCRIPT_NAME", job->script_name, 1);
 }
