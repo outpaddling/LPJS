@@ -169,7 +169,13 @@ creeping feature syndrome, where software complexity grows steadily without
 limit to the demise of portability,
 reliability and maintainability.  Our focus is on
 improving quality in essential features rather than adding "cool" new
-features for emotional appeal.
+features for emotional appeal.  Modularity is the key to maintainable
+software.  Hence, we will not add functionality that can be readily
+provided by independent tools.  E.g. file transfer for nodes that lack
+direct access to files can be provided by highly-evolved general tools
+such as curl and rsync.  This follows the design philosophy of the C
+language, which does not provide syntactic features that can be readily
+provided by a library function.
 
 - Complete portability across the POSIX world: One of our primary goals is to foster research and
 development of HPC clusters using __any__ POSIX operating system on __any__
