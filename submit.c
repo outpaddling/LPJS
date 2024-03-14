@@ -75,7 +75,7 @@ int     main (int argc, char *argv[])
     // lpjs_log("Sending payload: %s\n", payload);
 
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%s",
-	    LPJS_REQUEST_SUBMIT, payload);
+	    LPJS_DISPATCHD_REQUEST_SUBMIT, payload);
 
     if ( lpjs_send_munge(msg_fd, outgoing_msg) != EX_OK )
     {

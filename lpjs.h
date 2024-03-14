@@ -47,25 +47,4 @@
 #define LPJS_EOT                '\004'
 #define LPJS_MAX_INT_DIGITS     64
 
-// Don't start codes at 0.  It will be interpreted as a null-terminator.
-enum
-{
-    LPJS_REQUEST_COMPD_CHECKIN = 1,
-    LPJS_REQUEST_NODE_STATUS,
-    LPJS_REQUEST_JOB_STATUS,
-    LPJS_REQUEST_SUBMIT
-};
-
-// Don't start codes at 0.  It will be interpreted as a null-terminator.
-enum
-{
-    LPJS_COMPD_REQUEST_NEW_JOB = 1
-};
-
-// Don't start codes at 0.  It will be interpreted as a null-terminator.
-enum
-{
-    LPJS_NOTICE_JOB_COMPLETE = 1
-};
-
 #endif  // _LPJS_H_

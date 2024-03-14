@@ -1,6 +1,26 @@
 #ifndef _LPJS_NETWORK_H_
 #define _LPJS_NETWORK_H_
 
+/*
+ *  First byte of each new conversation is a request code.  All codes
+ *  to dispatchd must be unique as must codes to compd.
+ *  Don't start codes at 0.  It will be interpreted as a null-terminator.
+ */
+
+enum
+{
+    LPJS_DISPATCHD_REQUEST_COMPD_CHECKIN = 1,
+    LPJS_DISPATCHD_REQUEST_NODE_STATUS,
+    LPJS_DISPATCHD_REQUEST_JOB_STATUS,
+    LPJS_DISPATCHD_REQUEST_SUBMIT,
+    LPJS_DISPATCHD_REQUEST_JOB_COMPLETE
+};
+
+enum
+{
+    LPJS_COMPD_REQUEST_NEW_JOB = 1
+};
+
 // IPv6 max address size is 39
 #define LPJS_TEXT_IP_ADDRESS_MAX    64
 #define LPJS_MSG_LEN_MAX            4096

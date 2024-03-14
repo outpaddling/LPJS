@@ -197,7 +197,7 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
     /* Need to send \0, so xt_dprintf() doesn't work here */
     node_detect_specs(node);
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1,
-	    "%c%s", LPJS_REQUEST_COMPD_CHECKIN,
+	    "%c%s", LPJS_DISPATCHD_REQUEST_COMPD_CHECKIN,
 	    node_specs_to_str(node, specs, NODE_SPECS_LEN + 1));
     lpjs_log("%s(): Sending node specs:\n", __FUNCTION__);
     node_print_specs_header(Log_stream);

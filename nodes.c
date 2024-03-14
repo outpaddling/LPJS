@@ -46,7 +46,7 @@ int     main (int argc, char *argv[])
 	return EX_IOERR;
     }
 
-    outgoing_msg[0] = LPJS_REQUEST_NODE_STATUS;
+    outgoing_msg[0] = LPJS_DISPATCHD_REQUEST_NODE_STATUS;
     outgoing_msg[1] = '\0';
     if ( lpjs_send_munge(msg_fd, outgoing_msg) != EX_OK )
     {
@@ -55,7 +55,7 @@ int     main (int argc, char *argv[])
 	return EX_IOERR;
     }
 
-    fprintf(stderr, "LPJS_REQUEST_NODE_STATUS sent.\n");
+    fprintf(stderr, "LPJS_DISPATCHD_REQUEST_NODE_STATUS sent.\n");
     lpjs_print_response(msg_fd, "lpjs-nodes");
     close(msg_fd);
 

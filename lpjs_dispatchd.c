@@ -252,23 +252,11 @@ void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
 	    {
 		switch(incoming_msg[0])
 		{
-		    case    LPJS_NOTICE_JOB_COMPLETE:
-		    
-			/*
-			 *  Remove job from running dir and write a
-			 *  completed job record
-			 *  Note the job completion in the main log
-			 */
-			
-			lpjs_log("Job completion report.\n");
-			lpjs_log_job(incoming_msg);
-			lpjs_dispatch_jobs(node_list, job_list);
-			break;
-			
 		    default:
 			lpjs_log("Invalid notification on fd %d: %d\n",
 				fd, incoming_msg[0]);
 		}
+		
 	    }
 	}
     }
@@ -399,14 +387,14 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	    /* Process request */
 	    switch(munge_payload[0])
 	    {
-		case    LPJS_REQUEST_COMPD_CHECKIN:
-		    lpjs_log("LPJS_REQUEST_COMPD_CHECKIN\n");
+		case    LPJS_DISPATCHD_REQUEST_COMPD_CHECKIN:
+		    lpjs_log("LPJS_DISPATCHD_REQUEST_COMPD_CHECKIN\n");
 		    lpjs_process_compute_node_checkin(msg_fd, munge_payload,
 						      node_list, uid, gid);
 		    lpjs_dispatch_jobs(node_list, job_list);
 		    break;
 		
-		case    LPJS_REQUEST_NODE_STATUS:
+		case    LPJS_DISPATCHD_REQUEST_NODE_STATUS:
 		    lpjs_log("Request for node status.\n");
 		    node_list_send_status(msg_fd, node_list);
 		    // lpjs_server_safe_close(msg_fd);
@@ -415,18 +403,30 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    close(msg_fd);
 		    break;
 		
-		case    LPJS_REQUEST_JOB_STATUS:
+		case    LPJS_DISPATCHD_REQUEST_JOB_STATUS:
 		    lpjs_log("Request for job status.\n");
 		    job_list_send_params(msg_fd, job_list);
 		    lpjs_server_safe_close(msg_fd);
 		    break;
 		
-		case    LPJS_REQUEST_SUBMIT:
+		case    LPJS_DISPATCHD_REQUEST_SUBMIT:
 		    lpjs_submit(msg_fd, munge_payload, node_list, job_list,
 				uid, gid);
 		    lpjs_dispatch_jobs(node_list, job_list);
 		    break;
+
+		case    LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:
 		
+		    /*
+		     *  Remove job from running dir and write a
+		     *  completed job record
+		     *  Note the job completion in the main log
+		     */
+		    
+		    lpjs_log("Job completion report.\n");
+		    lpjs_dispatch_jobs(node_list, job_list);
+		    break;
+		    
 		default:
 		    lpjs_log("Invalid request on listen_fd: %d\n",
 			    munge_payload[0]);

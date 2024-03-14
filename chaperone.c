@@ -39,7 +39,8 @@ int     main (int argc, char *argv[])
     char        *job_script_name,
 		*temp,
 		*end,
-		log_file[PATH_MAX + 1];
+		log_file[PATH_MAX + 1],
+		outgoing_msg[LPJS_MSG_LEN_MAX + 1];
     pid_t       pid;
     extern FILE *Log_stream;
     
@@ -110,18 +111,15 @@ int     main (int argc, char *argv[])
     }
     
     /* Send a message to the server */
-    /* Need to send \0, so xt_dprintf() doesn't work here */
-    // FIXME: Munge messages to dispatchd
-    /*
-    if ( lpjs_send(msg_fd, 0, "job-complete\ncmd: %s\nstatus: %d\n",
-		  job_script_name, status) < 0 )
+    outgoing_msg[0] = LPJS_DISPATCHD_REQUEST_JOB_COMPLETE;
+    outgoing_msg[1] = '\0';
+    if ( lpjs_send_munge(msg_fd, outgoing_msg) != EX_OK )
     {
 	lpjs_log("lpjs-chaperone: Failed to send message to dispatch: %s",
 		strerror(errno));
 	close(msg_fd);
 	return EX_IOERR;
     }
-    */
     close(msg_fd);
     fclose(Log_stream);
 
