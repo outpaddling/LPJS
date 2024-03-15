@@ -68,6 +68,7 @@ int     main (int argc, char *argv[])
     }
     else if ( (argc == 2) && (strcmp(argv[1],"--log-output") == 0 ) )
     {
+	// FIXME: Log_stream should use close on exec (fork chaperone)
 	if ( (Log_stream = lpjs_log_output(LPJS_COMPD_LOG)) == NULL )
 	    return EX_CANTCREAT;
     }
@@ -404,9 +405,13 @@ int     chaperone(job_t *job, const char *job_script_name, uid_t uid, gid_t gid)
     char        *chaperone_bin = PREFIX "/libexec/lpjs/chaperone",
 		out_file[PATH_MAX + 1],
 		err_file[PATH_MAX + 1];
+    extern FILE *Log_stream;
     
+    lpjs_log("Forking...\n");
     if ( fork() == 0 )
     {
+	lpjs_log("In child...\n");
+	
 	/*
 	 *  Child, exec the chaperone command with the script as an arg.
 	 *  The chaperone runs in the background, monitoring the job,
@@ -424,6 +429,7 @@ int     chaperone(job_t *job, const char *job_script_name, uid_t uid, gid_t gid)
 	 *  Set env vars
 	 */
 	job_setenv(job);
+	lpjs_log("Vars set.\n");
 	
 	// FIXME: Make sure filenames are not truncated
 	
@@ -432,18 +438,26 @@ int     chaperone(job_t *job, const char *job_script_name, uid_t uid, gid_t gid)
 	strlcat(out_file, ".stdout", PATH_MAX + 1);
 	close(1);
 	open(out_file, O_WRONLY|O_CREAT, 0755);
+	lpjs_log("Redirected stdout.\n");
 	
 	// Redirect stderr
 	strlcpy(err_file, job_script_name, PATH_MAX + 1);
 	strlcat(err_file, ".stderr", PATH_MAX + 1);
 	close(2);
-	open(err_file, O_WRONLY|O_CREAT, 0755);
+	if ( open(err_file, O_WRONLY|O_CREAT, 0755) == -1 )
+	{
+	    lpjs_log("%s(): Could not open %s: %s\n", __FUNCTION__,
+		     err_file, strerror(errno));
+	}
+	lpjs_log("Redirected stderr.\n");
 	
-	lpjs_log("Running chaperone...\n");
+	// FIXME: Build should use realpath
+	lpjs_log("Running chaperone: %s %s...\n", chaperone_bin, job_script_name);
+	fflush(Log_stream);
 	// FIXME: Failing on macOS
 	execl(chaperone_bin, chaperone_bin, job_script_name, NULL);
 	
-	// We only get here if execl failed
+	// We only get here if execl() failed
 	lpjs_log("%s(): Failed to exec %s %u %u %s\n",
 		__FUNCTION__, chaperone_bin, job_script_name);
 	return EX_UNAVAILABLE;

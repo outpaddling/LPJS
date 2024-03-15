@@ -40,11 +40,11 @@ int     main (int argc, char *argv[])
 		*temp,
 		*end,
 		log_file[PATH_MAX + 1],
-		outgoing_msg[LPJS_MSG_LEN_MAX + 1];
+		outgoing_msg[LPJS_MSG_LEN_MAX + 1],
+		wd[PATH_MAX + 1];
     pid_t       pid;
     extern FILE *Log_stream;
     
-    fputs("Chaperone running...\n", stderr);
     if ( argc != 2 )
     {
 	fprintf(stderr, "Usage: %s job-script.lpjs\n", argv[0]);
@@ -69,18 +69,15 @@ int     main (int argc, char *argv[])
 	exit(EX_USAGE);
     }
 
-    // Open process-specific log file in var/log/lpjs
-    // FIXME: Chaperone output should be in with script output
-    /*
-    snprintf(log_file, PATH_MAX + 1, "%s/chaperone-%s",
-	    LPJS_LOG_DIR, getenv("LPJS_JOB_ID"));
+    // Chaperone outputs stderr to a log file in the working dir
+    snprintf(log_file, PATH_MAX + 1, "chaperone-%s.stderr",
+	     getenv("LPJS_JOB_ID"));
     
     if ( (Log_stream = lpjs_log_output(log_file)) == NULL )
     {
 	fprintf(stderr, "chaperone: Failed to create log file.\n");
 	return EX_CANTCREAT;
     }
-    */
     
     // Get hostname of head node
     lpjs_load_config(node_list, LPJS_CONFIG_HEAD_ONLY, stderr);
@@ -97,14 +94,14 @@ int     main (int argc, char *argv[])
     // xt_str_argv_cat(cmd, argv, 1, LPJS_CMD_MAX + 1);
     // status = system(cmd);
     
-    printf("Running %s with %u cores and %lu MiB.\n",
+    lpjs_log("CWD = %s\n", getcwd(wd, PATH_MAX + 1));
+    lpjs_log("Running %s with %u cores and %lu MiB.\n",
 	    job_script_name, cores, mem_per_core);
-    fflush(stdout); // Avoid race with child process
     
     if ( (pid = fork()) == 0 )
     {
 	// Child, run script
-	// FIXME: Set CPU and memory limits
+	// FIXME: Set CPU and memory (virtual and physical) limits
 	execl(job_script_name, job_script_name, NULL);
 	lpjs_log("%s(): execl() failed: %s\n", __FUNCTION__, strerror(errno));
 	return EX_UNAVAILABLE;
