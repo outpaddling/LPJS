@@ -407,11 +407,8 @@ int     chaperone(job_t *job, const char *job_script_name, uid_t uid, gid_t gid)
 		err_file[PATH_MAX + 1];
     extern FILE *Log_stream;
     
-    lpjs_log("Forking...\n");
     if ( fork() == 0 )
     {
-	lpjs_log("In child...\n");
-	
 	/*
 	 *  Child, exec the chaperone command with the script as an arg.
 	 *  The chaperone runs in the background, monitoring the job,
@@ -429,7 +426,6 @@ int     chaperone(job_t *job, const char *job_script_name, uid_t uid, gid_t gid)
 	 *  Set env vars
 	 */
 	job_setenv(job);
-	lpjs_log("Vars set.\n");
 	
 	// FIXME: Make sure filenames are not truncated
 	
@@ -438,7 +434,6 @@ int     chaperone(job_t *job, const char *job_script_name, uid_t uid, gid_t gid)
 	strlcat(out_file, ".stdout", PATH_MAX + 1);
 	close(1);
 	open(out_file, O_WRONLY|O_CREAT, 0755);
-	lpjs_log("Redirected stdout.\n");
 	
 	// Redirect stderr
 	strlcpy(err_file, job_script_name, PATH_MAX + 1);
@@ -449,7 +444,6 @@ int     chaperone(job_t *job, const char *job_script_name, uid_t uid, gid_t gid)
 	    lpjs_log("%s(): Could not open %s: %s\n", __FUNCTION__,
 		     err_file, strerror(errno));
 	}
-	lpjs_log("Redirected stderr.\n");
 	
 	// FIXME: Build should use realpath
 	lpjs_log("Running chaperone: %s %s...\n", chaperone_bin, job_script_name);

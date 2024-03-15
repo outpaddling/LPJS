@@ -91,9 +91,11 @@ LIBEXECDIR  ?= ${PREFIX}/libexec/lpjs
 # you know what you're doing.
 
 # Defaults that should work with GCC and Clang.
+# realpath PREFIX so that binaries run from a different directory
+# can find it.  The default ../local is relative and won't work for this.
 CC          ?= cc
 CFLAGS      ?= -Wall -g -O
-CFLAGS      += -DPREFIX='"${PREFIX}"' -DVERSION=\"`./version.sh`\"
+CFLAGS      += -DPREFIX=\"`realpath ${PREFIX}`\" -DVERSION=\"`./version.sh`\"
 
 # Link command:
 # Use ${FC} to link when mixing C and Fortran
