@@ -37,6 +37,9 @@ if [ $# != 0 ]; then
     usage
 fi
 prefix=/usr/local
+if [ ! -e $prefix/var/spool/lpjs ]; then
+    exit 0
+fi
 
 cat << EOM
 

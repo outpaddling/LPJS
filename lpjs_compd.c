@@ -308,8 +308,6 @@ int     lpjs_run_script(job_t *job, const char *script_start, uid_t uid, gid_t g
     working_dir = job_get_working_directory(job);
     if ( (stat(working_dir, &st) != 0) || ! S_ISDIR(st.st_mode) )
     {
-	// FIXME: Try substituting /usr/home, /home, /Users
-	
 	struct passwd *pw_ent;
 	
 	// Use pwnam_r() if multithreading, not likely

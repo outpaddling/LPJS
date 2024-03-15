@@ -69,10 +69,11 @@ int     main (int argc, char *argv[])
 	return EX_IOERR;
     }
     
-    // FIXME: Send full job specs from job_t class and entire script
-    // snprintf(payload, LPJS_PAYLOAD_MAX_LEN, LPJS_JOB_FORMAT
+    // FIXME: Send script as part of the payload
+    // We can't assume dispatchd has direct access to scripts
+    // submitted from other nodes.
     job_print_to_string(job, payload, LPJS_PAYLOAD_MAX_LEN + 1);
-    // lpjs_log("Sending payload: %s\n", payload);
+    lpjs_log("Sending payload: %s\n", payload);
 
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%s",
 	    LPJS_DISPATCHD_REQUEST_SUBMIT, payload);
