@@ -305,13 +305,10 @@ int     lpjs_run_script(job_t *job, const char *script_start, uid_t uid, gid_t g
      */
     
     working_dir = job_get_working_directory(job);
-    if ( (stat(working_dir, &st) == 0) &&
-	 S_ISDIR(st.st_mode) )
+    if ( (stat(working_dir, &st) != 0) || ! S_ISDIR(st.st_mode) )
     {
-	lpjs_log("Running job in %s.\n", working_dir);
-    }
-    else
-    {
+	// FIXME: Try substituting /usr/home, /home, /Users
+	
 	struct passwd *pw_ent;
 	
 	// Use pwnam_r() if multithreading, not likely
@@ -320,6 +317,7 @@ int     lpjs_run_script(job_t *job, const char *script_start, uid_t uid, gid_t g
 	    lpjs_log("No such user: %s\n", job_get_user_name(job));
 	    // FIXME: Report job failure to dispatchd
 	}
+	
 	else
 	{
 	    // FIXME: Check for failures
@@ -337,6 +335,8 @@ int     lpjs_run_script(job_t *job, const char *script_start, uid_t uid, gid_t g
 	lpjs_log("Failed to enter working dir: %s\n", working_dir);
 	// FIXME: Notify dispatchd of job failure
     }
+    lpjs_log("Running job in %s.\n", working_dir);
+    lpjs_log("CWD = %s\n", getcwd(wd, PATH_MAX + 1));
     
     /*
      *  Save script
@@ -439,6 +439,8 @@ int     chaperone(job_t *job, const char *job_script_name, uid_t uid, gid_t gid)
 	close(2);
 	open(err_file, O_WRONLY|O_CREAT, 0755);
 	
+	lpjs_log("Running chaperone...\n");
+	// FIXME: Failing on macOS
 	execl(chaperone_bin, chaperone_bin, job_script_name, NULL);
 	
 	// We only get here if execl failed

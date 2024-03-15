@@ -398,7 +398,8 @@ int     job_read_from_string(job_t *job, const char *string, char **end)
     }
     ++items;
     
-    *end = p;
+    // Same offset into original string as we are into temp copy
+    *end = (char *)string + (p - temp);
     free(temp);
     
     return items;

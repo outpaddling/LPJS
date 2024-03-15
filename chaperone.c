@@ -44,6 +44,7 @@ int     main (int argc, char *argv[])
     pid_t       pid;
     extern FILE *Log_stream;
     
+    fputs("Chaperone running...\n", stderr);
     if ( argc != 2 )
     {
 	fprintf(stderr, "Usage: %s job-script.lpjs\n", argv[0]);
@@ -69,12 +70,17 @@ int     main (int argc, char *argv[])
     }
 
     // Open process-specific log file in var/log/lpjs
-    // FIXME: Prevent log files from piling up
-    snprintf(log_file, PATH_MAX + 1, "%s/chaperone-%d",
-	    LPJS_LOG_DIR, getpid());
+    // FIXME: Chaperone output should be in with script output
+    /*
+    snprintf(log_file, PATH_MAX + 1, "%s/chaperone-%s",
+	    LPJS_LOG_DIR, getenv("LPJS_JOB_ID"));
     
     if ( (Log_stream = lpjs_log_output(log_file)) == NULL )
+    {
+	fprintf(stderr, "chaperone: Failed to create log file.\n");
 	return EX_CANTCREAT;
+    }
+    */
     
     // Get hostname of head node
     lpjs_load_config(node_list, LPJS_CONFIG_HEAD_ONLY, stderr);
