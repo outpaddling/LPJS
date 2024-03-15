@@ -128,7 +128,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	for (int c = 0; c < node_list_get_compute_node_count(matched_nodes); ++c)
 	{
 	    // lpjs_log("Checking node[%d]\n", c);
-	    node_t *node = node_list_get_compute_nodes_ae(node_list, c);
+	    node_t *node = node_list_get_compute_nodes_ae(matched_nodes, c);
 	    
 	    msg_fd = node_get_msg_fd(node);
 
