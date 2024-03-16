@@ -424,6 +424,9 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		     */
 		    
 		    lpjs_log("Job completion report.\n");
+		    
+		    // FIXME: Get job specs and update cores and mem on node
+		    
 		    lpjs_dispatch_jobs(node_list, job_list);
 		    break;
 		    

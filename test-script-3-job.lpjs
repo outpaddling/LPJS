@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/sh
 
 #lpjs jobs 3
 #lpjs cores-per-job 2
@@ -7,3 +7,6 @@
 
 hostname
 printenv | fgrep LPJS_
+printf "Sleeping...\n"
+sleep 5
+printf "Done.\n"

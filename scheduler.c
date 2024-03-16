@@ -64,7 +64,9 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 		script_path[PATH_MAX + 1],
 		script_buff[LPJS_SCRIPT_SIZE_MAX + 1],
 		outgoing_msg[LPJS_JOB_MSG_MAX + 1];
-    int         msg_fd;
+    int         msg_fd,
+		cores_used,
+		dispatched;
     ssize_t     script_size;
     extern FILE *Log_stream;
     
@@ -142,7 +144,10 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	    lpjs_log("%s(): outgoing job msg:\n%s\n",
 		     __FUNCTION__, outgoing_msg + 1);
 	    
-	    // FIXME: Send job script to compd on node
+	    cores_used = node_get_cores_used(node);
+	    node_set_cores_used(node, cores_used + job_get_cores_per_job(job));
+	    // FIXME: Update mem used as well
+
 	    lpjs_send_munge(msg_fd, outgoing_msg);
 	}
 	
@@ -151,6 +156,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	 */
 	
 	free(matched_nodes);
+	dispatched = 1;
     }
     else
     {
@@ -159,11 +165,12 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	// maybe set a flag indicating that we're stuck until one of these
 	// things happens, to avoid wasting time trying to dispatch this
 	// job again when nothing has changed
+	dispatched = 0;
     }
     
     free(job);
     
-    return 1;   // 1 job successfully dispatched
+    return dispatched;
 }
 
 
@@ -188,6 +195,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 int     lpjs_dispatch_jobs(node_list_t *node_list, job_list_t *job_list)
 
 {
+    // Dispatch as many jobs as possible before resuming
     while ( lpjs_dispatch_next_job(node_list, job_list) > 0 )
 	;
     
