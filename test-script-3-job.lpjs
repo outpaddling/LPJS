@@ -17,6 +17,10 @@ printf "Done.\n"
 # in the working directory (the directory from which the job was submitted)
 # on $LPJS_SUBMIT_HOST.  If that directory is shared with the compute node,
 # then this script will see it, and won't need to scp the files there.
-if [ ! -e lpjs-$LPJS_SUBMIT_HOST-shared-fs-marker ]; then
+marker=lpjs-$LPJS_SUBMIT_HOST-shared-fs-marker
+if [ ! -e $marker ]; then
+    printf "$marker does not exist.  Using scp to transfer files.\n"
     scp lpjs-job-* chaperone-*.stderr ${LPJS_SUBMIT_HOST}:$LPJS_WORKING_DIRECTORY
+else
+    printf "$marker found.  No need to transfer files.\n"
 fi

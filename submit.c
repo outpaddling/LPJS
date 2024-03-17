@@ -77,6 +77,7 @@ int     main (int argc, char *argv[])
 	return EX_IOERR;
     }
     
+    gethostname(hostname, sysconf(_SC_HOST_NAME_MAX));
     snprintf(shared_marker, PATH_MAX + 1,
 	     "lpjs-%s-shared-fs-marker", hostname);
     if ( (fd = open(shared_marker, O_WRONLY|O_CREAT)) != -1 )
