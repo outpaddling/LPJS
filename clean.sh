@@ -1,4 +1,6 @@
 #!/bin/sh -e
 
-rm -f .*.bak *.bak README.html
+make clean
+rm -f .*.bak *.bak README.html lpjs-job-* chaperone-*.std* *.core \
+    tmp-commit-message.txt Doc/*.bak
 git status
