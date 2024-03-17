@@ -44,7 +44,9 @@ oversights in design.
 
 Development is currently moving along nicely.
 We anticipate having a minimal working batch system in place sometime in
-early 2024.  Stay tuned...
+early 2024.  Basic usability for brave souls willing to test alpha-quality
+software and provide feedback will be indicated by the first release, 0.1.0.
+Stay tuned...
 
 LPJS will be integrated with [SPCM](https://github.com/outpaddling/SPCM)
 (replacing SLURM) when it is sufficiently functional.
