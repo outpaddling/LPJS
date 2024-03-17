@@ -62,6 +62,25 @@ int     main (int argc, char *argv[])
     
     // FIXME: Warn about misleading shell extensions, e.g. .sh for bash
     
+    /*
+     *  Create marker file in working directory on submit host.
+     *  Submit scripts can check for this file to determine if they
+     *  are running in a shared directory.  If not, they might have to
+     *  use a file transfer tool to send back results.
+     */
+    
+    gethostname(hostname, sysconf(_SC_HOST_NAME_MAX));
+    snprintf(shared_marker, PATH_MAX + 1,
+	     "lpjs-%s-shared-fs-marker", hostname);
+    if ( (fd = open(shared_marker, O_WRONLY|O_CREAT, 0644)) != -1 )
+	close(fd);
+    else
+    {
+	fprintf(stderr, "Error: Could not create %s: %s\n",
+		shared_marker, strerror(errno));
+	return EX_CANTCREAT;
+    }
+    
     // Get hostname of head node
     lpjs_load_config(node_list, LPJS_CONFIG_HEAD_ONLY, stderr);
     
@@ -75,18 +94,6 @@ int     main (int argc, char *argv[])
     {
 	perror("lpjs-submit: Failed to connect to dispatch");
 	return EX_IOERR;
-    }
-    
-    gethostname(hostname, sysconf(_SC_HOST_NAME_MAX));
-    snprintf(shared_marker, PATH_MAX + 1,
-	     "lpjs-%s-shared-fs-marker", hostname);
-    if ( (fd = open(shared_marker, O_WRONLY|O_CREAT)) != -1 )
-	close(fd);
-    else
-    {
-	fprintf(stderr, "Error: Could not create %s: %s\n",
-		shared_marker, strerror(errno));
-	return EX_CANTCREAT;
     }
     
     // FIXME: Send script as part of the payload

@@ -431,13 +431,13 @@ int     chaperone(job_t *job, const char *job_script_name, uid_t uid, gid_t gid)
 	strlcpy(out_file, job_script_name, PATH_MAX + 1);
 	strlcat(out_file, ".stdout", PATH_MAX + 1);
 	close(1);
-	open(out_file, O_WRONLY|O_CREAT, 0755);
+	open(out_file, O_WRONLY|O_CREAT, 0644);
 	
 	// Redirect stderr
 	strlcpy(err_file, job_script_name, PATH_MAX + 1);
 	strlcat(err_file, ".stderr", PATH_MAX + 1);
 	close(2);
-	if ( open(err_file, O_WRONLY|O_CREAT, 0755) == -1 )
+	if ( open(err_file, O_WRONLY|O_CREAT, 0644) == -1 )
 	{
 	    lpjs_log("%s(): Could not open %s: %s\n", __FUNCTION__,
 		     err_file, strerror(errno));
