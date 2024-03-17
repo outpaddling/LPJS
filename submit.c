@@ -7,6 +7,7 @@
  *  2021-09-28  Jason Bacon Begin
  ***************************************************************************/
 
+// System headers
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -14,11 +15,15 @@
 #include <sysexits.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
+#include <fcntl.h>          // open()
+#include <errno.h>
 
+// Addons
 #include <munge.h>
 #include <xtend/string.h>
 #include <xtend/file.h>     // xt_rmkdir()
 
+// Project headers
 #include "node-list.h"
 #include "config.h"
 #include "network.h"
@@ -28,11 +33,14 @@
 int     main (int argc, char *argv[])
 
 {
-    int     msg_fd;
+    int     msg_fd,
+	    fd;
     char    outgoing_msg[LPJS_MSG_LEN_MAX + 1],
 	    *script_name,
 	    *ext,
-	    payload[LPJS_PAYLOAD_MAX_LEN + 1];
+	    payload[LPJS_PAYLOAD_MAX_LEN + 1],
+	    hostname[sysconf(_SC_HOST_NAME_MAX) + 1],
+	    shared_marker[PATH_MAX + 1];
     node_list_t *node_list = node_list_new();
     job_t       *job;
     // Shared functions may use lpjs_log
@@ -67,6 +75,17 @@ int     main (int argc, char *argv[])
     {
 	perror("lpjs-submit: Failed to connect to dispatch");
 	return EX_IOERR;
+    }
+    
+    snprintf(shared_marker, PATH_MAX + 1,
+	     "lpjs-%s-shared-fs-marker", hostname);
+    if ( (fd = open(shared_marker, O_WRONLY|O_CREAT)) != -1 )
+	close(fd);
+    else
+    {
+	fprintf(stderr, "Error: Could not create %s: %s\n",
+		shared_marker, strerror(errno));
+	return EX_CANTCREAT;
     }
     
     // FIXME: Send script as part of the payload
