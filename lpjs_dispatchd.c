@@ -11,6 +11,7 @@
  *  2021-09-23  Jason Bacon Begin
  ***************************************************************************/
 
+// System headers
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -23,11 +24,14 @@
 #include <errno.h>
 #include <stdbool.h>
 #include <sys/stat.h>
+#include <fcntl.h>      // open()
 
+// Addons
 #include <munge.h>
 #include <xtend/proc.h>
 #include <xtend/file.h>     // xt_rmkdir()
 
+// Project headers
 #include "lpjs.h"
 #include "node-list.h"
 #include "job-list.h"
@@ -560,7 +564,8 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
 
 {
     char        script_path[PATH_MAX + 1],
-		*end;
+		*end,
+		*script_text;
     job_t       *job = job_new(); // exits if malloc() fails, no need to check
     int         c;
     
@@ -572,15 +577,19 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
     // Payload in message from lpjs submit is a job description
     // in JOB_SPEC_FORMAT
     job_read_from_string(job, incoming_msg + 1, &end);
+    // Should only be a newline between job specs and script
+    script_text = end + 1;
     
+    // FIXME: Head node may not have access to the script: Get from payload
     // Need the absolute pathname of the script.  Might be the same
     // on compute nodes if NFS or other file server is used
     snprintf(script_path, PATH_MAX + 1, "%s/%s",
-	    job_get_working_directory(job), job_get_script_name(job));
+	     job_get_working_directory(job), job_get_script_name(job));
     for (c = 0; c < job_get_job_count(job); ++c)
     {
-	lpjs_log("Submit script %s from %d, %d\n", script_path, uid, gid);
-	lpjs_queue_job(msg_fd, job, script_path);
+	lpjs_log("Submit script %s:%s from %d, %d\n",
+		job_get_submit_host(job), script_path, uid, gid);
+	lpjs_queue_job(msg_fd, job, script_text);
     }
     
     lpjs_server_safe_close(msg_fd);
@@ -598,7 +607,7 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
  *  2021-09-30  Jason Bacon Begin
  ***************************************************************************/
 
-int     lpjs_queue_job(int msg_fd, job_t *job, const char *script_path)
+int     lpjs_queue_job(int msg_fd, job_t *job, const char *script_text)
 
 {
     char    pending_dir[PATH_MAX + 1],
@@ -607,10 +616,10 @@ int     lpjs_queue_job(int msg_fd, job_t *job, const char *script_path)
 	    job_id_path[PATH_MAX + 1],
 	    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
     FILE    *fp;
-    int     status;
+    int     fd;
     unsigned long   next_job_id;
     
-    lpjs_log("Spooling %s...\n", script_path);
+    lpjs_log("Spooling %s...\n", job_get_script_name(job));
     
     snprintf(job_id_path, PATH_MAX + 1, "%s/next-job", LPJS_SPOOL_DIR);
     if ( (fp = fopen(job_id_path, "r")) == NULL )
@@ -631,18 +640,23 @@ int     lpjs_queue_job(int msg_fd, job_t *job, const char *script_path)
     }
 
     snprintf(pending_path, PATH_MAX + 1, "%s/%s", pending_dir,
-	    xt_basename(script_path));
+	    xt_basename(job_get_script_name(job)));
     
     // FIXME: Use a symlink instead?  Copy is safer in case user
     // modifies the script while a job is running.
     // lpjs_log("CWD = %s  script = '%s'\n", getcwd(NULL, 0), script_path);
     // lpjs_log("stat(): %d\n", stat(script_path, &st));
-    if ( (status = xt_fast_cp(script_path, pending_path)) != 0 )
+    if ( (fd = open(pending_path, O_WRONLY|O_CREAT|O_TRUNC, 0644)) == -1 )
+    // if ( (status = xt_fast_cp(script_path, pending_path)) != 0 )
     {
-	lpjs_log("lpjs_queue_job(): Failed to copy %s to %s: %d %s\n",
-		script_path, pending_path, status, strerror(errno));
+	lpjs_log("lpjs_queue_job(): Failed to copy %s to %s: %s\n",
+		job_get_script_name(job), pending_path, strerror(errno));
 	return -1;
     }
+    
+    // FIXME: Check success
+    write(fd, script_text, strlen(script_text));
+    close(fd);
     
     /*
      *  Write basic job specs to a file for the dispatcher
