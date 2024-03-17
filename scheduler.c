@@ -277,7 +277,7 @@ int     lpjs_select_next_job(job_t *job)
 	
 	snprintf(specs_path, PATH_MAX + 1, "%s/%lu/%s",
 		LPJS_PENDING_DIR, low_job_id, LPJS_SPECS_FILE_NAME);
-	if ( job_read_from_file(job, specs_path) != LPJS_SPECS_ITEMS )
+	if ( job_read_from_file(job, specs_path) != JOB_SPECS_ITEMS )
 	{
 	    lpjs_log("%s(): Error reading specs for job %lu.\n",
 		    __FUNCTION__, low_job_id);

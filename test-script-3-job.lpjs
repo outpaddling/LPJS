@@ -11,9 +11,6 @@ printf "Sleeping...\n"
 sleep 5
 printf "Done.\n"
 
-# FIXME: Set this in dispatchd?
-export LPJS_SUBMIT_HOST=moray.acadix.biz
-
 # If this node has access to the working directory on moray, then
 # the output files will already be there.  Otherwise, manually send
 # the files there.  Create the file moray-shared-fs-marker in the

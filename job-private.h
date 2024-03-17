@@ -18,6 +18,7 @@ struct job
     size_t          mem_per_core;
     char            *user_name;
     char            *primary_group_name;
+    char            *submit_host;
     char            *working_directory;
     char            *script_name;
 };

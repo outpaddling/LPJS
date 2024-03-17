@@ -64,6 +64,7 @@ void    job_init(job_t *job)
     job->mem_per_core = 0;
     job->user_name = NULL;
     job->primary_group_name = NULL;
+    job->submit_host = NULL;
     job->working_directory = NULL;
     job->script_name = NULL;
 }
@@ -85,7 +86,7 @@ int     job_print(job_t *job, FILE *stream)
 	    job->cores_per_job,
 	    job->min_cores_per_node, job->mem_per_core,
 	    job->user_name, job->primary_group_name,
-	    job->working_directory, job->script_name);
+	    job->submit_host, job->working_directory, job->script_name);
 }
 
 
@@ -105,7 +106,7 @@ int     job_print_to_string(job_t *job, char *str, size_t buff_size)
 		    job->job_id, job->job_count, job->cores_per_job,
 		    job->min_cores_per_node, job->mem_per_core,
 		    job->user_name, job->primary_group_name,
-		    job->working_directory, job->script_name);
+		    job->submit_host, job->working_directory, job->script_name);
 }
 
 
@@ -128,7 +129,7 @@ void    job_send_as_msg(job_t *job, int msg_fd)
 	    job->cores_per_job,
 	    job->min_cores_per_node, job->mem_per_core,
 	    job->user_name, job->primary_group_name,
-	    job->working_directory, job->script_name);
+	    job->submit_host, job->working_directory, job->script_name);
     
     if ( lpjs_send_munge(msg_fd, msg) != EX_OK )
     {
@@ -160,7 +161,8 @@ int     job_parse_script(job_t *job, const char *script_name)
 	    val[JOB_FIELD_MAX_LEN + 1],
 	    temp_user_name[65],
 	    temp_group_name[65],
-	    *end;
+	    *end,
+	    temp_hostname[sysconf(_SC_HOST_NAME_MAX) + 1];
     size_t  field_len;
     int     var_delim, val_delim;
     
@@ -173,6 +175,13 @@ int     job_parse_script(job_t *job, const char *script_name)
     {
 	fprintf(stderr, "Cannot open %s: %s\n", script_path, strerror(errno));
 	return -1;  // FIXME: Define error code
+    }
+    
+    gethostname(temp_hostname, sysconf(_SC_HOST_NAME_MAX));
+    if ( (job->submit_host = strdup(temp_hostname)) == NULL )
+    {
+	fprintf(stderr, "%s: malloc() failed.\n", __FUNCTION__);
+	exit(EX_UNAVAILABLE);
     }
     
     if ( (job->working_directory = getcwd(NULL, 0)) == NULL )
@@ -384,6 +393,13 @@ int     job_read_from_string(job_t *job, const char *string, char **end)
     }
     ++items;
     
+    if ( (job->submit_host = strdup(strsep(&p, " \t"))) == NULL )
+    {
+	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
+	exit(EX_UNAVAILABLE);
+    }
+    ++items;
+    
     if ( (job->working_directory = strdup(strsep(&p, " \t"))) == NULL )
     {
 	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
@@ -483,6 +499,7 @@ void    job_free(job_t **job)
 {
     free((*job)->user_name);
     free((*job)->primary_group_name);
+    free((*job)->submit_host);
     free((*job)->working_directory);
     free((*job)->script_name);
     free(*job);
@@ -507,7 +524,8 @@ void    job_send_spec_header(int msg_fd)
     snprintf(msg, LPJS_MSG_LEN_MAX + 1,
 	    JOB_SPEC_HEADER_FORMAT, "JobID", "Job-count",
 	    "Cores/job", "Cores/node", "Mem/core",
-	    "User-name", "Group-name", "Working-directory", "Script-name");
+	    "User-name", "Group-name",
+	    "Submit-host", "Working-directory", "Script-name");
     lpjs_send_munge(msg_fd, msg);
 }
 
@@ -527,7 +545,8 @@ void    job_print_spec_header(FILE *stream)
 {
     fprintf(stream, JOB_SPEC_HEADER_FORMAT, "JobID", "Job-count",
 		"Cores/job", "Cores/node", "Mem/core",
-		"User-name", "Group-name", "Working-directory", "Script-name");
+		"User-name", "Group-name",
+		"Submit-host", "Working-directory", "Script-name");
 }
 
 
@@ -577,6 +596,7 @@ void    job_setenv(job_t *job)
 	    LPJS_MAX_INT_DIGITS + 1), 1);
     setenv("LPJS_USER_NAME", job->user_name, 1);
     setenv("LPJS_PRIMARY_GROUP_NAME", job->primary_group_name, 1);
+    setenv("LPJS_SUBMIT_HOST", job->submit_host, 1);
     setenv("LPJS_WORKING_DIRECTORY", job->working_directory, 1);
     setenv("LPJS_SCRIPT_NAME", job->script_name, 1);
 }
