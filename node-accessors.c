@@ -158,31 +158,31 @@ unsigned    node_get_cores_used(node_t *node_ptr)
  *      
  *
  *  Description:
- *      Accessor for phys_mem member in a node_t structure.
- *      Use this function to get phys_mem in a node_t object
+ *      Accessor for phys_MiB member in a node_t structure.
+ *      Use this function to get phys_MiB in a node_t object
  *      from non-member functions.
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
  *
  *  Returns:
- *      Value of the structure member phys_mem.
+ *      Value of the structure member phys_MiB.
  *
  *  Examples:
  *      node_t          node;
- *      unsigned long   phys_mem;
+ *      unsigned long   phys_MiB;
  *
- *      phys_mem = node_get_phys_mem(&node);
+ *      phys_MiB = node_get_phys_MiB(&node);
  *
  *  History: 
  *  Date        Name        Modification
  *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
-unsigned long    node_get_phys_mem(node_t *node_ptr)
+unsigned long    node_get_phys_MiB(node_t *node_ptr)
 
 {
-    return node_ptr->phys_mem;
+    return node_ptr->phys_MiB;
 }
 
 
@@ -192,31 +192,31 @@ unsigned long    node_get_phys_mem(node_t *node_ptr)
  *      
  *
  *  Description:
- *      Accessor for phys_mem_used member in a node_t structure.
- *      Use this function to get phys_mem_used in a node_t object
+ *      Accessor for phys_MiB_used member in a node_t structure.
+ *      Use this function to get phys_MiB_used in a node_t object
  *      from non-member functions.
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
  *
  *  Returns:
- *      Value of the structure member phys_mem_used.
+ *      Value of the structure member phys_MiB_used.
  *
  *  Examples:
  *      node_t          node;
- *      unsigned long   phys_mem_used;
+ *      unsigned long   phys_MiB_used;
  *
- *      phys_mem_used = node_get_phys_mem_used(&node);
+ *      phys_MiB_used = node_get_phys_MiB_used(&node);
  *
  *  History: 
  *  Date        Name        Modification
  *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
-unsigned long    node_get_phys_mem_used(node_t *node_ptr)
+unsigned long    node_get_phys_MiB_used(node_t *node_ptr)
 
 {
-    return node_ptr->phys_mem_used;
+    return node_ptr->phys_MiB_used;
 }
 
 

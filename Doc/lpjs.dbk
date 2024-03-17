@@ -63,6 +63,14 @@
     </chapter>
     
     <chapter>
+        <title>Configuration</title>
+        
+        <para>
+        Use full hostname as reported by gethostname(3).
+        </para>
+    </chapter>
+    
+    <chapter>
         <title>Starting Daemons</title>
         
         <para>

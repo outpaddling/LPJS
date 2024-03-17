@@ -1,2 +1,9 @@
-head    coral
-compute alma8,austin,barracuda,dragonfly,herring,netbsd9,sunfish,tarpon
+head    coral.acadix.biz
+compute alma8.local
+compute austin.acadix.biz
+compute barracuda.acadix.biz
+compute dragonfly.acadix.biz
+compute herring.acadix.biz
+compute netbsd9.acadix.biz
+compute sunfish.acadix.biz
+compute tarpon.acadix.biz

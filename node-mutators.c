@@ -278,17 +278,17 @@ int     node_set_cores_used(node_t *node_ptr, unsigned new_cores_used)
  *      
  *
  *  Description:
- *      Mutator for phys_mem member in a node_t structure.
- *      Use this function to set phys_mem in a node_t object
+ *      Mutator for phys_MiB member in a node_t structure.
+ *      Use this function to set phys_MiB in a node_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
- *      phys_mem is a pointer, data previously pointed to should
+ *      phys_MiB is a pointer, data previously pointed to should
  *      be freed before calling this function to avoid memory
  *      leaks.
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
- *      new_phys_mem    The new value for phys_mem
+ *      new_phys_MiB    The new value for phys_MiB
  *
  *  Returns:
  *      NODE_DATA_OK if the new value is acceptable and assigned
@@ -296,9 +296,9 @@ int     node_set_cores_used(node_t *node_ptr, unsigned new_cores_used)
  *
  *  Examples:
  *      node_t          node;
- *      unsigned long   new_phys_mem;
+ *      unsigned long   new_phys_MiB;
  *
- *      if ( node_set_phys_mem(&node, new_phys_mem)
+ *      if ( node_set_phys_MiB(&node, new_phys_MiB)
  *              == NODE_DATA_OK )
  *      {
  *      }
@@ -311,14 +311,14 @@ int     node_set_cores_used(node_t *node_ptr, unsigned new_cores_used)
  *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
-int     node_set_phys_mem(node_t *node_ptr, unsigned long new_phys_mem)
+int     node_set_phys_MiB(node_t *node_ptr, unsigned long new_phys_MiB)
 
 {
     if ( false )
 	return NODE_DATA_OUT_OF_RANGE;
     else
     {
-	node_ptr->phys_mem = new_phys_mem;
+	node_ptr->phys_MiB = new_phys_MiB;
 	return NODE_DATA_OK;
     }
 }
@@ -330,17 +330,17 @@ int     node_set_phys_mem(node_t *node_ptr, unsigned long new_phys_mem)
  *      
  *
  *  Description:
- *      Mutator for phys_mem_used member in a node_t structure.
- *      Use this function to set phys_mem_used in a node_t object
+ *      Mutator for phys_MiB_used member in a node_t structure.
+ *      Use this function to set phys_MiB_used in a node_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
- *      phys_mem_used is a pointer, data previously pointed to should
+ *      phys_MiB_used is a pointer, data previously pointed to should
  *      be freed before calling this function to avoid memory
  *      leaks.
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
- *      new_phys_mem_used The new value for phys_mem_used
+ *      new_phys_MiB_used The new value for phys_MiB_used
  *
  *  Returns:
  *      NODE_DATA_OK if the new value is acceptable and assigned
@@ -348,9 +348,9 @@ int     node_set_phys_mem(node_t *node_ptr, unsigned long new_phys_mem)
  *
  *  Examples:
  *      node_t          node;
- *      unsigned long   new_phys_mem_used;
+ *      unsigned long   new_phys_MiB_used;
  *
- *      if ( node_set_phys_mem_used(&node, new_phys_mem_used)
+ *      if ( node_set_phys_MiB_used(&node, new_phys_MiB_used)
  *              == NODE_DATA_OK )
  *      {
  *      }
@@ -363,14 +363,14 @@ int     node_set_phys_mem(node_t *node_ptr, unsigned long new_phys_mem)
  *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
-int     node_set_phys_mem_used(node_t *node_ptr, unsigned long new_phys_mem_used)
+int     node_set_phys_MiB_used(node_t *node_ptr, unsigned long new_phys_MiB_used)
 
 {
     if ( false )
 	return NODE_DATA_OUT_OF_RANGE;
     else
     {
-	node_ptr->phys_mem_used = new_phys_mem_used;
+	node_ptr->phys_MiB_used = new_phys_MiB_used;
 	return NODE_DATA_OK;
     }
 }

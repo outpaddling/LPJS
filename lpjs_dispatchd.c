@@ -348,12 +348,19 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 			     node_list_t *node_list, job_list_t *job_list)
 
 {
-    int         msg_fd;
-    ssize_t     bytes;
-    char        *munge_payload;
-    socklen_t   address_len = sizeof (struct sockaddr_in);
-    uid_t       uid;
-    gid_t       gid;
+    int             msg_fd;
+    ssize_t         bytes;
+    char            *munge_payload,
+		    *p,
+		    *hostname;
+    socklen_t       address_len = sizeof (struct sockaddr_in);
+    uid_t           uid;
+    gid_t           gid;
+    unsigned long   job_id;
+    unsigned        cores_per_job;
+    size_t          mem_per_core;
+    node_t          *node;
+    int             items;
     
     bytes = 0;
     if ( FD_ISSET(listen_fd, read_fds) )
@@ -416,16 +423,39 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    break;
 
 		case    LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:
+		    
+		    lpjs_log("Job completion report:\n%s\n",
+			    munge_payload + 1);
+		    
+		    p = munge_payload + 1;
+		    hostname = strsep(&p, " ");
+		    lpjs_log("hostname = %s\n", hostname);
+		    node = node_list_find_hostname(node_list, hostname);
+		    if ( node == NULL )
+		    {
+			lpjs_log("%s(): Invalid hostname in job completion report.\n",
+				__FUNCTION__);
+			break;
+		    }
+		    if ( (items = sscanf(p, "%lu %u %zu",
+			    &job_id, &cores_per_job, &mem_per_core)) != 3 )
+		    {
+			lpjs_log("%s(): Got %d items reading job_id, cores and mem.\n",
+				items);
+			break;
+		    }
+		    
+		    node_set_cores_used(node,
+			node_get_cores_used(node) - cores_per_job);
+		    node_set_phys_MiB_used(node,
+			node_get_phys_MiB_used(node)
+			    - mem_per_core * cores_per_job);
 		
 		    /*
-		     *  Remove job from running dir and write a
+		     *  FIXME: Remove job from running dir and write a
 		     *  completed job record
 		     *  Note the job completion in the main log
 		     */
-		    
-		    lpjs_log("Job completion report.\n");
-		    
-		    // FIXME: Get job specs and update cores and mem on node
 		    
 		    lpjs_dispatch_jobs(node_list, job_list);
 		    break;

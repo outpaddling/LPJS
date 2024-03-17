@@ -44,6 +44,7 @@ int     main (int argc, char *argv[])
 		wd[PATH_MAX + 1];
     pid_t       pid;
     extern FILE *Log_stream;
+    char        hostname[sysconf(_SC_HOST_NAME_MAX) + 1];
     
     if ( argc != 2 )
     {
@@ -114,8 +115,11 @@ int     main (int argc, char *argv[])
     }
     
     /* Send a message to the server */
-    outgoing_msg[0] = LPJS_DISPATCHD_REQUEST_JOB_COMPLETE;
-    outgoing_msg[1] = '\0';
+    gethostname(hostname, sysconf(_SC_HOST_NAME_MAX));
+    snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%s %s %s %s\n",
+	LPJS_DISPATCHD_REQUEST_JOB_COMPLETE, hostname,
+	getenv("LPJS_JOB_ID"), getenv("LPJS_CORES_PER_JOB"),
+	getenv("LPJS_MEM_PER_CORE"));
     if ( lpjs_send_munge(msg_fd, outgoing_msg) != EX_OK )
     {
 	lpjs_log("lpjs-chaperone: Failed to send message to dispatch: %s",

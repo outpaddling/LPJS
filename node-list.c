@@ -89,20 +89,18 @@ void    node_list_update_compute(node_list_t *node_list, node_t *node)
 
 {
     size_t  c;
-    char    short_hostname[64],
-	    *first_dot;
+    char    *hostname;
     
-    strlcpy(short_hostname, node_get_hostname(node), 64);
-    if ( (first_dot = strchr(short_hostname, '.')) != NULL )
-	*first_dot = '\0';
+    // Note: FQDN is required
+    hostname = node_get_hostname(node);
     for (c = 0; c < node_list->compute_node_count; ++c)
     {
-	if ( strcmp(node_get_hostname(node_list->compute_nodes[c]), short_hostname) == 0 )
+	if ( strcmp(node_get_hostname(node_list->compute_nodes[c]), hostname) == 0 )
 	{
 	    // lpjs_log("Updating compute node %zu %s\n", c, NODE_HOSTNAME(node_list->compute_nodes[c]));
 	    node_set_state(node_list->compute_nodes[c], "Up");
 	    node_set_cores(node_list->compute_nodes[c], node_get_cores(node));
-	    node_set_phys_mem(node_list->compute_nodes[c], node_get_phys_mem(node));
+	    node_set_phys_MiB(node_list->compute_nodes[c], node_get_phys_MiB(node));
 	    node_set_zfs(node_list->compute_nodes[c], node_get_zfs(node));
 	    node_set_os(node_list->compute_nodes[c], strdup(node_get_os(node)));
 	    node_set_arch(node_list->compute_nodes[c], strdup(node_get_arch(node)));
@@ -138,7 +136,7 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
     
     snprintf(header, LPJS_MSG_LEN_MAX,
 	    NODE_STATUS_HEADER_FORMAT, "Hostname", "State",
-	    "Cores", "Used", "Physmem", "Used", "OS", "Arch");
+	    "Cores", "Used", "PhysMiB", "Used", "OS", "Arch");
     lpjs_send_munge(msg_fd, header);
     
     cores_up = cores_up_used = cores_down = 0;
@@ -151,13 +149,13 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
 	{
 	    cores_up += node_get_cores(node_list->compute_nodes[c]);
 	    cores_up_used += node_get_cores_used(node_list->compute_nodes[c]);
-	    mem_up += node_get_phys_mem(node_list->compute_nodes[c]);
-	    mem_up_used += node_get_phys_mem_used(node_list->compute_nodes[c]);
+	    mem_up += node_get_phys_MiB(node_list->compute_nodes[c]);
+	    mem_up_used += node_get_phys_MiB_used(node_list->compute_nodes[c]);
 	}
 	else
 	{
 	    cores_down += node_get_cores(node_list->compute_nodes[c]);
-	    mem_down += node_get_phys_mem(node_list->compute_nodes[c]);
+	    mem_down += node_get_phys_MiB(node_list->compute_nodes[c]);
 	}
     }
     
@@ -226,4 +224,22 @@ int     node_list_add_compute_node(node_list_t *node_list, node_t *node)
     node_list->compute_nodes[node_list->compute_node_count++] = node;
     
     return 0;   // FIXME: Define return codes
+}
+
+
+node_t  *node_list_find_hostname(node_list_t *node_list, const char *hostname)
+
+{
+    int     c;
+    node_t  *node;
+    
+    for (c = 0; c < node_list->compute_node_count; ++c)
+    {
+	node = node_list->compute_nodes[c];
+	lpjs_log("%s(): Checking %s\n", __FUNCTION__, node_get_hostname(node));
+	if ( strcmp(node_get_hostname(node), hostname) == 0 )
+	    return node;
+    }
+    
+    return NULL;
 }

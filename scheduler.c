@@ -68,6 +68,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 		cores_used,
 		dispatched;
     ssize_t     script_size;
+    size_t      phys_MiB_used;
     extern FILE *Log_stream;
     
     /*
@@ -144,10 +145,17 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	    lpjs_log("%s(): outgoing job msg:\n%s\n",
 		     __FUNCTION__, outgoing_msg + 1);
 	    
+	    // FIXME: Needs adjustment for MPI jobs at the least
 	    cores_used = node_get_cores_used(node);
 	    node_set_cores_used(node, cores_used + job_get_cores_per_job(job));
-	    // FIXME: Update mem used as well
+	    phys_MiB_used = node_get_phys_MiB_used(node);
+	    node_set_phys_MiB_used(node, phys_MiB_used +
+		job_get_mem_per_core(job) * job_get_cores_per_job(job));
 
+	    // lpjs_log("cores per job = %u\n", job_get_cores_per_job(job));
+	    // lpjs_log("MiB per core = %zu\n", job_get_mem_per_core(job));
+	    // lpjs_log("New MiB used = %zu\n", node_get_phys_MiB_used(node));
+	    
 	    lpjs_send_munge(msg_fd, outgoing_msg);
 	}
 	
@@ -334,7 +342,6 @@ int     lpjs_match_nodes(job_t *job, node_list_t *node_list,
     
     if ( total_usable == total_required )
     {
-	// FIXME: Getting moray twice for the second dispatch
 	lpjs_log("Using nodes:\n");
 	for (c = 0; c < node_list_get_compute_node_count(matched_nodes); ++c)
 	{
@@ -366,7 +373,7 @@ int     lpjs_get_usable_cores(job_t *job, node_t *node)
     size_t      available_mem;
     
     required_cores = job_get_min_cores_per_node(job);
-    available_mem = node_get_phys_mem(node) - node_get_phys_mem_used(node);
+    available_mem = node_get_phys_MiB(node) - node_get_phys_MiB_used(node);
     available_cores = node_get_cores(node) - node_get_cores_used(node);
     lpjs_log("cores = %u  mem = %lu\n", available_cores, available_mem);
     if ( (available_cores >= required_cores ) &&
