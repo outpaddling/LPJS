@@ -5,3 +5,4 @@ FILE *lpjs_log_output(char *pathname);
 int xt_create_pid_file(const char *pid_path, FILE *log_stream);
 char *xt_str_localtime(void);
 const char *xt_basename(const char *restrict str);
+ssize_t lpjs_load_script(const char *script_path, char *script_buff, size_t buff_size);

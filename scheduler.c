@@ -4,7 +4,7 @@
 #include <limits.h>     // ULONG_MAX
 #include <string.h>     // strerror()
 #include <errno.h>
-#include <fcntl.h>      // open()
+// #include <fcntl.h>      // open()
 #include <unistd.h>     // close()
 
 #include <xtend/file.h>
@@ -385,34 +385,4 @@ int     lpjs_get_usable_cores(job_t *job, node_t *node)
 	usable_cores = 0;
     
     return usable_cores;
-}
-
-
-ssize_t lpjs_load_script(const char *script_path,
-			 char *script_buff, size_t buff_size)
-
-{
-    ssize_t bytes;
-    int     fd;
-    extern FILE *Log_stream;
-    
-    if ( (fd = open(script_path, O_RDONLY)) == -1 )
-    {
-	lpjs_log("%s(): Failed to open %s: %s\n", __FUNCTION__,
-		script_path, strerror(errno));
-	return -1;
-    }
-    
-    bytes = read(fd, script_buff, buff_size + 1);
-    if ( bytes == buff_size + 1 )
-    {
-	lpjs_log("%s(): Script exceeds %zd.  Reduce script size or increase script_size_max.\n",
-		__FUNCTION__, buff_size);
-	close(fd);
-	return -1;
-    }
-    close(fd);
-    script_buff[bytes] = '\0';
-    
-    return bytes;
 }

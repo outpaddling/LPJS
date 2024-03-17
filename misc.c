@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <errno.h>
 #include <limits.h>     // PATH_MAX
+#include <fcntl.h>      // open()
+
 #include <xtend/file.h> // xt_rmkdir()
 
 #include "lpjs.h"
@@ -251,4 +253,34 @@ const char    *xt_basename(const char *restrict str)
 	return str;     // No '/' in path, path is a basename
     else
 	return p + 1;   // Next char after last '/'
+}
+
+
+ssize_t lpjs_load_script(const char *script_path,
+			 char *script_buff, size_t buff_size)
+
+{
+    ssize_t bytes;
+    int     fd;
+    extern FILE *Log_stream;
+    
+    if ( (fd = open(script_path, O_RDONLY)) == -1 )
+    {
+	lpjs_log("%s(): Failed to open %s: %s\n", __FUNCTION__,
+		script_path, strerror(errno));
+	return -1;
+    }
+    
+    bytes = read(fd, script_buff, buff_size + 1);
+    if ( bytes == buff_size + 1 )
+    {
+	lpjs_log("%s(): Script exceeds %zd.  Reduce script size or increase script_size_max.\n",
+		__FUNCTION__, buff_size);
+	close(fd);
+	return -1;
+    }
+    close(fd);
+    script_buff[bytes] = '\0';
+    
+    return bytes;
 }

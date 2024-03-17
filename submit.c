@@ -38,9 +38,11 @@ int     main (int argc, char *argv[])
     char    outgoing_msg[LPJS_MSG_LEN_MAX + 1],
 	    *script_name,
 	    *ext,
-	    payload[LPJS_PAYLOAD_MAX_LEN + 1],
+	    job_string[LPJS_PAYLOAD_MAX_LEN + 1],
 	    hostname[sysconf(_SC_HOST_NAME_MAX) + 1],
-	    shared_marker[PATH_MAX + 1];
+	    shared_marker[PATH_MAX + 1],
+	    script_text[LPJS_SCRIPT_SIZE_MAX + 1];
+    ssize_t script_size;
     node_list_t *node_list = node_list_new();
     job_t       *job;
     // Shared functions may use lpjs_log
@@ -53,12 +55,21 @@ int     main (int argc, char *argv[])
 	fprintf (stderr, "Usage: %s script.lpjs\n", argv[0]);
 	return EX_USAGE;
     }
-    script_name =argv[1];
+    script_name = argv[1];
     
     if ( ((ext = strchr(script_name, '.')) == NULL) ||
 	 (strcmp(ext, ".lpjs") != 0 ) )
 	fprintf(stderr, "Warning: Script name %s should end in \".lpjs\"\n",
 		script_name);
+    
+    script_size = lpjs_load_script(script_name, script_text,
+				   LPJS_SCRIPT_SIZE_MAX + 1);
+    // FIXME: Determine a real minimum script size
+    if ( script_size < 1 )
+    {
+	lpjs_log("%s(): Error reading script.\n", __FUNCTION__);
+	return 0;
+    }
     
     // FIXME: Warn about misleading shell extensions, e.g. .sh for bash
     
@@ -99,11 +110,12 @@ int     main (int argc, char *argv[])
     // FIXME: Send script as part of the payload
     // We can't assume dispatchd has direct access to scripts
     // submitted from other nodes.
-    job_print_to_string(job, payload, LPJS_PAYLOAD_MAX_LEN + 1);
-    lpjs_log("Sending payload: %s\n", payload);
+    
+    job_print_to_string(job, job_string, LPJS_PAYLOAD_MAX_LEN + 1);
 
-    snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%s",
-	    LPJS_DISPATCHD_REQUEST_SUBMIT, payload);
+    snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%s\n%s",
+	    LPJS_DISPATCHD_REQUEST_SUBMIT, job_string, script_text);
+    lpjs_log("Sending payload: %s\n", outgoing_msg);
 
     if ( lpjs_send_munge(msg_fd, outgoing_msg) != EX_OK )
     {
