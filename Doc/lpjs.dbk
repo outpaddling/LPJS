@@ -40,18 +40,22 @@
         FreeBSD and Dragonfly BSD, and a pkgsrc package that should work on
         almost any other POSIX platform, including other BSDs, most Linux
         distributions, macOS, Solaris-based systems, etc.
-        Other package managers may be supported by third parties.
+        Other package managers may be supported by third parties.  If you
+        would like to add LPJS to your favorite package manager, see
+        the instructions for packagers in the README at
+        <ulink url="https://github.com/outpaddling/LPJS/">https://github.com/outpaddling/LPJS/</ulink>.
         </para>
         
         <para>
         LPJS uses <command>munge</command>
         <ulink url="https://github.com/dun/munge">(https://github.com/dun/munge)</ulink>
-        to authenticate messages between nodes.  Munge is installed
+        to encrypt and authenticate messages between nodes.  Munge is installed
         automatically by the package manager when installing LPJS.
         </para>
         
         <para>
-        However, munge also requires all nodes to have a shared munge key
+        However, munge must be configured and enabled as a service as well.
+        Munge requires all nodes to have a shared munge key
         file, which is unique to your installation.  It must be generated
         by you (see the munge documentation) and distributed to all
         computers that are part of your cluster or grid.
@@ -66,7 +70,48 @@
         <title>Configuration</title>
         
         <para>
-        Use full hostname as reported by gethostname(3).
+        LPJS is designed to require minimal configuration.  For example,
+        compute node
+        specs such as available cores and memory are determined
+        automatically, and need not be specified in configuration files.
+        </para>
+        
+        <para>
+        Most configuration can be done entirely using
+        <command>lpjs-admin</command>, a menu-driven admin tool.
+        Simply run <command>lpjs-admin</command>, select an item from
+        the menu, and answer the questions on the screen.
+        </para>
+        
+        <para>
+        For the sake of understanding what <command>lpjs-admin</command>
+        does, some basic information is provided below.
+        </para>
+        
+        <para>
+        The head node requires a configuration file, which in its simplest
+        form merely lists the complete host names (FQDNs) of the head node
+        and each compute node, e.g.
+        </para>
+        
+        <screen>
+head    myhead.mydomain
+compute compute001.mydomain
+compute compute002.mydomain
+...
+        </screen>
+        
+        <para>
+        The FQDN (fully qualified domain name) must match the name
+        reported by the <command>hostname</command> command, or
+        the <code>gethostname()</code> standard library function.
+        </para>
+        
+        <para>
+        Each compute node requires a similar configuration file, but it
+        need only list the head node.  It can be the same configuration
+        file used on the head node, in which case the compute node entries
+        are ignored.
         </para>
     </chapter>
     
@@ -74,9 +119,16 @@
         <title>Starting Daemons</title>
         
         <para>
-        All nodes in the cluster or grid must be running munged, using the
-        same munge key.  The head node must run lpjs_dispatchd, and
-        all compute nodes must run lpjs_compd.
+        All nodes in the cluster or grid must be running
+        <command>munged</command>, using the
+        same munge key.  The head node must run
+        <command>lpjs_dispatchd</command>, and
+        all compute nodes must run <command>lpjs_compd</command>.
+        </para>
+        
+        <para>
+        Appropriate services can be configured by running
+        <command>lpjs-admin</command> on each node.
         </para>
         
         <note>
@@ -113,6 +165,14 @@
         on each compute node.  Note that if lpjs_compd is not running as root,
         the compute node will only be able to run jobs
         under the same user name that submitted them.
+        </para>
+    </chapter>
+    
+    <chapter>
+        <title>Advanced configuration</title>
+        
+        <para>
+        TBD
         </para>
     </chapter>
 </book>
