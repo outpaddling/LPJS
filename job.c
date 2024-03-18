@@ -584,6 +584,7 @@ void    job_setenv(job_t *job)
 {
     char    str[LPJS_MAX_INT_DIGITS + 1];
     
+    // FIXME: Add LPJS_JOB_ARRAY_INDEX
     setenv("LPJS_JOB_ID", xt_ltostrn(str, job->job_id, 10,
 	    LPJS_MAX_INT_DIGITS + 1), 1);
     setenv("LPJS_JOB_COUNT", xt_ltostrn(str, job->job_count, 10,

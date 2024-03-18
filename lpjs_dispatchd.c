@@ -654,7 +654,7 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
     {
 	lpjs_log("Submit script %s:%s from %d, %d\n",
 		job_get_submit_host(job), script_path, uid, gid);
-	lpjs_queue_job(msg_fd, job, script_text);
+	lpjs_queue_job(msg_fd, job, c, script_text);
     }
     
     lpjs_server_safe_close(msg_fd);
@@ -672,7 +672,8 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
  *  2021-09-30  Jason Bacon Begin
  ***************************************************************************/
 
-int     lpjs_queue_job(int msg_fd, job_t *job, const char *script_text)
+int     lpjs_queue_job(int msg_fd, job_t *job, unsigned long job_array_index,
+			const char *script_text)
 
 {
     char    pending_dir[PATH_MAX + 1],
@@ -695,6 +696,7 @@ int     lpjs_queue_job(int msg_fd, job_t *job, const char *script_text)
 	fclose(fp);
     }
     job_set_job_id(job, next_job_id);
+    // FIXME: job_set_array_index(job_array_index);
     
     snprintf(pending_dir, PATH_MAX + 1, "%s/%lu", LPJS_PENDING_DIR,
 	    next_job_id);
