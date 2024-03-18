@@ -48,6 +48,8 @@ int     lpjs_load_config(node_list_t *node_list, int flags, FILE *error_stream)
     while ( ((delim = xt_dsv_read_field(config_fp, field, LPJS_FIELD_MAX + 1,
 				     " \t", &len)) != EOF) )
     {
+	if ( field[0] == '#' )
+	    xt_dsv_skip_rest_of_line(config_fp);    // Comment
 	if ( strcmp(field, "head") == 0 )
 	{
 	    if ( xt_dsv_read_field(config_fp, field, LPJS_FIELD_MAX + 1, " \t", &len)
