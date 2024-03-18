@@ -148,6 +148,17 @@ int     main(int argc,char *argv[])
     chown(LPJS_RUN_DIR, uid, gid);
     chown(LPJS_RUN_DIR "/lpjs_compd.pid", uid, gid);
 #endif
+
+    // setgid() must be done while still running as root
+    if ( gid != 0 )
+    {
+	lpjs_log("Setting gid to %u.\n", gid);
+	if ( setgid(gid) != 0 )
+	{
+	    lpjs_log("setgid() failed: %s\n", strerror(errno));
+	    return EX_NOPERM;
+	}
+    }
     
     if ( uid != 0 )
     {
@@ -155,16 +166,6 @@ int     main(int argc,char *argv[])
 	if ( setuid(uid) != 0 )
 	{
 	    lpjs_log("setuid() failed: %s\n", strerror(errno));
-	    return EX_NOPERM;
-	}
-    }
-    
-    if ( gid != 0 )
-    {
-	lpjs_log("Setting gid to %u.\n", gid);
-	if ( setgid(gid) != 0 )
-	{
-	    lpjs_log("setgid() failed: %s\n", strerror(errno));
 	    return EX_NOPERM;
 	}
     }
