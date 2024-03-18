@@ -20,6 +20,7 @@
 #include <stdbool.h>
 #include <sys/stat.h>       // S_ISDIR()
 #include <pwd.h>            // getpwnam()
+#include <grp.h>            // getgrnam()
 #include <fcntl.h>          // open()
 
 #include <xtend/string.h>
@@ -175,7 +176,8 @@ int     main (int argc, char *argv[])
 		lpjs_log("New job received:\n");
 		job_print(job, Log_stream);
 		lpjs_log("Script:\n%s", script_start);
-		lpjs_run_script(job, script_start, uid, gid);
+		// FIXME: Use submitter uid and gid, not dispatchd
+		lpjs_run_script(job, script_start);
 	    }
 	    free(munge_payload);
 	}
@@ -288,7 +290,7 @@ int     lpjs_checkin_loop(node_list_t *node_list, node_t *node)
  *  2024-03-10  Jason Bacon Begin
  ***************************************************************************/
 
-int     lpjs_run_script(job_t *job, const char *script_start, uid_t uid, gid_t gid)
+int     lpjs_run_script(job_t *job, const char *script_start)
 
 {
     char    wd[PATH_MAX + 1],
@@ -377,7 +379,7 @@ int     lpjs_run_script(job_t *job, const char *script_start, uid_t uid, gid_t g
      *  Run script under chaperone
      */
     
-    chaperone(job, job_script_name, uid, gid);
+    run_chaperone(job, job_script_name);
     
     return EX_OK;
 }
@@ -393,7 +395,7 @@ int     lpjs_run_script(job_t *job, const char *script_start, uid_t uid, gid_t g
  *  2024-03-10  Jason Bacon Begin
  ***************************************************************************/
 
-int     chaperone(job_t *job, const char *job_script_name, uid_t uid, gid_t gid)
+int     run_chaperone(job_t *job, const char *job_script_name)
 
 {
     char        *chaperone_bin = PREFIX "/libexec/lpjs/chaperone",
@@ -412,8 +414,46 @@ int     chaperone(job_t *job, const char *job_script_name, uid_t uid, gid_t gid)
 	
 	if ( getuid() == 0 )
 	{
-	    setuid(uid);
-	    setgid(gid);
+	    struct passwd   *pw_ent;
+	    uid_t           uid;
+	    struct group    *gr_ent;
+	    gid_t           gid;
+	    char            *user_name, *group_name;
+	    
+	    uid = getuid();
+	    gid = getgid();
+	    
+	    // Set gid while still running as root
+	    group_name = job_get_primary_group_name(job);
+	    if ( (gr_ent = getgrnam(group_name)) == NULL )
+	    {
+		lpjs_log("%s(): %s: No such group.\n", __FUNCTION__, group_name);
+		return EX_NOUSER;
+	    }
+	    gid = gr_ent->gr_gid;
+	    
+	    if ( setgid(gid) != 0 )
+	    {
+		lpjs_log("%s(): Failed to set gid to %u.\n", __FUNCTION__, gid);
+		return EX_NOPERM;
+	    }
+
+	    user_name = job_get_user_name(job);
+	    if ( (pw_ent = getpwnam(user_name)) == NULL )
+	    {
+		lpjs_log("%s(): %s: No such user.\n", __FUNCTION__, user_name);
+		return EX_NOUSER;
+	    }
+	    uid = pw_ent->pw_uid;
+	    if ( setuid(uid) != 0 )
+	    {
+		lpjs_log("%s(): Failed to set uid to %u.\n", __FUNCTION__, uid);
+		return EX_NOPERM;
+	    }
+	    
+	    lpjs_log("%s(): user = %s  group = %s\n", __FUNCTION__,
+		    user_name, group_name);
+	    lpjs_log("%s(): uid = %u  gid = %u\n", __FUNCTION__, uid, gid);
 	}
 	
 	/*
