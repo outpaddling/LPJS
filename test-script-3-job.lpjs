@@ -13,12 +13,19 @@ printf "Done.\n"
 
 # If this node has access to the working directory on $LPJS_SUBMIT_HOST, then
 # the output files will already be there.  Otherwise, manually send
-# the files there.  Create the file lpjs-$LPJS_SUBMIT_HOST-shared-fs-marker
+# the files there.  LPJS creates the lpjs-$LPJS_SUBMIT_HOST-shared-fs-marker
 # in the working directory (the directory from which the job was submitted)
-# on $LPJS_SUBMIT_HOST.  If that directory is shared with the compute node,
-# then this script will see it, and won't need to scp the files there.
+# on $LPJS_SUBMIT_HOST.  If that directory is shared with this compute node
+# (via NFS or similar systems), then this script will see it, and won't
+# need to push the files there using scp.
 marker=lpjs-$LPJS_SUBMIT_HOST-shared-fs-marker
 if [ ! -e $marker ]; then
+    # Note that this relies on all compute nodes seeing LPJS_SUBMIT_HOST
+    # by the same hostname (FQDN).  If some compute nodes are outside a
+    # NAT firewall and others are inside, file transfer may be more complex.
+    # E.g. nodes on our network see the head node as coral.acadix.biz,
+    # while nodes outside can only see the IP address and FQDN supplied by
+    # our ISP.
     printf "$marker does not exist.  Using scp to transfer files.\n"
     scp lpjs-job-* chaperone-*.stderr ${LPJS_SUBMIT_HOST}:$LPJS_WORKING_DIRECTORY
 else
