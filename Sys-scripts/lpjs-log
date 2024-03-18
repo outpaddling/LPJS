@@ -1,0 +1,46 @@
+#!/bin/sh -e
+
+##########################################################################
+#   Synopsis:
+#       
+#   Description:
+#       
+#   Arguments:
+#       
+#   Returns:
+#
+#   Examples:
+#
+#   Files:
+#
+#   Environment:
+#
+#   See also:
+#       
+#   History:
+#   Date        Name        Modification
+#   2024-02-20  Jason Bacon Begin
+##########################################################################
+
+usage()
+{
+    printf "Usage: $0\n"
+    exit 1
+}
+
+
+##########################################################################
+#   Main
+##########################################################################
+
+if [ $# != 0 ]; then
+    usage
+fi
+log_dir=/usr/local/var/log/lpjs
+if [ ! -e $log_dir ]; then
+    exit 0
+fi
+
+for file in $log_dir/*; do
+    more $file
+done
