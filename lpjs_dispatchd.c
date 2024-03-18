@@ -124,7 +124,7 @@ int     main(int argc,char *argv[])
 	return -1;  // FIXME: Define error codes
     }
     chown(LPJS_PENDING_DIR, uid, gid);
-    chown(LPJS_PENDING_DIR "/next-job", uid, gid);
+    chown(LPJS_SPOOL_DIR "/next-job", uid, gid);
 
     // Parent of all running job directories
     if ( xt_rmkdir(LPJS_RUNNING_DIR, 0755) != 0 )
