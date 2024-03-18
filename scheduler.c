@@ -376,13 +376,20 @@ int     lpjs_get_usable_cores(job_t *job, node_t *node)
     available_mem = node_get_phys_MiB(node) - node_get_phys_MiB_used(node);
     available_cores = node_get_cores(node) - node_get_cores_used(node);
     lpjs_log("cores = %u  mem = %lu\n", available_cores, available_mem);
-    if ( (available_cores >= required_cores ) &&
-	 (available_mem >= job_get_mem_per_core(job) * required_cores) )
+    if ( available_cores >= required_cores )
     {
-	usable_cores = required_cores;
+	if ( (available_mem >= job_get_mem_per_core(job) * required_cores) )
+	    usable_cores = required_cores;
+	else
+	{
+	    lpjs_log("Not enough memory.\n");
+	    usable_cores = 0;
+	}
     }
     else
+    {
+	lpjs_log("Not enough cores available.\n");
 	usable_cores = 0;
-    
+    }
     return usable_cores;
 }

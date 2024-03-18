@@ -156,6 +156,8 @@ int     lpjs_process_events(node_list_t *node_list, job_list_t *job_list)
 	fd_set  read_fds;
 	int     nfds, highest_fd;
 	
+	// FIXME: Might this erase pending messages?
+	// Use poll() instead of select()?
 	FD_ZERO(&read_fds);
 	FD_SET(listen_fd, &read_fds);
 	highest_fd = listen_fd;
@@ -384,8 +386,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	    if ( (bytes = lpjs_recv_munge(msg_fd,
 			 &munge_payload, 0, 0, &uid, &gid)) < 1 )
 	    {
-		lpjs_log("lpjs_check_listen_fd(): lpjs_recv_munge() failed (%zd bytes): %s",
-			bytes, strerror(errno));
+		lpjs_log("%s(): lpjs_recv_munge() failed (%zd bytes): %s\n",
+			__FUNCTION__, bytes, strerror(errno));
 		close(msg_fd);
 		free(munge_payload);
 		return bytes;
