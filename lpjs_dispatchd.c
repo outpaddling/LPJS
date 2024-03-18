@@ -57,8 +57,9 @@ int     main(int argc,char *argv[])
     extern node_list_t  *Node_list;
     
     Node_list = node_list;
-    uid = gid = 0;
     Log_stream = stderr;
+    uid = getuid();
+    gid = getgid();
     
     for (int arg = 1; arg < argc; ++arg)
     {
@@ -113,12 +114,17 @@ int     main(int argc,char *argv[])
 	}
     }
     
+    chown(LPJS_LOG_DIR, uid, gid);
+    chown(LPJS_DISPATCHD_LOG, uid, gid);
+    
     // Parent of all new job directories
     if ( xt_rmkdir(LPJS_PENDING_DIR, 0755) != 0 )
     {
 	fprintf(stderr, "Cannot create %s: %s\n", LPJS_PENDING_DIR, strerror(errno));
 	return -1;  // FIXME: Define error codes
     }
+    chown(LPJS_PENDING_DIR, uid, gid);
+    chown(LPJS_PENDING_DIR "/next-job", uid, gid);
 
     // Parent of all running job directories
     if ( xt_rmkdir(LPJS_RUNNING_DIR, 0755) != 0 )
@@ -126,6 +132,7 @@ int     main(int argc,char *argv[])
 	fprintf(stderr, "Cannot create %s: %s\n", LPJS_RUNNING_DIR, strerror(errno));
 	return -1;  // FIXME: Define error codes
     }
+    chown(LPJS_RUNNING_DIR, uid, gid);
 
 #ifdef __linux__    // systemd needs a pid file for forking daemons
     int         status;
@@ -134,10 +141,12 @@ int     main(int argc,char *argv[])
     if ( xt_rmkdir(LPJS_RUN_DIR, 0755) != 0 )
 	return EX_CANTCREAT;
     
-    snprintf(Pid_path, PATH_MAX + 1, "%s/%s.pid", LPJS_RUN_DIR, "lpjs_compd");
+    snprintf(Pid_path, PATH_MAX + 1, "%s/lpjs_compd.pid", LPJS_RUN_DIR);
     status = xt_create_pid_file(Pid_path, Log_stream);
     if ( status != EX_OK )
 	return status;
+    chown(LPJS_RUN_DIR, uid, gid);
+    chown(LPJS_RUN_DIR "/lpjs_compd.pid", uid, gid);
 #endif
     
     if ( uid != 0 )
