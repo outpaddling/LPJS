@@ -126,7 +126,8 @@ FILE    *lpjs_log_output(char *pathname)
     // FIXME: Prevent unchecked log growth
     if ( xt_rmkdir(LPJS_LOG_DIR, 0755) != 0 )
     {
-	perror("Cannot create " LPJS_LOG_DIR);
+	fprintf(stderr, "%s(): Cannot create %s: %s\n", __FUNCTION__,
+		LPJS_LOG_DIR, strerror(errno));
 	return NULL;
     }
 

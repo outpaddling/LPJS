@@ -1,9 +1,7 @@
 
-Use restrict wherever possible
+Add lpjs log command
 
-Allow running compd as non-root
-    Only the user running compd can execute jobs on that node
-    as only root can impersonate another user using setuid()
+Use restrict wherever possible
 
 systemctl restart lpjs_compd doesn't work
     Waiting a while and running restart again starts the daemon

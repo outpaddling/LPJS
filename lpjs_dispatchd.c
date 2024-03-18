@@ -25,6 +25,8 @@
 #include <stdbool.h>
 #include <sys/stat.h>
 #include <fcntl.h>      // open()
+#include <pwd.h>        // getpwnam()
+#include <grp.h>        // getgrnam()
 
 // Addons
 #include <munge.h>
@@ -46,6 +48,8 @@ int     main(int argc,char *argv[])
 {
     node_list_t *node_list = node_list_new();
     job_list_t  job_list;
+    uid_t       uid;
+    gid_t       gid;
     
     // Must be global for signal handler
     // FIXME: Maybe use ucontext to pass these to handler
@@ -53,33 +57,62 @@ int     main(int argc,char *argv[])
     extern node_list_t  *Node_list;
     
     Node_list = node_list;
+    uid = gid = 0;
+    Log_stream = stderr;
     
-    if ( argc > 2 )
+    for (int arg = 1; arg < argc; ++arg)
     {
-	fprintf (stderr, "Usage: %s [--daemonize|--log-output]\n", argv[0]);
-	return EX_USAGE;
+	if ( strcmp(argv[arg],"--daemonize") == 0 )
+	{
+	    if ( (Log_stream = lpjs_log_output(LPJS_DISPATCHD_LOG)) == NULL )
+		return EX_CANTCREAT;
+    
+	    /*
+	     *  Code run after this must not attempt to write to stdout or stderr
+	     *  since they will be closed.  Use lpjs_log() for all informative
+	     *  messages.
+	     *  FIXME: Prevent unchecked log growth
+	     */
+	    xt_daemonize(0, 0);
+	}
+	else if ( strcmp(argv[arg],"--log-output") == 0 )
+	{
+	    if ( (Log_stream = lpjs_log_output(LPJS_DISPATCHD_LOG)) == NULL )
+		return EX_CANTCREAT;
+	}
+	else if ( strcmp(argv[arg], "--user") == 0 )
+	{
+	    char *user_name = argv[++arg];
+	    // pw_ent points to internal static object
+	    // OK since dispatchd is not multithreaded
+	    struct passwd *pw_ent;
+	    if ( (pw_ent = getpwnam(user_name)) == NULL )
+	    {
+		lpjs_log("User %s does not exist.\n", user_name);
+		return EX_NOUSER;
+	    }
+	    uid = pw_ent->pw_uid;
+	}
+	else if ( strcmp(argv[arg], "--group") == 0 )
+	{
+	    char *group_name = argv[++arg];
+	    // pw_ent points to internal static object
+	    // OK since dispatchd is not multithreaded
+	    struct group *gr_ent;
+	    if ( (gr_ent = getgrnam(group_name)) == NULL )
+	    {
+		lpjs_log("Group %s does not exist.\n", group_name);
+		return EX_NOUSER;
+	    }
+	    gid = gr_ent->gr_gid;
+	}
+	else
+	{
+	    fprintf (stderr, "Usage: %s [--daemonize|--log-output] [--user username] [--group groupname]\n", argv[0]);
+	    return EX_USAGE;
+	}
     }
-    else if ( (argc == 2) && (strcmp(argv[1],"--daemonize") == 0 ) )
-    {
-	if ( (Log_stream = lpjs_log_output(LPJS_DISPATCHD_LOG)) == NULL )
-	    return EX_CANTCREAT;
-
-	/*
-	 *  Code run after this must not attempt to write to stdout or stderr
-	 *  since they will be closed.  Use lpjs_log() for all informative
-	 *  messages.
-	 *  FIXME: Prevent unchecked log growth
-	 */
-	xt_daemonize(0, 0);
-    }
-    else if ( (argc == 2) && (strcmp(argv[1],"--log-output") == 0 ) )
-    {
-	if ( (Log_stream = lpjs_log_output(LPJS_DISPATCHD_LOG)) == NULL )
-	    return EX_CANTCREAT;
-    }
-    else
-	Log_stream = stderr;
-
+    
     // Parent of all new job directories
     if ( xt_rmkdir(LPJS_PENDING_DIR, 0755) != 0 )
     {
@@ -106,7 +139,27 @@ int     main(int argc,char *argv[])
     if ( status != EX_OK )
 	return status;
 #endif
-
+    
+    if ( uid != 0 )
+    {
+	lpjs_log("Setting uid to %u.\n", uid);
+	if ( setuid(uid) != 0 )
+	{
+	    lpjs_log("setuid() failed: %s\n", strerror(errno));
+	    return EX_NOPERM;
+	}
+    }
+    
+    if ( gid != 0 )
+    {
+	lpjs_log("Setting gid to %u.\n", gid);
+	if ( setgid(gid) != 0 )
+	{
+	    lpjs_log("setgid() failed: %s\n", strerror(errno));
+	    return EX_NOPERM;
+	}
+    }
+    
     lpjs_load_config(node_list, LPJS_CONFIG_ALL, Log_stream);
     job_list_init(&job_list);
     
