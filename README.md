@@ -38,11 +38,13 @@ dispatch.
 Early development will move slowly as we carefully deliberate the
 specification, design, and implementation of each new feature to ensure
 the highest possible quality.
-
 The user interface may undergo significant changes as testing reveals
 oversights in design.
 
-Development is currently moving along nicely.
+Development is currently moving along nicely.  The system is running
+simple jobs on our test systems, though it currently supports only the
+most basic features and the code is in need significant cleanup.
+
 We anticipate having a minimal working batch system in place sometime in
 early 2024.  Basic usability for brave souls willing to test alpha-quality
 software and provide feedback will be indicated by the first release, 0.1.0.
