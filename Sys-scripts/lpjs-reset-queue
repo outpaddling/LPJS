@@ -41,20 +41,22 @@ if [ ! -e $prefix/var/spool/lpjs ]; then
     exit 0
 fi
 
-# Prevent user from running a Trojan as root in the case their account
-# was compromised
-absolute="$(which $0)"
-# Don't count on -e being set at this point
-if ! auto-file-secure "$absolute"; then
-    exit 1
-fi
-
-if ! auto-root-check $0; then
-    printf "Root "
-    # exec quotes '$absolute --flag', causing usage error
-    # Assigning to cmd works around the problem
-    cmd="$absolute $@"
-    exec su -m root -c "$cmd"
+if [ ! -w $prefix/var/spool/lpjs ]; then
+    # Prevent user from running a Trojan as root in the case their account
+    # was compromised
+    absolute="$(which $0)"
+    # Don't count on -e being set at this point
+    if ! auto-file-secure "$absolute"; then
+	exit 1
+    fi
+    
+    if ! auto-root-check $0; then
+	printf "Root "
+	# exec quotes '$absolute --flag', causing usage error
+	# Assigning to cmd works around the problem
+	cmd="$absolute $@"
+	exec su -m root -c "$cmd"
+    fi
 fi
 
 cat << EOM
