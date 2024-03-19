@@ -12,7 +12,7 @@ extern "C" {
 struct job
 {
     unsigned long   job_id;
-    unsigned long   job_array_index;
+    unsigned long   array_index;
     unsigned        job_count;
     unsigned        cores_per_job;
     unsigned        min_cores_per_node;

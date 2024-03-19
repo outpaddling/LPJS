@@ -15,6 +15,7 @@
 
 /* temp-job-mutators.c */
 int job_set_job_id(job_t *job_ptr, unsigned long new_job_id);
+int job_set_array_index(job_t *job_ptr, unsigned long new_array_index);
 int job_set_job_count(job_t *job_ptr, unsigned new_job_count);
 int job_set_cores_per_job(job_t *job_ptr, unsigned new_cores_per_job);
 int job_set_min_cores_per_node(job_t *job_ptr, unsigned new_min_cores_per_node);

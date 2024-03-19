@@ -82,8 +82,8 @@ void    job_init(job_t *job)
 int     job_print(job_t *job, FILE *stream)
 
 {
-    return fprintf(stream, JOB_SPEC_FORMAT, job->job_id, job->job_count,
-	    job->cores_per_job,
+    return fprintf(stream, JOB_SPEC_FORMAT, job->job_id, job->array_index,
+	    job->job_count, job->cores_per_job,
 	    job->min_cores_per_node, job->mem_per_core,
 	    job->user_name, job->primary_group_name,
 	    job->submit_host, job->working_directory, job->script_name);
@@ -103,7 +103,8 @@ int     job_print_to_string(job_t *job, char *str, size_t buff_size)
 
 {
     return snprintf(str, buff_size, JOB_SPEC_FORMAT,
-		    job->job_id, job->job_count, job->cores_per_job,
+		    job->job_id, job->array_index,
+		    job->job_count, job->cores_per_job,
 		    job->min_cores_per_node, job->mem_per_core,
 		    job->user_name, job->primary_group_name,
 		    job->submit_host, job->working_directory, job->script_name);
@@ -125,8 +126,8 @@ void    job_send_as_msg(job_t *job, int msg_fd)
     char    msg[LPJS_MSG_LEN_MAX + 1];
     
     snprintf(msg, LPJS_MSG_LEN_MAX + 1, JOB_SPEC_FORMAT,
-	    job->job_id, job->job_count,
-	    job->cores_per_job,
+	    job->job_id, job->array_index,
+	    job->job_count, job->cores_per_job,
 	    job->min_cores_per_node, job->mem_per_core,
 	    job->user_name, job->primary_group_name,
 	    job->submit_host, job->working_directory, job->script_name);
@@ -350,7 +351,8 @@ int     job_read_from_string(job_t *job, const char *string, char **end)
 		*p;
     
     items = sscanf(string, JOB_SPEC_NUMS_FORMAT,
-	    &job->job_id, &job->job_count, &job->cores_per_job,
+	    &job->job_id, &job->array_index,
+	    &job->job_count, &job->cores_per_job,
 	    &job->min_cores_per_node, &job->mem_per_core);
     
     // Skips past numeric fields
@@ -522,8 +524,8 @@ void    job_send_spec_header(int msg_fd)
     char    msg[LPJS_MSG_LEN_MAX + 1];
     
     snprintf(msg, LPJS_MSG_LEN_MAX + 1,
-	    JOB_SPEC_HEADER_FORMAT, "JobID", "Job-count",
-	    "Cores/job", "Cores/node", "Mem/core",
+	    JOB_SPEC_HEADER_FORMAT, "JobID", "IDX",
+	    "Job-count", "Cores/job", "Cores/node", "Mem/core",
 	    "User-name", "Group-name",
 	    "Submit-host", "Working-directory", "Script-name");
     lpjs_send_munge(msg_fd, msg);
@@ -543,8 +545,8 @@ void    job_send_spec_header(int msg_fd)
 void    job_print_spec_header(FILE *stream)
 
 {
-    fprintf(stream, JOB_SPEC_HEADER_FORMAT, "JobID", "Job-count",
-		"Cores/job", "Cores/node", "Mem/core",
+    fprintf(stream, JOB_SPEC_HEADER_FORMAT, "JobID", "IDX",
+		"Job-count", "Cores/job", "Cores/node", "Mem/core",
 		"User-name", "Group-name",
 		"Submit-host", "Working-directory", "Script-name");
 }
@@ -584,8 +586,9 @@ void    job_setenv(job_t *job)
 {
     char    str[LPJS_MAX_INT_DIGITS + 1];
     
-    // FIXME: Add LPJS_JOB_ARRAY_INDEX
     setenv("LPJS_JOB_ID", xt_ltostrn(str, job->job_id, 10,
+	    LPJS_MAX_INT_DIGITS + 1), 1);
+    setenv("LPJS_ARRAY_INDEX", xt_ltostrn(str, job->array_index, 10,
 	    LPJS_MAX_INT_DIGITS + 1), 1);
     setenv("LPJS_JOB_COUNT", xt_ltostrn(str, job->job_count, 10,
 	    LPJS_MAX_INT_DIGITS + 1), 1);

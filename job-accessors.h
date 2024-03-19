@@ -11,6 +11,7 @@
 
 /* temp-job-accessors.c */
 unsigned long job_get_job_id(job_t *job_ptr);
+unsigned long job_get_array_index(job_t *job_ptr);
 unsigned job_get_job_count(job_t *job_ptr);
 unsigned job_get_cores_per_job(job_t *job_ptr);
 unsigned job_get_min_cores_per_node(job_t *job_ptr);

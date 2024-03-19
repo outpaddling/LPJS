@@ -668,7 +668,7 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
 		*end,
 		*script_text;
     job_t       *job = job_new(); // exits if malloc() fails, no need to check
-    int         job_array_index;
+    int         c, job_array_index;
     
     // FIXME: Don't accept job submissions from root until
     // security issues have been considered
@@ -686,10 +686,11 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
     // on compute nodes if NFS or other file server is used
     snprintf(script_path, PATH_MAX + 1, "%s/%s",
 	     job_get_working_directory(job), job_get_script_name(job));
-    for (job_array_index = 0; job_array_index < job_get_job_count(job); ++job_array_index)
+    for (c = 0; c < job_get_job_count(job); ++c)
     {
 	lpjs_log("Submit script %s:%s from %d, %d\n",
 		job_get_submit_host(job), script_path, munge_uid, munge_gid);
+	job_array_index = c + 1;    // Job arrays are 1-based
 	lpjs_queue_job(msg_fd, job, job_array_index, script_text);
     }
     
@@ -732,7 +733,7 @@ int     lpjs_queue_job(int msg_fd, job_t *job, unsigned long job_array_index,
 	fclose(fp);
     }
     job_set_job_id(job, next_job_id);
-    // FIXME: job_set_array_index(job_array_index);
+    job_set_array_index(job, job_array_index);
     
     snprintf(pending_dir, PATH_MAX + 1, "%s/%lu", LPJS_PENDING_DIR,
 	    next_job_id);

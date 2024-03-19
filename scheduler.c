@@ -4,7 +4,6 @@
 #include <limits.h>     // ULONG_MAX
 #include <string.h>     // strerror()
 #include <errno.h>
-// #include <fcntl.h>      // open()
 #include <unistd.h>     // close()
 
 #include <xtend/file.h>
@@ -114,7 +113,8 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	// FIXME: Determine a real minimum script size
 	if ( script_size < 1 )
 	{
-	    lpjs_log("%s(): Error reading script.\n", __FUNCTION__);
+	    lpjs_log("%s(): Error reading script %s.\n",
+		    __FUNCTION__, script_path);
 	    return 0;
 	}
 	
