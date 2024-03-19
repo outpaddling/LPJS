@@ -169,6 +169,61 @@ compute compute002.mydomain
     </chapter>
     
     <chapter>
+        <title>Network topology</title>
+        
+        <para>
+        A <glossterm>cluster</glossterm> is generally a collection of
+        dedicated computers, all connected directly to the same private, high
+        speed network.  In this sense, a cluster is a LAN (local area network).
+        In many cases, special network technology,
+        such as <glossterm>Infiniband</glossterm>, is used in place
+        of standard Ethernet, for the sake of much lower latency per
+        message, and higher throughput.  All nodes in a cluster typically
+        have direct access to the same files on file servers using NFS,
+        parallel file systems, or the like.
+        </para>
+        
+        <para>
+        A <glossterm>grid</glossterm> is conceptually like a cluster,
+        in that it is used for parallel computing.  However, grids are
+        more loosely coupled, often including computers that are not
+        on the same LAN.  Hence, a grid is not as good for parallel
+        computing that involves a lot of communication between processes,
+        such as MPI (Message Passing Interface) distributed parallel programs.
+        Grid nodes typically do not share access to file servers, since
+        this is inefficient and difficult to secure over the slower,
+        wider networks used by grids.
+        </para>
+        
+        <para>
+        One of the most important factors in network performance, besides
+        the network hardware used, is the number of "hops" between two
+        computers communicating with each other.  Computers on the same
+        LAN are 1 hop away from each other, meaning there is only one
+        piece of network equipment between them.  Computers a thousand
+        miles from each other may by a dozen or more hops from either other.
+        That is, packages of information must pass through many network
+        devices such as switches and routers along the way.  This
+        significantly slows down communication when using protocols such
+        as TCP/IP, which requires acknowledgment of correct transmission
+        for each hop, before the next hop is attempted.  While your PC's
+        network interface is probably capable of 1,000 megabits per
+        second, and you may approach this speed transferring data across
+        a LAN, you may only see a few megabits per second when transferring
+        data from another part of the continent.
+        </para>
+        
+        <para>
+        LPJS is very flexible with network topology.  The only requirement
+        is that all nodes are able to contact the head node.
+        This means that a cluster or grid using LPJS can consist of
+        other computers on the same LAN, computers in different buildings,
+        or cloud instances in a data center a thousand miles away.  You
+        must consider how each of these resources can effectively be used.
+        </para>
+    </chapter>
+    
+    <chapter>
         <title>Advanced configuration</title>
         
         <para>
