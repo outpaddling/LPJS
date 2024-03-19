@@ -46,66 +46,81 @@
 int     main(int argc,char *argv[])
 
 {
-    node_list_t *node_list = node_list_new();
+    node_list_t *node_list = node_list_new();   // Exits if malloc() fails
     job_list_t  job_list;
-    uid_t       uid;
-    gid_t       gid;
+    uid_t       daemon_uid;
+    gid_t       daemon_gid;
     
     // Must be global for signal handler
     // FIXME: Maybe use ucontext to pass these to handler
     extern FILE         *Log_stream;
     extern node_list_t  *Node_list;
-    
+
     Node_list = node_list;
     Log_stream = stderr;
-    uid = getuid();
-    gid = getgid();
+    
+    // Silence compiler warnings about initialization
+    daemon_uid = getuid();
+    daemon_gid = getgid();
     
     for (int arg = 1; arg < argc; ++arg)
     {
 	if ( strcmp(argv[arg],"--daemonize") == 0 )
 	{
+	    // Redirect lpjs_log() output from stderr to file
 	    if ( (Log_stream = lpjs_log_output(LPJS_DISPATCHD_LOG)) == NULL )
 		return EX_CANTCREAT;
     
 	    /*
-	     *  Code run after this must not attempt to write to stdout or stderr
-	     *  since they will be closed.  Use lpjs_log() for all informative
-	     *  messages.
+	     *  Code run after this must not attempt to write to stdout or
+	     *  stderr since they will be closed.  Use lpjs_log() for all
+	     *  informative messages.
 	     *  FIXME: Prevent unchecked log growth
 	     */
+	    
 	    xt_daemonize(0, 0);
 	}
 	else if ( strcmp(argv[arg],"--log-output") == 0 )
 	{
+	    /*
+	     *  Redirect lpjs_log() output without daemonizing via fork().
+	     *  Used by some platforms for services.
+	     */
+
 	    if ( (Log_stream = lpjs_log_output(LPJS_DISPATCHD_LOG)) == NULL )
 		return EX_CANTCREAT;
 	}
 	else if ( strcmp(argv[arg], "--user") == 0 )
 	{
-	    char *user_name = argv[++arg];
+	    /*
+	     *  Set uid under which daemon should run, instead of root.
+	     *  Just determine user for now.  Create system files before
+	     *  giving up root privs.
+	     */
+	    
 	    // pw_ent points to internal static object
 	    // OK since dispatchd is not multithreaded
 	    struct passwd *pw_ent;
+	    char *user_name = argv[++arg];
 	    if ( (pw_ent = getpwnam(user_name)) == NULL )
 	    {
 		lpjs_log("User %s does not exist.\n", user_name);
 		return EX_NOUSER;
 	    }
-	    uid = pw_ent->pw_uid;
+	    daemon_uid = pw_ent->pw_uid;
 	}
 	else if ( strcmp(argv[arg], "--group") == 0 )
 	{
-	    char *group_name = argv[++arg];
-	    // pw_ent points to internal static object
+	    // gr_ent points to internal static object
 	    // OK since dispatchd is not multithreaded
 	    struct group *gr_ent;
+	    char *group_name = argv[++arg];
 	    if ( (gr_ent = getgrnam(group_name)) == NULL )
 	    {
 		lpjs_log("Group %s does not exist.\n", group_name);
 		return EX_NOUSER;
 	    }
-	    gid = gr_ent->gr_gid;
+	    daemon_gid = gr_ent->gr_gid;
 	}
 	else
 	{
@@ -114,8 +129,9 @@ int     main(int argc,char *argv[])
 	}
     }
     
-    chown(LPJS_LOG_DIR, uid, gid);
-    chown(LPJS_DISPATCHD_LOG, uid, gid);
+    // Make log file writable to daemon owner after root creates it
+    chown(LPJS_LOG_DIR, daemon_uid, daemon_gid);
+    chown(LPJS_DISPATCHD_LOG, daemon_uid, daemon_gid);
     
     // Parent of all new job directories
     if ( xt_rmkdir(LPJS_PENDING_DIR, 0755) != 0 )
@@ -123,8 +139,6 @@ int     main(int argc,char *argv[])
 	fprintf(stderr, "Cannot create %s: %s\n", LPJS_PENDING_DIR, strerror(errno));
 	return -1;  // FIXME: Define error codes
     }
-    chown(LPJS_PENDING_DIR, uid, gid);
-    chown(LPJS_SPOOL_DIR "/next-job", uid, gid);
 
     // Parent of all running job directories
     if ( xt_rmkdir(LPJS_RUNNING_DIR, 0755) != 0 )
@@ -132,9 +146,19 @@ int     main(int argc,char *argv[])
 	fprintf(stderr, "Cannot create %s: %s\n", LPJS_RUNNING_DIR, strerror(errno));
 	return -1;  // FIXME: Define error codes
     }
-    chown(LPJS_RUNNING_DIR, uid, gid);
+    
+    // Make spool dir writable to daemon owner after root creates it
+    chown(LPJS_PENDING_DIR, daemon_uid, daemon_gid);
+    chown(LPJS_RUNNING_DIR, daemon_uid, daemon_gid);
+    chown(LPJS_SPOOL_DIR "/next-job", daemon_uid, daemon_gid);
 
-#ifdef __linux__    // systemd needs a pid file for forking daemons
+/*
+ *  systemd needs a pid file for forking daemons.  BSD systems don't
+ *  require this for rc scripts, so we don't bother with it.  PIDs
+ *  are found dynamically there.
+ */
+
+#ifdef __linux__
     int         status;
     extern char Pid_path[PATH_MAX + 1];
     
@@ -145,32 +169,34 @@ int     main(int argc,char *argv[])
     status = xt_create_pid_file(Pid_path, Log_stream);
     if ( status != EX_OK )
 	return status;
-    chown(LPJS_RUN_DIR, uid, gid);
-    chown(LPJS_RUN_DIR "/lpjs_compd.pid", uid, gid);
+    chown(LPJS_RUN_DIR, daemon_uid, daemon_gid);
+    chown(LPJS_RUN_DIR "/lpjs_compd.pid", daemon_uid, daemon_gid);
 #endif
 
-    // setgid() must be done while still running as root
-    if ( gid != 0 )
+    // setgid() must be done while still running as root, so do setuid() after
+    if ( daemon_gid != 0 )
     {
-	lpjs_log("Setting gid to %u.\n", gid);
-	if ( setgid(gid) != 0 )
+	lpjs_log("Setting daemon_gid to %u.\n", daemon_gid);
+	if ( setgid(daemon_gid) != 0 )
 	{
 	    lpjs_log("setgid() failed: %s\n", strerror(errno));
 	    return EX_NOPERM;
 	}
     }
     
-    if ( uid != 0 )
+    if ( daemon_uid != 0 )
     {
-	lpjs_log("Setting uid to %u.\n", uid);
-	if ( setuid(uid) != 0 )
+	lpjs_log("Setting daemon_uid to %u.\n", daemon_uid);
+	if ( setuid(daemon_uid) != 0 )
 	{
 	    lpjs_log("setuid() failed: %s\n", strerror(errno));
 	    return EX_NOPERM;
 	}
     }
     
+    // Read etc/lpjs/config, created by lpjs-admin
     lpjs_load_config(node_list, LPJS_CONFIG_ALL, Log_stream);
+    
     job_list_init(&job_list);
     
     /*
@@ -179,6 +205,8 @@ int     main(int argc,char *argv[])
      *  before the server closes.
      *  https://hea-www.harvard.edu/~fine/Tech/addrinuse.html
      *  Copy saved in ./bind-address-already-in-use.pdf
+     *  FIXME: Does this handler actually help?  FDs are closed
+     *  upon process termination anyway.
      */
     signal(SIGINT, lpjs_terminate_handler);
     signal(SIGTERM, lpjs_terminate_handler);
@@ -236,7 +264,15 @@ int     lpjs_process_events(node_list_t *node_list, job_list_t *job_list)
 		    highest_fd = node_get_msg_fd(node);
 	    }
 	}
-	// lpjs_log("highest_fd = %d\n", highest_fd);
+
+	/*
+	 *  The nfds (# of file descriptors) argument to select is a
+	 *  bit confusing.  It's actually the highest descriptor + 1,
+	 *  not the number of open descriptors.  E.g., to check only
+	 *  descriptors 3 and 8, nfds must be 9, not 2.  This is
+	 *  different from the analogous poll() function, which takes
+	 *  an array of open descriptors.
+	 */
 	nfds = highest_fd + 1;
 	
 	if ( select(nfds, &read_fds, NULL, NULL, LPJS_NO_SELECT_TIMEOUT) > 0 )
@@ -423,8 +459,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    *p,
 		    *hostname;
     socklen_t       address_len = sizeof (struct sockaddr_in);
-    uid_t           uid;
-    gid_t           gid;
+    uid_t           munge_uid;
+    gid_t           munge_gid;
     unsigned long   job_id;
     unsigned        cores_per_job;
     size_t          mem_per_core;
@@ -447,7 +483,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 
 	    /* Read a message through the socket */
 	    if ( (bytes = lpjs_recv_munge(msg_fd,
-			 &munge_payload, 0, 0, &uid, &gid)) < 1 )
+			 &munge_payload, 0, 0, &munge_uid, &munge_gid)) < 1 )
 	    {
 		lpjs_log("%s(): lpjs_recv_munge() failed (%zd bytes): %s\n",
 			__FUNCTION__, bytes, strerror(errno));
@@ -466,7 +502,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		case    LPJS_DISPATCHD_REQUEST_COMPD_CHECKIN:
 		    lpjs_log("LPJS_DISPATCHD_REQUEST_COMPD_CHECKIN\n");
 		    lpjs_process_compute_node_checkin(msg_fd, munge_payload,
-						      node_list, uid, gid);
+						      node_list, munge_uid, munge_gid);
 		    lpjs_dispatch_jobs(node_list, job_list);
 		    break;
 		
@@ -487,7 +523,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		
 		case    LPJS_DISPATCHD_REQUEST_SUBMIT:
 		    lpjs_submit(msg_fd, munge_payload, node_list, job_list,
-				uid, gid);
+				munge_uid, munge_gid);
 		    lpjs_dispatch_jobs(node_list, job_list);
 		    break;
 
@@ -553,7 +589,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 
 void    lpjs_process_compute_node_checkin(int msg_fd, const char *incoming_msg,
 					  node_list_t *node_list,
-					  uid_t uid, gid_t gid)
+					  uid_t munge_uid, gid_t munge_gid)
 
 {
     node_t      *new_node = node_new();
@@ -564,7 +600,7 @@ void    lpjs_process_compute_node_checkin(int msg_fd, const char *incoming_msg,
     // lpjs_log("Munge credential message length = %zd\n", bytes);
     // lpjs_log("munge msg: %s\n", incoming_msg);
     
-    lpjs_log("Checkin from uid %d, gid %d\n", uid, gid);
+    lpjs_log("Checkin from munge_uid %d, munge_gid %d\n", munge_uid, munge_gid);
     
     // FIXME: Record username of compd checkin.  If not root, then only
     // that user can submit jobs to the node.
@@ -625,14 +661,14 @@ void    lpjs_process_compute_node_checkin(int msg_fd, const char *incoming_msg,
 
 int     lpjs_submit(int msg_fd, const char *incoming_msg,
 		    node_list_t *node_list, job_list_t *job_list,
-		    uid_t uid, gid_t gid)
+		    uid_t munge_uid, gid_t munge_gid)
 
 {
     char        script_path[PATH_MAX + 1],
 		*end,
 		*script_text;
     job_t       *job = job_new(); // exits if malloc() fails, no need to check
-    int         c;
+    int         job_array_index;
     
     // FIXME: Don't accept job submissions from root until
     // security issues have been considered
@@ -650,11 +686,11 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
     // on compute nodes if NFS or other file server is used
     snprintf(script_path, PATH_MAX + 1, "%s/%s",
 	     job_get_working_directory(job), job_get_script_name(job));
-    for (c = 0; c < job_get_job_count(job); ++c)
+    for (job_array_index = 0; job_array_index < job_get_job_count(job); ++job_array_index)
     {
 	lpjs_log("Submit script %s:%s from %d, %d\n",
-		job_get_submit_host(job), script_path, uid, gid);
-	lpjs_queue_job(msg_fd, job, c, script_text);
+		job_get_submit_host(job), script_path, munge_uid, munge_gid);
+	lpjs_queue_job(msg_fd, job, job_array_index, script_text);
     }
     
     lpjs_server_safe_close(msg_fd);
