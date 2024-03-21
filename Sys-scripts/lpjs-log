@@ -30,6 +30,20 @@ usage()
 
 
 ##########################################################################
+#   Function description:
+#       Pause until user presses return
+##########################################################################
+
+pause()
+{
+    local junk
+    
+    printf "Press return to continue..."
+    read junk
+}
+
+
+##########################################################################
 #   Main
 ##########################################################################
 
@@ -42,5 +56,9 @@ if [ ! -e $log_dir ]; then
 fi
 
 for file in $log_dir/*; do
-    more $file
+    cat $file
+    printf "===\nEnd of $file.\n"
+    if [ $(ls $log_dir | wc -w) -gt 1 ]; then
+	pause
+    fi
 done
