@@ -210,13 +210,13 @@ install: all
 	${INSTALL} -m 0755 ${BIN} ${DESTDIR}${PREFIX}/bin
 	${INSTALL} -m 0755 ${LIBEXEC} ${DESTDIR}${LIBEXECDIR}
 	${INSTALL} -m 0755 ${SYS_BINS} ${DESTDIR}${PREFIX}/sbin
-	${INSTALL} -m 0755 Sys-scripts/* ${DESTDIR}${PREFIX}/sbin
+	${INSTALL} -m 0755 Sys-scripts/* ${DESTDIR}${LIBEXECDIR}
 	${SED} -e "s|/usr/local|`realpath ${PREFIX}`|g" \
-		Sys-scripts/lpjs-admin > ${DESTDIR}${PREFIX}/sbin/lpjs-admin
+		Sys-scripts/admin > ${DESTDIR}${LIBEXECDIR}/admin
 	${SED} -e "s|/usr/local|`realpath ${PREFIX}`|g" \
-		Sys-scripts/lpjs-reset-queue > ${DESTDIR}${PREFIX}/sbin/lpjs-reset-queue
+		Sys-scripts/reset-queue > ${DESTDIR}${LIBEXECDIR}/reset-queue
 	${SED} -e "s|/usr/local|`realpath ${PREFIX}`|g" \
-		Sys-scripts/lpjs-log > ${DESTDIR}${PREFIX}/sbin/lpjs-log
+		Sys-scripts/log > ${DESTDIR}${LIBEXECDIR}/log
 	${INSTALL} -m 0755 User-scripts/* ${DESTDIR}${LIBEXECDIR}
 	${INSTALL} -m 0644 ${LIB} ${DESTDIR}${PREFIX}/lib
 	${INSTALL} -m 0644 config.sample ${DESTDIR}${PREFIX}/etc/lpjs

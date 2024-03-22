@@ -203,7 +203,7 @@ fi
 while true
 do
     clear
-    lpjs-banner
+    lpjs banner
     cat << EOM
 
 1.. Set up a zero-configuration one-node cluster on this machine
@@ -247,7 +247,7 @@ EOM
 	$EDITOR $CONF_FILE
 	
 	# FIXME: Is this necessary?  If so, should it be?
-	lpjs-restart
+	lpjs restart
 	;;
 
     03)
@@ -261,7 +261,7 @@ EOM
 	;;
 
     05)
-	lpjs-restart
+	lpjs restart
 	pause
 	;;
     
