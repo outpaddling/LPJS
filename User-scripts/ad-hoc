@@ -90,7 +90,7 @@ fi
 while true
 do
     clear
-    lpjs-banner
+    lpjs banner
     cat << EOM
 
 1.. Manually start dispatchd (temporarily make this a head node)

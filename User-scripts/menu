@@ -43,7 +43,7 @@ fi
 while true
 do
     clear
-    lpjs-banner
+    lpjs banner
     cat << EOM
 
 1.. Node status
