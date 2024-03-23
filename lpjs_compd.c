@@ -433,10 +433,7 @@ int     run_chaperone(job_t *job, const char *job_script_name)
 	    gid = gr_ent->gr_gid;
 	    
 	    if ( setgid(gid) != 0 )
-	    {
-		lpjs_log("%s(): Failed to set gid to %u.\n", __FUNCTION__, gid);
-		return EX_NOPERM;
-	    }
+		lpjs_log("%s(): Warning: Failed to set gid to %u.\n", __FUNCTION__, gid);
 
 	    user_name = job_get_user_name(job);
 	    if ( (pw_ent = getpwnam(user_name)) == NULL )
