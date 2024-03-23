@@ -491,7 +491,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		free(munge_payload);
 		return bytes;
 	    }
-	    lpjs_log("%s(): Got %zd byte message.\n", __FUNCTION__, bytes);
+	    // lpjs_log("%s(): Got %zd byte message.\n", __FUNCTION__, bytes);
 	    // bytes must be at least 1, or no mem is allocated
 	    munge_payload[bytes] = '\0';
 	    lpjs_log("%s(): Request code = %d\n", __FUNCTION__, munge_payload[0]);
@@ -561,6 +561,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		     *  Note the job completion in the main log
 		     */
 		    
+		    lpjs_log("Dispatching more jobs...\n");
 		    lpjs_dispatch_jobs(node_list, job_list);
 		    break;
 		    

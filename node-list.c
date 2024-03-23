@@ -236,7 +236,7 @@ node_t  *node_list_find_hostname(node_list_t *node_list, const char *hostname)
     for (c = 0; c < node_list->compute_node_count; ++c)
     {
 	node = node_list->compute_nodes[c];
-	lpjs_log("%s(): Checking %s\n", __FUNCTION__, node_get_hostname(node));
+	// lpjs_log("%s(): Checking %s\n", __FUNCTION__, node_get_hostname(node));
 	if ( strcmp(node_get_hostname(node), hostname) == 0 )
 	    return node;
     }

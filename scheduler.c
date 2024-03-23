@@ -142,8 +142,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	    job_print_to_string(job, outgoing_msg + 1, LPJS_JOB_MSG_MAX + 1);
 	    strlcat(outgoing_msg, script_buff, LPJS_JOB_MSG_MAX + 1);
 	    // FIXME: Check for truncation
-	    lpjs_log("%s(): outgoing job msg:\n%s\n",
-		     __FUNCTION__, outgoing_msg + 1);
+	    // lpjs_log("%s(): outgoing job msg:\n%s\n", __FUNCTION__, outgoing_msg + 1);
 	    
 	    // FIXME: Needs adjustment for MPI jobs at the least
 	    cores_used = node_get_cores_used(node);
@@ -324,14 +323,14 @@ int     lpjs_match_nodes(job_t *job, node_list_t *node_list,
 	    lpjs_log("%s is unavailable.\n", node_get_hostname(node));
 	else
 	{
-	    lpjs_log("Checking %s...\n", node_get_hostname(node));
+	    // lpjs_log("Checking %s...\n", node_get_hostname(node));
 	    usable_cores = lpjs_get_usable_cores(job, node);
 	    usable_cores = XT_MIN(usable_cores, total_required - total_usable);
-	    lpjs_log("Using %u cores on %s.\n", usable_cores,
-		    node_get_hostname(node));
 	    
 	    if ( usable_cores > 0 )
 	    {
+		lpjs_log("Using %u cores on %s.\n", usable_cores,
+			 node_get_hostname(node));
 		// FIXME: Set # cores to use on node
 		node_list_add_compute_node(matched_nodes, node);
 		total_usable += usable_cores;
@@ -375,7 +374,8 @@ int     lpjs_get_usable_cores(job_t *job, node_t *node)
     required_cores = job_get_min_cores_per_node(job);
     available_mem = node_get_phys_MiB(node) - node_get_phys_MiB_used(node);
     available_cores = node_get_cores(node) - node_get_cores_used(node);
-    lpjs_log("cores = %u  mem = %lu\n", available_cores, available_mem);
+    lpjs_log("%s: cores = %u  mem = %lu\n", node_get_hostname(node),
+	     available_cores, available_mem);
     if ( available_cores >= required_cores )
     {
 	if ( (available_mem >= job_get_mem_per_core(job) * required_cores) )
