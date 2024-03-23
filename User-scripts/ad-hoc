@@ -1,0 +1,139 @@
+#!/bin/sh
+
+##########################################################################
+#   Script description:
+#       Menu for basic LPJS setup
+#       
+#   History:
+#   Date        Name        Modification
+#   2021-10-06  J Bacon     Begin
+##########################################################################
+
+usage()
+{
+    printf "Usage: $0\n"
+    exit 1
+}
+
+
+##########################################################################
+#   Function description:
+#       Pause until user presses return
+##########################################################################
+
+pause()
+{
+    local junk
+    
+    printf "Press return to continue..."
+    read junk
+}
+
+
+##########################################################################
+#   Function description:
+#       
+#   Arguments:
+#       
+#   Returns:
+#       
+#   History:
+#   Date        Name        Modification
+#   2024-03-22  Jason Bacon Begin
+##########################################################################
+
+start_daemon()
+{
+    if [ $# != 1 ]; then
+	printf "Usage: start_daemon command\n"
+	return 1
+    fi
+    daemon=$1
+    
+    resp=''
+    while [ 0"$resp" != 01 ] && [ 0"$resp" != 02 ]; do
+	cat << EOM
+
+1.. Foreground (log messages on-screen and do not return to menu)
+2.. Background (log messages to file and return to menu)
+
+EOM
+	printf "Selection? "
+	read resp
+    done
+    if [ $resp = 1 ]; then
+	printf "Type Ctrl+c to terminate $daemon.\n"
+	pause
+	$daemon
+	pause
+    else
+	printf "Logged messages can be viewed using \"lpjs log\"\n"
+	printf "or the \"View log(s)\" menu option.\n"
+	pause
+	$daemon --daemonize
+	echo $?
+	pgrep -lf $daemon
+	pause
+    fi
+}
+
+##########################################################################
+#   Main
+##########################################################################
+
+if [ $# != 0 ]; then
+    usage
+fi
+
+: ${EDITOR:=vi}
+
+while true
+do
+    clear
+    lpjs-banner
+    cat << EOM
+
+1.. Manually start dispatchd (temporarily make this a head node)
+2.. Manually start compd (temporarily make this a compute node)
+3.. Stop background dispatchd
+4.. Stop background compd
+5.. View log(s)
+Q.. Quit
+
+EOM
+
+    read -p 'Selection? ' resp
+    case 0$resp in
+    01)
+	start_daemon lpjs_dispatchd
+	;;
+    
+    02)
+	start_daemon lpjs_compd
+	;;
+
+    03)
+	pkill -f lpjs_dispatchd
+	pgrep -lf lpjs_dispatchd
+	pause
+	;;
+    
+    04)
+	pkill -f lpjs_compd
+	pgrep -lf lpjs_compd
+	pause
+	;;
+    
+    05)
+	lpjs log
+	pause
+	;;
+
+    0Q|0q)
+	exit 0
+	;;
+
+    *)
+	printf "Invalid option: $resp\n"
+    esac
+done

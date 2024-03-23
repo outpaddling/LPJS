@@ -1,0 +1,72 @@
+#!/bin/sh -e
+
+# Prevent user from running a Trojan as root in the case their account
+# was compromised
+absolute="$(which $0)"
+# Don't count on -e being set at this point
+if ! auto-file-secure "$absolute"; then
+    exit 1
+fi
+
+if ! auto-root-check $0; then
+    printf "Root "
+    # exec quotes '$absolute --flag', causing usage error
+    # Assigning to cmd works around the problem
+    cmd="$absolute $@"
+    exec su -m root -c "$cmd"
+fi
+
+if [ $(uname) = Darwin ]; then
+    set -x
+    launchctl bootstrap system /Library/LaunchDaemons/org.pkgsrc.munged.plist
+    
+    if [ -e /Library/LaunchDaemons/org.pkgsrc.lpjs_dispatchd.plist ]; then
+	launchctl bootstrap system /Library/LaunchDaemons/org.pkgsrc.lpjs_dispatchd.plist
+    fi
+
+    if [ -e /Library/LaunchDaemons/org.pkgsrc.lpjs_compd.plist ]; then
+	launchctl bootstrap system /Library/LaunchDaemons/org.pkgsrc.lpjs_compd.plist
+    fi
+
+elif [ $(uname) = DragonFly ] || [ $(uname) = FreeBSD ]; then
+    service munged start
+    if grep -E '^lpjs_dispatchd_enable=\"?[Yy][Ee][Ss]"?' /etc/rc.conf; then
+	service lpjs_dispatchd start
+    elif grep -E '^lpjs_compd_enable=\"?[Yy][Ee][Ss]"?' /etc/rc.conf; then
+	service lpjs_compd start
+    fi
+
+elif [ $(uname) = Linux ]; then
+    if which systemctl; then
+	set -x
+	systemctl daemon-reload
+	systemctl start munge
+	
+	if systemctl | fgrep -q lpjs_dispatchd; then
+	    systemctl start lpjs_dispatchd
+	fi
+	
+	if systemctl | fgrep -q lpjs_compd; then
+	    systemctl start lpjs_compd
+	fi
+    else
+	printf "$0: Only systemd is currently supported.\n" >> /dev/stderr
+	printf "Please consider adding support for other Linux init systems.\n"
+	exit 1
+    fi
+    
+elif [ $(uname) = NetBSD ]; then
+    set -x
+    service munge start
+    if grep -E '^lpjs_dispatchd=\"?[Yy][Ee][Ss]"?' /etc/rc.conf; then
+	service lpjs_dispatchd start
+    elif grep -E '^lpjs_compd=\"?[Yy][Ee][Ss]"?' /etc/rc.conf; then
+	service lpjs_compd start
+    fi
+
+elif [ $(uname) = SunOS ]; then
+    auto-unsupported-os $0
+
+else
+    auto-unsupported-os $0
+fi
