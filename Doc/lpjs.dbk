@@ -221,6 +221,29 @@ compute compute002.mydomain
         or cloud instances in a data center a thousand miles away.  You
         must consider how each of these resources can effectively be used.
         </para>
+        
+        <para>
+        Clusters normally have some sort of file server, so that jobs
+        run in a directory that is directly accessible from all nodes.
+        This is the ideal situation, as inputs are available to jobs,
+        and outputs from jobs are available without needing to transfer
+        files.
+        </para>
+        
+        <para>
+        Grids normally do not have file servers.  In this case, it will
+        be necessary for all nodes to have the ability to pull files
+        from and push files to <emphasis>somewhere</emphasis>.  Typically,
+        this somewhere would be the submit node, or a file server
+        accessible from the submit node.  LPJS does not provide file
+        transfer tools.  There are numerous highly-evolved, general-purpose
+        file transfer tools already available, so it is left to the
+        systems manager and user to decide which one(s) to use.
+        We recommend using <command>rsync</command> if possible, as it
+        is highly portable and reliable, and minimizes the amount of
+        data transferred when jobs are rerun and some input or output is the
+        same as before.
+        </para>
     </chapter>
     
     <chapter>

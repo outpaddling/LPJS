@@ -16,6 +16,6 @@ if ! auto-root-check $0; then
     exec su -m root -c "$cmd"
 fi
 
-lpjs stop
+lpjs stop || true
 sleep 2
 lpjs start
