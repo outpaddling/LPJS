@@ -18,6 +18,7 @@ fi
 
 if [ $(uname) = Darwin ]; then
     set -x
+    launchctl bootout system /Library/LaunchDaemons/org.pkgsrc.munged.plist
     launchctl bootstrap system /Library/LaunchDaemons/org.pkgsrc.munged.plist
     
     if [ -e /Library/LaunchDaemons/org.pkgsrc.lpjs_dispatchd.plist ]; then
@@ -29,7 +30,7 @@ if [ $(uname) = Darwin ]; then
     fi
 
 elif [ $(uname) = DragonFly ] || [ $(uname) = FreeBSD ]; then
-    service munged start
+    service munged restart
     if grep -E '^lpjs_dispatchd_enable=\"?[Yy][Ee][Ss]"?' /etc/rc.conf; then
 	service lpjs_dispatchd start
     elif grep -E '^lpjs_compd_enable=\"?[Yy][Ee][Ss]"?' /etc/rc.conf; then
@@ -40,7 +41,7 @@ elif [ $(uname) = Linux ]; then
     if which systemctl; then
 	set -x
 	systemctl daemon-reload
-	systemctl start munge
+	systemctl restart munge
 	
 	if systemctl | fgrep -q lpjs_dispatchd; then
 	    systemctl start lpjs_dispatchd
@@ -57,7 +58,7 @@ elif [ $(uname) = Linux ]; then
     
 elif [ $(uname) = NetBSD ]; then
     set -x
-    service munge start
+    service munge restart
     if grep -E '^lpjs_dispatchd=\"?[Yy][Ee][Ss]"?' /etc/rc.conf; then
 	service lpjs_dispatchd start
     elif grep -E '^lpjs_compd=\"?[Yy][Ee][Ss]"?' /etc/rc.conf; then
@@ -65,6 +66,7 @@ elif [ $(uname) = NetBSD ]; then
     fi
 
 elif [ $(uname) = SunOS ]; then
+    # FIXME: Create init scripts for this
     auto-unsupported-os $0
 
 else
