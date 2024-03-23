@@ -528,7 +528,6 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    break;
 
 		case    LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:
-		    
 		    lpjs_log("Job completion report:\n%s\n",
 			    munge_payload + 1);
 		    
@@ -717,20 +716,29 @@ int     lpjs_queue_job(int msg_fd, job_t *job, unsigned long job_array_index,
 	    pending_path[PATH_MAX + 1],
 	    specs_path[PATH_MAX + 1],
 	    job_id_path[PATH_MAX + 1],
+	    job_id_buff[LPJS_MAX_INT_DIGITS + 1],
 	    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
-    FILE    *fp;
     int     fd;
+    ssize_t bytes;
     unsigned long   next_job_id;
+    FILE    *fp;
     
     lpjs_log("Spooling %s...\n", job_get_script_name(job));
     
     snprintf(job_id_path, PATH_MAX + 1, "%s/next-job", LPJS_SPOOL_DIR);
-    if ( (fp = fopen(job_id_path, "r")) == NULL )
+    if ( (fd = open(job_id_path, O_RDONLY)) == -1 )
 	next_job_id = 1;
     else
     {
-	fscanf(fp, "%lu", &next_job_id);
-	fclose(fp);
+	bytes = read(fd, job_id_buff, LPJS_MAX_INT_DIGITS + 1);
+	if ( bytes == -1 )
+	{
+	    lpjs_log("%s(): Error reading next-job: %s\n",
+		    __FUNCTION__, strerror(errno));
+	    exit(EX_DATAERR);
+	}
+	sscanf(job_id_buff, "%lu", &next_job_id);
+	close(fd);
     }
     job_set_job_id(job, next_job_id);
     job_set_array_index(job, job_array_index);
@@ -769,6 +777,7 @@ int     lpjs_queue_job(int msg_fd, job_t *job, unsigned long job_array_index,
     snprintf(specs_path, PATH_MAX + 1, "%s/job.specs", pending_dir);
     lpjs_log("Storing specs to %s.\n", specs_path);
     // Bump job num after successful spool
+    // FIXME: Switch to low-level I/O
     if ( (fp = fopen(specs_path, "w")) == NULL )
     {
 	lpjs_log("Cannot create %s: %s\n", specs_path, strerror(errno));
@@ -786,17 +795,16 @@ int     lpjs_queue_job(int msg_fd, job_t *job, unsigned long job_array_index,
     lpjs_log(outgoing_msg);
     
     // Bump job num after successful spool
-    if ( (fp = fopen(job_id_path, "w")) == NULL )
+    if ( (fd = open(job_id_path, O_WRONLY|O_CREAT|O_TRUNC, 0644)) == -1 )
     {
 	lpjs_log("Cannot update %s: %s\n", job_id_path, strerror(errno));
 	return -1;
     }
     else
     {
-	fprintf(fp, "%lu\n", ++next_job_id);
-	fclose(fp);
+	xt_dprintf(fd, "%lu\n", ++next_job_id);
+	close(fd);
     }
     
     return 0;   // FIXME: Define error codes
 }
-

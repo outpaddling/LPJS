@@ -604,3 +604,7 @@ void    job_setenv(job_t *job)
     setenv("LPJS_WORKING_DIRECTORY", job->working_directory, 1);
     setenv("LPJS_SCRIPT_NAME", job->script_name, 1);
 }
+
+
+// FIXME: Add pseudo-accessors and pseudo-mutators for available
+// cores and mem
