@@ -186,6 +186,7 @@ ssize_t lpjs_recv(int msg_fd, char *buff, size_t buff_len, int flags,
     // Use select() to implement timeout without using non-blocking fds
     if ( timeout != 0 )
     {
+	// FIXME: select() will return if a lower fd is ready
 	FD_ZERO(&read_fds);
 	FD_SET(msg_fd, &read_fds);
 	lpjs_log("%s: Entering select()...\n", __FUNCTION__);
