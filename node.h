@@ -24,5 +24,6 @@ typedef struct node node_t;
 #include "node-accessors.h"
 #include "node-mutators.h"
 #include "node-protos.h"
+#include "node-pseudo-protos.h"
 
 #endif  // _LPJS_NODE_H_

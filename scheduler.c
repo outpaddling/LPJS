@@ -372,7 +372,7 @@ int     lpjs_get_usable_cores(job_t *job, node_t *node)
     size_t      available_mem;
     
     required_cores = job_get_min_cores_per_node(job);
-    available_mem = node_get_phys_MiB(node) - node_get_phys_MiB_used(node);
+    available_mem = node_get_phys_MiB_available(node);
     available_cores = node_get_cores(node) - node_get_cores_used(node);
     lpjs_log("%s: cores = %u  mem = %lu\n", node_get_hostname(node),
 	     available_cores, available_mem);
