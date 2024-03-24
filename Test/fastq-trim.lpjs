@@ -1,0 +1,62 @@
+#!/bin/sh
+
+##########################################################################
+#   Note: Use fetch-fastas.sh on the submit node to download input files
+##########################################################################
+
+#lpjs jobs 5
+#lpjs cores-per-job 3
+#lpjs min-cores-per-node all
+#lpjs mem-per-core 50MiB
+
+# FreeBSD ports are installed under /usr/local
+# pkgsrc packages in a non-priveleged tree installed by auto-pkgsrc-setup
+# are installed under ~/Pkgsrc/pkg by default
+# pkgsrc packages in a priveleged tree (installed by root) on Linux and netBSD
+# are found under /usr/pkg by default
+# pkgsrc packages in a priveleged tree (installed by root) on macOS
+# are found under /opt/pkg by default (/usr is read-only on Macs)
+export PATH=/usr/local/bin:$HOME/Pkgsrc/pkg/bin:/usr/pkg/bin:/opt/pkg/bin:$PATH
+
+# Put some job info in the output
+hostname
+pwd
+printenv | fgrep LPJS_
+
+# Each job will trim one raw input file
+infile=Results/01-fetch/Raw-renamed/WT-0$LPJS_ARRAY_INDEX.fastq.gz
+
+# File created by lpjs submit so we can detect a shared filesystem
+# If this file does not exist, fetch it.  This script assumes it is present
+# on the submit host in the directory from which the job was submitted.
+marker=lpjs-$LPJS_SUBMIT_HOST-shared-fs-marker
+if [ ! -e $marker ]; then
+    printf "$marker does not exist.  Using scp to transfer files.\n"
+    set -x
+    printf "Fetching $LPJS_SUBMIT_HOST:$LPJS_WORKING_DIRECTORY/$infile\n"
+    rsync -a ${LPJS_SUBMIT_HOST}:$LPJS_WORKING_DIRECTORY/$infile .
+    set +x
+else
+    printf "$marker found.  No need to transfer files.\n"
+fi
+
+# Run the trim command
+adapter=AGATCGGAAGAG
+outfile=${infile%.fastq.gz}-trimmed.fastq.zst
+set -x
+time fastq-trim "$@" --3p-adapter1 $adapter $infile $outfile
+set +x
+
+# If this node has access to the working directory on $LPJS_SUBMIT_HOST, then
+# the output files will already be there.  Otherwise, manually push the
+# output files there.  Create the file lpjs-$LPJS_SUBMIT_HOST-shared-fs-marker
+# in the working directory (the directory from which the job was submitted)
+# on $LPJS_SUBMIT_HOST.  If that directory is shared with the compute node,
+# then this script will see it, and won't need to transfer the files there.
+if [ ! -e $marker ]; then
+    printf "$marker does not exist.  Using scp to transfer files.\n"
+    rsync -a lpjs-job-* chaperone-* $outfile \
+	    ${LPJS_SUBMIT_HOST}:$LPJS_WORKING_DIRECTORY
+else
+    printf "$marker found.  No need to transfer files.\n"
+fi
