@@ -41,6 +41,9 @@ elif [ $(uname) = Linux ]; then
     if which systemctl; then
 	set -x
 	systemctl daemon-reload
+	# Hack: Start below doesn't work immediately after reload
+	# Does it exit before it's finished??
+	sleep 2
 	systemctl restart munge
 	
 	if systemctl | fgrep -q lpjs_dispatchd; then
