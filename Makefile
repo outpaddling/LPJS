@@ -48,10 +48,10 @@
 ############################################################################
 # Installed targets
 
-BIN         = lpjs
-LIB         = liblpjs.a
-SYS_BINS    = lpjs_dispatchd lpjs_compd
-LIBEXEC     = nodes jobs submit chaperone
+BIN             = lpjs
+LIB             = liblpjs.a
+SYS_BINS        = lpjs_dispatchd lpjs_compd
+LIBEXEC_BINS    = nodes jobs submit chaperone
 
 ############################################################################
 # List object files that comprise BIN.
@@ -72,7 +72,7 @@ PREFIX      ?= ../local
 # Where to find local libraries and headers.  If you want to use libraries
 # from outside ${PREFIX} (not usually recommended), you can set this
 # independently.
-LOCALBASE   ?= ${PREFIX}
+LOCALBASE   ?= /usr/local
 
 # Allow caller to override either MANPREFIX or MANDIR
 MANPREFIX   ?= ${PREFIX}
@@ -136,7 +136,7 @@ STRIP   ?= strip
 
 .PHONY: all depend clean realclean install install-strip help
 
-all:    ${BIN} ${LIBEXEC} ${SYS_BINS}
+all:    ${BIN} ${LIBEXEC_BINS} ${SYS_BINS}
 
 ${LIB}: ${LIB_OBJS}
 	${AR} r ${LIB} ${LIB_OBJS}
@@ -190,7 +190,7 @@ depend:
 # Remove generated files (objs and nroff output from man pages)
 
 clean:
-	rm -f *.o ${BIN} ${LIBEXEC} ${SYS_BINS} ${LIB} *.nr
+	rm -f *.o ${BIN} ${LIBEXEC_BINS} ${SYS_BINS} ${LIB} *.nr
 
 # Keep backup files during normal clean, but provide an option to remove them
 realclean: clean
@@ -208,16 +208,12 @@ install: all
 		    ${DESTDIR}${LIBEXECDIR} \
 		    ${DESTDIR}${DATADIR}
 	${INSTALL} -m 0755 ${BIN} ${DESTDIR}${PREFIX}/bin
-	${INSTALL} -m 0755 ${LIBEXEC} ${DESTDIR}${LIBEXECDIR}
 	${INSTALL} -m 0755 ${SYS_BINS} ${DESTDIR}${PREFIX}/sbin
-	${INSTALL} -m 0755 Sys-scripts/* ${DESTDIR}${LIBEXECDIR}
-	${SED} -e "s|/usr/local|`realpath ${PREFIX}`|g" \
-		Sys-scripts/admin > ${DESTDIR}${LIBEXECDIR}/admin
-	${SED} -e "s|/usr/local|`realpath ${PREFIX}`|g" \
-		Sys-scripts/reset-queue > ${DESTDIR}${LIBEXECDIR}/reset-queue
-	${SED} -e "s|/usr/local|`realpath ${PREFIX}`|g" \
-		Sys-scripts/log > ${DESTDIR}${LIBEXECDIR}/log
-	${INSTALL} -m 0755 User-scripts/* ${DESTDIR}${LIBEXECDIR}
+	${INSTALL} -m 0755 ${LIBEXEC_BINS} ${DESTDIR}${LIBEXECDIR}
+	for s in Sys-scripts/* User-scripts/*; do \
+	    ${SED} -e "s|/usr/local|`realpath ${PREFIX}`|g" \
+		    $${s} > ${DESTDIR}${LIBEXECDIR}/`basename $${s}`; \
+	done
 	${INSTALL} -m 0644 ${LIB} ${DESTDIR}${PREFIX}/lib
 	${INSTALL} -m 0644 config.sample ${DESTDIR}${PREFIX}/etc/lpjs
 	for f in Man/*; do \
@@ -232,7 +228,7 @@ install: all
 	    ${DESTDIR}${DATADIR}/Launchd
 	
 install-strip: install
-	for f in ${LIBEXEC}; do \
+	for f in ${LIBEXEC_BINS}; do \
 	    ${STRIP} ${DESTDIR}${LIBEXECDIR}/$${f}; \
 	done
 	for f in ${SYS_BINS}; do \
