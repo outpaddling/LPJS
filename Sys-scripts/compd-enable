@@ -2,12 +2,27 @@
 
 ##########################################################################
 #   Function description:
+#       Pause until user presses return
+##########################################################################
+
+pause()
+{
+    local junk
+    
+    printf "Press return to continue..."
+    read junk
+}
+
+##########################################################################
+#   Function description:
 #       Enable compd on this node (make this a compute node)
 #       
 #   History:
 #   Date        Name        Modification
 #   2023-05-28  Jason Bacon Begin
 ##########################################################################
+
+CONF_FILE=$(auto-localbase)/etc/lpjs/config
 
 if [ ! -e $CONF_FILE ] || ! grep -q '^head' $CONF_FILE; then
     printf "Host name of head node? "

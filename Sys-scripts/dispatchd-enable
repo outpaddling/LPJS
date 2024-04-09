@@ -1,5 +1,17 @@
 #!/bin/sh -e
 
+##########################################################################
+#   Function description:
+#       Pause until user presses return
+##########################################################################
+
+pause()
+{
+    local junk
+    
+    printf "Press return to continue..."
+    read junk
+}
 
 ##########################################################################
 #   Description:
@@ -9,6 +21,8 @@
 #   Date        Name        Modification
 #   2023-05-28  Jason Bacon Begin
 ##########################################################################
+
+CONF_FILE=$(auto-localbase)/etc/lpjs/config
 
 if grep -q '^head' $CONF_FILE; then
     head_node=$(awk '$1 == "head" { print $2 }' $CONF_FILE)

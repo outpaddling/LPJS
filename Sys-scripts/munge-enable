@@ -66,16 +66,20 @@ This user cannot be "root".  Secure systems do not accept remote logins
 as the root user.
 
 You will need to enter the root password for $host_name
-and the user's password for $(hostname).
+and possibly the user's password for $(hostname).
 
 EOM
 	    printf "Username? "
 	    read user_name
 	    set +e
+	    remote_localbase=$(ssh $user_name@$host_name auto-localbase)
 	    ssh -t $user_name@$host_name asroot \
-		scp -p $munge_key $user_name@$(hostname):
+		scp -p $remote_localbase/etc/munge/munge.key $user_name@$(hostname):
+	    # sh does not support ~ on all platforms
 	    if [ $(uname) = Darwin ]; then
-		mv ~$user_name/munge.key $munge_key
+		# sh hard-quotes ~$user_name
+		# eval cleans up the cmd before executing
+		eval mv ~$user_name/munge.key $munge_key
 	    else
 		user_home=$(awk -F : -v u=$user_name '$1 == u { print $6 }' /etc/passwd)
 		mv $user_home/munge.key $munge_key
