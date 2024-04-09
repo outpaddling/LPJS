@@ -1,0 +1,51 @@
+#!/bin/sh -e
+
+##########################################################################
+#   Function description:
+#       Enable munge daemon
+#       
+#   History:
+#   Date        Name        Modification
+#   2023-05-28  Charlie &   Begin
+##########################################################################
+
+munge_key=$(auto-localbase)/etc/munge/munge.key
+if [ -e $munge_key ]; then
+    printf "$munge_key already exists.  Update it if necessary.\n"
+else
+    printf "Copy munge.key from $head_node to $munge_key.\n"
+fi
+printf "Permissions should be -rw-------\n"
+printf "and ownership root:root or root:wheel or daemon:daemon.\n"
+printf "If they are not, you may have a security breach.\n"
+printf "Current ownership and permissions:\n"
+ls -l $munge_key
+pause
+
+# FIXME: Make sure pkgsrc service is called "munged"
+if [ -e $(auto-localbase)/etc/rc.d/munged ]; then
+    auto-enable-service munged $0
+elif [ $(uname) = Darwin ]; then
+    plist=$(auto-localbase)/share/munge/Launchd/org.pkgsrc.munged.plist
+    if [ -e $plist ]; then
+	auto-enable-service -s $plist org.pkgsrc.munged lpjs-admin
+    fi
+elif [ $(uname) = Linux ]; then
+    script=$(auto-localbase)/lib/systemd/system/munge.service
+    if [ -e $script ]; then
+	auto-enable-service -s $script munge lpjs-admin
+    fi
+elif [ $(uname) = SunOS ]; then
+    # pkgsrc-specific
+    chown daemon:daemon /usr/pkg/var/run/munge /usr/pkg/var/log/munge \
+			/usr/pkg/etc/munge/munge.key
+    # FIXME: Can we enable an init script directly under /usr/pkg?
+    # FIXME: Add SunOS support to auto-enable-service
+    cp /usr/pkg/etc/init.d/munge /etc/init.d
+    /etc/init.d/munge restart
+else
+    printf "Could not find munge RC script.  Enable munge manually\n"
+    printf "before continuing.  Press return after munged is running.\n"
+    read junk
+fi
+

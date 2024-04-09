@@ -29,150 +29,6 @@ pause()
 
 
 ##########################################################################
-#   Function description:
-#       Enable munge daemon
-#       
-#   History:
-#   Date        Name        Modification
-#   2023-05-28  Charlie &   Begin
-##########################################################################
-
-munge_enable()
-{
-    munge_key=$(auto-localbase)/etc/munge/munge.key
-    if [ -e $munge_key ]; then
-	printf "$munge_key already exists.  Update it if necessary.\n"
-    else
-	printf "Copy munge.key from $head_node to $(auto-localbase)/etc/munge.\n"
-    fi
-    printf "Permissions should be -rw-------\n"
-    printf "and ownership root:root or root:wheel or daemon:daemon.\n"
-    printf "If they are not, you may have a security breach.\n"
-    printf "Current ownership and permissions:\n"
-    ls -l $munge_key
-    pause
-
-    # FIXME: Make sure pkgsrc service is called "munged"
-    if [ -e $(auto-localbase)/etc/rc.d/munged ]; then
-	auto-enable-service munged $0
-    elif [ $(uname) = Darwin ]; then
-	plist=$(auto-localbase)/share/munge/Launchd/org.pkgsrc.munged.plist
-	if [ -e $plist ]; then
-	    auto-enable-service -s $plist org.pkgsrc.munged lpjs-admin
-	fi
-    elif [ $(uname) = Linux ]; then
-	script=$(auto-localbase)/lib/systemd/system/munge.service
-	if [ -e $script ]; then
-	    auto-enable-service -s $script munge lpjs-admin
-	fi
-    elif [ $(uname) = SunOS ]; then
-	# pkgsrc-specific
-	chown daemon:daemon /usr/pkg/var/run/munge /usr/pkg/var/log/munge \
-			    /usr/pkg/etc/munge/munge.key
-	# FIXME: Can we enable an init script directly under /usr/pkg?
-	# FIXME: Add SunOS support to auto-enable-service
-	cp /usr/pkg/etc/init.d/munge /etc/init.d
-	/etc/init.d/munge restart
-    else
-	printf "Could not find munge RC script.  Enable munge manually\n"
-	printf "before continuing.  Press return after munged is running.\n"
-	read junk
-    fi
-}
-
-
-##########################################################################
-#   Function description:
-#       Enable dispatchd on this node (make this the head node)
-#       
-#   History:
-#   Date        Name        Modification
-#   2023-05-28  Jason Bacon Begin
-##########################################################################
-
-dispatchd_enable()
-{
-    if grep -q '^head' $CONF_FILE; then
-	head_node=$(awk '$1 == "head" { print $2 }' $CONF_FILE)
-	printf "This node currently lists $head_node as the head node.\n"
-	printf "$head_node will be replaced by $(hostname).\n"
-	printf "Proceed? y/[n] "
-	read proceed
-	if [ 0"$proceed" != 0y ]; then
-	    break
-	fi
-    fi
-    head_node=$(hostname)
-    printf "head    $head_node\n" >> $CONF_FILE.temp
-    grep -v '^head' $CONF_FILE >> $CONF_FILE.temp || true
-    mv -f $CONF_FILE.temp $CONF_FILE
-    munge_enable
-    if [ $(uname) = Darwin ]; then
-	plist=$(auto-localbase)/share/lpjs/Launchd/org.pkgsrc.lpjs_dispatchd.plist
-	if [ -e $plist ]; then
-	    auto-enable-service -s $plist org.pkgsrc.lpjs_dispatchd lpjs-admin
-	fi
-    elif [ $(uname) = Linux ]; then
-	# FIXME: systemd-specific
-	script=$(auto-localbase)/share/lpjs/Systemd/lpjs_dispatchd.service
-	if [ -e $script ]; then
-	    auto-enable-service -s $script lpjs_dispatchd lpjs-admin
-	fi
-    elif [ $(uname) = SunOS ]; then
-	# FIXME: Copying to /etc/init.d doesn't cause startup at boot
-	cp $(auto-localbase)/etc/init.d/munge /etc/init.d
-	/etc/init.d/munge restart
-	printf "lpjs daemons not yet implemented for SunOS.\n"
-    else
-	auto-enable-service lpjs_dispatchd $0
-    fi
-}
-
-
-##########################################################################
-#   Function description:
-#       Enable compd on this node (make this a compute node)
-#       
-#   History:
-#   Date        Name        Modification
-#   2023-05-28  Jason Bacon Begin
-##########################################################################
-
-compd_enable()
-{
-    if [ ! -e $CONF_FILE ] || ! grep -q '^head' $CONF_FILE; then
-	printf "Host name of head node? "
-	read head_node
-	printf "head    $head_node\n" >> $CONF_FILE
-    else
-	head_node=$(awk '$1 == "head" { print $2 }' $CONF_FILE)
-    fi
-    
-    printf "Add 'compute $(hostname)' to $CONF_FILE on $head_node.\n"
-    pause
-    munge_enable
-    if [ $(uname) = Darwin ]; then
-	plist=$(auto-localbase)/share/lpjs/Launchd/org.pkgsrc.lpjs_compd.plist
-	if [ -e $plist ]; then
-	    auto-enable-service -s $plist org.pkgsrc.lpjs_compd lpjs-admin
-	fi
-    elif [ $(uname) = Linux ]; then
-	script=$(auto-localbase)/share/lpjs/Systemd/lpjs_compd.service
-	if [ -e $script ]; then
-	    auto-enable-service -s $script lpjs_compd lpjs-admin
-	fi
-    elif [ $(uname) = SunOS ]; then
-	# FIXME: Copying to /etc/init.d doesn't cause startup at boot
-	cp $(auto-localbase)/etc/init.d/munge /etc/init.d
-	/etc/init.d/munge restart
-	printf "lpjs daemons not yet implemented for SunOS.\n"
-    else
-	auto-enable-service lpjs_compd $0
-    fi
-}
-
-
-##########################################################################
 #   Main
 ##########################################################################
 
@@ -220,8 +76,8 @@ EOM
     read resp
     case 0$resp in
     01)
-	dispatchd_enable
-	compd_enable
+	/usr/local/libexec/lpjs/dispatchd-enable
+	/usr/local/libexec/lpjs/compd-enable
 	pause
 	;;
     
@@ -251,12 +107,12 @@ EOM
 	;;
 
     03)
-	dispatchd_enable
+	/usr/local/libexec/lpjs/dispatchd-enable
 	pause
 	;;
 
     04)
-	compd_enable
+	/usr/local/libexec/lpjs/compd-enable
 	pause
 	;;
 
