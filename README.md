@@ -434,7 +434,7 @@ Then, assuming you selected current packages and the default prefix
 
 ```
 source ~/Pkgsrc/pkg/etc/pkgsrc.sh   # Or pkgsrc.csh for csh or tcsh
-cd ~/Pkgsrc/sysutils/lpjs
+cd ~/Pkgsrc/pkgsrc/sysutils/lpjs
 sbmake install clean clean-depends
 ```
 
