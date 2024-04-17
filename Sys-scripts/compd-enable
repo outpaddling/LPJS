@@ -32,8 +32,18 @@ else
     head_node=$(awk '$1 == "head" { print $2 }' $CONF_FILE)
 fi
 
-printf "Add 'compute $(hostname)' to $CONF_FILE on $head_node.\n"
+cat << EOM
+
+Add 'compute $(hostname)' to $CONF_FILE on
+$head_node.
+
+Then run "lpjs restart" on $head_node.
+
+EOM
 pause
+
+# FIXME: Check if services are already enabled
+
 /usr/local/libexec/lpjs/munge-enable
 if [ $(uname) = Darwin ]; then
     plist=$(auto-localbase)/share/lpjs/Launchd/org.pkgsrc.lpjs_compd.plist
@@ -51,6 +61,9 @@ elif [ $(uname) = SunOS ]; then
 /et /etc/init.d/munge restart
     printf "lpjs daemons not yet implemented for SunOS.\n"
 else
-    auto-enable-service lpjs_compd $0
+    if auto-service-enabled lpjs_compd; then
+	lpjs restart
+    else
+	auto-enable-service lpjs_compd $0
+    fi
 fi
-
