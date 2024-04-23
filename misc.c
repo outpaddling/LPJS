@@ -285,3 +285,41 @@ ssize_t lpjs_load_script(const char *script_path,
     
     return bytes;
 }
+
+
+/***************************************************************************
+ *  Use auto-c2man to generate a man page from this comment
+ *
+ *  Library:
+ *      #include <>
+ *      -l
+ *
+ *  Description:
+ *  
+ *  Arguments:
+ *
+ *  Returns:
+ *
+ *  Examples:
+ *
+ *  Files:
+ *
+ *  Environment
+ *
+ *  See also:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-04-23  Jason Bacon Begin
+ ***************************************************************************/
+
+char *lpjs_get_marker_filename(char shared_fs_marker[], const char *hostname,
+			      size_t array_size)
+
+{
+    // FIXME: Check for errors
+    snprintf(shared_fs_marker, array_size + 1,
+	     "lpjs-%s-shared-fs-marker", hostname);
+    
+    return shared_fs_marker;
+}

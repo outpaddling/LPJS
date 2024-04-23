@@ -95,40 +95,62 @@ int     main (int argc, char *argv[])
     // xt_str_argv_cat(cmd, argv, 1, LPJS_CMD_MAX + 1);
     // status = system(cmd);
     
+    gethostname(hostname, sysconf(_SC_HOST_NAME_MAX));
     lpjs_log("CWD = %s\n", getcwd(wd, PATH_MAX + 1));
-    lpjs_log("Running %s with %u cores and %lu MiB.\n",
-	    job_script_name, cores, mem_per_core);
+    lpjs_log("Running %s on %s with %u cores and %lu MiB.\n",
+	    job_script_name, hostname, cores, mem_per_core);
     
     if ( (pid = fork()) == 0 )
     {
 	// Child, run script
 	// FIXME: Set CPU and memory (virtual and physical) limits
+	fclose(Log_stream); // Not useful to child
 	execl(job_script_name, job_script_name, NULL);
 	lpjs_log("%s(): execl() failed: %s\n", __FUNCTION__, strerror(errno));
 	return EX_UNAVAILABLE;
     }
     else
     {
+	char    shared_fs_marker[PATH_MAX + 1],
+		cmd[LPJS_CMD_MAX + 1];
+	struct stat st;
+	
+	lpjs_get_marker_filename(shared_fs_marker, getenv("LPJS_SUBMIT_HOST"),
+				 PATH_MAX + 1);
+	if ( stat(shared_fs_marker, &st) != 0 )
+	    lpjs_log("Removing temporary working dir: %s\n", wd);
+
+	// Log file will be sent back by script if not using a shared
+	// directory, so no more lpjs_log() after wait().
+	fclose(Log_stream);
+	
 	// FIXME: Chaperone, monitor resource use of child
 	// Maybe ptrace(), though seemingly not well standardized
 	wait(&status);
+	
+	// Remove working dir if not shared, unless sysadmin allows retention
+	if ( stat(shared_fs_marker, &st) != 0 )
+	{
+	    // FIXME: Check for sysadmin-controlled "keep" option
+	    chdir("..");    // Can't remove dir while in use
+	    snprintf(cmd, LPJS_CMD_MAX + 1, "rm -rf %s", wd);
+	    system(cmd);
+	}
     }
     
-    /* Send a message to the server */
-    gethostname(hostname, sysconf(_SC_HOST_NAME_MAX));
+    /* Send job completion message to dispatchd */
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%s %s %s %s\n",
 	LPJS_DISPATCHD_REQUEST_JOB_COMPLETE, hostname,
 	getenv("LPJS_JOB_ID"), getenv("LPJS_CORES_PER_JOB"),
 	getenv("LPJS_MEM_PER_CORE"));
     if ( lpjs_send_munge(msg_fd, outgoing_msg) != EX_OK )
     {
-	lpjs_log("lpjs-chaperone: Failed to send message to dispatch: %s",
+	lpjs_log("lpjs-chaperone: Failed to send message to dispatchd: %s",
 		strerror(errno));
 	close(msg_fd);
 	return EX_IOERR;
     }
     close(msg_fd);
-    fclose(Log_stream);
 
     return status;
 }

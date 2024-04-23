@@ -40,7 +40,7 @@ int     main (int argc, char *argv[])
 	    *ext,
 	    job_string[LPJS_PAYLOAD_MAX_LEN + 1],
 	    hostname[sysconf(_SC_HOST_NAME_MAX) + 1],
-	    shared_marker[PATH_MAX + 1],
+	    shared_fs_marker[PATH_MAX + 1],
 	    script_text[LPJS_SCRIPT_SIZE_MAX + 1];
     ssize_t script_size;
     node_list_t *node_list = node_list_new();
@@ -81,14 +81,13 @@ int     main (int argc, char *argv[])
      */
     
     gethostname(hostname, sysconf(_SC_HOST_NAME_MAX));
-    snprintf(shared_marker, PATH_MAX + 1,
-	     "lpjs-%s-shared-fs-marker", hostname);
-    if ( (fd = open(shared_marker, O_WRONLY|O_CREAT, 0644)) != -1 )
+    lpjs_get_marker_filename(shared_fs_marker, hostname, PATH_MAX + 1);
+    if ( (fd = open(shared_fs_marker, O_WRONLY|O_CREAT, 0644)) != -1 )
 	close(fd);
     else
     {
 	fprintf(stderr, "Error: Could not create %s: %s\n",
-		shared_marker, strerror(errno));
+		shared_fs_marker, strerror(errno));
 	return EX_CANTCREAT;
     }
     

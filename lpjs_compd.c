@@ -294,7 +294,9 @@ int     lpjs_run_script(job_t *job, const char *script_start)
 
 {
     char    wd[PATH_MAX + 1],
-	    job_script_name[PATH_MAX + 1];
+	    job_script_name[PATH_MAX + 1],
+	    shared_fs_marker[PATH_MAX + 1],
+	    shared_fs_marker_path[PATH_MAX + 1];
     int     fd;
     // FIXME: Break out new functions for this
     char    *working_dir;
@@ -308,7 +310,12 @@ int     lpjs_run_script(job_t *job, const char *script_start)
      */
     
     working_dir = job_get_working_directory(job);
-    if ( (stat(working_dir, &st) != 0) || ! S_ISDIR(st.st_mode) )
+    
+    lpjs_get_marker_filename(shared_fs_marker, job_get_submit_host(job),
+			     PATH_MAX + 1);
+    snprintf(shared_fs_marker_path, PATH_MAX + 1, "%s/%s",
+	     working_dir, shared_fs_marker);
+    if ( stat(shared_fs_marker_path, &st) != 0 )
     {
 	struct passwd *pw_ent;
 	
@@ -349,6 +356,7 @@ int     lpjs_run_script(job_t *job, const char *script_start)
 		lpjs_log("Running as uid %d, can't alter working dir ownership.\n", getuid());
 	}
     }
+    
     if ( chdir(working_dir) != 0 )
     {
 	lpjs_log("Failed to enter working dir: %s\n", working_dir);
