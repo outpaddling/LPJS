@@ -1,0 +1,27 @@
+#!/bin/sh -e
+
+##########################################################################
+#   Function description:
+#       Pause until user presses return
+##########################################################################
+
+pause()
+{
+    local junk
+    
+    printf "Press return to continue..."
+    read junk
+}
+
+##########################################################################
+#   Description:
+#       Disable dispatchd on this node
+#       
+#   History:
+#   Date        Name        Modification
+#   2023-05-28  Jason Bacon Begin
+##########################################################################
+
+# Don't disable munge, let that be done separately
+# /usr/local/libexec/lpjs/munge-disable
+auto-disable-service lpjs_dispatchd

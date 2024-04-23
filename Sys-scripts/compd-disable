@@ -1,0 +1,27 @@
+#!/bin/sh -e
+
+##########################################################################
+#   Function description:
+#       Pause until user presses return
+##########################################################################
+
+pause()
+{
+    local junk
+    
+    printf "Press return to continue..."
+    read junk
+}
+
+##########################################################################
+#   Function description:
+#       Enable compd on this node (make this a compute node)
+#       
+#   History:
+#   Date        Name        Modification
+#   2023-05-28  Jason Bacon Begin
+##########################################################################
+
+# Don't disable munged.  Let that be done separately.
+# /usr/local/libexec/lpjs/munge-enable
+auto-disable-service lpjs_compd
