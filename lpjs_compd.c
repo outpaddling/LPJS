@@ -327,6 +327,19 @@ int     lpjs_run_script(job_t *job, const char *script_start)
 		    job_get_job_id(job));
 	    lpjs_log("%s does not exist.  Using %s.\n",
 		    working_dir, wd);
+	    
+	    // If wd exists, rename it first
+	    if ( stat(wd, &st) == 0 )
+	    {
+		char    save_wd[PATH_MAX + 1];
+		int c = 0;
+		do
+		{
+		    snprintf(save_wd, PATH_MAX + 1, "%s.%d", wd, c++);
+		}   while ( stat(save_wd, &st) == 0 );
+		rename(wd, save_wd);
+	    }
+	    
 	    mkdir(wd, 0700);
 	    working_dir = wd;
 	    
