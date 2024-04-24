@@ -209,10 +209,14 @@ int     main (int argc, char *argv[])
 	// No more lpjs_log() beyond here.  Log file already transferred.
 	fclose(Log_stream);
 	
+	// FIXME: Save absolute pathnames of temporary working dirs,
+	// along with creation date, and remove them after a specified
+	// period, e.g. 1 day.
+	
 	// Remove temporary working dir unless sysadmin allows retention
 	// FIXME: Check for sysadmin-controlled "keep" option and errors
-	snprintf(cmd, LPJS_CMD_MAX + 1, "rm -rf %s", wd);
-	system(cmd);
+	// snprintf(cmd, LPJS_CMD_MAX + 1, "rm -rf %s", wd);
+	// system(cmd);
     }
 
     return status;
