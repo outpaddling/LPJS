@@ -58,10 +58,19 @@ int     main (int argc, char *argv[])
 	return EX_USAGE;
     }
     job_script_name = argv[1];
+
+    // Chaperone outputs stderr to a log file in the working dir
+    snprintf(log_file, PATH_MAX + 1, "chaperone-%s.stderr",
+	     getenv("LPJS_JOB_ID"));
+    if ( (Log_stream = lpjs_log_output(log_file)) == NULL )
+    {
+	fprintf(stderr, "chaperone: Failed to create log file.\n");
+	return EX_CANTCREAT;
+    }
     
     snprintf(new_path, 4096, "%s:%s:%s", LOCALBASE, PREFIX, getenv("PATH"));
     setenv("PATH", new_path, 1);
-    lpjs_log("PATH = %s\n", getenv("PATH"));
+    lpjs_log("PATH = %s\n", new_path);
     
     temp = getenv("LPJS_CORES_PER_JOB");
     cores = strtoul(temp, &end, 10);
@@ -77,16 +86,6 @@ int     main (int argc, char *argv[])
     {
 	fprintf(stderr, "Invalid LPJS_MEM_PER_CORE: %s\n", temp);
 	exit(EX_USAGE);
-    }
-
-    // Chaperone outputs stderr to a log file in the working dir
-    snprintf(log_file, PATH_MAX + 1, "chaperone-%s.stderr",
-	     getenv("LPJS_JOB_ID"));
-    
-    if ( (Log_stream = lpjs_log_output(log_file)) == NULL )
-    {
-	fprintf(stderr, "chaperone: Failed to create log file.\n");
-	return EX_CANTCREAT;
     }
     
     // Get hostname of head node
