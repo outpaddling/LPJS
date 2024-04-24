@@ -20,8 +20,9 @@ struct job
     char            *user_name;
     char            *primary_group_name;
     char            *submit_host;
-    char            *working_directory;
+    char            *submit_directory;
     char            *script_name;
+    char            *push_command;
 };
 
 #ifndef __JOB_H__

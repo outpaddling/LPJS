@@ -685,7 +685,7 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
     // Need the absolute pathname of the script.  Might be the same
     // on compute nodes if NFS or other file server is used
     snprintf(script_path, PATH_MAX + 1, "%s/%s",
-	     job_get_working_directory(job), job_get_script_name(job));
+	     job_get_submit_directory(job), job_get_script_name(job));
     for (c = 0; c < job_get_job_count(job); ++c)
     {
 	lpjs_log("Submit script %s:%s from %d, %d\n",

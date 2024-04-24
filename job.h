@@ -2,7 +2,7 @@
 #define _LPJS_JOB_H_
 
 // job_id job_count cores_per_job min_cores_per_node mem_per_core user_name
-// working_directory/script_name
+// submit_directory/script_name
 #define JOB_SPEC_HEADER_FORMAT  "%9s %3s %9s %9s %10s %9s %s %s %s %s %s\n"
 // scanf() is good for converting numbers, but risks buffer overflows
 // for strings, just like gets(), etc.

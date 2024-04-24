@@ -65,8 +65,9 @@ void    job_init(job_t *job)
     job->user_name = NULL;
     job->primary_group_name = NULL;
     job->submit_host = NULL;
-    job->working_directory = NULL;
+    job->submit_directory = NULL;
     job->script_name = NULL;
+    job->push_command = "rsync -av %w %h:%d";
 }
 
 
@@ -86,7 +87,7 @@ int     job_print(job_t *job, FILE *stream)
 	    job->job_count, job->cores_per_job,
 	    job->min_cores_per_node, job->mem_per_core,
 	    job->user_name, job->primary_group_name,
-	    job->submit_host, job->working_directory, job->script_name);
+	    job->submit_host, job->submit_directory, job->script_name);
 }
 
 
@@ -107,7 +108,7 @@ int     job_print_to_string(job_t *job, char *str, size_t buff_size)
 		    job->job_count, job->cores_per_job,
 		    job->min_cores_per_node, job->mem_per_core,
 		    job->user_name, job->primary_group_name,
-		    job->submit_host, job->working_directory, job->script_name);
+		    job->submit_host, job->submit_directory, job->script_name);
 }
 
 
@@ -130,7 +131,7 @@ void    job_send_as_msg(job_t *job, int msg_fd)
 	    job->job_count, job->cores_per_job,
 	    job->min_cores_per_node, job->mem_per_core,
 	    job->user_name, job->primary_group_name,
-	    job->submit_host, job->working_directory, job->script_name);
+	    job->submit_host, job->submit_directory, job->script_name);
     
     if ( lpjs_send_munge(msg_fd, msg) != EX_OK )
     {
@@ -185,7 +186,7 @@ int     job_parse_script(job_t *job, const char *script_name)
 	exit(EX_UNAVAILABLE);
     }
     
-    if ( (job->working_directory = getcwd(NULL, 0)) == NULL )
+    if ( (job->submit_directory = getcwd(NULL, 0)) == NULL )
     {
 	fprintf(stderr, "%s: malloc() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
@@ -221,78 +222,93 @@ int     job_parse_script(job_t *job, const char *script_name)
 	if ( strcmp(field, "#lpjs") == 0 )
 	{
 	    var_delim = xt_dsv_read_field(fp, var, JOB_FIELD_MAX_LEN + 1, " \t", &field_len);
-	    val_delim = xt_dsv_read_field(fp, val, JOB_FIELD_MAX_LEN + 1, " \t", &field_len);
-	    if ( (strchr(" \t", var_delim) == NULL)
-		 || (strchr(" \t\n", val_delim) == NULL) )
+	    // Process directives where the value main contain whitespace first
+	    if ( strcmp(var, "push-command") == 0 )
 	    {
-		fprintf(stderr,
-		    "Error parsing #lpjs directive: var = '%s', val = '%s'\n",
-		    var, val);
-		exit(EX_DATAERR);
-	    }
-	    if ( strcmp(var, "jobs") == 0 )
-	    {
-		job->job_count = strtoul(val, &end, 10);
-		if ( *end != '\0' )
-		{
-		    fprintf(stderr, "Error: #lpjs jobs '%s' is not a decimal integer.\n", val);
-		    exit(EX_DATAERR);
-		}
-	    }
-	    else if ( strcmp(var, "cores-per-job") == 0 )
-	    {
-		job->cores_per_job = strtoul(val, &end, 10);
-		if ( *end != '\0' )
-		{
-		    fprintf(stderr, "Error: #lpjs cores-per-job '%s' is not a decimal integer.\n", val);
-		    exit(EX_DATAERR);
-		}
-	    }
-	    else if ( strcmp(var, "min-cores-per-node") == 0 )
-	    {
-		if ( strcmp(val, "all") == 0 )
-		    job->min_cores_per_node = job->cores_per_job;
-		else
-		{
-		    job->min_cores_per_node = strtoul(val, &end, 10);
-		    if ( *end != '\0' )
-		    {
-			fprintf(stderr, "Error: #lpjs min-cores-per-node '%s' is not a decimal integer.\n", val);
-			exit(EX_DATAERR);
-		    }
-		    if ( job->min_cores_per_node > job->cores_per_job )
-		    {
-			fprintf(stderr, "Error: #lpjs min-cores-per-node cannot be greater then cores-per-job.\n");
-			exit(EX_DATAERR);
-		    }
-		}
-	    }
-	    else if ( strcmp(var, "mem-per-core") == 0 )
-	    {
-		job->mem_per_core = strtoul(val, &end, 10);
+		int     c, ch;
 		
-		// Convert to MiB
-		// Careful with the integer arithmetic, to avoid overflows
-		// and 0 results
-		if ( strcmp(end, "MB") == 0 )
-		    job->mem_per_core = job->mem_per_core * LPJS_MB / LPJS_MiB;
-		else if ( strcmp(end, "MiB") == 0 )
-		    ;
-		else if ( strcmp(end, "GB") == 0 )
-		    job->mem_per_core = job->mem_per_core * LPJS_GB / LPJS_MiB;
-		else if ( strcmp(end, "GiB") == 0 )
-		    job->mem_per_core = job->mem_per_core * LPJS_GiB / LPJS_MiB;
-		else
-		{
-		    fprintf(stderr, "Error: #lpjs mem-per-core '%s':\n", val);
-		    fprintf(stderr, "Requires a decimal number followed by MB, MiB, GB, or GiB.\n");
-		    exit(EX_DATAERR);
-		}
+		job->push_command = malloc(LPJS_CMD_MAX + 1);
+		c = 0;
+		while ( (c < LPJS_CMD_MAX) &&
+				((ch = getc(fp)) != '\n') && (ch != EOF) )
+		    job->push_command[c++] = ch;
+		job->push_command[c] = '\0';
 	    }
 	    else
 	    {
-		fprintf(stderr, "Unrecognized #lpjs variable: '%s'\n", var);
-		exit(EX_DATAERR);
+		val_delim = xt_dsv_read_field(fp, val, JOB_FIELD_MAX_LEN + 1, " \t", &field_len);
+		if ( (strchr(" \t", var_delim) == NULL)
+		     || (strchr(" \t\n", val_delim) == NULL) )
+		{
+		    fprintf(stderr,
+			"Error parsing #lpjs directive: var = '%s', val = '%s'\n",
+			var, val);
+		    exit(EX_DATAERR);
+		}
+		if ( strcmp(var, "jobs") == 0 )
+		{
+		    job->job_count = strtoul(val, &end, 10);
+		    if ( *end != '\0' )
+		    {
+			fprintf(stderr, "Error: #lpjs jobs '%s' is not a decimal integer.\n", val);
+			exit(EX_DATAERR);
+		    }
+		}
+		else if ( strcmp(var, "cores-per-job") == 0 )
+		{
+		    job->cores_per_job = strtoul(val, &end, 10);
+		    if ( *end != '\0' )
+		    {
+			fprintf(stderr, "Error: #lpjs cores-per-job '%s' is not a decimal integer.\n", val);
+			exit(EX_DATAERR);
+		    }
+		}
+		else if ( strcmp(var, "min-cores-per-node") == 0 )
+		{
+		    if ( strcmp(val, "all") == 0 )
+			job->min_cores_per_node = job->cores_per_job;
+		    else
+		    {
+			job->min_cores_per_node = strtoul(val, &end, 10);
+			if ( *end != '\0' )
+			{
+			    fprintf(stderr, "Error: #lpjs min-cores-per-node '%s' is not a decimal integer.\n", val);
+			    exit(EX_DATAERR);
+			}
+			if ( job->min_cores_per_node > job->cores_per_job )
+			{
+			    fprintf(stderr, "Error: #lpjs min-cores-per-node cannot be greater then cores-per-job.\n");
+			    exit(EX_DATAERR);
+			}
+		    }
+		}
+		else if ( strcmp(var, "mem-per-core") == 0 )
+		{
+		    job->mem_per_core = strtoul(val, &end, 10);
+		    
+		    // Convert to MiB
+		    // Careful with the integer arithmetic, to avoid overflows
+		    // and 0 results
+		    if ( strcmp(end, "MB") == 0 )
+			job->mem_per_core = job->mem_per_core * LPJS_MB / LPJS_MiB;
+		    else if ( strcmp(end, "MiB") == 0 )
+			;
+		    else if ( strcmp(end, "GB") == 0 )
+			job->mem_per_core = job->mem_per_core * LPJS_GB / LPJS_MiB;
+		    else if ( strcmp(end, "GiB") == 0 )
+			job->mem_per_core = job->mem_per_core * LPJS_GiB / LPJS_MiB;
+		    else
+		    {
+			fprintf(stderr, "Error: #lpjs mem-per-core '%s':\n", val);
+			fprintf(stderr, "Requires a decimal number followed by MB, MiB, GB, or GiB.\n");
+			exit(EX_DATAERR);
+		    }
+		}
+		else
+		{
+		    fprintf(stderr, "Unrecognized #lpjs variable: '%s'\n", var);
+		    exit(EX_DATAERR);
+		}
 	    }
 	}
 	else if ( !xt_strblank(field) )
@@ -402,7 +418,7 @@ int     job_read_from_string(job_t *job, const char *string, char **end)
     }
     ++items;
     
-    if ( (job->working_directory = strdup(strsep(&p, " \t"))) == NULL )
+    if ( (job->submit_directory = strdup(strsep(&p, " \t"))) == NULL )
     {
 	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
@@ -502,7 +518,7 @@ void    job_free(job_t **job)
     free((*job)->user_name);
     free((*job)->primary_group_name);
     free((*job)->submit_host);
-    free((*job)->working_directory);
+    free((*job)->submit_directory);
     free((*job)->script_name);
     free(*job);
 }
@@ -601,8 +617,9 @@ void    job_setenv(job_t *job)
     setenv("LPJS_USER_NAME", job->user_name, 1);
     setenv("LPJS_PRIMARY_GROUP_NAME", job->primary_group_name, 1);
     setenv("LPJS_SUBMIT_HOST", job->submit_host, 1);
-    setenv("LPJS_WORKING_DIRECTORY", job->working_directory, 1);
+    setenv("LPJS_SUBMIT_DIRECTORY", job->submit_directory, 1);
     setenv("LPJS_SCRIPT_NAME", job->script_name, 1);
+    setenv("LPJS_PUSH_COMMAND", job->push_command, 1);
 }
 
 

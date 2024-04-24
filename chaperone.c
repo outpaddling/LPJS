@@ -140,14 +140,66 @@ int     main (int argc, char *argv[])
 			     PATH_MAX + 1);
     if ( stat(shared_fs_marker, &st) != 0 )
     {
+	char    *sp, *submit_host, *submit_dir;
+	size_t  c;
+	
 	lpjs_log("Transferring and removing temporary working dir: %s\n", wd);
 	chdir("..");    // Can't remove dir while in use
 	
 	// FIXME: Check for errors
 	// FIXME: Allow user to specify transfer command
+	sp = getenv("LPJS_PUSH_COMMAND");
+	c =0;
+	while ( (*sp != '\0') && (c < LPJS_CMD_MAX) )
+	{
+	    if ( *sp == '%' )
+	    {
+		++sp;
+		switch(*sp)
+		{
+		    case    'w':
+			if ( c + strlen(wd) > LPJS_CMD_MAX )
+			{
+			    lpjs_log("LPJS_PUSH_COMMAND longer than %u, aborting.\n", LPJS_CMD_MAX);
+			    return EX_DATAERR;
+			}
+			strlcpy(cmd + c, wd, LPJS_CMD_MAX + 1);
+			c += strlen(wd);
+			++sp;
+			break;
+		    case    'h':
+			submit_host = getenv("LPJS_SUBMIT_HOST");
+			if ( c + strlen(submit_host) > LPJS_CMD_MAX )
+			{
+			    lpjs_log("LPJS_PUSH_COMMAND longer than %u, aborting.\n", LPJS_CMD_MAX);
+			    return EX_DATAERR;
+			}
+			strlcpy(cmd + c, submit_host, LPJS_CMD_MAX + 1);
+			c += strlen(submit_host);
+			++sp;
+			break;
+		    case    'd':
+			submit_dir = getenv("LPJS_SUBMIT_DIR");
+			if ( c + strlen(submit_dir) > LPJS_CMD_MAX )
+			{
+			    lpjs_log("LPJS_PUSH_COMMAND longer than %u, aborting.\n", LPJS_CMD_MAX);
+			    return EX_DATAERR;
+			}
+			strlcpy(cmd + c, submit_dir, LPJS_CMD_MAX + 1);
+			c += strlen(submit_dir);
+			++sp;
+			break;
+		    default:
+			lpjs_log("Invalid placeholder in LPJS_PUSH_COMMAND: %%%c\n", *sp);
+			return EX_DATAERR;
+		}
+	    }
+	    else
+		cmd[c++] = *sp++;
+	}
 	snprintf(cmd, LPJS_CMD_MAX + 1, "rsync -av %s %s:%s\n",
 		 wd, getenv("LPJS_SUBMIT_HOST"),
-		 getenv("LPJS_WORKING_DIRECTORY"));
+		 getenv("LPJS_SUBMIT_DIRECTORY"));
 	system(cmd);
 	
 	// No more lpjs_log() beyond here.  Log file already transferred.

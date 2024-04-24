@@ -29,9 +29,12 @@ int job_set_primary_group_name_cpy(job_t *job_ptr, char *new_primary_group_name,
 int job_set_submit_host(job_t *job_ptr, char *new_submit_host);
 int job_set_submit_host_ae(job_t *job_ptr, size_t c, char new_submit_host_element);
 int job_set_submit_host_cpy(job_t *job_ptr, char *new_submit_host, size_t array_size);
-int job_set_working_directory(job_t *job_ptr, char *new_working_directory);
-int job_set_working_directory_ae(job_t *job_ptr, size_t c, char new_working_directory_element);
-int job_set_working_directory_cpy(job_t *job_ptr, char *new_working_directory, size_t array_size);
+int job_set_submit_directory(job_t *job_ptr, char *new_submit_directory);
+int job_set_submit_directory_ae(job_t *job_ptr, size_t c, char new_submit_directory_element);
+int job_set_submit_directory_cpy(job_t *job_ptr, char *new_submit_directory, size_t array_size);
 int job_set_script_name(job_t *job_ptr, char *new_script_name);
 int job_set_script_name_ae(job_t *job_ptr, size_t c, char new_script_name_element);
 int job_set_script_name_cpy(job_t *job_ptr, char *new_script_name, size_t array_size);
+int job_set_push_command(job_t *job_ptr, char *new_push_command);
+int job_set_push_command_ae(job_t *job_ptr, size_t c, char new_push_command_element);
+int job_set_push_command_cpy(job_t *job_ptr, char *new_push_command, size_t array_size);
