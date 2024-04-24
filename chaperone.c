@@ -149,6 +149,7 @@ int     main (int argc, char *argv[])
 	// FIXME: Check for errors
 	// FIXME: Allow user to specify transfer command
 	sp = getenv("LPJS_PUSH_COMMAND");
+	lpjs_log("LPJS_PUSH_COMMAND = %s\n", sp);
 	c =0;
 	while ( (*sp != '\0') && (c < LPJS_CMD_MAX) )
 	{
@@ -167,6 +168,7 @@ int     main (int argc, char *argv[])
 			c += strlen(wd);
 			++sp;
 			break;
+			
 		    case    'h':
 			submit_host = getenv("LPJS_SUBMIT_HOST");
 			if ( c + strlen(submit_host) > LPJS_CMD_MAX )
@@ -178,8 +180,9 @@ int     main (int argc, char *argv[])
 			c += strlen(submit_host);
 			++sp;
 			break;
+			
 		    case    'd':
-			submit_dir = getenv("LPJS_SUBMIT_DIR");
+			submit_dir = getenv("LPJS_SUBMIT_DIRECTORY");
 			if ( c + strlen(submit_dir) > LPJS_CMD_MAX )
 			{
 			    lpjs_log("LPJS_PUSH_COMMAND longer than %u, aborting.\n", LPJS_CMD_MAX);
@@ -189,17 +192,18 @@ int     main (int argc, char *argv[])
 			c += strlen(submit_dir);
 			++sp;
 			break;
+			
 		    default:
 			lpjs_log("Invalid placeholder in LPJS_PUSH_COMMAND: %%%c\n", *sp);
 			return EX_DATAERR;
 		}
+		lpjs_log("cmd = %s\n", cmd);
 	    }
 	    else
 		cmd[c++] = *sp++;
 	}
-	snprintf(cmd, LPJS_CMD_MAX + 1, "rsync -av %s %s:%s\n",
-		 wd, getenv("LPJS_SUBMIT_HOST"),
-		 getenv("LPJS_SUBMIT_DIRECTORY"));
+	*sp = '\0';
+	lpjs_log("push command = %s\n", cmd);
 	system(cmd);
 	
 	// No more lpjs_log() beyond here.  Log file already transferred.
