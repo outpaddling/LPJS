@@ -443,29 +443,33 @@ int     run_chaperone(job_t *job, const char *job_script_name)
 	    
 	    uid = getuid();
 	    gid = getgid();
-	    
-	    // Set gid while still running as root
-	    group_name = job_get_primary_group_name(job);
-	    if ( (gr_ent = getgrnam(group_name)) == NULL )
-	    {
-		lpjs_log("%s(): %s: No such group.\n", __FUNCTION__, group_name);
-		return EX_NOUSER;
-	    }
-	    gid = gr_ent->gr_gid;
-	    
-	    if ( setgid(gid) != 0 )
-		lpjs_log("%s(): Warning: Failed to set gid to %u.\n", __FUNCTION__, gid);
 
 	    user_name = job_get_user_name(job);
 	    if ( (pw_ent = getpwnam(user_name)) == NULL )
 	    {
 		lpjs_log("%s(): %s: No such user.\n", __FUNCTION__, user_name);
+		// FIXME: Disable this node and reschedule this job
 		return EX_NOUSER;
 	    }
+	    
+	    group_name = job_get_primary_group_name(job);
+	    if ( (gr_ent = getgrnam(group_name)) == NULL )
+	    {
+		lpjs_log("%s(): Info: %s: No such group.\n", __FUNCTION__, group_name);
+		gid = pw_ent->pw_gid;
+	    }
+	    else
+		gid = gr_ent->gr_gid;
+	    
+	    // Set gid before uid, while still running as root
+	    if ( setgid(gid) != 0 )
+		lpjs_log("%s(): Warning: Failed to set gid to %u.\n", __FUNCTION__, gid);
+	    
 	    uid = pw_ent->pw_uid;
 	    if ( setuid(uid) != 0 )
 	    {
 		lpjs_log("%s(): Failed to set uid to %u.\n", __FUNCTION__, uid);
+		// FIXME: Disable this node and reschedule this job
 		return EX_NOPERM;
 	    }
 	    
@@ -506,6 +510,7 @@ int     run_chaperone(job_t *job, const char *job_script_name)
 	// We only get here if execl() failed
 	lpjs_log("%s(): Failed to exec %s %u %u %s\n",
 		__FUNCTION__, chaperone_bin, job_script_name);
+	// FIXME: Disable this node and reschedule this job
 	return EX_UNAVAILABLE;
     }
     
