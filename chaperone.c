@@ -201,7 +201,6 @@ int     main (int argc, char *argv[])
 			lpjs_log("Invalid placeholder in LPJS_PUSH_COMMAND: %%%c\n", *sp);
 			return EX_DATAERR;
 		}
-		lpjs_log("cmd = %s\n", cmd);
 	    }
 	    else
 		cmd[c++] = *sp++;
