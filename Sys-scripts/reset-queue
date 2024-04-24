@@ -80,7 +80,9 @@ EOM
 printf "Are you sure you want to do this?  yes/[no] "
 read sure
 if [ 0"$sure" = 0yes ]; then
-    lpjs stop
+    if [ $(id -u) = 0 ]; then
+	lpjs stop || true
+    fi
     rm -rf $prefix/var/spool/lpjs/pending/*
     rm -rf $prefix/var/spool/lpjs/running/*
     printf "1\n" > $prefix/var/spool/lpjs/next-job
@@ -91,7 +93,9 @@ if [ 0"$sure" = 0yes ]; then
     ls -al $prefix/var/spool/lpjs/running
     printf "\n$prefix/var/spool/lpjs/next-job:\n"
     cat $prefix/var/spool/lpjs/next-job
-    lpjs start
+    if [ $(id -u) = 0 ]; then
+	lpjs start || true
+    fi
 else
     printf "Reset canceled.\n"
 fi
