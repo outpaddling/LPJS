@@ -61,6 +61,7 @@ int     main (int argc, char *argv[])
     
     snprintf(new_path, 4096, "%s:%s:%s", LOCALBASE, PREFIX, getenv("PATH"));
     setenv("PATH", new_path, 1);
+    lpjs_log("PATH = %s\n", getenv("PATH"));
     
     temp = getenv("LPJS_CORES_PER_JOB");
     cores = strtoul(temp, &end, 10);
