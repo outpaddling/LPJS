@@ -30,6 +30,7 @@
 #include "lpjs.h"
 
 int     main (int argc, char *argv[])
+
 {
     int         msg_fd,
 		status;
@@ -45,6 +46,9 @@ int     main (int argc, char *argv[])
     pid_t       pid;
     extern FILE *Log_stream;
     char        hostname[sysconf(_SC_HOST_NAME_MAX) + 1];
+    char        shared_fs_marker[PATH_MAX + 1],
+		cmd[LPJS_CMD_MAX + 1];
+    struct stat st;
     
     if ( argc != 2 )
     {
@@ -111,38 +115,16 @@ int     main (int argc, char *argv[])
     }
     else
     {
-	char    shared_fs_marker[PATH_MAX + 1],
-		cmd[LPJS_CMD_MAX + 1];
-	struct stat st;
-	
-	lpjs_get_marker_filename(shared_fs_marker, getenv("LPJS_SUBMIT_HOST"),
-				 PATH_MAX + 1);
-	if ( stat(shared_fs_marker, &st) != 0 )
-	    lpjs_log("Removing temporary working dir: %s\n", wd);
-
-	// Log file will be sent back by script if not using a shared
-	// directory, so no more lpjs_log() after wait().
-	fclose(Log_stream);
-	
 	// FIXME: Chaperone, monitor resource use of child
 	// Maybe ptrace(), though seemingly not well standardized
 	wait(&status);
-	
-	// Remove working dir if not shared, unless sysadmin allows retention
-	if ( stat(shared_fs_marker, &st) != 0 )
-	{
-	    // FIXME: Check for sysadmin-controlled "keep" option
-	    chdir("..");    // Can't remove dir while in use
-	    snprintf(cmd, LPJS_CMD_MAX + 1, "rm -rf %s", wd);
-	    system(cmd);
-	}
     }
     
     /* Send job completion message to dispatchd */
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%s %s %s %s\n",
-	LPJS_DISPATCHD_REQUEST_JOB_COMPLETE, hostname,
-	getenv("LPJS_JOB_ID"), getenv("LPJS_CORES_PER_JOB"),
-	getenv("LPJS_MEM_PER_CORE"));
+	     LPJS_DISPATCHD_REQUEST_JOB_COMPLETE, hostname,
+	     getenv("LPJS_JOB_ID"), getenv("LPJS_CORES_PER_JOB"),
+	     getenv("LPJS_MEM_PER_CORE"));
     if ( lpjs_send_munge(msg_fd, outgoing_msg) != EX_OK )
     {
 	lpjs_log("lpjs-chaperone: Failed to send message to dispatchd: %s",
@@ -151,6 +133,31 @@ int     main (int argc, char *argv[])
 	return EX_IOERR;
     }
     close(msg_fd);
+    
+    // Transfer working dir to submit host or according to user
+    // settings, if not shared
+    lpjs_get_marker_filename(shared_fs_marker, getenv("LPJS_SUBMIT_HOST"),
+			     PATH_MAX + 1);
+    if ( stat(shared_fs_marker, &st) != 0 )
+    {
+	lpjs_log("Transferring and removing temporary working dir: %s\n", wd);
+	chdir("..");    // Can't remove dir while in use
+	
+	// FIXME: Check for errors
+	// FIXME: Allow user to specify transfer command
+	snprintf(cmd, LPJS_CMD_MAX + 1, "rsync -av %s %s:%s\n",
+		 wd, getenv("LPJS_SUBMIT_HOST"),
+		 getenv("LPJS_WORKING_DIRECTORY"));
+	system(cmd);
+	
+	// No more lpjs_log() beyond here.  Log file already transferred.
+	fclose(Log_stream);
+	
+	// Remove temporary working dir unless sysadmin allows retention
+	// FIXME: Check for sysadmin-controlled "keep" option and errors
+	snprintf(cmd, LPJS_CMD_MAX + 1, "rm -rf %s", wd);
+	system(cmd);
+    }
 
     return status;
 }

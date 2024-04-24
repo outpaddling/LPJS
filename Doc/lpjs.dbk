@@ -235,7 +235,11 @@ compute compute002.mydomain
         be necessary for all nodes to have the ability to pull files
         from and push files to <emphasis>somewhere</emphasis>.  Typically,
         this somewhere would be the submit node, or a file server
-        accessible from the submit node.  LPJS does not provide file
+        accessible from the submit node and all compute nodes.
+        </para>
+        
+        <para>
+        LPJS does not provide file
         transfer tools.  There are numerous highly-evolved, general-purpose
         file transfer tools already available, so it is left to the
         systems manager and user to decide which one(s) to use.
@@ -244,6 +248,33 @@ compute compute002.mydomain
         data transferred when jobs are rerun and some input or output is the
         same as before.
         </para>
+        
+        <para>
+        If the working directory is not on a filesystem shared by the
+        submit node and compute nodes, then the user's script is
+        responsible for downloading any required input files.
+        LPJS will, by default, transfer the entire temporary working
+        directory back to the submit node, using
+        <command>rsync -av temp-working-dir submit-host:working-dir</command>,
+        where "working-dir" is the directory from which the job was submitted.
+        The <command>lpjs submit</command> command creates a marker file
+        in the working directory on the submit host, named
+        "lpjs-submit-host-name-shared-fs-marker" (replace "submit-host-name"
+        with the FQDN of your submit node).  If this file does not
+        exist on the compute node, then <command>lpjs_compd</command>
+        and <command>chaperone</command> will take the necessary steps
+        to create a temporary working directory and transfer it back
+        to the submit node after the script terminates.
+        </para>
+        
+        <note>
+        All compute nodes must be able to perform a passwordless
+        <command>ssh</command> login to the submit node in order for
+        this file transfer to succeed.  This requires installing ssh
+        keys on the submit node, which can be done by running
+        <command>auto-ssh-authorize submit-host</command> from every
+        compute node, as every user who will run jobs.
+        </note>
     </chapter>
     
     <chapter>
