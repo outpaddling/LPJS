@@ -68,7 +68,7 @@ int     main (int argc, char *argv[])
 	return EX_CANTCREAT;
     }
     
-    snprintf(new_path, 4096, "%s:%s:%s", LOCALBASE, PREFIX, getenv("PATH"));
+    snprintf(new_path, 4096, "%s/bin:%s/bin:%s", LOCALBASE, PREFIX, getenv("PATH"));
     setenv("PATH", new_path, 1);
     lpjs_log("PATH = %s\n", new_path);
     
