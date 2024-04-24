@@ -47,7 +47,8 @@ int     main (int argc, char *argv[])
     extern FILE *Log_stream;
     char        hostname[sysconf(_SC_HOST_NAME_MAX) + 1];
     char        shared_fs_marker[PATH_MAX + 1],
-		cmd[LPJS_CMD_MAX + 1];
+		cmd[LPJS_CMD_MAX + 1],
+		new_path[4096];
     struct stat st;
     
     if ( argc != 2 )
@@ -57,6 +58,9 @@ int     main (int argc, char *argv[])
 	return EX_USAGE;
     }
     job_script_name = argv[1];
+    
+    snprintf(new_path, 4096, "%s:%s:%s", LOCALBASE, PREFIX, getenv("PATH"));
+    setenv("PATH", new_path, 1);
     
     temp = getenv("LPJS_CORES_PER_JOB");
     cores = strtoul(temp, &end, 10);

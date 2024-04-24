@@ -95,7 +95,6 @@ LIBEXECDIR  ?= ${PREFIX}/libexec/lpjs
 # can find it.  The default ../local is relative and won't work for this.
 CC          ?= cc
 CFLAGS      ?= -Wall -g -O
-CFLAGS      += -DPREFIX=\"`realpath ${PREFIX}`\" -DVERSION=\"`./version.sh`\"
 
 # Link command:
 # Use ${FC} to link when mixing C and Fortran
@@ -109,7 +108,12 @@ AR          ?= ar
 RANLIB      ?= ranlib
 
 INCLUDES    += -isystem ${PREFIX}/include -isystem ${LOCALBASE}/include
-CFLAGS      += ${INCLUDES} -DLIBEXECDIR=\"${LIBEXECDIR}\"
+CFLAGS      += ${INCLUDES}
+# For locating lpjs subcommands
+CFLAGS      += -DLIBEXECDIR=\"${LIBEXECDIR}\"
+# Add these to PATH in chaperone, so it can find local tools
+CFLAGS      += -DPREFIX=\"`realpath ${PREFIX}`\" -DVERSION=\"`./version.sh`\"
+CFLAGS      += -DLOCALBASE=\"${LOCALBASE}\"
 LDFLAGS     += -L. -L${PREFIX}/lib -L${LOCALBASE}/lib -llpjs -lmunge -lxtend
 
 ############################################################################
