@@ -87,7 +87,8 @@ int     job_print(job_t *job, FILE *stream)
 	    job->job_count, job->cores_per_job,
 	    job->min_cores_per_node, job->mem_per_core,
 	    job->user_name, job->primary_group_name,
-	    job->submit_host, job->submit_directory, job->script_name);
+	    job->submit_host, job->submit_directory,
+	    job->script_name, job->push_command);
 }
 
 
@@ -108,7 +109,8 @@ int     job_print_to_string(job_t *job, char *str, size_t buff_size)
 		    job->job_count, job->cores_per_job,
 		    job->min_cores_per_node, job->mem_per_core,
 		    job->user_name, job->primary_group_name,
-		    job->submit_host, job->submit_directory, job->script_name);
+		    job->submit_host, job->submit_directory,
+		    job->script_name, job->push_command);
 }
 
 
@@ -131,7 +133,8 @@ void    job_send_as_msg(job_t *job, int msg_fd)
 	    job->job_count, job->cores_per_job,
 	    job->min_cores_per_node, job->mem_per_core,
 	    job->user_name, job->primary_group_name,
-	    job->submit_host, job->submit_directory, job->script_name);
+	    job->submit_host, job->submit_directory,
+	    job->script_name, job->push_command);
     
     if ( lpjs_send_munge(msg_fd, msg) != EX_OK )
     {
@@ -433,6 +436,13 @@ int     job_read_from_string(job_t *job, const char *string, char **end)
     }
     ++items;
     
+    if ( (job->push_command = strdup(strsep(&p, " \t\n"))) == NULL )
+    {
+	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
+	exit(EX_UNAVAILABLE);
+    }
+    ++items;
+    
     // Same offset into original string as we are into temp copy
     *end = (char *)start + (p - temp);
     // lpjs_log("Script1:\n%s", *end);
@@ -521,6 +531,7 @@ void    job_free(job_t **job)
     free((*job)->submit_host);
     free((*job)->submit_directory);
     free((*job)->script_name);
+    free((*job)->push_command);
     free(*job);
 }
 
@@ -544,7 +555,8 @@ void    job_send_spec_header(int msg_fd)
 	    JOB_SPEC_HEADER_FORMAT, "JobID", "IDX",
 	    "Job-count", "Cores/job", "Cores/node", "Mem/core",
 	    "User-name", "Group-name",
-	    "Submit-host", "Working-directory", "Script-name");
+	    "Submit-host", "Working-directory",
+	    "Script-name", "Push-command");
     lpjs_send_munge(msg_fd, msg);
 }
 
@@ -565,7 +577,8 @@ void    job_print_spec_header(FILE *stream)
     fprintf(stream, JOB_SPEC_HEADER_FORMAT, "JobID", "IDX",
 		"Job-count", "Cores/job", "Cores/node", "Mem/core",
 		"User-name", "Group-name",
-		"Submit-host", "Working-directory", "Script-name");
+		"Submit-host", "Working-directory",
+		"Script-name", "Push-command");
 }
 
 

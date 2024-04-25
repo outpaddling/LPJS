@@ -8,6 +8,7 @@
 #lpjs cores-per-job 3
 #lpjs min-cores-per-node all
 #lpjs mem-per-core 50MiB
+#lpjs push-command rsync -av this host:there
 
 # FreeBSD ports are installed under /usr/local
 # pkgsrc packages in a non-priveleged tree installed by auto-pkgsrc-setup
