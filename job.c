@@ -436,7 +436,8 @@ int     job_read_from_string(job_t *job, const char *string, char **end)
     }
     ++items;
     
-    if ( (job->push_command = strdup(strsep(&p, " \t\n"))) == NULL )
+    // May contain whitespace, must be last
+    if ( (job->push_command = strdup(strsep(&p, "\n"))) == NULL )
     {
 	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
