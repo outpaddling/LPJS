@@ -229,6 +229,7 @@ int     job_parse_script(job_t *job, const char *script_name)
 		
 		job->push_command = malloc(LPJS_CMD_MAX + 1);
 		c = 0;
+		// FIXME: Use mallocing read function
 		while ( (c < LPJS_CMD_MAX) &&
 				((ch = getc(fp)) != '\n') && (ch != EOF) )
 		    job->push_command[c++] = ch;
