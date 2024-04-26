@@ -23,7 +23,8 @@ enum
 
 // IPv6 max address size is 39
 #define LPJS_TEXT_IP_ADDRESS_MAX    64
-#define LPJS_MSG_LEN_MAX            4096
+// FIXME: 4096 is just a guestimate
+#define LPJS_MSG_LEN_MAX            LPJS_PAYLOAD_MAX + 4096
 #define LPJS_CONNECTION_QUEUE_MAX   4096    // Should be more than enough
 
 /*

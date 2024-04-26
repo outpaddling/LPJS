@@ -38,7 +38,7 @@ int     main (int argc, char *argv[])
     char    outgoing_msg[LPJS_MSG_LEN_MAX + 1],
 	    *script_name,
 	    *ext,
-	    job_string[LPJS_PAYLOAD_MAX_LEN + 1],
+	    job_string[LPJS_PAYLOAD_MAX + 1],
 	    hostname[sysconf(_SC_HOST_NAME_MAX) + 1],
 	    shared_fs_marker[PATH_MAX + 1],
 	    script_text[LPJS_SCRIPT_SIZE_MAX + 1];
@@ -64,6 +64,7 @@ int     main (int argc, char *argv[])
     
     script_size = lpjs_load_script(script_name, script_text,
 				   LPJS_SCRIPT_SIZE_MAX + 1);
+    
     // FIXME: Determine a real minimum script size
     if ( script_size < 1 )
     {
@@ -112,11 +113,13 @@ int     main (int argc, char *argv[])
     // We can't assume dispatchd has direct access to scripts
     // submitted from other nodes.
     
-    job_print_to_string(job, job_string, LPJS_PAYLOAD_MAX_LEN + 1);
+    job_print_to_string(job, job_string, LPJS_PAYLOAD_MAX + 1);
 
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%s\n%s",
 	    LPJS_DISPATCHD_REQUEST_SUBMIT, job_string, script_text);
     lpjs_log("Sending payload: %s\n", outgoing_msg);
+
+    // FIXME: Exiting here causes dispatchd to crash
 
     if ( lpjs_send_munge(msg_fd, outgoing_msg) != EX_OK )
     {

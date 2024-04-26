@@ -11,7 +11,7 @@
 
 #define LPJS_FIELD_MAX          1024
 #define LPJS_CMD_MAX            4096
-#define LPJS_PAYLOAD_MAX_LEN    4096    // FIXME: Does munge have a max?
+#define LPJS_PAYLOAD_MAX        1024 * 1024 // FIXME: Does munge have a max?
 #define LPJS_NO_SELECT_TIMEOUT  NULL
 
 #define LPJS_LOG_DIR            PREFIX "/var/log/lpjs"
@@ -32,7 +32,7 @@
  *  FIXME: submit should print a warning if the script seems too complex.
  */
 
-#define LPJS_SCRIPT_SIZE_MAX    16 * 1024
+#define LPJS_SCRIPT_SIZE_MAX    LPJS_PAYLOAD_MAX
 
 #define LPJS_JOB_MSG_MAX        JOB_STR_MAX_LEN + LPJS_SCRIPT_SIZE_MAX
 
