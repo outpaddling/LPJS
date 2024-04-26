@@ -28,10 +28,14 @@ enum
 #define LPJS_CONNECTION_QUEUE_MAX   4096    // Should be more than enough
 
 /*
- *  Use the same default TCP port as SLURM (6817), since only one
- *  scheduler can be running on a given cluster.
+ *  Use a different TCP port than SLURM (6817), so that the same head
+ *  node can be used to manage both LPJS and SLURM compute nodes.
+ *  This allows gradual migration of a cluster between schedulers,
+ *  or partitioning of compute resources for other reasons.
+ *  LPJS and SLURM compute nodes must be mutually exclusive.  A node
+ *  cannot be used by both.
  */
-#define LPJS_IP_TCP_PORT        (short)6817 // Need short for htons()
+#define LPJS_IP_TCP_PORT        (short)6818 // Need short for htons()
 #define LPJS_RETRY_TIME         5
 
 #define LPJS_MUNGE_CRED_VERIFIED     "MCD"
