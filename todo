@@ -1,4 +1,6 @@
 
+Remove jobs from running dir when completed
+
 lpjs nodes hangs while jobs are running
 
 Add #lpjs log-dir for chaperone-*, *.stderr, *.stdout
