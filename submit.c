@@ -65,6 +65,13 @@ int     main (int argc, char *argv[])
     script_size = lpjs_load_script(script_name, script_text,
 				   LPJS_SCRIPT_SIZE_MAX + 1);
     
+    if ( script_size > LPJS_PAYLOAD_MAX )
+    {
+	fprintf(stderr, "Error: Script size cannot exceed LPJS_PAYLOAD_MAX = %u\n",
+		LPJS_PAYLOAD_MAX);
+	return EX_DATAERR;
+    }
+    
     // FIXME: Determine a real minimum script size
     if ( script_size < 1 )
     {
