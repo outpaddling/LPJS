@@ -1,4 +1,6 @@
 
+lpjs nodes hangs while jobs are running
+
 Add #lpjs log-dir for chaperone-*, *.stderr, *.stdout
 
 Add #lpjs concurrent-job-limit
