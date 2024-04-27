@@ -325,11 +325,15 @@ int     lpjs_run_script(job_t *job, const char *script_start)
 	    lpjs_log("No such user: %s\n", job_get_user_name(job));
 	    // FIXME: Report job failure to dispatchd
 	}
-	
 	else
 	{
+	    // Place temp working dirs in user's home dir
 	    // FIXME: Check for failures
 	    chdir(pw_ent->pw_dir);
+	    
+	    // FIXME: Remove LPJS-job-* from previous submissions
+	    // This should replace temp workdir removal in chaperone
+	    
 	    snprintf(wd, PATH_MAX + 1, "LPJS-job-%lu",
 		    job_get_job_id(job));
 	    lpjs_log("%s does not exist.  Using %s.\n",

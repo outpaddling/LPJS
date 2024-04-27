@@ -563,10 +563,12 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 			    - mem_per_core * cores_per_job);
 		
 		    /*
-		     *  FIXME: Remove job from running dir and write a
-		     *  completed job record
-		     *  Note the job completion in the main log
+		     *  FIXME:
+		     *      Write a completed job record to accounting log
+		     *      Note the job completion in the main log
 		     */
+		    
+		    lpjs_remove_job(job_id);
 		    
 		    lpjs_log("Dispatching more jobs...\n");
 		    lpjs_dispatch_jobs(node_list, job_list);

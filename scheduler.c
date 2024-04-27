@@ -5,6 +5,7 @@
 #include <string.h>     // strerror()
 #include <errno.h>
 #include <unistd.h>     // close()
+#include <sys/wait.h>
 
 #include <xtend/file.h>
 #include <xtend/math.h>     // XT_MIN()
@@ -392,4 +393,27 @@ int     lpjs_get_usable_cores(job_t *job, node_t *node)
 	usable_cores = 0;
     }
     return usable_cores;
+}
+
+
+int     lpjs_remove_job(unsigned long job_id)
+
+{
+    char    running_path[PATH_MAX + 1];
+    pid_t   pid;
+    int     status;
+    
+    if ( (pid = fork()) == 0 )
+    {
+	snprintf(running_path, PATH_MAX + 1, "%s/%lu",
+		 LPJS_RUNNING_DIR, job_id);
+	lpjs_log("Removing job %s...\n", running_path);
+	execlp("rm", "rm", "-rf", running_path, NULL);
+    }
+    else
+	// WEXITED is implicitly set for waitpid(), but specify for readability
+	waitpid(pid, &status, WEXITED);
+	
+    // FIXME: Define exit codes
+    return 0;
 }

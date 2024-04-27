@@ -220,8 +220,8 @@ int     main (int argc, char *argv[])
 	
 	// Remove temporary working dir unless sysadmin allows retention
 	// FIXME: Check for sysadmin-controlled "keep" option and errors
-	// snprintf(cmd, LPJS_CMD_MAX + 1, "rm -rf %s", wd);
-	// system(cmd);
+	snprintf(cmd, LPJS_CMD_MAX + 1, "rm -rf %s", wd);
+	system(cmd);
     }
 
     return status;
