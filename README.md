@@ -11,7 +11,7 @@ with managed CPU and memory resources, for the purpose of performing
 computationally intensive jobs in parallel (simultaneously).
 
 Unlike other batch systems, LPJS is designed to be simple, easy to deploy and
-manage, and portable to __any__ POSIX platform.
+manage, and portable to __all__ POSIX platforms.
 
 Users are often forced to use a particular operating system by
 software vendors, who only support one or a few systems.  In contrast,
@@ -29,15 +29,18 @@ systems, or OpenBSD for maximum security.  Use the highly portable NetBSD
 to utilize hardware not supported by other platforms, and use NetBSD's
 portable pkgsrc package manager to install common software on all of
 your nodes, whether running BSD, Linux, macOS, or any other POSIX platform.
+The pkgsrc package manager is also highly portable to POSIX-compatible
+systems and provides one of the largest package collections of existing
+package managers.
 
 ## Status
 
-LPJS is undergoing intensive development of basic functions, such
+LPJS is undergoing intensive development of basic functionality, such
 as socket communication, job queuing, node selection, and job
 dispatch.
 Early development will move slowly as we carefully deliberate the
 specification, design, and implementation of each new feature to ensure
-the highest possible quality.
+the highest possible code quality.
 The user interface may undergo significant changes as testing reveals
 oversights in design.
 
@@ -86,20 +89,26 @@ is never visible to unauthorized users, even for a moment.
 
 ## Description
 
-Most clusters consist of a few or many dedicated rack-mounted computers
+Most __clusters__ consist of a few or many dedicated rack-mounted computers
 linked together with a private high-speed network, to
 maximize the speed of data exchange between the nodes, and to isolate the
-heavy traffic they generate from the broader organizational network.
+heavy traffic they generate from the broader organizational (company,
+campus, etc.) network.
 Cluster nodes typically have shared access to file servers (A.K.A.
 I/O nodes) using NFS or similar services.
 
-Grids are similar to clusters, but usually consist of more loosely coupled,
+__Grids__ are similar to clusters, but usually consist of more loosely coupled,
 non-dedicated machines over a wider area, such as desktop computers
 that may not even be on the same site.
-They usually do not have a dedicated network or access to a common file server.
+They usually do not have a dedicated network or access to a common file
+server.  Hence, they compete with non-grid usage of the organizational
+network, and are not suitable for parallel applications that generate
+large amounts of network traffic, e.g. MPI (Message Passing Interface)
+programs.
 
 In both clusters and grids, there are multiple "compute nodes", which
-actually run the programs, and a "head node", dedicated to keeping track of
+actually run the computational programs,
+and a "head node", dedicated to keeping track of
 available CPU cores and memory on the compute nodes, and dispatching
 jobs from a queue when possible.
 
@@ -108,14 +117,17 @@ nodes, which contain graphical software for examining analysis results
 on the cluster, so they don't have to be transferred to a workstation or
 laptop first.  Note, however, that immediately copying results to another
 location is generally a good idea, so that you have a backup in case
-of accidental deletion, disk failure, etc.
+of accidental deletion, disk failure, etc.  Also, running graphical
+applications over a network is never as performant as running on your
+PC console.
 
 Using LPJS and similar systems, users can queue jobs to run as soon as
 resources become available.  Compute nodes with available cores and memory
-are automatically selected, and programs usually run unattended (called
+are automatically selected, and programs usually run unattended (in what
+is called
 batch mode), redirecting terminal output to files.  It is possible to run
-interactive jobs as well, but this is rare and typically only used for
-debugging.  Jobs may start
+interactive jobs on some clusters, but this is rare and typically only used
+for debugging.  Jobs may start
 running as soon as they are submitted, or they may wait in the queue until
 sufficient resources become available.  Either way, once you have submitted
 a job, you can focus on other things, knowing that your job will begin
@@ -123,7 +135,7 @@ as soon as possible.
 
 Users should, however, keep a close eye on their running jobs to make sure
 they are working properly.  This avoids wasting resources and shows common
-courtesy to other cluster users.
+courtesy to other cluster/grid users.
 
 Most existing batch systems are extremely complex, including
 our long-time favorite, SLURM, which stands for "Simple Linux Utility
@@ -133,8 +145,8 @@ evolved into the premier batch system for massive and complex HPC clusters.
 
 Note that THERE IS NOTHING INHERENTLY COMPLICATED ABOUT AN HPC CLUSTER OR
 GRID. In its basic form, it's just a computer network
-with a head node for tracking resource use,
-compute nodes, possibly some file servers, and some software to
+with a head node for tracking resource use, some
+compute nodes, possibly one or more file servers, and some software to
 manage computing resources.  You can make a cluster or grid 
 as complicated as you
 wish, but small, simple clusters and grids can reduce computation
@@ -158,12 +170,12 @@ besides Windows that is supported by many commercial science and engineering
 applications, such as ANSYS, Fluent, Abacus, etc.  Unfortunately, RHEL achieves
 enterprise reliability and long-term binary compatibility by using older,
 time-tested and debugged Linux kernels, compilers, and other tools, which
-often make it difficult to run the latest open source software.  Many
+often make it difficult to build the latest open source software.  Many
 open source developers flatly refuse to support older compilers and
 libraries like those used by RHEL.
 Facilitating small-scale HPC on platforms other than RHEL can eliminate
 this issue for open source software users, though RHEL and its derivatives
-will always be fully supported.
+will always be fully supported by LPJS.
 
 The LPJS project does not aim to compete for market share on TOP500
 clusters.  In contrast, we are committed to serving the small-scale HPC
@@ -171,10 +183,11 @@ niche that most other HPC software has abandoned, by adhering to the following
 design principals:
 
 - KISS (Keep It Simple, Stupid): We will not allow LPJS to fall victim to
-creeping feature syndrome, where software complexity grows steadily without
+creeping feature syndrome (A.K.A. feature creep),
+where software complexity grows steadily without
 limit to the demise of portability,
 reliability and maintainability.  Our focus is on
-improving quality in essential features rather than adding "cool" new
+improving __quality__ in essential features rather than adding "cool" new
 features for emotional appeal.  Modularity is the key to maintainable
 software.  Hence, we will not add functionality that can be readily
 provided by independent tools.  E.g. file transfer for nodes that lack
@@ -183,9 +196,10 @@ such as curl and rsync.  This follows the design philosophy of the C
 language, which does not provide syntactic features that can be readily
 provided by a library function.
 
-- Complete portability across the POSIX world: One of our primary goals is to foster research and
+- Complete portability across the POSIX world: One of our primary goals
+is to foster research and
 development of HPC clusters using __any__ POSIX operating system on __any__
-hardware or cloud platform.  You can run certainly LPJS on RHEL/x86 if you
+hardware or cloud platform.  You can certainly run LPJS on RHEL/x86 if you
 like, but you can also
 use Debian Linux, Dragonfly BSD, FreeBSD, Illumos, MacOS, NetBSD, OpenBSD,
 Ubuntu, or any of the other dozens of Unix-like systems available, on any
@@ -211,11 +225,12 @@ different operating systems on three different CPU architectures:
     ```
     
     MS Windows machines can be utilized with some sort of POSIX compatibility
-    layer, such as Cygwin, MSYS2, or WSL.  These systems have limitations and
+    layer, such as Cygwin or MSYS2.  These systems have limitations and
     performance issues, however, so a virtual machine running a lightweight BSD
     or Linux system under Windows may be preferable.  There are multiple free
     virtualization options for Windows hosts, including Hyper-V, QEMU,
-    VirtualBox, and VMware.
+    VirtualBox, and VMware.  WSL (Windows Services for Linux) is a Hyper-V
+    based Linux VM supported by Microsoft.
 
 - Minimal configuration: HPC sysadmins should only be required to provide
 information that cannot be determined automatically, such as which computers
@@ -226,8 +241,7 @@ configuration parameters are simply overrides of reasonable defaults.
 
 - Unambiguous and intuitive user interface: Commands and options are
 spelled out in a way that is easy to remember and won't be confused with
-others.  We won't invent new Jargon just to make us look better than
-the rest.
+others.  We won't invent new Jargon just to make ourselves look clever.
 
 - Simple, easily readable default output formats.  More sophisticated
 output may be provided by non-default command line flags.
@@ -248,18 +262,18 @@ of its limited resources.
     The only networking requirement is that all compute nodes can connect
     to the head node.  The head node can use an IP that is
     directly routable from all nodes, or could itself be behind a
-    router with NAT using port-forwarding.
+    router with NAT (network address translation) using port-forwarding.
     
     Note that for best communication performance, all nodes should be
     on the same subnet, preferably with a dedicated switch used only
     by cluster nodes.
     However, LPJS is designed to function where this
-    is not practical, and can utilize existing office or campus networks,
+    is not possible, and can utilize existing office or campus networks,
     even the Internet (one of our test compute nodes is several miles
     from the head node).
 
-LPJS directly provides only functionality that can be implemented with reasonable
-effort on __any__ POSIX platform, including but not limited to:
+LPJS directly provides only functionality that can be implemented with
+reasonable effort on __any__ POSIX platform, including but not limited to:
 
 - Queuing of batch jobs
 
@@ -293,9 +307,10 @@ If you run FreeBSD, use the FreeBSD ports system.  If you run multiple
 operating systems, we *strongly* recommend [pkgsrc](https://pkgsrc.org).
 The pkgsrc system is the only truly portable and strongly quality-controlled
 package manager in existence.  Using pkgsrc will allow you to easily deploy
-the exact same versions of the software you need on BSD, Linux, and macOS,
-for example.  It also has one of the larger collections among all package
-mangers, nearly 20,000 packages and growing at the time of this writing.
+the exact same versions of the software you need on any mainstream POSIX
+platform, such as BSD, Linux, and macOS.
+It also has one of the largest package collections among existing package
+managers, nearly 20,000 packages and growing at the time of this writing.
 
 Beware "community-based" package managers, to which just about anyone can
 commit packages.  The quality of the packages will be about what you would
@@ -311,7 +326,8 @@ manager, *learn to create one*.  The modest, one-time investment in learning
 how to create packages will require a tiny fraction of the time you will
 waste doing ad hoc software installs over your entire career.  Creating
 your own packages will save *you* an enormous amount of time in the long
-run, as well as help others, as others have helped you by creating the
+run, with the bonus that you are also helping other users, just
+as others have helped you by creating the
 packages that already exist.  This is how open source works.  Contribute
 a grain of sand and get the rest of the mountain in return.
 
@@ -328,12 +344,16 @@ include, but are not limited to, the following:
    application to run.
 
 2. Containerizing software for no other reason than to work around a
-   bad design or build system.  This is often a strategy to avoid fixing
+   bad design or build system.  Containers are awesome, but like all
+   technologies, often misused.  Containerization
+   is often a strategy to avoid fixing
    the software and build system so that it will play nice with other
-   software.  The containers often contain ad hoc "cave-man" installs,
-   and the container serves only to bundle the various components and
+   mainstream software.  The containers often contain ad hoc "cave-man"
+   installs,
+   and the container serves only to bundle the various (often outdated)
+   components and
    prevent poorly designed applications from conflicting with each other.
-   This system is extremely high-maintenance compared to maintaining a
+   This approach is extremely high-maintenance compared to maintaining a
    package for a package manager, where most dependencies are
    well-maintained by other contributors.
    
