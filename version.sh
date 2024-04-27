@@ -6,7 +6,7 @@
 ##########################################################################
 
 if [ -e .git ]; then
-    if ! git describe --tags 2> /dev/null; then
+    if ! git describe --tags > /dev/null 2> /dev/null; then
 	commits=$(git log | awk '$1 == "commit"' | wc -l)
 	version=0.0.0.$(printf "%s" $commits)   # Remove leading space
     else

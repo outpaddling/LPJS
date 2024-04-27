@@ -145,6 +145,16 @@ void    node_print_status(node_t *node, FILE *stream)
 }
 
 
+void    node_status_to_str(node_t *node, char *str, size_t array_size)
+
+{
+    snprintf(str, array_size,
+		NODE_STATUS_FORMAT, node->hostname, node->state,        
+		node->cores, node->cores_used,                                 
+		node->phys_MiB, node->phys_MiB_used, node->os, node->arch);
+}
+
+
 /***************************************************************************
  *  Description:
  *      Send current node info to msg_fd in human-readable form, e.g. in
@@ -159,11 +169,8 @@ void    node_send_status(node_t *node, int msg_fd)
 
 {
     char    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
-     
-    snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1,
-		NODE_STATUS_FORMAT, node->hostname, node->state,        
-		node->cores, node->cores_used,                                 
-		node->phys_MiB, node->phys_MiB_used, node->os, node->arch);
+    
+    node_status_to_str(node, outgoing_msg, LPJS_MSG_LEN_MAX + 1);
     if ( lpjs_send_munge(msg_fd, outgoing_msg) < 0 )
     {
 	lpjs_log("send_node_specs(): xt_dprintf() failed: %s", strerror(errno));

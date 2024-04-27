@@ -131,20 +131,24 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
     unsigned long   mem_up,
 		    mem_up_used,
 		    mem_down;
-    char            header[LPJS_MSG_LEN_MAX + 1],
-		    summary[LPJS_MSG_LEN_MAX + 1];
+    char            temp[LPJS_MSG_LEN_MAX + 1],
+		    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
     
-    snprintf(header, LPJS_MSG_LEN_MAX,
+    outgoing_msg[0] = '\0';
+    
+    snprintf(temp, LPJS_MSG_LEN_MAX,
 	    NODE_STATUS_HEADER_FORMAT, "Hostname", "State",
 	    "Cores", "Used", "PhysMiB", "Used", "OS", "Arch");
-    lpjs_send_munge(msg_fd, header);
+    // lpjs_send_munge(msg_fd, header);
+    strlcat(outgoing_msg, temp, LPJS_MSG_LEN_MAX + 1);
     
     cores_up = cores_up_used = cores_down = 0;
     mem_up = mem_up_used = mem_down = 0;
     
     for (c = 0; c < node_list->compute_node_count; ++c)
     {
-	node_send_status(node_list->compute_nodes[c], msg_fd);
+	node_status_to_str(node_list->compute_nodes[c], temp, LPJS_MSG_LEN_MAX + 1);
+	strlcat(outgoing_msg, temp, LPJS_MSG_LEN_MAX + 1);
 	if ( strcmp(node_get_state(node_list->compute_nodes[c]), "Up") == 0 )
 	{
 	    cores_up += node_get_cores(node_list->compute_nodes[c]);
@@ -159,17 +163,18 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
 	}
     }
     
-    lpjs_log("Sending summary...\n");
-    lpjs_send_munge(msg_fd, "\n");
-    snprintf(summary, LPJS_MSG_LEN_MAX + 1,
-	    NODE_STATUS_FORMAT, "Total", "Up",
+    // lpjs_log("Sending summary...\n");
+    snprintf(temp, LPJS_MSG_LEN_MAX + 1,
+	    "\n" NODE_STATUS_FORMAT, "Total", "Up",
 	    cores_up, cores_up_used, mem_up, mem_up_used, "-", "-");
-    lpjs_send_munge(msg_fd, summary);
+    strlcat(outgoing_msg, temp, LPJS_MSG_LEN_MAX + 1);
     
-    snprintf(summary, LPJS_MSG_LEN_MAX,
+    snprintf(temp, LPJS_MSG_LEN_MAX,
 	    NODE_STATUS_FORMAT, "Total", "Down",
 	    cores_down, 0, mem_down, (size_t)0, "-", "-");
-    lpjs_send_munge(msg_fd, summary);
+    strlcat(outgoing_msg, temp, LPJS_MSG_LEN_MAX + 1);
+
+    lpjs_send_munge(msg_fd, outgoing_msg);
     
     /*
      *  Closing the listener first results in "address already in use"
