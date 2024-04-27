@@ -90,13 +90,6 @@ int     main (int argc, char *argv[])
     
     // Get hostname of head node
     lpjs_load_config(node_list, LPJS_CONFIG_HEAD_ONLY, stderr);
-
-    if ( (msg_fd = lpjs_connect_to_dispatchd(node_list)) == -1 )
-    {
-	lpjs_log("lpjs-chaperone: Failed to connect to dispatch: %s",
-		strerror(errno));
-	return EX_IOERR;
-    }
     
     // FIXME: Use fork() and exec() or posix_spawn(), and monitor
     // the child process for resource use
@@ -122,6 +115,15 @@ int     main (int argc, char *argv[])
 	// FIXME: Chaperone, monitor resource use of child
 	// Maybe ptrace(), though seemingly not well standardized
 	wait(&status);
+    }
+
+    // Don't connect until the job terminates, or dispatchd will
+    // hang waiting for the message
+    if ( (msg_fd = lpjs_connect_to_dispatchd(node_list)) == -1 )
+    {
+	lpjs_log("lpjs-chaperone: Failed to connect to dispatch: %s",
+		strerror(errno));
+	return EX_IOERR;
     }
     
     /* Send job completion message to dispatchd */

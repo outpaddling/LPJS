@@ -275,13 +275,17 @@ int     lpjs_process_events(node_list_t *node_list, job_list_t *job_list)
 	 */
 	nfds = highest_fd + 1;
 	
+	lpjs_log("Running select...\n");
 	if ( select(nfds, &read_fds, NULL, NULL, LPJS_NO_SELECT_TIMEOUT) > 0 )
 	{
-	    // lpjs_log("Back from select.\n");
-	    
+	    //lpjs_log("Checking comp fds...\n");
 	    lpjs_check_comp_fds(&read_fds, node_list, job_list);
-	    lpjs_check_listen_fd(listen_fd, &read_fds, &server_address,
-				 node_list, job_list);
+	    
+	    //lpjs_log("Checking listen fd...\n");
+	    // Check FD_ISSET before calling function to avoid overhead
+	    if ( FD_ISSET(listen_fd, &read_fds) )
+		lpjs_check_listen_fd(listen_fd, &read_fds, &server_address,
+				     node_list, job_list);
 	}
 	else
 	    lpjs_log("select() returned 0.\n");
@@ -467,6 +471,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
     node_t          *node;
     int             items;
     
+    lpjs_log("In %s():\n", __FUNCTION__);
     bytes = 0;
     if ( FD_ISSET(listen_fd, read_fds) )
     {
@@ -479,7 +484,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	}
 	else
 	{
-	    // lpjs_log("Accepted connection. fd = %d\n", msg_fd);
+	    lpjs_log("Accepted connection. fd = %d\n", msg_fd);
 
 	    /* Read a message through the socket */
 	    if ( (bytes = lpjs_recv_munge(msg_fd,
@@ -491,7 +496,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		free(munge_payload);
 		return bytes;
 	    }
-	    // lpjs_log("%s(): Got %zd byte message.\n", __FUNCTION__, bytes);
+	    lpjs_log("%s(): Got %zd byte message.\n", __FUNCTION__, bytes);
 	    // bytes must be at least 1, or no mem is allocated
 	    munge_payload[bytes] = '\0';
 	    lpjs_log("%s(): Request code = %d\n", __FUNCTION__, munge_payload[0]);
@@ -507,7 +512,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    break;
 		
 		case    LPJS_DISPATCHD_REQUEST_NODE_STATUS:
-		    lpjs_log("Request for node status.\n");
+		    lpjs_log("LPJS_DISPATCHD_REQUEST_NODE_STATUS\n");
 		    node_list_send_status(msg_fd, node_list);
 		    // lpjs_server_safe_close(msg_fd);
 		    // node_list_send_status() sends EOT,
@@ -516,15 +521,17 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    break;
 		
 		case    LPJS_DISPATCHD_REQUEST_JOB_STATUS:
-		    lpjs_log("Request for job status.\n");
+		    lpjs_log("LPJS_DISPATCHD_REQUEST_JOB_STATUS\n");
 		    job_list_send_params(msg_fd, job_list);
 		    lpjs_server_safe_close(msg_fd);
 		    break;
 		
 		case    LPJS_DISPATCHD_REQUEST_SUBMIT:
+		    lpjs_log("LPJS_DISPATCHD_REQUEST_SUBMIT\n");
 		    lpjs_submit(msg_fd, munge_payload, node_list, job_list,
 				munge_uid, munge_gid);
 		    lpjs_dispatch_jobs(node_list, job_list);
+		    lpjs_log("Back from lpjs_dispatch_jobs().\n");
 		    break;
 
 		case    LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:
@@ -573,6 +580,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	    free(munge_payload);
 	}
     }
+    else
+	lpjs_log("%s(): listen_fd is not ready.\n", __FUNCTION__);
     
     return bytes;
 }
