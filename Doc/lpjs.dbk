@@ -150,22 +150,44 @@ compute compute002.mydomain
         cluster/grid.
         </para>
         
-        <para>
-        The lpjs_dispatchd and lpjs_compd commands are normally run as a
-        service.  You can run lpjs-admin as the root user and use the menus
-        to configure a machine as a head node or compute node with the
-        appropriate services enabled.
-        </para>
+        <section>
+            <title>Daemons as a Service</title>
+            
+            <para>
+            The lpjs_dispatchd and lpjs_compd commands are normally run as a
+            service, which automatically starts when the computer is
+            rebooted.  You can run <command>lpjs admin</command> and use the
+            menus
+            to configure a machine as a head node or compute node with the
+            appropriate services enabled.  This will require administrative
+            rights on each computer in the cluster/grid.
+            </para>
+            
+            <para>
+            <command>lpjs admin</command>
+            </para>
+        </section>
         
-        <para>
-        It is also possible to use LPJS without having admin access.
-        Simply start the daemons manually by running <command>munged</command>
-        and <command>lpjs_dispatchd</command> on the head node, and
-        <command>munged</command> and <command>lpjs_compd</command>
-        on each compute node.  Note that if lpjs_compd is not running as root,
-        the compute node will only be able to run jobs
-        under the same user name that submitted them.
-        </para>
+        <section>
+            <title>Ad hoc Clusters and Grids</title>
+
+            <para>
+            It is also possible to use LPJS without having admin access.
+            Simply start the daemons manually by running <command>munged</command>
+            and <command>lpjs_dispatchd</command> on the head node, and
+            <command>munged</command> and <command>lpjs_compd</command>
+            on each compute node.  Note that if <command>lpjs_compd</command>
+            is not running as root,
+            the compute node will only be able to run jobs
+            under the same user name that submitted them.
+            </para>
+            
+            <para>
+            The <command>lpjs ad-hoc</command> command displays a menu,
+            allowing you to start and stop the apporopriate daemons
+            without having to know the precise commands.
+            </para>
+        </section>
     </chapter>
     
     <chapter>
