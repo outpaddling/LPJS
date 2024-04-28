@@ -126,6 +126,8 @@ elif [ $(uname) = Darwin ]; then
     fi
 elif [ $(uname) = Linux ]; then
     script=$(auto-localbase)/lib/systemd/system/munge.service
+    chown daemon:daemon /usr/pkg/var/run/munge /usr/pkg/var/log/munge \
+			/usr/pkg/etc/munge/munge.key
     if [ -e $script ]; then
 	auto-enable-service -s $script munge lpjs-admin
     fi
