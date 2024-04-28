@@ -71,6 +71,29 @@ void    job_init(job_t *job)
 }
 
 
+job_t   *job_dup(job_t *job)
+
+{
+    job_t   *new_job = job_new();
+    
+    new_job->job_id = job->job_id;
+    new_job->job_count = job->job_count;
+    new_job->cores_per_job = job->cores_per_job;
+    new_job->min_cores_per_node = job->min_cores_per_node;
+    new_job->mem_per_core = job->mem_per_core;
+    
+    // FIXME: Check malloc success
+    new_job->user_name = strdup(job->user_name);
+    new_job->primary_group_name = strdup(job->primary_group_name);
+    new_job->submit_host = strdup(job->submit_host);
+    new_job->submit_directory = strdup(job->submit_directory);
+    new_job->script_name = strdup(job->script_name);
+    new_job->push_command = strdup(job->push_command);
+    
+    return new_job;
+}
+
+
 /***************************************************************************
  *  Description:
  *      Print job parameters in a readable format
@@ -123,18 +146,18 @@ int     job_print_to_string(job_t *job, char *str, size_t buff_size)
  *  2021-09-28  Jason Bacon Begin
  ***************************************************************************/
 
-void    job_send_as_msg(job_t *job, int msg_fd)
+void    job_send_basic_params(job_t *job, int msg_fd)
 
 {
     char    msg[LPJS_MSG_LEN_MAX + 1];
     
-    snprintf(msg, LPJS_MSG_LEN_MAX + 1, JOB_SPEC_FORMAT,
+    snprintf(msg, LPJS_MSG_LEN_MAX + 1, JOB_BASIC_PARAMS_FORMAT,
 	    job->job_id, job->array_index,
 	    job->job_count, job->cores_per_job,
 	    job->min_cores_per_node, job->mem_per_core,
-	    job->user_name, job->primary_group_name,
-	    job->submit_host, job->submit_directory,
-	    job->script_name, job->push_command);
+	    job->user_name,
+	    job->submit_host,
+	    job->script_name);
     
     if ( lpjs_send_munge(msg_fd, msg) != EX_OK )
     {
@@ -547,17 +570,15 @@ void    job_free(job_t **job)
  *  2024-02-01  Jason Bacon Begin
  ***************************************************************************/
 
-void    job_send_spec_header(int msg_fd)
+void    job_send_basic_params_header(int msg_fd)
 
 {
     char    msg[LPJS_MSG_LEN_MAX + 1];
     
     snprintf(msg, LPJS_MSG_LEN_MAX + 1,
-	    JOB_SPEC_HEADER_FORMAT, "JobID", "IDX",
-	    "Job-count", "Cores/job", "Cores/node", "Mem/core",
-	    "User-name", "Group-name",
-	    "Submit-host", "Working-directory",
-	    "Script-name", "Push-command");
+	    JOB_BASIC_PARAMS_HEADER_FORMAT, "JobID", "IDX",
+	    "Jobs", "P/job", "P/node", "Mem/P",
+	    "User", "Submit-host", "Script-name");
     lpjs_send_munge(msg_fd, msg);
 }
 
@@ -572,14 +593,12 @@ void    job_send_spec_header(int msg_fd)
  *  2024-02-01  Jason Bacon Begin
  ***************************************************************************/
 
-void    job_print_spec_header(FILE *stream)
+void    job_print_basic_params_header(FILE *stream)
 
 {
-    fprintf(stream, JOB_SPEC_HEADER_FORMAT, "JobID", "IDX",
+    fprintf(stream, JOB_BASIC_PARAMS_HEADER_FORMAT, "JobID", "IDX",
 		"Job-count", "Cores/job", "Cores/node", "Mem/core",
-		"User-name", "Group-name",
-		"Submit-host", "Working-directory",
-		"Script-name", "Push-command");
+		"User-name", "Submit-host", "Script-name");
 }
 
 

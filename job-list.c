@@ -7,8 +7,39 @@
 #include <xtend/string.h>   // xt_strtrim()
 #include <xtend/file.h>
 
-#include "job-list.h"
+#include "job-list-private.h"
 #include "lpjs.h"
+#include "misc.h"           // lpjs_log()
+
+
+/***************************************************************************
+ *  Description:
+ *  
+ *  Arguments:
+ *
+ *  Returns:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-04-28  Jason Bacon Begin
+ ***************************************************************************/
+
+job_list_t  *job_list_new(void)
+
+{
+    job_list_t  *job_list;
+    
+    job_list = malloc(sizeof(job_list_t));
+    if ( job_list == NULL )
+    {
+	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
+	exit(EX_SOFTWARE);
+    }
+    job_list_init(job_list);
+    
+    return job_list;
+}
+
 
 /***************************************************************************
  *  Description:
@@ -38,6 +69,16 @@ void    job_list_init(job_list_t *job_list)
 int     job_list_add_job(job_list_t *job_list, job_t *job)
 
 {
+    if ( job_list->count < LPJS_MAX_JOBS )
+    {
+	job_list->jobs[job_list->count++] = job;
+    }
+    else
+    {
+	lpjs_log("%s(): Maximum job count = %u reached.\n",
+		 __FUNCTION__, LPJS_MAX_JOBS);
+    }
+    
     return 0;   // NL_OK?
 }
 
@@ -56,7 +97,8 @@ void    job_list_send_params(int msg_fd, job_list_t *job_list)
 {
     unsigned    c;
 
-    job_send_spec_header(msg_fd);
+    lpjs_log("%s(): %u jobs\n", __FUNCTION__, job_list_get_count(job_list));
+    job_send_basic_params_header(msg_fd);
     for (c = 0; c < job_list->count; ++c)
-	job_send_as_msg(job_list->jobs[c], msg_fd);
+	job_send_basic_params(job_list->jobs[c], msg_fd);
 }

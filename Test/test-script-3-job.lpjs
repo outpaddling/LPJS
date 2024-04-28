@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#lpjs jobs 3
+#lpjs jobs 5
 #lpjs cores-per-job 2
 #lpjs min-cores-per-node all
 #lpjs mem-per-core 1GiB
@@ -8,7 +8,7 @@
 hostname
 printenv | fgrep LPJS_
 printf "Sleeping...\n"
-sleep 10
+sleep 30
 printf "Done.\n"
 
 # If this node has access to the working directory on $LPJS_SUBMIT_HOST, then

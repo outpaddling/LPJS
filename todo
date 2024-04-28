@@ -1,4 +1,6 @@
 
+Document all _new() as not requiring return code checks
+
 Remove jobs from running dir when completed
 
 lpjs nodes hangs while jobs are running

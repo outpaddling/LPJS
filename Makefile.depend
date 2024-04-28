@@ -2,14 +2,17 @@ chaperone.o: chaperone.c node-list.h node.h node-rvs.h node-accessors.h \
   node-mutators.h node-protos.h node-pseudo-protos.h node-list-rvs.h \
   node-list-accessors.h node-list-mutators.h node-list-protos.h config.h \
   config-protos.h network.h network-protos.h misc.h misc-protos.h lpjs.h \
-  job-list.h job.h job-rvs.h job-accessors.h job-mutators.h job-protos.h
+  job-list.h job.h job-rvs.h job-accessors.h job-mutators.h job-protos.h \
+  job-list-rvs.h job-list-accessors.h job-list-mutators.h \
+  job-list-protos.h
 	${CC} -c ${CFLAGS} chaperone.c
 
 config.o: config.c node-list.h node.h node-rvs.h node-accessors.h \
   node-mutators.h node-protos.h node-pseudo-protos.h node-list-rvs.h \
   node-list-accessors.h node-list-mutators.h node-list-protos.h config.h \
   config-protos.h misc.h misc-protos.h lpjs.h job-list.h job.h job-rvs.h \
-  job-accessors.h job-mutators.h job-protos.h
+  job-accessors.h job-mutators.h job-protos.h job-list-rvs.h \
+  job-list-accessors.h job-list-mutators.h job-list-protos.h
 	${CC} -c ${CFLAGS} config.c
 
 job-accessors.o: job-accessors.c job-private.h node-list.h node.h \
@@ -19,11 +22,25 @@ job-accessors.o: job-accessors.c job-private.h node-list.h node.h \
   job-accessors.h job-mutators.h job-protos.h
 	${CC} -c ${CFLAGS} job-accessors.c
 
-job-list.o: job-list.c job-list.h job.h job-rvs.h job-accessors.h \
-  job-mutators.h job-protos.h lpjs.h node-list.h node.h node-rvs.h \
-  node-accessors.h node-mutators.h node-protos.h node-pseudo-protos.h \
-  node-list-rvs.h node-list-accessors.h node-list-mutators.h \
-  node-list-protos.h
+job-list-accessors.o: job-list-accessors.c job-list-private.h job-list.h \
+  job.h job-rvs.h job-accessors.h job-mutators.h job-protos.h \
+  job-list-rvs.h job-list-accessors.h job-list-mutators.h \
+  job-list-protos.h
+	${CC} -c ${CFLAGS} job-list-accessors.c
+
+job-list-mutators.o: job-list-mutators.c job-list-private.h job-list.h \
+  job.h job-rvs.h job-accessors.h job-mutators.h job-protos.h \
+  job-list-rvs.h job-list-accessors.h job-list-mutators.h \
+  job-list-protos.h
+	${CC} -c ${CFLAGS} job-list-mutators.c
+
+job-list.o: job-list.c job-list-private.h job-list.h job.h job-rvs.h \
+  job-accessors.h job-mutators.h job-protos.h job-list-rvs.h \
+  job-list-accessors.h job-list-mutators.h job-list-protos.h lpjs.h \
+  node-list.h node.h node-rvs.h node-accessors.h node-mutators.h \
+  node-protos.h node-pseudo-protos.h node-list-rvs.h \
+  node-list-accessors.h node-list-mutators.h node-list-protos.h misc.h \
+  misc-protos.h
 	${CC} -c ${CFLAGS} job-list.c
 
 job-mutators.o: job-mutators.c job-private.h node-list.h node.h \
@@ -37,7 +54,8 @@ job.o: job.c job-private.h node-list.h node.h node-rvs.h node-accessors.h \
   node-mutators.h node-protos.h node-pseudo-protos.h node-list-rvs.h \
   node-list-accessors.h node-list-mutators.h node-list-protos.h job.h \
   job-rvs.h job-accessors.h job-mutators.h job-protos.h network.h \
-  network-protos.h lpjs.h job-list.h misc.h misc-protos.h \
+  network-protos.h lpjs.h job-list.h job-list-rvs.h job-list-accessors.h \
+  job-list-mutators.h job-list-protos.h misc.h misc-protos.h \
   realpath-protos.h
 	${CC} -c ${CFLAGS} job.c
 
@@ -45,44 +63,53 @@ jobs.o: jobs.c node-list.h node.h node-rvs.h node-accessors.h \
   node-mutators.h node-protos.h node-pseudo-protos.h node-list-rvs.h \
   node-list-accessors.h node-list-mutators.h node-list-protos.h config.h \
   config-protos.h network.h network-protos.h lpjs.h job-list.h job.h \
-  job-rvs.h job-accessors.h job-mutators.h job-protos.h
+  job-rvs.h job-accessors.h job-mutators.h job-protos.h job-list-rvs.h \
+  job-list-accessors.h job-list-mutators.h job-list-protos.h
 	${CC} -c ${CFLAGS} jobs.c
 
 lpjs.o: lpjs.c lpjs.h node-list.h node.h node-rvs.h node-accessors.h \
   node-mutators.h node-protos.h node-pseudo-protos.h node-list-rvs.h \
   node-list-accessors.h node-list-mutators.h node-list-protos.h \
-  job-list.h job.h job-rvs.h job-accessors.h job-mutators.h job-protos.h
+  job-list.h job.h job-rvs.h job-accessors.h job-mutators.h job-protos.h \
+  job-list-rvs.h job-list-accessors.h job-list-mutators.h \
+  job-list-protos.h
 	${CC} -c ${CFLAGS} lpjs.c
 
 lpjs_compd.o: lpjs_compd.c lpjs.h node-list.h node.h node-rvs.h \
   node-accessors.h node-mutators.h node-protos.h node-pseudo-protos.h \
   node-list-rvs.h node-list-accessors.h node-list-mutators.h \
   node-list-protos.h job-list.h job.h job-rvs.h job-accessors.h \
-  job-mutators.h job-protos.h config.h config-protos.h network.h \
-  network-protos.h misc.h misc-protos.h lpjs_compd.h lpjs_compd-protos.h
+  job-mutators.h job-protos.h job-list-rvs.h job-list-accessors.h \
+  job-list-mutators.h job-list-protos.h config.h config-protos.h \
+  network.h network-protos.h misc.h misc-protos.h lpjs_compd.h \
+  lpjs_compd-protos.h
 	${CC} -c ${CFLAGS} lpjs_compd.c
 
 lpjs_dispatchd.o: lpjs_dispatchd.c lpjs.h node-list.h node.h node-rvs.h \
   node-accessors.h node-mutators.h node-protos.h node-pseudo-protos.h \
   node-list-rvs.h node-list-accessors.h node-list-mutators.h \
   node-list-protos.h job-list.h job.h job-rvs.h job-accessors.h \
-  job-mutators.h job-protos.h config.h config-protos.h scheduler.h \
-  scheduler-protos.h network.h network-protos.h misc.h misc-protos.h \
-  lpjs_dispatchd.h lpjs_dispatchd-protos.h
+  job-mutators.h job-protos.h job-list-rvs.h job-list-accessors.h \
+  job-list-mutators.h job-list-protos.h config.h config-protos.h \
+  scheduler.h scheduler-protos.h network.h network-protos.h misc.h \
+  misc-protos.h lpjs_dispatchd.h lpjs_dispatchd-protos.h
 	${CC} -c ${CFLAGS} lpjs_dispatchd.c
 
 misc.o: misc.c lpjs.h node-list.h node.h node-rvs.h node-accessors.h \
   node-mutators.h node-protos.h node-pseudo-protos.h node-list-rvs.h \
   node-list-accessors.h node-list-mutators.h node-list-protos.h \
   job-list.h job.h job-rvs.h job-accessors.h job-mutators.h job-protos.h \
-  misc.h misc-protos.h network.h network-protos.h
+  job-list-rvs.h job-list-accessors.h job-list-mutators.h \
+  job-list-protos.h misc.h misc-protos.h network.h network-protos.h
 	${CC} -c ${CFLAGS} misc.c
 
 network.o: network.c node-list.h node.h node-rvs.h node-accessors.h \
   node-mutators.h node-protos.h node-pseudo-protos.h node-list-rvs.h \
   node-list-accessors.h node-list-mutators.h node-list-protos.h \
   network.h network-protos.h lpjs.h job-list.h job.h job-rvs.h \
-  job-accessors.h job-mutators.h job-protos.h misc.h misc-protos.h
+  job-accessors.h job-mutators.h job-protos.h job-list-rvs.h \
+  job-list-accessors.h job-list-mutators.h job-list-protos.h misc.h \
+  misc-protos.h
 	${CC} -c ${CFLAGS} network.c
 
 node-accessors.o: node-accessors.c node-private.h node.h node-rvs.h \
@@ -105,7 +132,8 @@ node-list.o: node-list.c node-list-private.h node.h node-rvs.h \
   node-accessors.h node-mutators.h node-protos.h node-pseudo-protos.h \
   node-list.h node-list-rvs.h node-list-accessors.h node-list-mutators.h \
   node-list-protos.h network.h network-protos.h lpjs.h job-list.h job.h \
-  job-rvs.h job-accessors.h job-mutators.h job-protos.h misc.h \
+  job-rvs.h job-accessors.h job-mutators.h job-protos.h job-list-rvs.h \
+  job-list-accessors.h job-list-mutators.h job-list-protos.h misc.h \
   misc-protos.h
 	${CC} -c ${CFLAGS} node-list.c
 
@@ -121,14 +149,17 @@ node.o: node.c node-private.h node.h node-rvs.h node-accessors.h \
   node-mutators.h node-protos.h node-pseudo-protos.h network.h \
   node-list.h node-list-rvs.h node-list-accessors.h node-list-mutators.h \
   node-list-protos.h network-protos.h lpjs.h job-list.h job.h job-rvs.h \
-  job-accessors.h job-mutators.h job-protos.h misc.h misc-protos.h
+  job-accessors.h job-mutators.h job-protos.h job-list-rvs.h \
+  job-list-accessors.h job-list-mutators.h job-list-protos.h misc.h \
+  misc-protos.h
 	${CC} -c ${CFLAGS} node.c
 
 nodes.o: nodes.c node-list.h node.h node-rvs.h node-accessors.h \
   node-mutators.h node-protos.h node-pseudo-protos.h node-list-rvs.h \
   node-list-accessors.h node-list-mutators.h node-list-protos.h config.h \
   config-protos.h network.h network-protos.h lpjs.h job-list.h job.h \
-  job-rvs.h job-accessors.h job-mutators.h job-protos.h misc.h \
+  job-rvs.h job-accessors.h job-mutators.h job-protos.h job-list-rvs.h \
+  job-list-accessors.h job-list-mutators.h job-list-protos.h misc.h \
   misc-protos.h
 	${CC} -c ${CFLAGS} nodes.c
 
@@ -139,14 +170,17 @@ scheduler.o: scheduler.c lpjs.h node-list.h node.h node-rvs.h \
   node-accessors.h node-mutators.h node-protos.h node-pseudo-protos.h \
   node-list-rvs.h node-list-accessors.h node-list-mutators.h \
   node-list-protos.h job-list.h job.h job-rvs.h job-accessors.h \
-  job-mutators.h job-protos.h scheduler.h scheduler-protos.h network.h \
-  network-protos.h misc.h misc-protos.h
+  job-mutators.h job-protos.h job-list-rvs.h job-list-accessors.h \
+  job-list-mutators.h job-list-protos.h scheduler.h scheduler-protos.h \
+  network.h network-protos.h misc.h misc-protos.h
 	${CC} -c ${CFLAGS} scheduler.c
 
 submit.o: submit.c node-list.h node.h node-rvs.h node-accessors.h \
   node-mutators.h node-protos.h node-pseudo-protos.h node-list-rvs.h \
   node-list-accessors.h node-list-mutators.h node-list-protos.h config.h \
   config-protos.h network.h network-protos.h misc.h misc-protos.h lpjs.h \
-  job-list.h job.h job-rvs.h job-accessors.h job-mutators.h job-protos.h
+  job-list.h job.h job-rvs.h job-accessors.h job-mutators.h job-protos.h \
+  job-list-rvs.h job-list-accessors.h job-list-mutators.h \
+  job-list-protos.h
 	${CC} -c ${CFLAGS} submit.c
 

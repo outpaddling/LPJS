@@ -396,7 +396,7 @@ int     lpjs_get_usable_cores(job_t *job, node_t *node)
 }
 
 
-int     lpjs_remove_job(unsigned long job_id)
+int     lpjs_remove_job(job_list_t *job_list, unsigned long job_id)
 
 {
     char    running_path[PATH_MAX + 1];
@@ -413,7 +413,9 @@ int     lpjs_remove_job(unsigned long job_id)
     else
 	// WEXITED is implicitly set for waitpid(), but specify for readability
 	waitpid(pid, &status, WEXITED);
-	
+    
+    // FIXME: Remove from job_list
+    
     // FIXME: Define exit codes
     return 0;
 }

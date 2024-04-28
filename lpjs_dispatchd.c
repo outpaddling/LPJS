@@ -47,9 +47,11 @@ int     main(int argc,char *argv[])
 
 {
     node_list_t *node_list = node_list_new();   // Exits if malloc() fails
-    job_list_t  job_list;
+    job_list_t  *job_list = job_list_new();
     uid_t       daemon_uid;
     gid_t       daemon_gid;
+    
+    // FIXME: Load existing jobs from spool dir on startup
     
     // Must be global for signal handler
     // FIXME: Maybe use ucontext to pass these to handler
@@ -197,8 +199,6 @@ int     main(int argc,char *argv[])
     // Read etc/lpjs/config, created by lpjs-admin
     lpjs_load_config(node_list, LPJS_CONFIG_ALL, Log_stream);
     
-    job_list_init(&job_list);
-    
     /*
      *  bind(): address already in use during testing with frequent restarts.
      *  Best approach is to ensure that client completes a close
@@ -211,7 +211,7 @@ int     main(int argc,char *argv[])
     signal(SIGINT, lpjs_terminate_handler);
     signal(SIGTERM, lpjs_terminate_handler);
 
-    return lpjs_process_events(node_list, &job_list);
+    return lpjs_process_events(node_list, job_list);
 }
 
 
@@ -568,7 +568,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		     *      Note the job completion in the main log
 		     */
 		    
-		    lpjs_remove_job(job_id);
+		    lpjs_remove_job(job_list, job_id);
 		    
 		    lpjs_log("Dispatching more jobs...\n");
 		    lpjs_dispatch_jobs(node_list, job_list);
@@ -678,8 +678,12 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
     char        script_path[PATH_MAX + 1],
 		*end,
 		*script_text;
-    job_t       *job = job_new(); // exits if malloc() fails, no need to check
+    job_t       *submission = job_new(), // exits if malloc() fails, no need to check
+		*job;
     int         c, job_array_index;
+    
+    // FIXME:
+    // if ( job_list_get_count(job_list) + submit_count > LPJS_MAX_JOBS )
     
     // FIXME: Don't accept job submissions from root until
     // security issues have been considered
@@ -688,25 +692,28 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
     
     // Payload in message from lpjs submit is a job description
     // in JOB_SPEC_FORMAT
-    job_read_from_string(job, incoming_msg + 1, &end);
+    job_read_from_string(submission, incoming_msg + 1, &end);
     // Should only be a newline between job specs and script
     script_text = end + 1;
     
-    // FIXME: Head node may not have access to the script: Get from payload
-    // Need the absolute pathname of the script.  Might be the same
-    // on compute nodes if NFS or other file server is used
     snprintf(script_path, PATH_MAX + 1, "%s/%s",
-	     job_get_submit_directory(job), job_get_script_name(job));
-    for (c = 0; c < job_get_job_count(job); ++c)
+	     job_get_submit_directory(submission), job_get_script_name(submission));
+    for (c = 0; c < job_get_job_count(submission); ++c)
     {
 	lpjs_log("Submit script %s:%s from %d, %d\n",
-		job_get_submit_host(job), script_path, munge_uid, munge_gid);
+		job_get_submit_host(submission), script_path, munge_uid, munge_gid);
 	job_array_index = c + 1;    // Job arrays are 1-based
+	
+	// Create a separate job_t object for each member of the job array
+	// FIXME: Check for success
+	job = job_dup(submission);
 	lpjs_queue_job(msg_fd, job, job_array_index, script_text);
+	job_list_add_job(job_list, job);
     }
     
     lpjs_server_safe_close(msg_fd);
-
+    job_free(&submission);
+    
     return EX_OK;
 }
 
@@ -752,6 +759,7 @@ int     lpjs_queue_job(int msg_fd, job_t *job, unsigned long job_array_index,
 	sscanf(job_id_buff, "%lu", &next_job_id);
 	close(fd);
     }
+    
     job_set_job_id(job, next_job_id);
     job_set_array_index(job, job_array_index);
     

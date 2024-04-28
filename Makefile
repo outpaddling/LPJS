@@ -56,10 +56,12 @@ LIBEXEC_BINS    = nodes jobs submit chaperone
 ############################################################################
 # List object files that comprise BIN.
 
-LIB_OBJS    = config.o misc.o scheduler.o network.o job.o job-list.o \
+LIB_OBJS    = config.o misc.o scheduler.o network.o \
 	      node.o node-accessors.o node-mutators.o node-pseudo.o \
 	      node-list.o node-list-accessors.o node-list-mutators.o \
-	      job-accessors.o job-mutators.o realpath.o
+	      job.o job-accessors.o job-mutators.o \
+	      job-list.o job-list-accessors.o job-list-mutators.o \
+	      realpath.o
 
 ############################################################################
 # Compile, link, and install options
