@@ -22,9 +22,9 @@
  *      Select nodes to run a pending job
  *
  *      Default to packing jobs as densely as possible, i.e. use up
- *      available cores on already busy nodes before allocating cores on
+ *      available procs on already busy nodes before allocating procs on
  *      idle nodes.  This will allow faster deployment of shared memory
- *      parallel jobs, which need many cores on the same node.
+ *      parallel jobs, which need many procs on the same node.
  *  
  *  Returns:
  *
@@ -65,7 +65,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 		script_buff[LPJS_SCRIPT_SIZE_MAX + 1],
 		outgoing_msg[LPJS_JOB_MSG_MAX + 1];
     int         msg_fd,
-		cores_used,
+		procs_used,
 		dispatched;
     ssize_t     script_size;
     size_t      phys_MiB_used;
@@ -124,7 +124,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	
 	/*
 	 *  For each matching node
-	 *      Update mem and core availability
+	 *      Update mem and proc availability
 	 *      Send script to node and run
 	 *          Use script cached in spool dir at submission
 	 */
@@ -146,14 +146,14 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	    // lpjs_log("%s(): outgoing job msg:\n%s\n", __FUNCTION__, outgoing_msg + 1);
 	    
 	    // FIXME: Needs adjustment for MPI jobs at the least
-	    cores_used = node_get_cores_used(node);
-	    node_set_cores_used(node, cores_used + job_get_cores_per_job(job));
+	    procs_used = node_get_procs_used(node);
+	    node_set_procs_used(node, procs_used + job_get_procs_per_job(job));
 	    phys_MiB_used = node_get_phys_MiB_used(node);
 	    node_set_phys_MiB_used(node, phys_MiB_used +
-		job_get_mem_per_core(job) * job_get_cores_per_job(job));
+		job_get_mem_per_proc(job) * job_get_procs_per_job(job));
 
-	    // lpjs_log("cores per job = %u\n", job_get_cores_per_job(job));
-	    // lpjs_log("MiB per core = %zu\n", job_get_mem_per_core(job));
+	    // lpjs_log("procs per job = %u\n", job_get_procs_per_job(job));
+	    // lpjs_log("MiB per proc = %zu\n", job_get_mem_per_proc(job));
 	    // lpjs_log("New MiB used = %zu\n", node_get_phys_MiB_used(node));
 	    
 	    lpjs_send_munge(msg_fd, outgoing_msg);
@@ -305,16 +305,16 @@ int     lpjs_match_nodes(job_t *job, node_list_t *node_list,
     node_t      *node;
     unsigned    node_count,
 		c,
-		usable_cores,   // Cores with enough mem
+		usable_procs,   // Procs with enough mem
 		total_usable,
 		total_required;
     
-    lpjs_log("Job %u requires %u cores, %lu MiB / core.\n",
-	    job_get_job_id(job), job_get_min_cores_per_node(job),
-	    job_get_mem_per_core(job));
+    lpjs_log("Job %u requires %u procs, %lu MiB / proc.\n",
+	    job_get_job_id(job), job_get_min_procs_per_node(job),
+	    job_get_mem_per_proc(job));
     
     total_usable = 0;
-    total_required = job_get_cores_per_job(job);
+    total_required = job_get_procs_per_job(job);
     for (c = node_count = 0;
 	 (c < node_list_get_compute_node_count(node_list)) &&
 	 (total_usable < total_required); ++c)
@@ -325,16 +325,16 @@ int     lpjs_match_nodes(job_t *job, node_list_t *node_list,
 	else
 	{
 	    // lpjs_log("Checking %s...\n", node_get_hostname(node));
-	    usable_cores = lpjs_get_usable_cores(job, node);
-	    usable_cores = XT_MIN(usable_cores, total_required - total_usable);
+	    usable_procs = lpjs_get_usable_procs(job, node);
+	    usable_procs = XT_MIN(usable_procs, total_required - total_usable);
 	    
-	    if ( usable_cores > 0 )
+	    if ( usable_procs > 0 )
 	    {
-		lpjs_log("Using %u cores on %s.\n", usable_cores,
+		lpjs_log("Using %u procs on %s.\n", usable_procs,
 			 node_get_hostname(node));
-		// FIXME: Set # cores to use on node
+		// FIXME: Set # procs to use on node
 		node_list_add_compute_node(matched_nodes, node);
-		total_usable += usable_cores;
+		total_usable += usable_procs;
 		++node_count;
 	    }
 	}
@@ -364,35 +364,35 @@ int     lpjs_match_nodes(job_t *job, node_list_t *node_list,
  *  2024-02-23  Jason Bacon Begin
  ***************************************************************************/
 
-int     lpjs_get_usable_cores(job_t *job, node_t *node)
+int     lpjs_get_usable_procs(job_t *job, node_t *node)
 
 {
-    int         required_cores,
-		available_cores,    // Total free
-		usable_cores;       // Total free with enough mem
+    int         required_procs,
+		available_procs,    // Total free
+		usable_procs;       // Total free with enough mem
     size_t      available_mem;
     
-    required_cores = job_get_min_cores_per_node(job);
+    required_procs = job_get_min_procs_per_node(job);
     available_mem = node_get_phys_MiB_available(node);
-    available_cores = node_get_cores(node) - node_get_cores_used(node);
-    lpjs_log("%s: cores = %u  mem = %lu\n", node_get_hostname(node),
-	     available_cores, available_mem);
-    if ( available_cores >= required_cores )
+    available_procs = node_get_procs(node) - node_get_procs_used(node);
+    lpjs_log("%s: procs = %u  mem = %lu\n", node_get_hostname(node),
+	     available_procs, available_mem);
+    if ( available_procs >= required_procs )
     {
-	if ( (available_mem >= job_get_mem_per_core(job) * required_cores) )
-	    usable_cores = required_cores;
+	if ( (available_mem >= job_get_mem_per_proc(job) * required_procs) )
+	    usable_procs = required_procs;
 	else
 	{
 	    lpjs_log("Not enough memory.\n");
-	    usable_cores = 0;
+	    usable_procs = 0;
 	}
     }
     else
     {
-	lpjs_log("Not enough cores available.\n");
-	usable_cores = 0;
+	lpjs_log("Not enough procs available.\n");
+	usable_procs = 0;
     }
-    return usable_cores;
+    return usable_procs;
 }
 
 
@@ -415,6 +415,7 @@ int     lpjs_remove_job(job_list_t *job_list, unsigned long job_id)
 	waitpid(pid, &status, WEXITED);
     
     // FIXME: Remove from job_list
+    job_list_remove_job(job_list, job_id);
     
     // FIXME: Define exit codes
     return 0;

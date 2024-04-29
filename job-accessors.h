@@ -13,9 +13,9 @@
 unsigned long job_get_job_id(job_t *job_ptr);
 unsigned long job_get_array_index(job_t *job_ptr);
 unsigned job_get_job_count(job_t *job_ptr);
-unsigned job_get_cores_per_job(job_t *job_ptr);
-unsigned job_get_min_cores_per_node(job_t *job_ptr);
-size_t job_get_mem_per_core(job_t *job_ptr);
+unsigned job_get_procs_per_job(job_t *job_ptr);
+unsigned job_get_min_procs_per_node(job_t *job_ptr);
+size_t job_get_mem_per_proc(job_t *job_ptr);
 char *job_get_user_name(job_t *job_ptr);
 char job_get_user_name_ae(job_t *job_ptr, size_t c);
 char *job_get_primary_group_name(job_t *job_ptr);

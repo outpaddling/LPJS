@@ -56,8 +56,8 @@ void    node_init(node_t *node)
     node->hostname = NULL;
     node->phys_MiB = 0;
     node->phys_MiB_used = 0;
-    node->cores = 0;
-    node->cores_used = 0;
+    node->procs = 0;
+    node->procs_used = 0;
     node->zfs = 0;
     node->os = "Unknown";
     node->arch = "Unknown";
@@ -93,8 +93,8 @@ void    node_detect_specs(node_t *node)
     gethostname(temp_hostname, sysconf(_SC_HOST_NAME_MAX));
     node->hostname = strdup(temp_hostname);
     // May include SMT/Hyperthreading.  Disable in BIOS for Linux or using
-    // sysctl on FreeBSD if you don't want to oversubscribe physical cores.
-    node->cores = sysconf(_SC_NPROCESSORS_ONLN);
+    // sysctl on FreeBSD if you don't want to oversubscribe physical procs.
+    node->procs = sysconf(_SC_NPROCESSORS_ONLN);
     node->phys_MiB = sysconf(_SC_PAGESIZE) * sysconf(_SC_PHYS_PAGES)
 		     / 1024 / 1024;
     /*
@@ -123,7 +123,7 @@ void    node_print_status_header(FILE *stream)
 
 {
     fprintf(stderr, NODE_STATUS_HEADER_FORMAT, "Hostname", "State",
-	  "Cores", "Used", "PhysMiB", "Used", "OS", "Arch");
+	  "Procs", "Used", "PhysMiB", "Used", "OS", "Arch");
 }
 
 
@@ -140,7 +140,7 @@ void    node_print_status(node_t *node, FILE *stream)
 
 {
     fprintf(stream, NODE_STATUS_FORMAT, node->hostname, node->state,
-	   node->cores, node->cores_used,
+	   node->procs, node->procs_used,
 	   node->phys_MiB, node->phys_MiB_used, node->os, node->arch);
 }
 
@@ -150,7 +150,7 @@ void    node_status_to_str(node_t *node, char *str, size_t array_size)
 {
     snprintf(str, array_size,
 		NODE_STATUS_FORMAT, node->hostname, node->state,        
-		node->cores, node->cores_used,                                 
+		node->procs, node->procs_used,                                 
 		node->phys_MiB, node->phys_MiB_used, node->os, node->arch);
 }
 
@@ -200,7 +200,7 @@ ssize_t node_send_specs(node_t *node, int msg_fd)
     node_print_status(node, Log_stream);
     if ( snprintf(specs_msg, LPJS_MSG_LEN_MAX + 1,
 		  "%s\t%s\t%u\t%lu\t%u\t%s\t%s\n",
-		  node->hostname, node->state, node->cores,
+		  node->hostname, node->state, node->procs,
 		  node->phys_MiB, node->zfs, node->os, node->arch) < 0 )
     {
 	perror("send_node_specs(): snprintf() failed");
@@ -217,7 +217,7 @@ int     node_print_specs_header(FILE *stream)
 {
     return fprintf(stream,
 		  "%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
-		  "Hostname", "state", "cores",
+		  "Hostname", "state", "procs",
 		  "phys_MiB", "zfs", "os", "arch");
 }
 
@@ -227,7 +227,7 @@ char    *node_specs_to_str(node_t *node, char *str, size_t buff_len)
 {
     if ( snprintf(str, buff_len,
 		  "%s\t%s\t%u\t%lu\t%u\t%s\t%s",
-		  node->hostname, node->state, node->cores,
+		  node->hostname, node->state, node->procs,
 		  node->phys_MiB, node->zfs, node->os, node->arch) < 0 )
     {
 	lpjs_log("%s(): snprintf() failed\n", __FUNCTION__);
@@ -286,13 +286,13 @@ ssize_t node_str_to_specs(node_t *node, const char *str)
 
     if ( (field = strsep(&stringp, "\t")) == NULL )
     {
-	lpjs_log("%s(): Failed to extract cores from specs.\n", __FUNCTION__);
+	lpjs_log("%s(): Failed to extract procs from specs.\n", __FUNCTION__);
 	return -1;
     }
-    node->cores = strtoul(field, &end, 10);
+    node->procs = strtoul(field, &end, 10);
     if ( *end != '\0' )
     {
-	lpjs_log("%s(): Cores field is not a valid number.\n", __FUNCTION__);
+	lpjs_log("%s(): Procs field is not a valid number.\n", __FUNCTION__);
 	return -1;
     }
 

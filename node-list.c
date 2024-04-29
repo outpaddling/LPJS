@@ -99,7 +99,7 @@ void    node_list_update_compute(node_list_t *node_list, node_t *node)
 	{
 	    // lpjs_log("Updating compute node %zu %s\n", c, NODE_HOSTNAME(node_list->compute_nodes[c]));
 	    node_set_state(node_list->compute_nodes[c], "Up");
-	    node_set_cores(node_list->compute_nodes[c], node_get_cores(node));
+	    node_set_procs(node_list->compute_nodes[c], node_get_procs(node));
 	    node_set_phys_MiB(node_list->compute_nodes[c], node_get_phys_MiB(node));
 	    node_set_zfs(node_list->compute_nodes[c], node_get_zfs(node));
 	    node_set_os(node_list->compute_nodes[c], strdup(node_get_os(node)));
@@ -125,9 +125,9 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
 
 {
     unsigned        c,
-		    cores_up,
-		    cores_up_used,
-		    cores_down;
+		    procs_up,
+		    procs_up_used,
+		    procs_down;
     unsigned long   mem_up,
 		    mem_up_used,
 		    mem_down;
@@ -138,11 +138,11 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
     
     snprintf(temp, LPJS_MSG_LEN_MAX,
 	    NODE_STATUS_HEADER_FORMAT, "Hostname", "State",
-	    "Cores", "Used", "PhysMiB", "Used", "OS", "Arch");
+	    "Procs", "Used", "PhysMiB", "Used", "OS", "Arch");
     // lpjs_send_munge(msg_fd, header);
     strlcat(outgoing_msg, temp, LPJS_MSG_LEN_MAX + 1);
     
-    cores_up = cores_up_used = cores_down = 0;
+    procs_up = procs_up_used = procs_down = 0;
     mem_up = mem_up_used = mem_down = 0;
     
     for (c = 0; c < node_list->compute_node_count; ++c)
@@ -151,14 +151,14 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
 	strlcat(outgoing_msg, temp, LPJS_MSG_LEN_MAX + 1);
 	if ( strcmp(node_get_state(node_list->compute_nodes[c]), "Up") == 0 )
 	{
-	    cores_up += node_get_cores(node_list->compute_nodes[c]);
-	    cores_up_used += node_get_cores_used(node_list->compute_nodes[c]);
+	    procs_up += node_get_procs(node_list->compute_nodes[c]);
+	    procs_up_used += node_get_procs_used(node_list->compute_nodes[c]);
 	    mem_up += node_get_phys_MiB(node_list->compute_nodes[c]);
 	    mem_up_used += node_get_phys_MiB_used(node_list->compute_nodes[c]);
 	}
 	else
 	{
-	    cores_down += node_get_cores(node_list->compute_nodes[c]);
+	    procs_down += node_get_procs(node_list->compute_nodes[c]);
 	    mem_down += node_get_phys_MiB(node_list->compute_nodes[c]);
 	}
     }
@@ -166,12 +166,12 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
     // lpjs_log("Sending summary...\n");
     snprintf(temp, LPJS_MSG_LEN_MAX + 1,
 	    "\n" NODE_STATUS_FORMAT, "Total", "Up",
-	    cores_up, cores_up_used, mem_up, mem_up_used, "-", "-");
+	    procs_up, procs_up_used, mem_up, mem_up_used, "-", "-");
     strlcat(outgoing_msg, temp, LPJS_MSG_LEN_MAX + 1);
     
     snprintf(temp, LPJS_MSG_LEN_MAX,
 	    NODE_STATUS_FORMAT, "Total", "Down",
-	    cores_down, 0, mem_down, (size_t)0, "-", "-");
+	    procs_down, 0, mem_down, (size_t)0, "-", "-");
     strlcat(outgoing_msg, temp, LPJS_MSG_LEN_MAX + 1);
 
     lpjs_send_munge(msg_fd, outgoing_msg);

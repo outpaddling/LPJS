@@ -53,7 +53,8 @@ int     main(int argc,char *argv[])
 	close(msg_fd);
 	return EX_IOERR;
     }
-    
+
+    puts("\nLegend: P = processor  J = job  N = node\n");
     lpjs_print_response(msg_fd, "lpjs-jobs");
     close (msg_fd);
 

@@ -122,31 +122,31 @@ unsigned    job_get_job_count(job_t *job_ptr)
  *      
  *
  *  Description:
- *      Accessor for cores_per_job member in a job_t structure.
- *      Use this function to get cores_per_job in a job_t object
+ *      Accessor for procs_per_job member in a job_t structure.
+ *      Use this function to get procs_per_job in a job_t object
  *      from non-member functions.
  *
  *  Arguments:
  *      job_ptr         Pointer to the structure to set
  *
  *  Returns:
- *      Value of the structure member cores_per_job.
+ *      Value of the structure member procs_per_job.
  *
  *  Examples:
  *      job_t           job;
- *      unsigned        cores_per_job;
+ *      unsigned        procs_per_job;
  *
- *      cores_per_job = job_get_cores_per_job(&job);
+ *      procs_per_job = job_get_procs_per_job(&job);
  *
  *  History: 
  *  Date        Name        Modification
  *  2024-04-24  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-unsigned    job_get_cores_per_job(job_t *job_ptr)
+unsigned    job_get_procs_per_job(job_t *job_ptr)
 
 {
-    return job_ptr->cores_per_job;
+    return job_ptr->procs_per_job;
 }
 
 
@@ -156,31 +156,31 @@ unsigned    job_get_cores_per_job(job_t *job_ptr)
  *      
  *
  *  Description:
- *      Accessor for min_cores_per_node member in a job_t structure.
- *      Use this function to get min_cores_per_node in a job_t object
+ *      Accessor for min_procs_per_node member in a job_t structure.
+ *      Use this function to get min_procs_per_node in a job_t object
  *      from non-member functions.
  *
  *  Arguments:
  *      job_ptr         Pointer to the structure to set
  *
  *  Returns:
- *      Value of the structure member min_cores_per_node.
+ *      Value of the structure member min_procs_per_node.
  *
  *  Examples:
  *      job_t           job;
- *      unsigned        min_cores_per_node;
+ *      unsigned        min_procs_per_node;
  *
- *      min_cores_per_node = job_get_min_cores_per_node(&job);
+ *      min_procs_per_node = job_get_min_procs_per_node(&job);
  *
  *  History: 
  *  Date        Name        Modification
  *  2024-04-24  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-unsigned    job_get_min_cores_per_node(job_t *job_ptr)
+unsigned    job_get_min_procs_per_node(job_t *job_ptr)
 
 {
-    return job_ptr->min_cores_per_node;
+    return job_ptr->min_procs_per_node;
 }
 
 
@@ -190,31 +190,31 @@ unsigned    job_get_min_cores_per_node(job_t *job_ptr)
  *      
  *
  *  Description:
- *      Accessor for mem_per_core member in a job_t structure.
- *      Use this function to get mem_per_core in a job_t object
+ *      Accessor for mem_per_proc member in a job_t structure.
+ *      Use this function to get mem_per_proc in a job_t object
  *      from non-member functions.
  *
  *  Arguments:
  *      job_ptr         Pointer to the structure to set
  *
  *  Returns:
- *      Value of the structure member mem_per_core.
+ *      Value of the structure member mem_per_proc.
  *
  *  Examples:
  *      job_t           job;
- *      size_t          mem_per_core;
+ *      size_t          mem_per_proc;
  *
- *      mem_per_core = job_get_mem_per_core(&job);
+ *      mem_per_proc = job_get_mem_per_proc(&job);
  *
  *  History: 
  *  Date        Name        Modification
  *  2024-04-24  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-size_t    job_get_mem_per_core(job_t *job_ptr)
+size_t    job_get_mem_per_proc(job_t *job_ptr)
 
 {
-    return job_ptr->mem_per_core;
+    return job_ptr->mem_per_proc;
 }
 
 

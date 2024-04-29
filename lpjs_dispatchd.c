@@ -466,8 +466,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
     uid_t           munge_uid;
     gid_t           munge_gid;
     unsigned long   job_id;
-    unsigned        cores_per_job;
-    size_t          mem_per_core;
+    unsigned        procs_per_job;
+    size_t          mem_per_proc;
     node_t          *node;
     int             items;
     
@@ -549,18 +549,18 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 			break;
 		    }
 		    if ( (items = sscanf(p, "%lu %u %zu",
-			    &job_id, &cores_per_job, &mem_per_core)) != 3 )
+			    &job_id, &procs_per_job, &mem_per_proc)) != 3 )
 		    {
-			lpjs_log("%s(): Got %d items reading job_id, cores and mem.\n",
+			lpjs_log("%s(): Got %d items reading job_id, procs and mem.\n",
 				items);
 			break;
 		    }
 		    
-		    node_set_cores_used(node,
-			node_get_cores_used(node) - cores_per_job);
+		    node_set_procs_used(node,
+			node_get_procs_used(node) - procs_per_job);
 		    node_set_phys_MiB_used(node,
 			node_get_phys_MiB_used(node)
-			    - mem_per_core * cores_per_job);
+			    - mem_per_proc * procs_per_job);
 		
 		    /*
 		     *  FIXME:

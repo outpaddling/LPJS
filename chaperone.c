@@ -34,8 +34,8 @@ int     main (int argc, char *argv[])
 {
     int         msg_fd,
 		status;
-    unsigned    cores;
-    unsigned long   mem_per_core;
+    unsigned    procs;
+    unsigned long   mem_per_proc;
     node_list_t *node_list = node_list_new();
     char        *job_script_name,
 		*temp,
@@ -73,7 +73,7 @@ int     main (int argc, char *argv[])
     lpjs_log("PATH = %s\n", new_path);
     
     temp = getenv("LPJS_CORES_PER_JOB");
-    cores = strtoul(temp, &end, 10);
+    procs = strtoul(temp, &end, 10);
     if ( *end != '\0' )
     {
 	fprintf(stderr, "Invalid LPJS_CORES_PER_JOB: %s\n", temp);
@@ -81,7 +81,7 @@ int     main (int argc, char *argv[])
     }
     
     temp = getenv("LPJS_MEM_PER_CORE");
-    mem_per_core = strtoul(temp, &end, 10);
+    mem_per_proc = strtoul(temp, &end, 10);
     if ( *end != '\0' )
     {
 	fprintf(stderr, "Invalid LPJS_MEM_PER_CORE: %s\n", temp);
@@ -98,8 +98,8 @@ int     main (int argc, char *argv[])
     
     gethostname(hostname, sysconf(_SC_HOST_NAME_MAX));
     lpjs_log("CWD = %s\n", getcwd(wd, PATH_MAX + 1));
-    lpjs_log("Running %s on %s with %u cores and %lu MiB.\n",
-	    job_script_name, hostname, cores, mem_per_core);
+    lpjs_log("Running %s on %s with %u procs and %lu MiB.\n",
+	    job_script_name, hostname, procs, mem_per_proc);
     
     if ( (pid = fork()) == 0 )
     {

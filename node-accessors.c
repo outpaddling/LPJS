@@ -90,31 +90,31 @@ char  node_get_hostname_ae(node_t *node_ptr, size_t c)
  *      
  *
  *  Description:
- *      Accessor for cores member in a node_t structure.
- *      Use this function to get cores in a node_t object
+ *      Accessor for procs member in a node_t structure.
+ *      Use this function to get procs in a node_t object
  *      from non-member functions.
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
  *
  *  Returns:
- *      Value of the structure member cores.
+ *      Value of the structure member procs.
  *
  *  Examples:
  *      node_t          node;
- *      unsigned        cores;
+ *      unsigned        procs;
  *
- *      cores = node_get_cores(&node);
+ *      procs = node_get_procs(&node);
  *
  *  History: 
  *  Date        Name        Modification
  *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
-unsigned    node_get_cores(node_t *node_ptr)
+unsigned    node_get_procs(node_t *node_ptr)
 
 {
-    return node_ptr->cores;
+    return node_ptr->procs;
 }
 
 
@@ -124,31 +124,31 @@ unsigned    node_get_cores(node_t *node_ptr)
  *      
  *
  *  Description:
- *      Accessor for cores_used member in a node_t structure.
- *      Use this function to get cores_used in a node_t object
+ *      Accessor for procs_used member in a node_t structure.
+ *      Use this function to get procs_used in a node_t object
  *      from non-member functions.
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
  *
  *  Returns:
- *      Value of the structure member cores_used.
+ *      Value of the structure member procs_used.
  *
  *  Examples:
  *      node_t          node;
- *      unsigned        cores_used;
+ *      unsigned        procs_used;
  *
- *      cores_used = node_get_cores_used(&node);
+ *      procs_used = node_get_procs_used(&node);
  *
  *  History: 
  *  Date        Name        Modification
  *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
-unsigned    node_get_cores_used(node_t *node_ptr)
+unsigned    node_get_procs_used(node_t *node_ptr)
 
 {
-    return node_ptr->cores_used;
+    return node_ptr->procs_used;
 }
 
 

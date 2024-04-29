@@ -5,12 +5,13 @@
 // for strings, just like gets(), etc.
 // Numeric fields must be grouped together before string fields
 // for job_read_from_string()
-#define JOB_SPEC_NUMS_FORMAT    "%9lu %3lu %4u %5u %6u %7lu"
+#define JOB_SPEC_NUMS_FORMAT    "%9lu %4lu %4u %3u %3u %5lu"
 #define JOB_SPEC_NUMERIC_FIELDS 6
 // Complete job specs
 #define JOB_SPEC_FORMAT         JOB_SPEC_NUMS_FORMAT " %s %s %s %s %s %s\n"
 // For lpjs jobs output
-#define JOB_BASIC_PARAMS_HEADER_FORMAT  "%9s %3s %4s %5s %6s %7s %s %s %s\n"
+#define JOB_BASIC_PARAMS_HEADER \
+    "    JobID  IDX Jobs P/J P/N MiB/P User Submit-host Script\n"
 #define JOB_BASIC_PARAMS_FORMAT JOB_SPEC_NUMS_FORMAT " %s %s %s\n"
 #define JOB_FIELD_MAX_LEN       1024
 #define JOB_STR_MAX_LEN         2048    // Fixme: MAX_PATH + x?

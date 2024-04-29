@@ -59,9 +59,9 @@ void    job_init(job_t *job)
 {
     job->job_id = 0;
     job->job_count = 0;
-    job->cores_per_job = 0;
-    job->min_cores_per_node = 0;
-    job->mem_per_core = 0;
+    job->procs_per_job = 0;
+    job->min_procs_per_node = 0;
+    job->mem_per_proc = 0;
     job->user_name = NULL;
     job->primary_group_name = NULL;
     job->submit_host = NULL;
@@ -78,9 +78,9 @@ job_t   *job_dup(job_t *job)
     
     new_job->job_id = job->job_id;
     new_job->job_count = job->job_count;
-    new_job->cores_per_job = job->cores_per_job;
-    new_job->min_cores_per_node = job->min_cores_per_node;
-    new_job->mem_per_core = job->mem_per_core;
+    new_job->procs_per_job = job->procs_per_job;
+    new_job->min_procs_per_node = job->min_procs_per_node;
+    new_job->mem_per_proc = job->mem_per_proc;
     
     // FIXME: Check malloc success
     new_job->user_name = strdup(job->user_name);
@@ -107,8 +107,8 @@ int     job_print(job_t *job, FILE *stream)
 
 {
     return fprintf(stream, JOB_SPEC_FORMAT, job->job_id, job->array_index,
-	    job->job_count, job->cores_per_job,
-	    job->min_cores_per_node, job->mem_per_core,
+	    job->job_count, job->procs_per_job,
+	    job->min_procs_per_node, job->mem_per_proc,
 	    job->user_name, job->primary_group_name,
 	    job->submit_host, job->submit_directory,
 	    job->script_name, job->push_command);
@@ -129,8 +129,8 @@ int     job_print_to_string(job_t *job, char *str, size_t buff_size)
 {
     return snprintf(str, buff_size, JOB_SPEC_FORMAT,
 		    job->job_id, job->array_index,
-		    job->job_count, job->cores_per_job,
-		    job->min_cores_per_node, job->mem_per_core,
+		    job->job_count, job->procs_per_job,
+		    job->min_procs_per_node, job->mem_per_proc,
 		    job->user_name, job->primary_group_name,
 		    job->submit_host, job->submit_directory,
 		    job->script_name, job->push_command);
@@ -153,8 +153,8 @@ void    job_send_basic_params(job_t *job, int msg_fd)
     
     snprintf(msg, LPJS_MSG_LEN_MAX + 1, JOB_BASIC_PARAMS_FORMAT,
 	    job->job_id, job->array_index,
-	    job->job_count, job->cores_per_job,
-	    job->min_cores_per_node, job->mem_per_core,
+	    job->job_count, job->procs_per_job,
+	    job->min_procs_per_node, job->mem_per_proc,
 	    job->user_name,
 	    job->submit_host,
 	    job->script_name);
@@ -281,52 +281,52 @@ int     job_parse_script(job_t *job, const char *script_name)
 			exit(EX_DATAERR);
 		    }
 		}
-		else if ( strcmp(var, "cores-per-job") == 0 )
+		else if ( strcmp(var, "procs-per-job") == 0 )
 		{
-		    job->cores_per_job = strtoul(val, &end, 10);
+		    job->procs_per_job = strtoul(val, &end, 10);
 		    if ( *end != '\0' )
 		    {
-			fprintf(stderr, "Error: #lpjs cores-per-job '%s' is not a decimal integer.\n", val);
+			fprintf(stderr, "Error: #lpjs procs-per-job '%s' is not a decimal integer.\n", val);
 			exit(EX_DATAERR);
 		    }
 		}
-		else if ( strcmp(var, "min-cores-per-node") == 0 )
+		else if ( strcmp(var, "min-procs-per-node") == 0 )
 		{
 		    if ( strcmp(val, "all") == 0 )
-			job->min_cores_per_node = job->cores_per_job;
+			job->min_procs_per_node = job->procs_per_job;
 		    else
 		    {
-			job->min_cores_per_node = strtoul(val, &end, 10);
+			job->min_procs_per_node = strtoul(val, &end, 10);
 			if ( *end != '\0' )
 			{
-			    fprintf(stderr, "Error: #lpjs min-cores-per-node '%s' is not a decimal integer.\n", val);
+			    fprintf(stderr, "Error: #lpjs min-procs-per-node '%s' is not a decimal integer.\n", val);
 			    exit(EX_DATAERR);
 			}
-			if ( job->min_cores_per_node > job->cores_per_job )
+			if ( job->min_procs_per_node > job->procs_per_job )
 			{
-			    fprintf(stderr, "Error: #lpjs min-cores-per-node cannot be greater then cores-per-job.\n");
+			    fprintf(stderr, "Error: #lpjs min-procs-per-node cannot be greater then procs-per-job.\n");
 			    exit(EX_DATAERR);
 			}
 		    }
 		}
-		else if ( strcmp(var, "mem-per-core") == 0 )
+		else if ( strcmp(var, "mem-per-proc") == 0 )
 		{
-		    job->mem_per_core = strtoul(val, &end, 10);
+		    job->mem_per_proc = strtoul(val, &end, 10);
 		    
 		    // Convert to MiB
 		    // Careful with the integer arithmetic, to avoid overflows
 		    // and 0 results
 		    if ( strcmp(end, "MB") == 0 )
-			job->mem_per_core = job->mem_per_core * LPJS_MB / LPJS_MiB;
+			job->mem_per_proc = job->mem_per_proc * LPJS_MB / LPJS_MiB;
 		    else if ( strcmp(end, "MiB") == 0 )
 			;
 		    else if ( strcmp(end, "GB") == 0 )
-			job->mem_per_core = job->mem_per_core * LPJS_GB / LPJS_MiB;
+			job->mem_per_proc = job->mem_per_proc * LPJS_GB / LPJS_MiB;
 		    else if ( strcmp(end, "GiB") == 0 )
-			job->mem_per_core = job->mem_per_core * LPJS_GiB / LPJS_MiB;
+			job->mem_per_proc = job->mem_per_proc * LPJS_GiB / LPJS_MiB;
 		    else
 		    {
-			fprintf(stderr, "Error: #lpjs mem-per-core '%s':\n", val);
+			fprintf(stderr, "Error: #lpjs mem-per-proc '%s':\n", val);
 			fprintf(stderr, "Requires a decimal number followed by MB, MiB, GB, or GiB.\n");
 			exit(EX_DATAERR);
 		    }
@@ -344,16 +344,16 @@ int     job_parse_script(job_t *job, const char *script_name)
     fclose(fp);
     
     // FIXME: Error out if not all required parameters present
-    // jobs, cores-per-job, mem-per-core
+    // jobs, procs-per-job, mem-per-proc
     
-    if ( job->min_cores_per_node == 0 )
-	fprintf(stderr, "%u job, %u cores per job, all cores per node, %zu MiB\n",
-		job->job_count, job->cores_per_job,
-		job->mem_per_core);
+    if ( job->min_procs_per_node == 0 )
+	fprintf(stderr, "%u job, %u procs per job, all procs per node, %zu MiB\n",
+		job->job_count, job->procs_per_job,
+		job->mem_per_proc);
     else
-	fprintf(stderr, "%u job, %u cores per job, %u cores per node, %zu MiB\n",
-		job->job_count, job->cores_per_job,
-		job->min_cores_per_node, job->mem_per_core);
+	fprintf(stderr, "%u job, %u procs per job, %u procs per node, %zu MiB\n",
+		job->job_count, job->procs_per_job,
+		job->min_procs_per_node, job->mem_per_proc);
     return 0;
 }
 
@@ -395,8 +395,8 @@ int     job_read_from_string(job_t *job, const char *string, char **end)
     
     items = sscanf(string, JOB_SPEC_NUMS_FORMAT,
 	    &job->job_id, &job->array_index,
-	    &job->job_count, &job->cores_per_job,
-	    &job->min_cores_per_node, &job->mem_per_core);
+	    &job->job_count, &job->procs_per_job,
+	    &job->min_procs_per_node, &job->mem_per_proc);
     
     // Skips past numeric fields
     for (start = string, tokens = 0;
@@ -573,13 +573,7 @@ void    job_free(job_t **job)
 void    job_send_basic_params_header(int msg_fd)
 
 {
-    char    msg[LPJS_MSG_LEN_MAX + 1];
-    
-    snprintf(msg, LPJS_MSG_LEN_MAX + 1,
-	    JOB_BASIC_PARAMS_HEADER_FORMAT, "JobID", "IDX",
-	    "Jobs", "P/job", "P/node", "Mem/P",
-	    "User", "Submit-host", "Script-name");
-    lpjs_send_munge(msg_fd, msg);
+    lpjs_send_munge(msg_fd, JOB_BASIC_PARAMS_HEADER);
 }
 
 
@@ -596,9 +590,7 @@ void    job_send_basic_params_header(int msg_fd)
 void    job_print_basic_params_header(FILE *stream)
 
 {
-    fprintf(stream, JOB_BASIC_PARAMS_HEADER_FORMAT, "JobID", "IDX",
-		"Job-count", "Cores/job", "Cores/node", "Mem/core",
-		"User-name", "Submit-host", "Script-name");
+    fprintf(stream, JOB_BASIC_PARAMS_HEADER);
 }
 
 
@@ -642,11 +634,11 @@ void    job_setenv(job_t *job)
 	    LPJS_MAX_INT_DIGITS + 1), 1);
     setenv("LPJS_JOB_COUNT", xt_ltostrn(str, job->job_count, 10,
 	    LPJS_MAX_INT_DIGITS + 1), 1);
-    setenv("LPJS_CORES_PER_JOB", xt_ltostrn(str, job->cores_per_job, 10,
+    setenv("LPJS_CORES_PER_JOB", xt_ltostrn(str, job->procs_per_job, 10,
 	    LPJS_MAX_INT_DIGITS + 1), 1);
-    setenv("LPJS_MIN_CORES_PER_NODE", xt_ltostrn(str, job->min_cores_per_node, 10,
+    setenv("LPJS_MIN_CORES_PER_NODE", xt_ltostrn(str, job->min_procs_per_node, 10,
 	    LPJS_MAX_INT_DIGITS + 1), 1);
-    setenv("LPJS_MEM_PER_CORE", xt_ltostrn(str, job->mem_per_core, 10,
+    setenv("LPJS_MEM_PER_CORE", xt_ltostrn(str, job->mem_per_proc, 10,
 	    LPJS_MAX_INT_DIGITS + 1), 1);
     setenv("LPJS_USER_NAME", job->user_name, 1);
     setenv("LPJS_PRIMARY_GROUP_NAME", job->primary_group_name, 1);
@@ -658,4 +650,4 @@ void    job_setenv(job_t *job)
 
 
 // FIXME: Add pseudo-accessors and pseudo-mutators for available
-// cores and mem
+// procs and mem

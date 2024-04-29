@@ -174,17 +174,17 @@ int     node_set_hostname_cpy(node_t *node_ptr, char * new_hostname, size_t arra
  *      
  *
  *  Description:
- *      Mutator for cores member in a node_t structure.
- *      Use this function to set cores in a node_t object
+ *      Mutator for procs member in a node_t structure.
+ *      Use this function to set procs in a node_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
- *      cores is a pointer, data previously pointed to should
+ *      procs is a pointer, data previously pointed to should
  *      be freed before calling this function to avoid memory
  *      leaks.
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
- *      new_cores       The new value for cores
+ *      new_procs       The new value for procs
  *
  *  Returns:
  *      NODE_DATA_OK if the new value is acceptable and assigned
@@ -192,9 +192,9 @@ int     node_set_hostname_cpy(node_t *node_ptr, char * new_hostname, size_t arra
  *
  *  Examples:
  *      node_t          node;
- *      unsigned        new_cores;
+ *      unsigned        new_procs;
  *
- *      if ( node_set_cores(&node, new_cores)
+ *      if ( node_set_procs(&node, new_procs)
  *              == NODE_DATA_OK )
  *      {
  *      }
@@ -207,14 +207,14 @@ int     node_set_hostname_cpy(node_t *node_ptr, char * new_hostname, size_t arra
  *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
-int     node_set_cores(node_t *node_ptr, unsigned new_cores)
+int     node_set_procs(node_t *node_ptr, unsigned new_procs)
 
 {
     if ( false )
 	return NODE_DATA_OUT_OF_RANGE;
     else
     {
-	node_ptr->cores = new_cores;
+	node_ptr->procs = new_procs;
 	return NODE_DATA_OK;
     }
 }
@@ -226,17 +226,17 @@ int     node_set_cores(node_t *node_ptr, unsigned new_cores)
  *      
  *
  *  Description:
- *      Mutator for cores_used member in a node_t structure.
- *      Use this function to set cores_used in a node_t object
+ *      Mutator for procs_used member in a node_t structure.
+ *      Use this function to set procs_used in a node_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
- *      cores_used is a pointer, data previously pointed to should
+ *      procs_used is a pointer, data previously pointed to should
  *      be freed before calling this function to avoid memory
  *      leaks.
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
- *      new_cores_used  The new value for cores_used
+ *      new_procs_used  The new value for procs_used
  *
  *  Returns:
  *      NODE_DATA_OK if the new value is acceptable and assigned
@@ -244,9 +244,9 @@ int     node_set_cores(node_t *node_ptr, unsigned new_cores)
  *
  *  Examples:
  *      node_t          node;
- *      unsigned        new_cores_used;
+ *      unsigned        new_procs_used;
  *
- *      if ( node_set_cores_used(&node, new_cores_used)
+ *      if ( node_set_procs_used(&node, new_procs_used)
  *              == NODE_DATA_OK )
  *      {
  *      }
@@ -259,14 +259,14 @@ int     node_set_cores(node_t *node_ptr, unsigned new_cores)
  *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
-int     node_set_cores_used(node_t *node_ptr, unsigned new_cores_used)
+int     node_set_procs_used(node_t *node_ptr, unsigned new_procs_used)
 
 {
     if ( false )
 	return NODE_DATA_OUT_OF_RANGE;
     else
     {
-	node_ptr->cores_used = new_cores_used;
+	node_ptr->procs_used = new_procs_used;
 	return NODE_DATA_OK;
     }
 }

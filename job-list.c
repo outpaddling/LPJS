@@ -70,16 +70,45 @@ int     job_list_add_job(job_list_t *job_list, job_t *job)
 
 {
     if ( job_list->count < LPJS_MAX_JOBS )
-    {
 	job_list->jobs[job_list->count++] = job;
-    }
     else
-    {
 	lpjs_log("%s(): Maximum job count = %u reached.\n",
 		 __FUNCTION__, LPJS_MAX_JOBS);
-    }
     
     return 0;   // NL_OK?
+}
+
+
+int     job_list_remove_job(job_list_t *job_list, unsigned long job_id)
+
+{
+    int     c;
+    extern FILE *Log_stream;
+    
+    // FIXME: Use bsearch(), even though this array will never be very large
+    for (c = 0; c < job_list->count; ++c)
+    {
+	if ( job_get_job_id(job_list->jobs[c]) == job_id )
+	{
+	    lpjs_log("Removing job %lu\n", job_id);
+	    job_print(job_list->jobs[c], Log_stream);
+	    
+	    job_free(&job_list->jobs[c]);
+	    
+	    for (int c2 = c; c2 < job_list->count - 1; ++c2)
+	    {
+		lpjs_log("c2 = %d  job_list->jobs[c2 + 1] = %p\n",
+			c2, job_list->jobs[c2 + 1]);
+		lpjs_log("job_list[%d] <- job_list[%d] (%lu)\n",
+			 c2, c2 + 1, job_get_job_id(job_list->jobs[c2 + 1]));
+		fflush(Log_stream);
+		job_list->jobs[c2] = job_list->jobs[c2 + 1];
+	    }
+	    --job_list->count;
+	    return 0;
+	}
+    }
+    return 0;   // FIXME: Define return codes
 }
 
 

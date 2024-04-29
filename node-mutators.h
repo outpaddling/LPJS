@@ -17,8 +17,8 @@
 int node_set_hostname(node_t *node_ptr, char *new_hostname);
 int node_set_hostname_ae(node_t *node_ptr, size_t c, char new_hostname_element);
 int node_set_hostname_cpy(node_t *node_ptr, char *new_hostname, size_t array_size);
-int node_set_cores(node_t *node_ptr, unsigned new_cores);
-int node_set_cores_used(node_t *node_ptr, unsigned new_cores_used);
+int node_set_procs(node_t *node_ptr, unsigned new_procs);
+int node_set_procs_used(node_t *node_ptr, unsigned new_procs_used);
 int node_set_phys_MiB(node_t *node_ptr, unsigned long new_phys_MiB);
 int node_set_phys_MiB_used(node_t *node_ptr, unsigned long new_phys_MiB_used);
 int node_set_zfs(node_t *node_ptr, int new_zfs);

@@ -14,9 +14,9 @@ struct job
     unsigned long   job_id;
     unsigned long   array_index;
     unsigned        job_count;
-    unsigned        cores_per_job;
-    unsigned        min_cores_per_node;
-    size_t          mem_per_core;
+    unsigned        procs_per_job;
+    unsigned        min_procs_per_node;
+    size_t          mem_per_proc;
     char            *user_name;
     char            *primary_group_name;
     char            *submit_host;

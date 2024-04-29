@@ -11,21 +11,21 @@
 
 #include "node-private.h"
 
-unsigned    node_get_cores_available(node_t *node)
+unsigned    node_get_procs_available(node_t *node)
 
 {
-    return node->cores - node->cores_used;
+    return node->procs - node->procs_used;
 }
 
 
-int     node_set_cores_available(node_t *node, unsigned cores)
+int     node_set_procs_available(node_t *node, unsigned procs)
 
 {
-    if ( cores > node->cores )
+    if ( procs > node->procs )
 	return NODE_DATA_OUT_OF_RANGE;
     else
     {
-	node->cores_used = node->cores - cores;
+	node->procs_used = node->procs - procs;
 	return NODE_DATA_OK;
     }
 }
