@@ -361,6 +361,7 @@ int     lpjs_run_script(job_t *job, const char *script_start)
 	}
     }
     
+    lpjs_log("Starting CWD = %s\n", getcwd(wd, PATH_MAX + 1));
     if ( chdir(working_dir) != 0 )
     {
 	lpjs_log("Failed to enter working dir: %s\n", working_dir);
@@ -368,6 +369,7 @@ int     lpjs_run_script(job_t *job, const char *script_start)
     }
     lpjs_log("Running job in %s.\n", working_dir);
     lpjs_log("CWD = %s\n", getcwd(wd, PATH_MAX + 1));
+    lpjs_log("getcwd(): %s\n", strerror(errno));
     
     /*
      *  Save script
@@ -531,11 +533,20 @@ void    lpjs_chown(job_t *job, const char *path)
 
 {
     struct passwd *pw_ent;
-    
-    lpjs_log("Changing ownership of %s to user %s, group %s.\n", path,
-	    job_get_user_name(job), job_get_primary_group_name(job));
-    
+    struct group *gr_ent;
+
     // FIXME: Use getpwnam_r() if multithreading, unlikely
+    // FIXME: Terminate job if this fails
     pw_ent = getpwnam(job_get_user_name(job));
-    chown(path, pw_ent->pw_uid, pw_ent->pw_gid);
+    lpjs_log("User %u changing ownership of %s to user %u.\n",
+	    getuid(), path, pw_ent->pw_uid);
+    if ( chown(path, pw_ent->pw_uid, -1) != 0 )
+	lpjs_log("%s(): chown() failed.\n", __FUNCTION__);
+
+    // It's OK if this fails, groups may differ on different nodes
+    gr_ent = getgrnam(job_get_primary_group_name(job));
+    lpjs_log("User %u changing ownership of %s to group %u.\n",
+	    getuid(), path, gr_ent->gr_gid);
+    if ( chown(path, -1, gr_ent->gr_gid) != 0 )
+	lpjs_log("%s(): chown() failed.\n", __FUNCTION__);
 }
