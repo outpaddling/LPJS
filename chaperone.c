@@ -70,7 +70,7 @@ int     main (int argc, char *argv[])
     
     snprintf(new_path, 4096, "%s/bin:%s/bin:%s", LOCALBASE, PREFIX, getenv("PATH"));
     setenv("PATH", new_path, 1);
-    lpjs_log("PATH = %s\n", new_path);
+    // lpjs_log("PATH = %s\n", new_path);
     
     temp = getenv("LPJS_CORES_PER_JOB");
     procs = strtoul(temp, &end, 10);
@@ -97,9 +97,8 @@ int     main (int argc, char *argv[])
     // status = system(cmd);
     
     gethostname(hostname, sysconf(_SC_HOST_NAME_MAX));
-    lpjs_log("CWD = %s\n", getcwd(wd, PATH_MAX + 1));
-    lpjs_log("Running %s on %s with %u procs and %lu MiB.\n",
-	    job_script_name, hostname, procs, mem_per_proc);
+    lpjs_log("Running %s in %s on %s with %u procs and %lu MiB.\n",
+	    job_script_name, wd, hostname, procs, mem_per_proc);
     
     if ( (pid = fork()) == 0 )
     {
@@ -149,7 +148,6 @@ int     main (int argc, char *argv[])
 	char    *sp, *submit_host, *submit_dir;
 	size_t  c;
 	
-	lpjs_log("Transferring and removing temporary working dir: %s\n", wd);
 	chdir("..");    // Can't remove dir while in use
 	
 	// FIXME: Check for errors
@@ -208,6 +206,7 @@ int     main (int argc, char *argv[])
 		cmd[c++] = *sp++;
 	}
 	*sp = '\0';
+	lpjs_log("Transferring temporary working dir: %s\n", wd);
 	lpjs_log("push command = %s\n", cmd);
 	system(cmd);
 	
@@ -220,8 +219,9 @@ int     main (int argc, char *argv[])
 	
 	// Remove temporary working dir unless sysadmin allows retention
 	// FIXME: Check for sysadmin-controlled "keep" option and errors
+	lpjs_log("Removing temporary working dir...\n");
 	snprintf(cmd, LPJS_CMD_MAX + 1, "rm -rf %s", wd);
-	system(cmd);
+	// system(cmd);
     }
 
     return status;

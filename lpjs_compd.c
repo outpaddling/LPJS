@@ -173,9 +173,9 @@ int     main (int argc, char *argv[])
 		 */
 		
 		job_read_from_string(job, munge_payload + 1, &script_start);
-		lpjs_log("New job received:\n");
-		job_print(job, Log_stream);
-		lpjs_log("Script:\n%s", script_start);
+		// lpjs_log("New job received:\n");
+		// job_print(job, Log_stream);
+		// lpjs_log("Script:\n%s", script_start);
 		// FIXME: Use submitter uid and gid, not dispatchd
 		lpjs_run_script(job, script_start);
 	    }
@@ -293,13 +293,13 @@ int     lpjs_checkin_loop(node_list_t *node_list, node_t *node)
 int     lpjs_run_script(job_t *job, const char *script_start)
 
 {
-    char    wd[PATH_MAX + 1],
+    char    temp_wd[PATH_MAX + 1],
 	    job_script_name[PATH_MAX + 1],
 	    shared_fs_marker[PATH_MAX + 1],
-	    shared_fs_marker_path[PATH_MAX + 1];
+	    shared_fs_marker_path[PATH_MAX + 1],
+	    *working_dir;
     int     fd;
     // FIXME: Break out new functions for this
-    char    *working_dir;
     struct stat st;
     extern FILE *Log_stream;
     
@@ -334,42 +334,42 @@ int     lpjs_run_script(job_t *job, const char *script_start)
 	    // FIXME: Remove LPJS-job-* from previous submissions
 	    // This should replace temp workdir removal in chaperone
 	    
-	    snprintf(wd, PATH_MAX + 1, "LPJS-job-%lu",
+	    snprintf(temp_wd, PATH_MAX + 1, "LPJS-job-%lu",
 		    job_get_job_id(job));
-	    lpjs_log("%s does not exist.  Using %s.\n",
-		    working_dir, wd);
+	    lpjs_log("%s does not exist.  Using temp dir %s.\n",
+		    working_dir, temp_wd);
 	    
-	    // If wd exists, rename it first
-	    if ( stat(wd, &st) == 0 )
+	    // If temp_wd exists, rename it first
+	    if ( stat(temp_wd, &st) == 0 )
 	    {
 		char    save_wd[PATH_MAX + 1];
 		int c = 0;
 		do
 		{
-		    snprintf(save_wd, PATH_MAX + 1, "%s.%d", wd, c++);
+		    snprintf(save_wd, PATH_MAX + 1, "%s.%d", temp_wd, c++);
 		}   while ( stat(save_wd, &st) == 0 );
-		rename(wd, save_wd);
+		// lpjs_log("Renaming %s to %s\n", temp_wd, save_wd);
+		rename(temp_wd, save_wd);
 	    }
 	    
-	    mkdir(wd, 0700);
-	    working_dir = wd;
+	    mkdir(temp_wd, 0700);
+	    working_dir = temp_wd;
 	    
 	    if ( getuid() == 0 )
 		lpjs_chown(job, working_dir);
 	    else
-		lpjs_log("Running as uid %d, can't alter working dir ownership.\n", getuid());
+		lpjs_log("lpjs_compd running as uid %d, can't change working dir ownership.\n", getuid());
 	}
     }
     
-    lpjs_log("Starting CWD = %s\n", getcwd(wd, PATH_MAX + 1));
+    //lpjs_log("Changing to %s %s...\n", working_dir, temp_wd);
     if ( chdir(working_dir) != 0 )
     {
 	lpjs_log("Failed to enter working dir: %s\n", working_dir);
 	// FIXME: Notify dispatchd of job failure
     }
-    lpjs_log("Running job in %s.\n", working_dir);
-    lpjs_log("CWD = %s\n", getcwd(wd, PATH_MAX + 1));
-    lpjs_log("getcwd(): %s\n", strerror(errno));
+    lpjs_log("CWD = %s\n", getcwd(temp_wd, PATH_MAX + 1));
+    lpjs_log("If CWD == NULL, this is errno: %s\n", strerror(errno));
     
     /*
      *  Save script
@@ -395,7 +395,7 @@ int     lpjs_run_script(job_t *job, const char *script_start)
     if ( getuid() == 0 )
 	lpjs_chown(job, job_script_name);
     else
-	lpjs_log("Running as uid %d, can't alter script ownership.\n", getuid());
+	lpjs_log("Running as uid %d, can't change script ownership.\n", getuid());
     
     /*
      *  FIXME: Update node status (keep a copy here in case
