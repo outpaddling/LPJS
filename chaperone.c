@@ -97,6 +97,7 @@ int     main (int argc, char *argv[])
     // status = system(cmd);
     
     gethostname(hostname, sysconf(_SC_HOST_NAME_MAX));
+    getcwd(wd, PATH_MAX + 1);
     lpjs_log("Running %s in %s on %s with %u procs and %lu MiB.\n",
 	    job_script_name, wd, hostname, procs, mem_per_proc);
     

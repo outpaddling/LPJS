@@ -67,7 +67,8 @@ void    job_init(job_t *job)
     job->submit_host = NULL;
     job->submit_directory = NULL;
     job->script_name = NULL;
-    job->push_command = "rsync -av %w %h:%d";
+    // Default: Send contents of temp working dir to working dir on submit host
+    job->push_command = "rsync -av %w/ %h:%d";
 }
 
 
