@@ -277,7 +277,7 @@ int     lpjs_process_events(node_list_t *node_list)
 	 */
 	nfds = highest_fd + 1;
 	
-	lpjs_log("Running select...\n");
+	lpjs_log("%s(): Running select...\n", __FUNCTION__);
 	if ( select(nfds, &read_fds, NULL, NULL, LPJS_NO_SELECT_TIMEOUT) > 0 )
 	{
 	    //lpjs_log("Checking comp fds...\n");
@@ -290,7 +290,7 @@ int     lpjs_process_events(node_list_t *node_list)
 				     node_list, pending_jobs, running_jobs);
 	}
 	else
-	    lpjs_log("select() returned 0.\n");
+	    lpjs_log("select() returned 0.  This is odd with no timeout.\n");
     }
     close(listen_fd);
     return EX_OK;
@@ -475,7 +475,6 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
     int             items;
     job_t           *job;
     
-    lpjs_log("In %s():\n", __FUNCTION__);
     bytes = 0;
     if ( FD_ISSET(listen_fd, read_fds) )
     {
@@ -500,7 +499,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		free(munge_payload);
 		return bytes;
 	    }
-	    lpjs_log("%s(): Got %zd byte message.\n", __FUNCTION__, bytes);
+	    // lpjs_log("%s(): Got %zd byte message.\n", __FUNCTION__, bytes);
 	    // bytes must be at least 1, or no mem is allocated
 	    munge_payload[bytes] = '\0';
 	    lpjs_log("%s(): Request code = %d\n", __FUNCTION__, munge_payload[0]);
@@ -539,11 +538,10 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 				pending_jobs, running_jobs,
 				munge_uid, munge_gid);
 		    lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
-		    lpjs_log("Back from lpjs_dispatch_jobs().\n");
 		    break;
 
 		case    LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:
-		    lpjs_log("Job completion report:\n%s\n",
+		    lpjs_log("LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:\n%s\n",
 			    munge_payload + 1);
 		    
 		    p = munge_payload + 1;
@@ -559,7 +557,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    if ( (items = sscanf(p, "%lu %u %zu",
 			    &job_id, &procs_per_job, &mem_per_proc)) != 3 )
 		    {
-			lpjs_log("%s(): Got %d items reading job_id, procs and mem.\n",
+			lpjs_log("%s(): Error: Got %d items reading job_id, procs and mem.\n",
 				items);
 			break;
 		    }
