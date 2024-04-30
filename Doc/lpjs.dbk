@@ -303,7 +303,11 @@ compute compute002.mydomain
         <title>Advanced configuration</title>
         
         <para>
-        TBD
+        macOS nodes may require that full disk access be granted to
+        lpjs_compd in System Settings, Privacy and Security.  Otherwise,
+        you may see "operation not permitted" errors in the log when
+        trying to access NFS shares and other directories that Apple
+        has deemed worthy of privacy protections.
         </para>
     </chapter>
 </book>

@@ -54,10 +54,12 @@ int     lpjs_select_nodes()
  *  2024-01-22  Jason Bacon Begin
  ***************************************************************************/
 
-int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
+int     lpjs_dispatch_next_job(node_list_t *node_list,
+			       job_list_t *pending_jobs,
+			       job_list_t *running_jobs)
 
 {
-    job_t       *job = job_new();    // exits if malloc fails, no need to check
+    job_t       *job;
     node_list_t *matched_nodes = node_list_new();
     char        pending_path[PATH_MAX + 1],
 		running_path[PATH_MAX + 1],
@@ -76,11 +78,8 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
      *  next job in the queue
      */
     
-    if ( lpjs_select_next_job(job) < 1 )
-    {
-	free(job);
+    if ( lpjs_select_next_job(pending_jobs, &job) < 1 )
 	return 0;
-    }
     
     /*
      *  Look through available nodes and select the best match
@@ -103,6 +102,9 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	lpjs_log("Moving %s to %s...\n", pending_path, running_path);
 	rename(pending_path, running_path);
 	
+	job_list_add_job(running_jobs, job);
+	job_list_remove_job(pending_jobs, job_get_job_id(job));
+	
 	/*
 	 *  Load script from spool/lpjs/running
 	 */
@@ -119,8 +121,8 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	    return 0;
 	}
 	
-	// lpjs_log("Script %s is %zd bytes.\n", script_path, script_size);
-	// fprintf(Log_stream, "Script:\n%s\n", script_buff);
+	//lpjs_log("Script %s is %zd bytes.\n", script_path, script_size);
+	//fprintf(Log_stream, "Script:\n%s\n", script_buff);
 	
 	/*
 	 *  For each matching node
@@ -143,7 +145,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	    job_print_to_string(job, outgoing_msg + 1, LPJS_JOB_MSG_MAX + 1);
 	    strlcat(outgoing_msg, script_buff, LPJS_JOB_MSG_MAX + 1);
 	    // FIXME: Check for truncation
-	    // lpjs_log("%s(): outgoing job msg:\n%s\n", __FUNCTION__, outgoing_msg + 1);
+	    lpjs_log("%s(): outgoing job msg:\n%s\n", __FUNCTION__, outgoing_msg + 1);
 	    
 	    // FIXME: Needs adjustment for MPI jobs at the least
 	    procs_used = node_get_procs_used(node);
@@ -176,8 +178,6 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
 	dispatched = 0;
     }
     
-    free(job);
-    
     return dispatched;
 }
 
@@ -200,11 +200,13 @@ int     lpjs_dispatch_next_job(node_list_t *node_list, job_list_t *job_list)
  ***************************************************************************/
 
 
-int     lpjs_dispatch_jobs(node_list_t *node_list, job_list_t *job_list)
+int     lpjs_dispatch_jobs(node_list_t *node_list,
+			   job_list_t *pending_jobs,
+			   job_list_t *running_jobs)
 
 {
     // Dispatch as many jobs as possible before resuming
-    while ( lpjs_dispatch_next_job(node_list, job_list) > 0 )
+    while ( lpjs_dispatch_next_job(node_list, pending_jobs, running_jobs) > 0 )
 	;
     
     return 0;
@@ -224,9 +226,29 @@ int     lpjs_dispatch_jobs(node_list_t *node_list, job_list_t *job_list)
  *  2024-01-29  Jason Bacon Begin
  ***************************************************************************/
 
-int     lpjs_select_next_job(job_t *job)
+unsigned long   lpjs_select_next_job(job_list_t *pending_jobs, job_t **job)
 
 {
+    unsigned long   low_job_id;
+    extern FILE     *Log_stream;
+    
+    if ( job_list_get_count(pending_jobs) == 0 )
+    {
+	lpjs_log("%s(): No pending jobs.\n", __FUNCTION__);
+	return 0;
+    }
+    else
+    {
+	*job = job_list_get_jobs_ae(pending_jobs, 0);
+	low_job_id = job_get_job_id(*job);
+	lpjs_log("%s(): Selected job %lu to dispatch.\n",
+		 __FUNCTION__, low_job_id);
+	job_print(*job, Log_stream);
+	return low_job_id;
+    }
+    
+// Old method, searching spool dir
+#if 0
     DIR             *dp;
     struct dirent   *entry;
     unsigned long   low_job_id,
@@ -287,6 +309,7 @@ int     lpjs_select_next_job(job_t *job)
 	
 	return low_job_id;
     }
+#endif
 }
 
 
@@ -396,7 +419,7 @@ int     lpjs_get_usable_procs(job_t *job, node_t *node)
 }
 
 
-int     lpjs_remove_job(job_list_t *job_list, unsigned long job_id)
+job_t   *lpjs_remove_job(job_list_t *running_jobs, unsigned long job_id)
 
 {
     char    running_path[PATH_MAX + 1];
@@ -414,9 +437,6 @@ int     lpjs_remove_job(job_list_t *job_list, unsigned long job_id)
 	// WEXITED is implicitly set for waitpid(), but specify for readability
 	waitpid(pid, &status, WEXITED);
     
-    // FIXME: Remove from job_list
-    job_list_remove_job(job_list, job_id);
-    
-    // FIXME: Define exit codes
-    return 0;
+    // FIXME: Remove from running_jobs
+    return job_list_remove_job(running_jobs, job_id);
 }

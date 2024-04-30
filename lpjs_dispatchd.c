@@ -47,7 +47,6 @@ int     main(int argc,char *argv[])
 
 {
     node_list_t *node_list = node_list_new();   // Exits if malloc() fails
-    job_list_t  *job_list = job_list_new();
     uid_t       daemon_uid;
     gid_t       daemon_gid;
     
@@ -211,7 +210,7 @@ int     main(int argc,char *argv[])
     signal(SIGINT, lpjs_terminate_handler);
     signal(SIGTERM, lpjs_terminate_handler);
 
-    return lpjs_process_events(node_list, job_list);
+    return lpjs_process_events(node_list);
 }
 
 
@@ -225,11 +224,14 @@ int     main(int argc,char *argv[])
  *  2021-09-25  Jason Bacon Begin
  ***************************************************************************/
 
-int     lpjs_process_events(node_list_t *node_list, job_list_t *job_list)
+int     lpjs_process_events(node_list_t *node_list)
 
 {
     int                 listen_fd;
     struct sockaddr_in  server_address = { 0 };
+    // job_list_new() terminates process if malloc fails, no need to check
+    job_list_t          *pending_jobs = job_list_new(),
+			*running_jobs = job_list_new();
 
     /*
      *  Step 1: Create a socket for listening for new connections.
@@ -279,13 +281,13 @@ int     lpjs_process_events(node_list_t *node_list, job_list_t *job_list)
 	if ( select(nfds, &read_fds, NULL, NULL, LPJS_NO_SELECT_TIMEOUT) > 0 )
 	{
 	    //lpjs_log("Checking comp fds...\n");
-	    lpjs_check_comp_fds(&read_fds, node_list, job_list);
+	    lpjs_check_comp_fds(&read_fds, node_list, running_jobs);
 	    
 	    //lpjs_log("Checking listen fd...\n");
 	    // Check FD_ISSET before calling function to avoid overhead
 	    if ( FD_ISSET(listen_fd, &read_fds) )
 		lpjs_check_listen_fd(listen_fd, &read_fds, &server_address,
-				     node_list, job_list);
+				     node_list, pending_jobs, running_jobs);
 	}
 	else
 	    lpjs_log("select() returned 0.\n");
@@ -324,7 +326,7 @@ void    lpjs_log_job(const char *incoming_msg)
  ***************************************************************************/
 
 void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
-			    job_list_t *job_list)
+			    job_list_t *running_jobs)
 
 {
     node_t  *node = node_new();
@@ -454,7 +456,8 @@ int     lpjs_listen(struct sockaddr_in *server_address)
 
 int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 			     struct sockaddr_in *server_address,
-			     node_list_t *node_list, job_list_t *job_list)
+			     node_list_t *node_list,
+			     job_list_t *pending_jobs, job_list_t *running_jobs)
 
 {
     int             msg_fd;
@@ -470,6 +473,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
     size_t          mem_per_proc;
     node_t          *node;
     int             items;
+    job_t           *job;
     
     lpjs_log("In %s():\n", __FUNCTION__);
     bytes = 0;
@@ -508,7 +512,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    lpjs_log("LPJS_DISPATCHD_REQUEST_COMPD_CHECKIN\n");
 		    lpjs_process_compute_node_checkin(msg_fd, munge_payload,
 						      node_list, munge_uid, munge_gid);
-		    lpjs_dispatch_jobs(node_list, job_list);
+		    lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
 		    break;
 		
 		case    LPJS_DISPATCHD_REQUEST_NODE_STATUS:
@@ -522,15 +526,19 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		
 		case    LPJS_DISPATCHD_REQUEST_JOB_STATUS:
 		    lpjs_log("LPJS_DISPATCHD_REQUEST_JOB_STATUS\n");
-		    job_list_send_params(msg_fd, job_list);
+		    lpjs_send_munge(msg_fd, "Pending\n\n");
+		    job_list_send_params(msg_fd, pending_jobs);
+		    lpjs_send_munge(msg_fd, "\nRunning\n\n");
+		    job_list_send_params(msg_fd, running_jobs);
 		    lpjs_server_safe_close(msg_fd);
 		    break;
 		
 		case    LPJS_DISPATCHD_REQUEST_SUBMIT:
 		    lpjs_log("LPJS_DISPATCHD_REQUEST_SUBMIT\n");
-		    lpjs_submit(msg_fd, munge_payload, node_list, job_list,
+		    lpjs_submit(msg_fd, munge_payload, node_list,
+				pending_jobs, running_jobs,
 				munge_uid, munge_gid);
-		    lpjs_dispatch_jobs(node_list, job_list);
+		    lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
 		    lpjs_log("Back from lpjs_dispatch_jobs().\n");
 		    break;
 
@@ -568,10 +576,12 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		     *      Note the job completion in the main log
 		     */
 		    
-		    lpjs_remove_job(job_list, job_id);
+		    // FIXME: Report error if NULL
+		    if ( (job = lpjs_remove_job(running_jobs, job_id)) != NULL )
+			job_free(&job);
 		    
 		    lpjs_log("Dispatching more jobs...\n");
-		    lpjs_dispatch_jobs(node_list, job_list);
+		    lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
 		    break;
 		    
 		default:
@@ -671,7 +681,8 @@ void    lpjs_process_compute_node_checkin(int msg_fd, const char *incoming_msg,
  ***************************************************************************/
 
 int     lpjs_submit(int msg_fd, const char *incoming_msg,
-		    node_list_t *node_list, job_list_t *job_list,
+		    node_list_t *node_list,
+		    job_list_t *pending_jobs, job_list_t *running_jobs,
 		    uid_t munge_uid, gid_t munge_gid)
 
 {
@@ -683,7 +694,7 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
     int         c, job_array_index;
     
     // FIXME:
-    // if ( job_list_get_count(job_list) + submit_count > LPJS_MAX_JOBS )
+    // if ( job_list_get_count(running_jobs) + submit_count > LPJS_MAX_JOBS )
     
     // FIXME: Don't accept job submissions from root until
     // security issues have been considered
@@ -707,8 +718,7 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
 	// Create a separate job_t object for each member of the job array
 	// FIXME: Check for success
 	job = job_dup(submission);
-	lpjs_queue_job(msg_fd, job, job_array_index, script_text);
-	job_list_add_job(job_list, job);
+	lpjs_queue_job(msg_fd, pending_jobs, job, job_array_index, script_text);
     }
     
     lpjs_server_safe_close(msg_fd);
@@ -727,8 +737,8 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
  *  2021-09-30  Jason Bacon Begin
  ***************************************************************************/
 
-int     lpjs_queue_job(int msg_fd, job_t *job, unsigned long job_array_index,
-			const char *script_text)
+int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
+		       unsigned long job_array_index, const char *script_text)
 
 {
     char    pending_dir[PATH_MAX + 1],
@@ -807,6 +817,7 @@ int     lpjs_queue_job(int msg_fd, job_t *job, unsigned long job_array_index,
     job_print(job, fp);
     fclose(fp);
     
+    // Back to submit command for terminal output
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX, "Spooled job %lu to %s.\n",
 	    next_job_id, pending_dir);
     lpjs_send_munge(msg_fd, outgoing_msg);
@@ -825,6 +836,8 @@ int     lpjs_queue_job(int msg_fd, job_t *job, unsigned long job_array_index,
 	xt_dprintf(fd, "%lu\n", ++next_job_id);
 	close(fd);
     }
+    
+    job_list_add_job(pending_jobs, job);
     
     return 0;   // FIXME: Define error codes
 }
