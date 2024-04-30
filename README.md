@@ -50,7 +50,14 @@ supports only the
 most basic features and the code is in need significant cleanup.
 
 ```
-FreeBSD coral.acadix  bacon ~/LPJS-test 1013: lpjs nodes
+FreeBSD coral.acadix  bacon ~/Barracuda/LPJS-test 1024: lpjs submit fastq-trim.lpjs
+Spooled job 174 to /usr/local/var/spool/lpjs/pending/174.
+Spooled job 175 to /usr/local/var/spool/lpjs/pending/175.
+Spooled job 176 to /usr/local/var/spool/lpjs/pending/176.
+Spooled job 177 to /usr/local/var/spool/lpjs/pending/177.
+Spooled job 178 to /usr/local/var/spool/lpjs/pending/178.
+
+FreeBSD coral.acadix  bacon ~/Barracuda/LPJS-test 1025: lpjs nodes
 LPJS_DISPATCHD_REQUEST_NODE_STATUS sent.
 Hostname             State    Procs Used PhysMiB    Used OS        Arch     
 barracuda.acadix.biz Up           4    3   16350     150 FreeBSD   amd64    
@@ -58,14 +65,23 @@ tarpon.acadix.biz    Up           8    6    8192     300 Darwin    arm64
 
 Total                Up          12    9   24542     450 -         -        
 Total                Down         0    0       0       0 -         -        
-FreeBSD coral.acadix  bacon ~/LPJS-test 1013: lpjs jobs
+
+FreeBSD coral.acadix  bacon ~/Barracuda/LPJS-test 1026: lpjs jobs
 
 Legend: P = processor  J = job  N = node
 
+Pending
+
     JobID  IDX Jobs P/J P/N MiB/P User Submit-host Script
-       12    2    5   3   3    50 bacon coral.acadix.biz fastq-trim.lpjs
-       14    4    5   3   3    50 bacon coral.acadix.biz fastq-trim.lpjs
-       15    5    5   3   3    50 bacon coral.acadix.biz fastq-trim.lpjs
+      177    4    5   3   3    50 bacon coral.acadix.biz fastq-trim.lpjs
+      178    5    5   3   3    50 bacon coral.acadix.biz fastq-trim.lpjs
+
+Running
+
+    JobID  IDX Jobs P/J P/N MiB/P User Submit-host Script
+      174    1    5   3   3    50 bacon coral.acadix.biz fastq-trim.lpjs
+      175    2    5   3   3    50 bacon coral.acadix.biz fastq-trim.lpjs
+      176    3    5   3   3    50 bacon coral.acadix.biz fastq-trim.lpjs
 ```
 
 We anticipate having a minimal working batch system in place sometime in
