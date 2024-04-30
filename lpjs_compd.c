@@ -544,9 +544,14 @@ void    lpjs_chown(job_t *job, const char *path)
 	lpjs_log("%s(): chown() failed.\n", __FUNCTION__);
 
     // It's OK if this fails, groups may differ on different nodes
-    gr_ent = getgrnam(job_get_primary_group_name(job));
-    lpjs_log("User %u changing ownership of %s to group %u.\n",
-	    getuid(), path, gr_ent->gr_gid);
-    if ( chown(path, -1, gr_ent->gr_gid) != 0 )
-	lpjs_log("%s(): chown() failed.\n", __FUNCTION__);
+    if ( (gr_ent = getgrnam(job_get_primary_group_name(job))) != NULL )
+    {
+	lpjs_log("User %u changing ownership of %s to group %u.\n",
+		getuid(), path, gr_ent->gr_gid);
+	if ( chown(path, -1, gr_ent->gr_gid) != 0 )
+	    lpjs_log("%s(): chown() failed.\n", __FUNCTION__);
+    }
+    else
+	lpjs_log("INFO: No %s group on this host.\n",
+		job_get_primary_group_name(job));
 }
