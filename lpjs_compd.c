@@ -294,6 +294,7 @@ int     lpjs_run_script(job_t *job, const char *script_start)
 
 {
     char    temp_wd[PATH_MAX + 1],
+	    log_dir[PATH_MAX + 1],
 	    job_script_name[PATH_MAX + 1],
 	    shared_fs_marker[PATH_MAX + 1],
 	    shared_fs_marker_path[PATH_MAX + 1],
@@ -375,8 +376,12 @@ int     lpjs_run_script(job_t *job, const char *script_start)
      *  Save script
      */
     
-    snprintf(job_script_name, PATH_MAX + 1, "lpjs-job-%lu-%s",
-	    job_get_job_id(job), job_get_script_name(job));
+    // FIXME: This is duplicated, factor it out
+    snprintf(log_dir, PATH_MAX + 1, "LPJS-job-%lu-logs", job_get_job_id(job));
+
+    mkdir(log_dir, 0700);
+    snprintf(job_script_name, PATH_MAX + 1, "%s/%s",
+	    log_dir, job_get_script_name(job));
     lpjs_log("Saving job script to %s.\n", job_script_name);
     if ( (fd = open(job_script_name, O_WRONLY|O_CREAT|O_TRUNC, 0700)) == -1 )
     {

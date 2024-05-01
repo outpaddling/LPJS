@@ -40,15 +40,17 @@ int     main (int argc, char *argv[])
     char        *job_script_name,
 		*temp,
 		*end,
+		*job_id,
+		log_dir[PATH_MAX + 1],
 		log_file[PATH_MAX + 1],
 		outgoing_msg[LPJS_MSG_LEN_MAX + 1],
-		wd[PATH_MAX + 1];
-    pid_t       pid;
-    extern FILE *Log_stream;
-    char        hostname[sysconf(_SC_HOST_NAME_MAX) + 1];
-    char        shared_fs_marker[PATH_MAX + 1],
+		wd[PATH_MAX + 1],
+		hostname[sysconf(_SC_HOST_NAME_MAX) + 1],
+		shared_fs_marker[PATH_MAX + 1],
 		cmd[LPJS_CMD_MAX + 1],
 		new_path[4096];
+    pid_t       pid;
+    extern FILE *Log_stream;
     struct stat st;
     
     if ( argc != 2 )
@@ -60,8 +62,12 @@ int     main (int argc, char *argv[])
     job_script_name = argv[1];
 
     // Chaperone outputs stderr to a log file in the working dir
-    snprintf(log_file, PATH_MAX + 1, "chaperone-%s.stderr",
-	     getenv("LPJS_JOB_ID"));
+    // FIXME: This is duplicated, factor it out
+    job_id = getenv("LPJS_JOB_ID");
+    snprintf(log_dir, PATH_MAX + 1, "LPJS-job-%s-logs", job_id);
+
+    snprintf(log_file, PATH_MAX + 1, "%s/chaperone-%s.stderr",
+	     log_dir, job_id);
     if ( (Log_stream = lpjs_log_output(log_file)) == NULL )
     {
 	fprintf(stderr, "chaperone: Failed to create log file.\n");
@@ -129,7 +135,7 @@ int     main (int argc, char *argv[])
     /* Send job completion message to dispatchd */
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%s %s %s %s\n",
 	     LPJS_DISPATCHD_REQUEST_JOB_COMPLETE, hostname,
-	     getenv("LPJS_JOB_ID"), getenv("LPJS_CORES_PER_JOB"),
+	     job_id, getenv("LPJS_CORES_PER_JOB"),
 	     getenv("LPJS_MEM_PER_CORE"));
     if ( lpjs_send_munge(msg_fd, outgoing_msg) != EX_OK )
     {
