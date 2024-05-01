@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <sysexits.h>
 #include <errno.h>
+#include <fcntl.h>          // open()
 #include <sys/wait.h>       // FIXME: Replace wait() with active monitoring
 
 #include <xtend/string.h>
@@ -34,7 +35,8 @@ int     main (int argc, char *argv[])
 
 {
     int         msg_fd,
-		status;
+		status,
+		push_status;
     unsigned    procs;
     unsigned long   mem_per_proc;
     node_list_t *node_list = node_list_new();
@@ -218,20 +220,34 @@ int     main (int argc, char *argv[])
 	*sp = '\0';
 	lpjs_log("Transferring temporary working dir: %s\n", wd);
 	lpjs_log("push command = %s\n", cmd);
-	system(cmd);
 	
 	// No more lpjs_log() beyond here.  Log file already transferred.
+	// Close log before pushing temp dir to ensure that it's complete
 	fclose(Log_stream);
+	push_status = system(cmd);
 	
 	// FIXME: Save absolute pathnames of temporary working dirs,
 	// along with creation date, and remove them after a specified
 	// period, e.g. 1 day.
 	
-	// Remove temporary working dir unless sysadmin allows retention
-	// FIXME: Check for sysadmin-controlled "keep" option and errors
-	lpjs_log("Removing temporary working dir...\n");
-	snprintf(cmd, LPJS_CMD_MAX + 1, "rm -rf %s", wd);
-	// system(cmd);
+	// Remove temporary working dir if successfully transferred
+	if ( push_status == 0 )
+	{
+	    lpjs_log("Removing temporary working dir...\n");
+	    snprintf(cmd, LPJS_CMD_MAX + 1, "rm -rf %s", wd);
+	    system(cmd);    // Log is closed, no point checking status
+	}
+	else
+	{
+	    // Create marker file
+	    // FIXME: Check time stamp on markers and remove them if expired
+	    char    marker[PATH_MAX + 1];
+	    int     fd;
+	    
+	    snprintf(marker, PATH_MAX + 1, "%s/lpjs-remove-me\n", wd);
+	    if ( (fd = open(marker, O_WRONLY|O_CREAT, 0644)) != -1 )
+		close(fd);
+	}
     }
 
     return status;
