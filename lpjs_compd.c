@@ -93,7 +93,7 @@ int     main (int argc, char *argv[])
     // Get hostname of head node
     lpjs_load_config(node_list, LPJS_CONFIG_HEAD_ONLY, Log_stream);
 
-    msg_fd = lpjs_checkin_loop(node_list, node);
+    msg_fd = lpjs_compd_checkin_loop(node_list, node);
     poll_fd.fd = msg_fd;
     // POLLERR and POLLHUP are actually always set.  Listing POLLHUP here just
     // for documentation.
@@ -118,7 +118,7 @@ int     main (int argc, char *argv[])
 	    close(msg_fd);
 	    lpjs_log("Lost connection to dispatchd: HUP received.\n");
 	    sleep(LPJS_RETRY_TIME);  // No point trying immediately after drop
-	    msg_fd = lpjs_checkin_loop(node_list, node);
+	    msg_fd = lpjs_compd_checkin_loop(node_list, node);
 	}
 	
 	if (poll_fd.revents & POLLERR)
@@ -148,7 +148,7 @@ int     main (int argc, char *argv[])
 		lpjs_log("%s(): Error reading from dispatchd.  Disconnecting...\n",
 			__FUNCTION__);
 		poll_fd.revents = 0;
-		msg_fd = lpjs_checkin_loop(node_list, node);
+		msg_fd = lpjs_compd_checkin_loop(node_list, node);
 	    }
 	    else if ( munge_payload[0] == LPJS_EOT )
 	    {
@@ -161,7 +161,7 @@ int     main (int argc, char *argv[])
 		// Ignore HUP that follows EOT
 		// FIXME: This might be bad timing
 		poll_fd.revents &= ~POLLHUP;
-		msg_fd = lpjs_checkin_loop(node_list, node);
+		msg_fd = lpjs_compd_checkin_loop(node_list, node);
 	    }
 	    else if ( munge_payload[0] == LPJS_COMPD_REQUEST_NEW_JOB )
 	    {
@@ -251,7 +251,7 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
  *  2024-01-23  Jason Bacon Begin
  ***************************************************************************/
 
-int     lpjs_checkin_loop(node_list_t *node_list, node_t *node)
+int     lpjs_compd_checkin_loop(node_list_t *node_list, node_t *node)
 
 {
     int     msg_fd,

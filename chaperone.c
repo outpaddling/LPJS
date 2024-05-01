@@ -28,6 +28,7 @@
 #include "network.h"
 #include "misc.h"
 #include "lpjs.h"
+#include "chaperone-protos.h"
 
 int     main (int argc, char *argv[])
 
@@ -118,6 +119,8 @@ int     main (int argc, char *argv[])
     }
     else
     {
+	lpjs_chaperone_checkin_loop(node_list, job_id, pid);
+	
 	// FIXME: Chaperone, monitor resource use of child
 	// Maybe ptrace(), though seemingly not well standardized
 	wait(&status);
@@ -232,4 +235,95 @@ int     main (int argc, char *argv[])
     }
 
     return status;
+}
+
+
+int     lpjs_chaperone_checkin(int msg_fd, char *job_id, pid_t job_pid)
+
+{
+    char        outgoing_msg[LPJS_MSG_LEN_MAX + 1],
+		incoming_msg[LPJS_MSG_LEN_MAX + 1];
+    extern FILE *Log_stream;
+    
+    /* Send a message to the server */
+    /* Need to send \0, so xt_dprintf() doesn't work here */
+    snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1,
+	    "%c%s %u %d", LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN,
+	    job_id, getpid(), job_pid);
+    lpjs_log("%s(): Sending PIDs to dispatchd:\n", __FUNCTION__);
+    fprintf(Log_stream, "%s\n", outgoing_msg + 1);
+    if ( lpjs_send_munge(msg_fd, outgoing_msg) != EX_OK )
+    {
+	lpjs_log("Failed to send checkin message to dispatchd: %s",
+		strerror(errno));
+	close(msg_fd);
+	return EX_IOERR;
+    }
+    lpjs_log("%s(): Sent checkin request.\n", __FUNCTION__);
+
+    // FIXME: Just sending a credential with no payload for now, to
+    // authenticate the socket connection.  Not sure if we should worry
+    // about a connection-oriented socket getting hijacked and
+    // munge other communication as well.
+    // if ( lpjs_send_munge(msg_fd, NULL) != EX_OK )
+    //     return EX_DATAERR;
+
+    lpjs_recv(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 0);
+    if ( strcmp(incoming_msg, "Node authorized") != 0 )
+    {
+	lpjs_log("%s(): This node is not authorized to connect.\n"
+		 "It must be added to the etc/lpjs/config on the head node.\n",
+		 __FUNCTION__);
+	exit(EX_NOPERM);
+    }
+    else
+	lpjs_log("%s(): Received authorization from lpjs_dispatchd.\n",
+		__FUNCTION__);
+
+    return EX_OK;
+}
+
+
+
+/***************************************************************************
+ *  Description:
+ *      Connect to dispatchd and send checkin request.
+ *      Retry indefinitely if failure occurs.
+ *
+ *  Returns:
+ *      File descriptor for ongoing connection to dispatchd.
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-23  Jason Bacon Begin
+ ***************************************************************************/
+
+int     lpjs_chaperone_checkin_loop(node_list_t *node_list,
+				    char *job_id, pid_t job_pid)
+
+{
+    int     msg_fd,
+	    status;
+    
+    // Retry socket connection indefinitely
+    while ( (msg_fd = lpjs_connect_to_dispatchd(node_list)) == -1 )
+    {
+	lpjs_log("%s(): Failed to connect to dispatchd: %s\n",
+		__FUNCTION__, strerror(errno));
+	lpjs_log("Retry in %d seconds...\n", LPJS_RETRY_TIME);
+	sleep(LPJS_RETRY_TIME);
+    }
+    
+    // Retry checking request indefinitely
+    while ( (status = lpjs_chaperone_checkin(msg_fd, job_id, job_pid)) != EX_OK )
+    {
+	lpjs_log("%s(): chaperone-checkin failed.  Retry in %d seconds...\n",
+		 __FUNCTION__, LPJS_RETRY_TIME);
+	sleep(LPJS_RETRY_TIME);
+    }
+    
+    lpjs_log("%s(): Checkin successful.\n", __FUNCTION__);
+    
+    close(msg_fd);
+    return 0;   // FIXME: Define return codes
 }

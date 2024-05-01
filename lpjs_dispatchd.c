@@ -540,6 +540,19 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
 		    break;
 
+		case    LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN:
+		    lpjs_log("LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN:\n%s\n",
+			    munge_payload + 1);
+		    lpjs_send(msg_fd, 0, "Node authorized");
+		    
+		    /*
+		     *  We don't keep potentially thousands of open
+		     *  connections, one for every process
+		     *  No change in node status, don't try to dispatch jobs
+		     */
+		    close(msg_fd);
+		    break;
+		    
 		case    LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:
 		    lpjs_log("LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:\n%s\n",
 			    munge_payload + 1);
