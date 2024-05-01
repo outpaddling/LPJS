@@ -119,7 +119,7 @@ int     main (int argc, char *argv[])
     }
     else
     {
-	lpjs_chaperone_checkin_loop(node_list, job_id, pid);
+	lpjs_chaperone_checkin_loop(node_list, hostname, job_id, pid);
 	
 	// FIXME: Chaperone, monitor resource use of child
 	// Maybe ptrace(), though seemingly not well standardized
@@ -238,7 +238,9 @@ int     main (int argc, char *argv[])
 }
 
 
-int     lpjs_chaperone_checkin(int msg_fd, char *job_id, pid_t job_pid)
+int     lpjs_chaperone_checkin(int msg_fd,
+			       const char *hostname, const char *job_id,
+			       pid_t job_pid)
 
 {
     char        outgoing_msg[LPJS_MSG_LEN_MAX + 1],
@@ -248,8 +250,8 @@ int     lpjs_chaperone_checkin(int msg_fd, char *job_id, pid_t job_pid)
     /* Send a message to the server */
     /* Need to send \0, so xt_dprintf() doesn't work here */
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1,
-	    "%c%s %u %d", LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN,
-	    job_id, getpid(), job_pid);
+	    "%c%s %s %u %d", LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN,
+	    hostname, job_id, getpid(), job_pid);
     lpjs_log("%s(): Sending PIDs to dispatchd:\n", __FUNCTION__);
     fprintf(Log_stream, "%s\n", outgoing_msg + 1);
     if ( lpjs_send_munge(msg_fd, outgoing_msg) != EX_OK )
@@ -299,7 +301,8 @@ int     lpjs_chaperone_checkin(int msg_fd, char *job_id, pid_t job_pid)
  ***************************************************************************/
 
 int     lpjs_chaperone_checkin_loop(node_list_t *node_list,
-				    char *job_id, pid_t job_pid)
+				    const char *hostname,
+				    const char *job_id, pid_t job_pid)
 
 {
     int     msg_fd,
@@ -315,7 +318,7 @@ int     lpjs_chaperone_checkin_loop(node_list_t *node_list,
     }
     
     // Retry checking request indefinitely
-    while ( (status = lpjs_chaperone_checkin(msg_fd, job_id, job_pid)) != EX_OK )
+    while ( (status = lpjs_chaperone_checkin(msg_fd, hostname, job_id, job_pid)) != EX_OK )
     {
 	lpjs_log("%s(): chaperone-checkin failed.  Retry in %d seconds...\n",
 		 __FUNCTION__, LPJS_RETRY_TIME);
