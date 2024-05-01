@@ -62,11 +62,14 @@ void    job_init(job_t *job)
     job->procs_per_job = 0;
     job->min_procs_per_node = 0;
     job->mem_per_proc = 0;
+    job->chaperone_pid = 0;
+    job->job_pid = 0;
     job->user_name = NULL;
     job->primary_group_name = NULL;
-    job->submit_host = NULL;
+    job->submit_node = NULL;
     job->submit_directory = NULL;
     job->script_name = NULL;
+    job->compute_node = NULL;
     // Default: Send contents of temp working dir to working dir on submit host
     job->push_command = "rsync -av %w/ %h:%d";
 }
@@ -86,7 +89,7 @@ job_t   *job_dup(job_t *job)
     // FIXME: Check malloc success
     new_job->user_name = strdup(job->user_name);
     new_job->primary_group_name = strdup(job->primary_group_name);
-    new_job->submit_host = strdup(job->submit_host);
+    new_job->submit_node = strdup(job->submit_node);
     new_job->submit_directory = strdup(job->submit_directory);
     new_job->script_name = strdup(job->script_name);
     new_job->push_command = strdup(job->push_command);
@@ -110,9 +113,10 @@ int     job_print(job_t *job, FILE *stream)
     return fprintf(stream, JOB_SPEC_FORMAT, job->job_id, job->array_index,
 	    job->job_count, job->procs_per_job,
 	    job->min_procs_per_node, job->mem_per_proc,
+	    job->chaperone_pid, job->job_pid,
 	    job->user_name, job->primary_group_name,
-	    job->submit_host, job->submit_directory,
-	    job->script_name, job->push_command);
+	    job->submit_node, job->submit_directory,
+	    job->script_name, job->compute_node, job->push_command);
 }
 
 
@@ -132,9 +136,10 @@ int     job_print_to_string(job_t *job, char *str, size_t buff_size)
 		    job->job_id, job->array_index,
 		    job->job_count, job->procs_per_job,
 		    job->min_procs_per_node, job->mem_per_proc,
+		    job->chaperone_pid, job->job_pid,
 		    job->user_name, job->primary_group_name,
-		    job->submit_host, job->submit_directory,
-		    job->script_name, job->push_command);
+		    job->submit_node, job->submit_directory,
+		    job->script_name, job->compute_node, job->push_command);
 }
 
 
@@ -157,7 +162,7 @@ void    job_send_basic_params(job_t *job, int msg_fd)
 	    job->job_count, job->procs_per_job,
 	    job->min_procs_per_node, job->mem_per_proc,
 	    job->user_name,
-	    job->submit_host,
+	    job->submit_node,
 	    job->script_name);
     
     if ( lpjs_send_munge(msg_fd, msg) != EX_OK )
@@ -207,7 +212,7 @@ int     job_parse_script(job_t *job, const char *script_name)
     }
     
     gethostname(temp_hostname, sysconf(_SC_HOST_NAME_MAX));
-    if ( (job->submit_host = strdup(temp_hostname)) == NULL )
+    if ( (job->submit_node = strdup(temp_hostname)) == NULL )
     {
 	fprintf(stderr, "%s: malloc() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
@@ -397,7 +402,8 @@ int     job_read_from_string(job_t *job, const char *string, char **end)
     items = sscanf(string, JOB_SPEC_NUMS_FORMAT,
 	    &job->job_id, &job->array_index,
 	    &job->job_count, &job->procs_per_job,
-	    &job->min_procs_per_node, &job->mem_per_proc);
+	    &job->min_procs_per_node, &job->mem_per_proc,
+	    &job->chaperone_pid, &job->job_pid);
     
     // Skips past numeric fields
     for (start = string, tokens = 0;
@@ -439,7 +445,7 @@ int     job_read_from_string(job_t *job, const char *string, char **end)
     }
     ++items;
     
-    if ( (job->submit_host = strdup(strsep(&p, " \t"))) == NULL )
+    if ( (job->submit_node = strdup(strsep(&p, " \t"))) == NULL )
     {
 	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
@@ -454,6 +460,13 @@ int     job_read_from_string(job_t *job, const char *string, char **end)
     ++items;
     
     if ( (job->script_name = strdup(strsep(&p, " \t\n"))) == NULL )
+    {
+	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
+	exit(EX_UNAVAILABLE);
+    }
+    ++items;
+    
+    if ( (job->compute_node = strdup(strsep(&p, " \t\n"))) == NULL )
     {
 	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
@@ -553,7 +566,7 @@ void    job_free(job_t **job)
 {
     free((*job)->user_name);
     free((*job)->primary_group_name);
-    free((*job)->submit_host);
+    free((*job)->submit_node);
     free((*job)->submit_directory);
     free((*job)->script_name);
     free((*job)->push_command);
@@ -643,7 +656,7 @@ void    job_setenv(job_t *job)
 	    LPJS_MAX_INT_DIGITS + 1), 1);
     setenv("LPJS_USER_NAME", job->user_name, 1);
     setenv("LPJS_PRIMARY_GROUP_NAME", job->primary_group_name, 1);
-    setenv("LPJS_SUBMIT_HOST", job->submit_host, 1);
+    setenv("LPJS_SUBMIT_HOST", job->submit_node, 1);
     setenv("LPJS_SUBMIT_DIRECTORY", job->submit_directory, 1);
     setenv("LPJS_SCRIPT_NAME", job->script_name, 1);
     setenv("LPJS_PUSH_COMMAND", job->push_command, 1);

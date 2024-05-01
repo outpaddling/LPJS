@@ -155,7 +155,7 @@ int     main (int argc, char *argv[])
 			     PATH_MAX + 1);
     if ( stat(shared_fs_marker, &st) != 0 )
     {
-	char    *sp, *submit_host, *submit_dir;
+	char    *sp, *submit_node, *submit_dir;
 	size_t  c;
 	
 	chdir("..");    // Can't remove dir while in use
@@ -184,14 +184,14 @@ int     main (int argc, char *argv[])
 			break;
 			
 		    case    'h':
-			submit_host = getenv("LPJS_SUBMIT_HOST");
-			if ( c + strlen(submit_host) > LPJS_CMD_MAX )
+			submit_node = getenv("LPJS_SUBMIT_HOST");
+			if ( c + strlen(submit_node) > LPJS_CMD_MAX )
 			{
 			    lpjs_log("LPJS_PUSH_COMMAND longer than %u, aborting.\n", LPJS_CMD_MAX);
 			    return EX_DATAERR;
 			}
-			strlcpy(cmd + c, submit_host, LPJS_CMD_MAX + 1);
-			c += strlen(submit_host);
+			strlcpy(cmd + c, submit_node, LPJS_CMD_MAX + 1);
+			c += strlen(submit_node);
 			++sp;
 			break;
 			

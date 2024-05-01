@@ -723,7 +723,7 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
     for (c = 0; c < job_get_job_count(submission); ++c)
     {
 	lpjs_log("Submit script %s:%s from %d, %d\n",
-		job_get_submit_host(submission), script_path, munge_uid, munge_gid);
+		job_get_submit_node(submission), script_path, munge_uid, munge_gid);
 	job_array_index = c + 1;    // Job arrays are 1-based
 	
 	// Create a separate job_t object for each member of the job array

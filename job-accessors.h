@@ -9,6 +9,10 @@
  *  as needed before adding to your code.
  */
 
+#ifndef _UNISTD_H_
+#include <unistd.h>
+#endif
+
 /* temp-job-accessors.c */
 unsigned long job_get_job_id(job_t *job_ptr);
 unsigned long job_get_array_index(job_t *job_ptr);
@@ -16,15 +20,19 @@ unsigned job_get_job_count(job_t *job_ptr);
 unsigned job_get_procs_per_job(job_t *job_ptr);
 unsigned job_get_min_procs_per_node(job_t *job_ptr);
 size_t job_get_mem_per_proc(job_t *job_ptr);
+pid_t job_get_chaperone_pid(job_t *job_ptr);
+pid_t job_get_job_pid(job_t *job_ptr);
 char *job_get_user_name(job_t *job_ptr);
 char job_get_user_name_ae(job_t *job_ptr, size_t c);
 char *job_get_primary_group_name(job_t *job_ptr);
 char job_get_primary_group_name_ae(job_t *job_ptr, size_t c);
-char *job_get_submit_host(job_t *job_ptr);
-char job_get_submit_host_ae(job_t *job_ptr, size_t c);
+char *job_get_submit_node(job_t *job_ptr);
+char job_get_submit_node_ae(job_t *job_ptr, size_t c);
 char *job_get_submit_directory(job_t *job_ptr);
 char job_get_submit_directory_ae(job_t *job_ptr, size_t c);
 char *job_get_script_name(job_t *job_ptr);
 char job_get_script_name_ae(job_t *job_ptr, size_t c);
+char *job_get_compute_node(job_t *job_ptr);
+char job_get_compute_node_ae(job_t *job_ptr, size_t c);
 char *job_get_push_command(job_t *job_ptr);
 char job_get_push_command_ae(job_t *job_ptr, size_t c);

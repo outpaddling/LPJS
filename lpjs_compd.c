@@ -312,7 +312,7 @@ int     lpjs_run_script(job_t *job, const char *script_start)
     
     working_dir = job_get_submit_directory(job);
     
-    lpjs_get_marker_filename(shared_fs_marker, job_get_submit_host(job),
+    lpjs_get_marker_filename(shared_fs_marker, job_get_submit_node(job),
 			     PATH_MAX + 1);
     snprintf(shared_fs_marker_path, PATH_MAX + 1, "%s/%s",
 	     working_dir, shared_fs_marker);

@@ -38,7 +38,7 @@
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-04-24  gen-get-set Auto-generated from job-private.h
+ *  2024-05-01  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 unsigned long    job_get_job_id(job_t *job_ptr)
@@ -72,7 +72,7 @@ unsigned long    job_get_job_id(job_t *job_ptr)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-04-24  gen-get-set Auto-generated from job-private.h
+ *  2024-05-01  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 unsigned long    job_get_array_index(job_t *job_ptr)
@@ -106,7 +106,7 @@ unsigned long    job_get_array_index(job_t *job_ptr)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-04-24  gen-get-set Auto-generated from job-private.h
+ *  2024-05-01  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 unsigned    job_get_job_count(job_t *job_ptr)
@@ -140,7 +140,7 @@ unsigned    job_get_job_count(job_t *job_ptr)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-04-24  gen-get-set Auto-generated from job-private.h
+ *  2024-05-01  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 unsigned    job_get_procs_per_job(job_t *job_ptr)
@@ -174,7 +174,7 @@ unsigned    job_get_procs_per_job(job_t *job_ptr)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-04-24  gen-get-set Auto-generated from job-private.h
+ *  2024-05-01  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 unsigned    job_get_min_procs_per_node(job_t *job_ptr)
@@ -208,13 +208,81 @@ unsigned    job_get_min_procs_per_node(job_t *job_ptr)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-04-24  gen-get-set Auto-generated from job-private.h
+ *  2024-05-01  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 size_t    job_get_mem_per_proc(job_t *job_ptr)
 
 {
     return job_ptr->mem_per_proc;
+}
+
+
+/***************************************************************************
+ *  Library:
+ *      #include <job.h>
+ *      
+ *
+ *  Description:
+ *      Accessor for chaperone_pid member in a job_t structure.
+ *      Use this function to get chaperone_pid in a job_t object
+ *      from non-member functions.
+ *
+ *  Arguments:
+ *      job_ptr         Pointer to the structure to set
+ *
+ *  Returns:
+ *      Value of the structure member chaperone_pid.
+ *
+ *  Examples:
+ *      job_t           job;
+ *      pid_t           chaperone_pid;
+ *
+ *      chaperone_pid = job_get_chaperone_pid(&job);
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-05-01  gen-get-set Auto-generated from job-private.h
+ ***************************************************************************/
+
+pid_t    job_get_chaperone_pid(job_t *job_ptr)
+
+{
+    return job_ptr->chaperone_pid;
+}
+
+
+/***************************************************************************
+ *  Library:
+ *      #include <job.h>
+ *      
+ *
+ *  Description:
+ *      Accessor for job_pid member in a job_t structure.
+ *      Use this function to get job_pid in a job_t object
+ *      from non-member functions.
+ *
+ *  Arguments:
+ *      job_ptr         Pointer to the structure to set
+ *
+ *  Returns:
+ *      Value of the structure member job_pid.
+ *
+ *  Examples:
+ *      job_t           job;
+ *      pid_t           job_pid;
+ *
+ *      job_pid = job_get_job_pid(&job);
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-05-01  gen-get-set Auto-generated from job-private.h
+ ***************************************************************************/
+
+pid_t    job_get_job_pid(job_t *job_ptr)
+
+{
+    return job_ptr->job_pid;
 }
 
 
@@ -242,7 +310,7 @@ size_t    job_get_mem_per_proc(job_t *job_ptr)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-04-24  gen-get-set Auto-generated from job-private.h
+ *  2024-05-01  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 char *    job_get_user_name(job_t *job_ptr)
@@ -278,7 +346,7 @@ char *    job_get_user_name(job_t *job_ptr)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-04-24  gen-get-set Auto-generated from job-private.h
+ *  2024-05-01  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 char  job_get_user_name_ae(job_t *job_ptr, size_t c)
@@ -312,7 +380,7 @@ char  job_get_user_name_ae(job_t *job_ptr, size_t c)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-04-24  gen-get-set Auto-generated from job-private.h
+ *  2024-05-01  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 char *    job_get_primary_group_name(job_t *job_ptr)
@@ -348,7 +416,7 @@ char *    job_get_primary_group_name(job_t *job_ptr)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-04-24  gen-get-set Auto-generated from job-private.h
+ *  2024-05-01  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 char  job_get_primary_group_name_ae(job_t *job_ptr, size_t c)
@@ -364,31 +432,31 @@ char  job_get_primary_group_name_ae(job_t *job_ptr, size_t c)
  *      
  *
  *  Description:
- *      Accessor for submit_host member in a job_t structure.
- *      Use this function to get submit_host in a job_t object
+ *      Accessor for submit_node member in a job_t structure.
+ *      Use this function to get submit_node in a job_t object
  *      from non-member functions.
  *
  *  Arguments:
  *      job_ptr         Pointer to the structure to set
  *
  *  Returns:
- *      Value of the structure member submit_host.
+ *      Value of the structure member submit_node.
  *
  *  Examples:
  *      job_t           job;
- *      char *          submit_host;
+ *      char *          submit_node;
  *
- *      submit_host = job_get_submit_host(&job);
+ *      submit_node = job_get_submit_node(&job);
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-04-24  gen-get-set Auto-generated from job-private.h
+ *  2024-05-01  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-char *    job_get_submit_host(job_t *job_ptr)
+char *    job_get_submit_node(job_t *job_ptr)
 
 {
-    return job_ptr->submit_host;
+    return job_ptr->submit_node;
 }
 
 
@@ -398,33 +466,33 @@ char *    job_get_submit_host(job_t *job_ptr)
  *      
  *
  *  Description:
- *      Accessor for an array element of submit_host member in a job_t
- *      structure. Use this function to get job_ptr->submit_host[c]
+ *      Accessor for an array element of submit_node member in a job_t
+ *      structure. Use this function to get job_ptr->submit_node[c]
  *      in a job_t object from non-member functions.
  *
  *  Arguments:
  *      job_ptr         Pointer to the structure to get
- *      c               Subscript to the submit_host array
+ *      c               Subscript to the submit_node array
  *
  *  Returns:
- *      Value of one element of structure member submit_host.
+ *      Value of one element of structure member submit_node.
  *
  *  Examples:
  *      job_t           job;
  *      size_t          c;
- *      char *          submit_host_element;
+ *      char *          submit_node_element;
  *
- *      submit_host_element = job_get_submit_host_ae(&job, c);
+ *      submit_node_element = job_get_submit_node_ae(&job, c);
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-04-24  gen-get-set Auto-generated from job-private.h
+ *  2024-05-01  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-char  job_get_submit_host_ae(job_t *job_ptr, size_t c)
+char  job_get_submit_node_ae(job_t *job_ptr, size_t c)
 
 {
-    return job_ptr->submit_host[c];
+    return job_ptr->submit_node[c];
 }
 
 
@@ -452,7 +520,7 @@ char  job_get_submit_host_ae(job_t *job_ptr, size_t c)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-04-24  gen-get-set Auto-generated from job-private.h
+ *  2024-05-01  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 char *    job_get_submit_directory(job_t *job_ptr)
@@ -488,7 +556,7 @@ char *    job_get_submit_directory(job_t *job_ptr)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-04-24  gen-get-set Auto-generated from job-private.h
+ *  2024-05-01  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 char  job_get_submit_directory_ae(job_t *job_ptr, size_t c)
@@ -522,7 +590,7 @@ char  job_get_submit_directory_ae(job_t *job_ptr, size_t c)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-04-24  gen-get-set Auto-generated from job-private.h
+ *  2024-05-01  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 char *    job_get_script_name(job_t *job_ptr)
@@ -558,13 +626,83 @@ char *    job_get_script_name(job_t *job_ptr)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-04-24  gen-get-set Auto-generated from job-private.h
+ *  2024-05-01  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 char  job_get_script_name_ae(job_t *job_ptr, size_t c)
 
 {
     return job_ptr->script_name[c];
+}
+
+
+/***************************************************************************
+ *  Library:
+ *      #include <job.h>
+ *      
+ *
+ *  Description:
+ *      Accessor for compute_node member in a job_t structure.
+ *      Use this function to get compute_node in a job_t object
+ *      from non-member functions.
+ *
+ *  Arguments:
+ *      job_ptr         Pointer to the structure to set
+ *
+ *  Returns:
+ *      Value of the structure member compute_node.
+ *
+ *  Examples:
+ *      job_t           job;
+ *      char *          compute_node;
+ *
+ *      compute_node = job_get_compute_node(&job);
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-05-01  gen-get-set Auto-generated from job-private.h
+ ***************************************************************************/
+
+char *    job_get_compute_node(job_t *job_ptr)
+
+{
+    return job_ptr->compute_node;
+}
+
+
+/***************************************************************************
+ *  Library:
+ *      #include <job.h>
+ *      
+ *
+ *  Description:
+ *      Accessor for an array element of compute_node member in a job_t
+ *      structure. Use this function to get job_ptr->compute_node[c]
+ *      in a job_t object from non-member functions.
+ *
+ *  Arguments:
+ *      job_ptr         Pointer to the structure to get
+ *      c               Subscript to the compute_node array
+ *
+ *  Returns:
+ *      Value of one element of structure member compute_node.
+ *
+ *  Examples:
+ *      job_t           job;
+ *      size_t          c;
+ *      char *          compute_node_element;
+ *
+ *      compute_node_element = job_get_compute_node_ae(&job, c);
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-05-01  gen-get-set Auto-generated from job-private.h
+ ***************************************************************************/
+
+char  job_get_compute_node_ae(job_t *job_ptr, size_t c)
+
+{
+    return job_ptr->compute_node[c];
 }
 
 
@@ -592,7 +730,7 @@ char  job_get_script_name_ae(job_t *job_ptr, size_t c)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-04-24  gen-get-set Auto-generated from job-private.h
+ *  2024-05-01  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 char *    job_get_push_command(job_t *job_ptr)
@@ -628,7 +766,7 @@ char *    job_get_push_command(job_t *job_ptr)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-04-24  gen-get-set Auto-generated from job-private.h
+ *  2024-05-01  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
 char  job_get_push_command_ae(job_t *job_ptr, size_t c)

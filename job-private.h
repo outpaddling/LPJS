@@ -17,11 +17,14 @@ struct job
     unsigned        procs_per_job;
     unsigned        min_procs_per_node;
     size_t          mem_per_proc;
+    pid_t           chaperone_pid;
+    pid_t           job_pid;
     char            *user_name;
     char            *primary_group_name;
-    char            *submit_host;
+    char            *submit_node;
     char            *submit_directory;
     char            *script_name;
+    char            *compute_node;
     char            *push_command;
 };
 
