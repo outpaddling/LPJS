@@ -398,9 +398,12 @@ int     lpjs_run_script(job_t *job, const char *script_start)
      */
     
     if ( getuid() == 0 )
+    {
+	lpjs_chown(job, log_dir);
 	lpjs_chown(job, job_script_name);
+    }
     else
-	lpjs_log("Running as uid %d, can't change script ownership.\n", getuid());
+	lpjs_log("lpjs_compd running as uid %d, can't change script ownership.\n", getuid());
     
     /*
      *  FIXME: Update node status (keep a copy here in case
