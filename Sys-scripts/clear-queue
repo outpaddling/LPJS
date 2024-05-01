@@ -1,0 +1,87 @@
+#!/bin/sh -e
+
+##########################################################################
+#   Synopsis:
+#       
+#   Description:
+#       
+#   Arguments:
+#       
+#   Returns:
+#
+#   Examples:
+#
+#   Files:
+#
+#   Environment:
+#
+#   See also:
+#       
+#   History:
+#   Date        Name        Modification
+#   2024-02-20  Jason Bacon Begin
+##########################################################################
+
+usage()
+{
+    printf "Usage: $0\n"
+    exit 1
+}
+
+
+##########################################################################
+#   Main
+##########################################################################
+
+if [ $# != 0 ]; then
+    usage
+fi
+prefix=/usr/local
+if [ ! -e $prefix/var/spool/lpjs ]; then
+    exit 0
+fi
+
+if [ ! -w $prefix/var/spool/lpjs ]; then
+    # Prevent user from running a Trojan as root in the case their account
+    # was compromised
+    absolute="$(which $0)"
+    # Don't count on -e being set at this point
+    if ! auto-file-secure "$absolute"; then
+	exit 1
+    fi
+    
+    if ! auto-root-check $0; then
+	printf "Root "
+	# exec quotes '$absolute --flag', causing usage error
+	# Assigning to cmd works around the problem
+	cmd="$absolute $@"
+	exec su -m root -c "$cmd"
+    fi
+fi
+
+cat << EOM
+
+********************************* WARNING *********************************
+
+The purpose of this command is to erase all jobs from the queues.
+
+EOM
+printf "Are you sure you want to do this?  yes/[no] "
+read sure
+if [ 0"$sure" = 0yes ]; then
+    if [ $(id -u) = 0 ]; then
+	lpjs stop || true
+    fi
+    rm -rf $prefix/var/spool/lpjs/pending/*
+    rm -rf $prefix/var/spool/lpjs/running/*
+    
+    printf "\n$prefix/var/spool/lpjs/pending:\n"
+    ls -al $prefix/var/spool/lpjs/pending
+    printf "\n$prefix/var/spool/lpjs/running:\n"
+    ls -al $prefix/var/spool/lpjs/running
+    if [ $(id -u) = 0 ]; then
+	lpjs start || true
+    fi
+else
+    printf "Clear canceled.\n"
+fi
