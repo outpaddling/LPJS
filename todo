@@ -1,15 +1,11 @@
 
-Document all _new() as not requiring return code checks
-
-Remove jobs from running dir when completed
-
-lpjs nodes hangs while jobs are running
+Add lpjs cancel job|submission-#
 
 Add #lpjs log-dir for chaperone-*, *.stderr, *.stdout
 
 Add #lpjs concurrent-job-limit
 
-Use restrict wherever possible
+Use const and restrict wherever possible
 
 systemctl restart lpjs_compd doesn't work
     Waiting a while and running restart again starts the daemon
@@ -20,6 +16,8 @@ Terminate jobs that exceed their resource allocation
 Report peak resource use compared to specified
 
 Doc:
+    Any scripting language that treats "^#lpjs" as a comment
+	Requests to support other comment formats will be considered
     Submission: All jobs under one "lpjs submit" command
     Job: An independent computational run
 	Serial
@@ -47,11 +45,6 @@ Optional submission parameters
 
 Add lpjs shell
 
-Add lpjs cancel job|submission-#
-
-Basic queuing system
-    Track actual vs stated memory use?
-
 Implement virtual memory limit checks
     Document that this is enforced by ulimit() and unbreakable
 
@@ -59,3 +52,5 @@ Implement real memory limit checks
     Document that this is enforced by periodic sampling
 
 Convert sbatch scripts to lpjs and vice versa
+    #lpjs <-> #SBATCH
+    LPJS_ARRAY_INDEX <-> SLURM_ARRAY_TASK_ID

@@ -46,7 +46,8 @@
 int     main(int argc,char *argv[])
 
 {
-    node_list_t *node_list = node_list_new();   // Exits if malloc() fails
+    // Terminates process if malloc() fails, no check required
+    node_list_t *node_list = node_list_new();
     uid_t       daemon_uid;
     gid_t       daemon_gid;
     
@@ -329,6 +330,7 @@ void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
 			    job_list_t *running_jobs)
 
 {
+    // Terminates process if malloc() fails, no check required
     node_t  *node = node_new();
     int     fd;
     ssize_t bytes;
@@ -624,6 +626,7 @@ void    lpjs_process_compute_node_checkin(int msg_fd, const char *incoming_msg,
 					  uid_t munge_uid, gid_t munge_gid)
 
 {
+    // Terminates process if malloc() fails, no check required
     node_t      *new_node = node_new();
     extern FILE *Log_stream;
     
@@ -700,7 +703,8 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
     char        script_path[PATH_MAX + 1],
 		*end,
 		*script_text;
-    job_t       *submission = job_new(), // exits if malloc() fails, no need to check
+    // Terminates process if malloc() fails, no check required
+    job_t       *submission = job_new(),
 		*job;
     int         c, job_array_index;
     

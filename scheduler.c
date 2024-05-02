@@ -60,6 +60,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 
 {
     job_t       *job;
+    // Terminates process if malloc() fails, no check required
     node_list_t *matched_nodes = node_list_new();
     char        pending_path[PATH_MAX + 1],
 		running_path[PATH_MAX + 1],

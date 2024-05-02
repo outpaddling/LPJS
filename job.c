@@ -78,6 +78,7 @@ void    job_init(job_t *job)
 job_t   *job_dup(job_t *job)
 
 {
+    // Terminates process if malloc() fails, no check required
     job_t   *new_job = job_new();
     
     new_job->job_id = job->job_id;

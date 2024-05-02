@@ -43,6 +43,7 @@ int     main (int argc, char *argv[])
 	    shared_fs_marker[PATH_MAX + 1],
 	    script_text[LPJS_SCRIPT_SIZE_MAX + 1];
     ssize_t script_size;
+    // Terminates process if malloc() fails, no check required
     node_list_t *node_list = node_list_new();
     job_t       *job;
     // Shared functions may use lpjs_log
@@ -102,7 +103,8 @@ int     main (int argc, char *argv[])
     // Get hostname of head node
     lpjs_load_config(node_list, LPJS_CONFIG_HEAD_ONLY, stderr);
     
-    job = job_new();    // Exits if malloc fails, no need to check
+    // Terminates process if malloc() fails, no check required
+    job = job_new();
     job_parse_script(job, script_name);
     lpjs_log("push_command = %s\n", job_get_push_command(job));
     

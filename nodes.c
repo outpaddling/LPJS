@@ -24,6 +24,7 @@ int     main (int argc, char *argv[])
 
 {
     int         msg_fd;
+    // Terminates process if malloc() fails, no check required
     node_list_t *node_list = node_list_new();
     char        outgoing_msg[LPJS_MSG_LEN_MAX + 1];
     extern FILE *Log_stream;

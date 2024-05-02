@@ -137,6 +137,7 @@ int     lpjs_load_compute_config(node_list_t *node_list, FILE *input_stream,
 	    (delim != EOF) )
     {
 	xt_strtrim(field, " ");
+	// Terminates process if malloc() fails, no check required
 	node = node_new();
 	node_set_hostname(node, strdup(field));
 	node_list_add_compute_node(node_list, node);
@@ -149,6 +150,7 @@ int     lpjs_load_compute_config(node_list_t *node_list, FILE *input_stream,
     
     // Add last node read by while condition
     xt_strtrim(field, " ");
+    // Terminates process if malloc() fails, no check required
     node = node_new();
     node_set_hostname(node, strdup(field));
     node_list_add_compute_node(node_list, node);

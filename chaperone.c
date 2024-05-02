@@ -39,6 +39,7 @@ int     main (int argc, char *argv[])
 		push_status;
     unsigned    procs;
     unsigned long   mem_per_proc;
+    // Terminates process if malloc() fails, no check required
     node_list_t *node_list = node_list_new();
     char        *job_script_name,
 		*temp,
