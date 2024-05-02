@@ -118,7 +118,7 @@ void    lpjs_terminate_handler(int s2)
  *  2024-01-27  Jason Bacon Begin
  ***************************************************************************/
 
-FILE    *lpjs_log_output(char *pathname)
+FILE    *lpjs_log_output(const char *pathname)
 
 {
     FILE    *fp;

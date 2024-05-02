@@ -5,8 +5,6 @@ Add #lpjs log-dir for chaperone-*, *.stderr, *.stdout
 
 Add #lpjs concurrent-job-limit
 
-Use const and restrict wherever possible
-
 systemctl restart lpjs_compd doesn't work
     Waiting a while and running restart again starts the daemon
 

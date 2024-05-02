@@ -321,7 +321,7 @@ int     lpjs_send_eot(int msg_fd)
  *  2024-01-21  Jason Bacon Begin
  ***************************************************************************/
 
-int     lpjs_send_munge(int msg_fd, char *msg)
+int     lpjs_send_munge(int msg_fd, const char *msg)
 
 {
     char        *cred,
