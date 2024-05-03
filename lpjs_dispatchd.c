@@ -604,7 +604,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		     */
 		    
 		    // FIXME: Report error if NULL
-		    if ( (job = lpjs_remove_job(running_jobs, job_id)) != NULL )
+		    if ( (job = lpjs_remove_running_job(running_jobs, job_id)) != NULL )
 			job_free(&job);
 		    
 		    lpjs_log("Dispatching more jobs...\n");
@@ -774,6 +774,7 @@ int     lpjs_cancel(int msg_fd, const char *incoming_msg,
 {
     unsigned long   job_id;
     char            *end;
+    job_t           *job;
     
     lpjs_log("%s(): '%s'\n", __FUNCTION__, incoming_msg);
     job_id = strtoul(incoming_msg, &end, 10);
@@ -784,13 +785,17 @@ int     lpjs_cancel(int msg_fd, const char *incoming_msg,
 	return -1;
     }
     
-    if ( job_list_find_job(pending_jobs, job_id) != JOB_LIST_NOT_FOUND )
+    if ( (job = lpjs_remove_pending_job(pending_jobs, job_id)) != NULL )
     {
-	lpjs_log("%s(): Canceling pending job %lu...\n", __FUNCTION__, job_id);
+	free(job);
+	lpjs_log("%s(): Canceled pending job %lu...\n", __FUNCTION__, job_id);
     }
-    else if ( job_list_find_job(running_jobs, job_id) != JOB_LIST_NOT_FOUND )
+    else if ( (job = lpjs_remove_running_job(running_jobs, job_id)) != NULL )
     {
-	lpjs_log("%s(): Canceling running job %lu...\n", __FUNCTION__, job_id);
+	free(job);
+	lpjs_log("%s(): Canceled running job %lu...\n", __FUNCTION__, job_id);
+	
+	// FIXME: Send SIGTERM and if necessary, SIGKILL via compd
     }
     else
 	lpjs_log("%s(): No such active job ID: %lu.\n", __FUNCTION__, job_id);

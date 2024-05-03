@@ -422,7 +422,40 @@ int     lpjs_get_usable_procs(job_t *job, node_t *node)
 }
 
 
-job_t   *lpjs_remove_job(job_list_t *running_jobs, unsigned long job_id)
+/***************************************************************************
+ *  Description:
+ *  
+ *  Returns:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-05-03  Jason Bacon Begin
+ ***************************************************************************/
+
+job_t   *lpjs_remove_pending_job(job_list_t *pending_jobs, unsigned long job_id)
+
+{
+    char    pending_path[PATH_MAX + 1];
+    pid_t   pid;
+    int     status;
+    
+    if ( (pid = fork()) == 0 )
+    {
+	snprintf(pending_path, PATH_MAX + 1, "%s/%lu",
+		 LPJS_PENDING_DIR, job_id);
+	lpjs_log("Removing job %s...\n", pending_path);
+	execlp("rm", "rm", "-rf", pending_path, NULL);
+    }
+    else
+	// WEXITED is implicitly set for waitpid(), but specify for readability
+	waitpid(pid, &status, WEXITED);
+    
+    // FIXME: Remove from pending_jobs
+    return job_list_remove_job(pending_jobs, job_id);
+}
+
+
+job_t   *lpjs_remove_running_job(job_list_t *running_jobs, unsigned long job_id)
 
 {
     char    running_path[PATH_MAX + 1];
