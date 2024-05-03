@@ -9,8 +9,8 @@ extern "C" {
 
 struct job_list
 {
-    unsigned long   count;
-    job_t           *jobs[LPJS_MAX_JOBS];
+    size_t  count;
+    job_t   *jobs[JOB_LIST_MAX_JOBS];
 };
 
 #ifdef  __cplusplus

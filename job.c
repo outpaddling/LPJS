@@ -108,7 +108,7 @@ job_t   *job_dup(job_t *job)
  *  2021-09-28  Jason Bacon Begin
  ***************************************************************************/
 
-int     job_print(job_t *job, FILE *stream)
+int     job_print_full_specs(job_t *job, FILE *stream)
 
 {
     return fprintf(stream, JOB_SPEC_FORMAT, job->job_id, job->array_index,
@@ -570,6 +570,8 @@ void    job_free(job_t **job)
     free((*job)->submit_node);
     free((*job)->submit_directory);
     free((*job)->script_name);
+    if ( (*job)->compute_node != NULL )
+	free((*job)->compute_node);
     free((*job)->push_command);
     free(*job);
 }

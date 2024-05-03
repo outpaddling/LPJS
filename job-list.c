@@ -69,7 +69,7 @@ void    job_list_init(job_list_t *job_list)
 int     job_list_add_job(job_list_t *job_list, job_t *job)
 
 {
-    if ( job_list->count < LPJS_MAX_JOBS )
+    if ( job_list->count < JOB_LIST_MAX_JOBS )
     {
 	job_list->jobs[job_list->count++] = job;
 	lpjs_log("%s(): Added job id %lu, count = %u\n", __FUNCTION__,
@@ -77,42 +77,56 @@ int     job_list_add_job(job_list_t *job_list, job_t *job)
     }
     else
 	lpjs_log("%s(): Maximum job count = %u reached.\n",
-		 __FUNCTION__, LPJS_MAX_JOBS);
+		 __FUNCTION__, JOB_LIST_MAX_JOBS);
     
     return 0;   // NL_OK?
+}
+
+
+size_t  job_list_find_job(job_list_t *job_list, unsigned long job_id)
+
+{
+    size_t  c;
+    
+    // FIXME: Use bsearch(), even though this array will never be very large
+    // Must then keep list sorted by job_id
+    for (c = 0; c < job_list->count; ++c)
+    {
+	if ( job_get_job_id(job_list->jobs[c]) == job_id )
+	    return c;
+    }
+    
+    return JOB_LIST_NOT_FOUND;
 }
 
 
 job_t   *job_list_remove_job(job_list_t *job_list, unsigned long job_id)
 
 {
-    int     c;
+    size_t  job_array_index;
     extern FILE *Log_stream;
     job_t   *job;
     
-    // FIXME: Use bsearch(), even though this array will never be very large
-    for (c = 0; c < job_list->count; ++c)
+    job_array_index = job_list_find_job(job_list, job_id);
+    if ( job_array_index == JOB_LIST_NOT_FOUND )
+	return NULL;
+    
+    lpjs_log("Removing job %lu\n", job_id);
+    job = job_list->jobs[job_array_index];
+    job_print_full_specs(job, Log_stream);
+    
+    for (int c = job_array_index; c < job_list->count - 1; ++c)
     {
-	if ( job_get_job_id(job_list->jobs[c]) == job_id )
-	{
-	    lpjs_log("Removing job %lu\n", job_id);
-	    job = job_list->jobs[c];
-	    job_print(job, Log_stream);
-	    
-	    for (int c2 = c; c2 < job_list->count - 1; ++c2)
-	    {
-		lpjs_log("c2 = %d  job_list->jobs[c2 + 1] = %p\n",
-			c2, job_list->jobs[c2 + 1]);
-		lpjs_log("job_list[%d] <- job_list[%d] (%lu)\n",
-			 c2, c2 + 1, job_get_job_id(job_list->jobs[c2 + 1]));
-		fflush(Log_stream);
-		job_list->jobs[c2] = job_list->jobs[c2 + 1];
-	    }
-	    --job_list->count;
-	    return job;
-	}
+	lpjs_log("c = %d  job_list->jobs[c + 1] = %p\n",
+		c, job_list->jobs[c + 1]);
+	lpjs_log("job_list[%d] <- job_list[%d] (%lu)\n",
+		 c, c + 1, job_get_job_id(job_list->jobs[c + 1]));
+	fflush(Log_stream);
+	job_list->jobs[c] = job_list->jobs[c + 1];
     }
-    return NULL;
+    --job_list->count;
+
+    return job;
 }
 
 

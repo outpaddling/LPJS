@@ -101,6 +101,8 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	snprintf(running_path, PATH_MAX + 1,
 		LPJS_RUNNING_DIR "/%lu", job_get_job_id(job));
 	lpjs_log("Moving %s to %s...\n", pending_path, running_path);
+	// FIXME: Should we wait until chaperone checks in and
+	// provides the compute node and PIDs?
 	rename(pending_path, running_path);
 	
 	job_list_add_job(running_jobs, job);
@@ -244,7 +246,7 @@ unsigned long   lpjs_select_next_job(job_list_t *pending_jobs, job_t **job)
 	low_job_id = job_get_job_id(*job);
 	lpjs_log("%s(): Selected job %lu to dispatch.\n",
 		 __FUNCTION__, low_job_id);
-	job_print(*job, Log_stream);
+	job_print_full_specs(*job, Log_stream);
 	return low_job_id;
     }
     

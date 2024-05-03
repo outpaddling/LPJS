@@ -553,6 +553,10 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		     *  No change in node status, don't try to dispatch jobs
 		     */
 		    close(msg_fd);
+		    
+		    // Job compute node and PIDs are in text form following
+		    // the one byte LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN
+		    lpjs_update_job(munge_payload + 1, running_jobs);
 		    break;
 		    
 		case    LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:
@@ -757,7 +761,7 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
 
 {
     char    pending_dir[PATH_MAX + 1],
-	    pending_path[PATH_MAX + 1],
+	    script_path[PATH_MAX + 1],
 	    specs_path[PATH_MAX + 1],
 	    job_id_path[PATH_MAX + 1],
 	    job_id_buff[LPJS_MAX_INT_DIGITS + 1],
@@ -796,18 +800,18 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
 	return -1;  // FIXME: Define error codes
     }
 
-    snprintf(pending_path, PATH_MAX + 1, "%s/%s", pending_dir,
+    snprintf(script_path, PATH_MAX + 1, "%s/%s", pending_dir,
 	    xt_basename(job_get_script_name(job)));
     
     // FIXME: Use a symlink instead?  Copy is safer in case user
     // modifies the script while a job is running.
     // lpjs_log("CWD = %s  script = '%s'\n", getcwd(NULL, 0), script_path);
     // lpjs_log("stat(): %d\n", stat(script_path, &st));
-    if ( (fd = open(pending_path, O_WRONLY|O_CREAT|O_TRUNC, 0644)) == -1 )
+    if ( (fd = open(script_path, O_WRONLY|O_CREAT|O_TRUNC, 0644)) == -1 )
     // if ( (status = xt_fast_cp(script_path, pending_path)) != 0 )
     {
 	lpjs_log("lpjs_queue_job(): Failed to copy %s to %s: %s\n",
-		job_get_script_name(job), pending_path, strerror(errno));
+		job_get_script_name(job), script_path, strerror(errno));
 	return -1;
     }
     
@@ -829,7 +833,7 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
 	return -1;
     }
     
-    job_print(job, fp);
+    job_print_full_specs(job, fp);
     fclose(fp);
     
     // Back to submit command for terminal output
@@ -855,4 +859,55 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
     job_list_add_job(pending_jobs, job);
     
     return 0;   // FIXME: Define error codes
+}
+
+
+int     lpjs_update_job(char *payload, job_list_t *job_list)
+
+{
+    char    *compute_node,
+	    *p,
+	    running_dir[PATH_MAX + 1],
+	    specs_path[PATH_MAX + 1];
+    FILE    *fp;
+    unsigned long   job_id, chaperone_pid, job_pid;
+    size_t  job_list_index;
+    job_t   *job;
+    
+    p = payload;
+    compute_node = strsep(&p, " ");
+    sscanf(p, "%lu %lu %lu", &job_id, &chaperone_pid, &job_pid);
+    
+    job_list_index = job_list_find_job(job_list, job_id);
+    if ( job_list_index == JOB_LIST_NOT_FOUND )
+	lpjs_log("%s(): Job id not found.  This is a software bug.\n",
+		__FUNCTION__);
+    else
+    {
+	lpjs_log("%s(): Updating job %lu: %s %lu %lu\n",
+		__FUNCTION__, job_id, compute_node, chaperone_pid, job_pid);
+	job = job_list_get_jobs_ae(job_list, job_list_index);
+	// FIXME: Check success
+	job_set_compute_node(job, strdup(compute_node));
+	job_set_chaperone_pid(job, chaperone_pid);
+	job_set_job_pid(job, job_pid);
+	
+	// FIXME: Update file in running dir
+	snprintf(running_dir, PATH_MAX + 1, "%s/%lu", LPJS_RUNNING_DIR,
+		job_id);
+	snprintf(specs_path, PATH_MAX + 1, "%s/job.specs", running_dir);
+	lpjs_log("Storing specs to %s.\n", specs_path);
+	// Bump job num after successful spool
+	// FIXME: Switch to low-level I/O
+	if ( (fp = fopen(specs_path, "w")) == NULL )
+	{
+	    lpjs_log("Cannot create %s: %s\n", specs_path, strerror(errno));
+	    return -1;
+	}
+	
+	job_print_full_specs(job, fp);
+	fclose(fp);
+    }
+    
+    return 0;   // FIXME: Define return codes
 }

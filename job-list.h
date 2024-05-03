@@ -5,7 +5,10 @@
 #include "job.h"
 #endif
 
-#define LPJS_MAX_JOBS  100000
+// Must be at least 1 < size_t max, so JOB_LIST_JOB_NOT_FOUND is never
+// a valid subscript
+#define JOB_LIST_MAX_JOBS   100000
+#define JOB_LIST_NOT_FOUND  JOB_LIST_MAX_JOBS
 
 typedef struct job_list job_list_t;
 
