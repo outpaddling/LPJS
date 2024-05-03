@@ -503,7 +503,9 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	    }
 	    // lpjs_log("%s(): Got %zd byte message.\n", __FUNCTION__, bytes);
 	    // bytes must be at least 1, or no mem is allocated
-	    munge_payload[bytes] = '\0';
+
+	    // FIXME: Should not be necessary.  munge_decode() null-terminates
+	    // munge_payload[bytes] = '\0';
 	    lpjs_log("%s(): Request code = %d\n", __FUNCTION__, munge_payload[0]);
 	    lpjs_log("%s(): %s\n", __FUNCTION__, munge_payload + 1);
 	    /* Process request */
@@ -544,7 +546,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		
 		case    LPJS_DISPATCHD_REQUEST_CANCEL:
 		    lpjs_log("LPJS_DISPATCHD_REQUEST_CANCEL\n");
-		    lpjs_cancel(msg_fd, munge_payload, node_list,
+		    lpjs_cancel(msg_fd, munge_payload + 1, node_list,
 				pending_jobs, running_jobs,
 				munge_uid, munge_gid);
 		    lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
@@ -770,8 +772,31 @@ int     lpjs_cancel(int msg_fd, const char *incoming_msg,
 		    uid_t munge_uid, gid_t munge_gid)
 
 {
-    lpjs_log("%s(): Canceling job %s...\n", __FUNCTION__, incoming_msg);
+    unsigned long   job_id;
+    char            *end;
+    
+    lpjs_log("%s(): '%s'\n", __FUNCTION__, incoming_msg);
+    job_id = strtoul(incoming_msg, &end, 10);
+    if ( *end != '\0' )
+    {
+	lpjs_log("%s(): Malformed job_id: '%s'\n", __FUNCTION__, incoming_msg);
+	lpjs_log("This is a software bug.\n");
+	return -1;
+    }
+    
+    if ( job_list_find_job(pending_jobs, job_id) != JOB_LIST_NOT_FOUND )
+    {
+	lpjs_log("%s(): Canceling pending job %lu...\n", __FUNCTION__, job_id);
+    }
+    else if ( job_list_find_job(running_jobs, job_id) != JOB_LIST_NOT_FOUND )
+    {
+	lpjs_log("%s(): Canceling running job %lu...\n", __FUNCTION__, job_id);
+    }
+    else
+	lpjs_log("%s(): No such active job ID: %lu.\n", __FUNCTION__, job_id);
+	
     lpjs_server_safe_close(msg_fd);
+    
     return 0;   // FIXME: Define return codes
 }
 
