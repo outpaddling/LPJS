@@ -1,5 +1,5 @@
 
-Add lpjs cancel job|submission-#
+Add lpjs cancel job[-job] [job ...]
 
 Reload jobs from running dir upon dispatchd startup
 
@@ -10,21 +10,18 @@ Add #lpjs concurrent-job-limit
 systemctl restart lpjs_compd doesn't work
     Waiting a while and running restart again starts the daemon
 
-Terminate jobs that exceed their resource allocation
-    Only if there are jobs in the queue
-
 Report peak resource use compared to specified
 
 Doc:
-    Any scripting language that treats "^#lpjs" as a comment
+    Use any scripting language that treats "^#lpjs" as a comment
 	Requests to support other comment formats will be considered
     Submission: All jobs under one "lpjs submit" command
     Job: An independent computational run
 	Serial
-	Multithreaded
-	MPI
+	Shared memory multiproc (e.g. multithreaded via pthreads, OpenMP)
+	Distributed multiproc (e.g. MPI)
     Config file can be the same on all nodes, but the compute nodes
-    only need the head node listed
+	only need the head node listed
 
 Required submission parameters
     Jobs
@@ -32,24 +29,27 @@ Required submission parameters
 	Processor as defined by sysconf(_SC_NPROCESSORS_CONF)
 	or getconf _NPROCESSORS_CONF
     Nodes per job
-    pmem per job or pmem per core
-    vmem per job or vmem per core
+    pmem per job or pmem per proc
+    vmem per job or vmem per proc
     
     Array: Jobs > 1
-    Multithreaded: nodes per job = 1, cores per job = # or "all"
-    MPI: Cores per job > 1
+    Multithreaded: nodes per job = 1, procs per job = # or "all"
+    MPI: Procs per job > 1
 
 Optional submission parameters
     has_command, where command is any program in the standard PATH on node
 	PATH may differ across compute nodes, as they may run different OSs
+    Limit jobs to specific set of nodes, e.g. on high-speed network
+	has_feature, specified in config file
+	By hostname
 
-Add lpjs shell
-
-Implement virtual memory limit checks
-    Document that this is enforced by ulimit() and unbreakable
-
-Implement real memory limit checks
-    Document that this is enforced by periodic sampling
+Terminate jobs that exceed their resource allocation
+    * Only if there are jobs waiting in the queue
+	Otherwise, accumulated run time is wasted
+    Virtual memory limit checks
+	Document that this is enforced by ulimit() and unbreakable
+    Real memory limit checks
+	Document that this is enforced by periodic sampling
 
 Convert sbatch scripts to lpjs and vice versa
     #lpjs <-> #SBATCH
