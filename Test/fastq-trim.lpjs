@@ -5,9 +5,9 @@
 ##########################################################################
 
 #lpjs jobs 5
-#lpjs cores-per-job 3
-#lpjs min-cores-per-node all
-#lpjs mem-per-core 50MiB
+#lpjs procs-per-job 3
+#lpjs min-procs-per-node all
+#lpjs mem-per-proc 50MiB
 #lpjs push-command rsync -av this host:there
 
 # FreeBSD ports are installed under /usr/local

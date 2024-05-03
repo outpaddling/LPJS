@@ -2,6 +2,7 @@ lpjs
 nodes
 jobs
 submit
+cancel
 lpjs_dispatchd
 lpjs_compd
 lpjs-node-specs

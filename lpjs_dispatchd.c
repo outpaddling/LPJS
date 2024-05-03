@@ -541,6 +541,14 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 				munge_uid, munge_gid);
 		    lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
 		    break;
+		
+		case    LPJS_DISPATCHD_REQUEST_CANCEL:
+		    lpjs_log("LPJS_DISPATCHD_REQUEST_CANCEL\n");
+		    lpjs_cancel(msg_fd, munge_payload, node_list,
+				pending_jobs, running_jobs,
+				munge_uid, munge_gid);
+		    lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
+		    break;
 
 		case    LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN:
 		    lpjs_log("LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN:\n%s\n",
@@ -744,6 +752,27 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
     job_free(&submission);
     
     return EX_OK;
+}
+
+
+/***************************************************************************
+ *  Description:
+ *      Add a new submission to the queue
+ *  
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-01-22  Jason Bacon Factor out from lpjs_process_events()
+ ***************************************************************************/
+
+int     lpjs_cancel(int msg_fd, const char *incoming_msg,
+		    node_list_t *node_list,
+		    job_list_t *pending_jobs, job_list_t *running_jobs,
+		    uid_t munge_uid, gid_t munge_gid)
+
+{
+    lpjs_log("%s(): Canceling job %s...\n", __FUNCTION__, incoming_msg);
+    lpjs_server_safe_close(msg_fd);
+    return 0;   // FIXME: Define return codes
 }
 
 

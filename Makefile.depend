@@ -1,10 +1,18 @@
+cancel.o: cancel.c lpjs.h node-list.h node.h node-rvs.h node-accessors.h \
+  node-mutators.h node-protos.h node-pseudo-protos.h node-list-rvs.h \
+  node-list-accessors.h node-list-mutators.h node-list-protos.h \
+  job-list.h job.h job-rvs.h job-accessors.h job-mutators.h job-protos.h \
+  job-list-rvs.h job-list-accessors.h job-list-mutators.h \
+  job-list-protos.h
+	${CC} -c ${CFLAGS} cancel.c
+
 chaperone.o: chaperone.c node-list.h node.h node-rvs.h node-accessors.h \
   node-mutators.h node-protos.h node-pseudo-protos.h node-list-rvs.h \
   node-list-accessors.h node-list-mutators.h node-list-protos.h config.h \
   config-protos.h network.h network-protos.h misc.h misc-protos.h lpjs.h \
   job-list.h job.h job-rvs.h job-accessors.h job-mutators.h job-protos.h \
   job-list-rvs.h job-list-accessors.h job-list-mutators.h \
-  job-list-protos.h
+  job-list-protos.h chaperone-protos.h
 	${CC} -c ${CFLAGS} chaperone.c
 
 config.o: config.c node-list.h node.h node-rvs.h node-accessors.h \
