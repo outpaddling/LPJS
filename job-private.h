@@ -5,6 +5,10 @@
 extern "C" {
 #endif
 
+#ifndef _UNISTD_H_
+#include <unistd.h>
+#endif
+
 #ifndef __NODE_LIST_H__
 #include "node-list.h"
 #endif
