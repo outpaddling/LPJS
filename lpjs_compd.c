@@ -171,6 +171,7 @@ int     main (int argc, char *argv[])
 		job_t   *job = job_new();
 		char    *script_start;
 		
+		lpjs_log("LPJS_COMPD_REQUEST_NEW_JOB\n");
 		/*
 		 *  Parse job specs
 		 */
@@ -181,6 +182,24 @@ int     main (int argc, char *argv[])
 		// lpjs_log("Script:\n%s", script_start);
 		// FIXME: Use submitter uid and gid, not dispatchd
 		lpjs_run_script(job, script_start);
+	    }
+	    else if ( munge_payload[0] == LPJS_COMPD_REQUEST_CANCEL )
+	    {
+		pid_t   chaperone_pid;
+		char    *end;
+		
+		lpjs_log("LPJS_COMPD_REQUEST_CANCEL\n");
+		lpjs_log("Payload = %s\n", munge_payload + 1);
+		
+		chaperone_pid = strtoul(munge_payload + 1, &end, 10);
+		if ( *end != '\0' )
+		    lpjs_log("Malformed cancel payload.  This is a software bug.\n");
+		else
+		{
+		    lpjs_log("Sending SIGHUP to %d...\n", chaperone_pid);
+		    kill(chaperone_pid, SIGHUP);
+		    // FIXME: Verify termination
+		}
 	    }
 	    free(munge_payload);
 	}

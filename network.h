@@ -20,7 +20,8 @@ enum
 
 enum
 {
-    LPJS_COMPD_REQUEST_NEW_JOB = 1
+    LPJS_COMPD_REQUEST_NEW_JOB = 1,
+    LPJS_COMPD_REQUEST_CANCEL
 };
 
 // IPv6 max address size is 39

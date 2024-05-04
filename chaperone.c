@@ -20,6 +20,7 @@
 #include <errno.h>
 #include <fcntl.h>          // open()
 #include <sys/wait.h>       // FIXME: Replace wait() with active monitoring
+#include <signal.h>
 
 #include <xtend/string.h>
 #include <xtend/file.h>
@@ -30,6 +31,9 @@
 #include "misc.h"
 #include "lpjs.h"
 #include "chaperone-protos.h"
+
+// Must be global for job cancel signal handler
+pid_t   Pid;
 
 int     main (int argc, char *argv[])
 
@@ -53,9 +57,10 @@ int     main (int argc, char *argv[])
 		shared_fs_marker[PATH_MAX + 1],
 		cmd[LPJS_CMD_MAX + 1],
 		new_path[4096];
-    pid_t       pid;
     extern FILE *Log_stream;
     struct stat st;
+
+    signal(SIGHUP, chaperone_cancel_handler);
     
     if ( argc != 2 )
     {
@@ -111,7 +116,7 @@ int     main (int argc, char *argv[])
     lpjs_log("Running %s in %s on %s with %u procs and %lu MiB.\n",
 	    job_script_name, wd, hostname, procs, mem_per_proc);
     
-    if ( (pid = fork()) == 0 )
+    if ( (Pid = fork()) == 0 )
     {
 	// Child, run script
 	// FIXME: Set CPU and memory (virtual and physical) limits
@@ -120,14 +125,13 @@ int     main (int argc, char *argv[])
 	lpjs_log("%s(): execl() failed: %s\n", __FUNCTION__, strerror(errno));
 	return EX_UNAVAILABLE;
     }
-    else
-    {
-	lpjs_chaperone_checkin_loop(node_list, hostname, job_id, pid);
-	
-	// FIXME: Chaperone, monitor resource use of child
-	// Maybe ptrace(), though seemingly not well standardized
-	wait(&status);
-    }
+    
+    lpjs_chaperone_checkin_loop(node_list, hostname, job_id, Pid);
+    
+    // FIXME: Chaperone, monitor resource use of child
+    // Maybe ptrace(), though seemingly not well standardized
+    wait(&status);
+    lpjs_log("Process exited with status %d.\n", status);
 
     // Don't connect until the job terminates, or dispatchd will
     // hang waiting for the message
@@ -139,10 +143,10 @@ int     main (int argc, char *argv[])
     }
     
     /* Send job completion message to dispatchd */
-    snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%s %s %s %s\n",
+    snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%s %s %s %s %d\n",
 	     LPJS_DISPATCHD_REQUEST_JOB_COMPLETE, hostname,
 	     job_id, getenv("LPJS_CORES_PER_JOB"),
-	     getenv("LPJS_MEM_PER_CORE"));
+	     getenv("LPJS_MEM_PER_CORE"), status);
     if ( lpjs_send_munge(msg_fd, outgoing_msg) != EX_OK )
     {
 	lpjs_log("lpjs-chaperone: Failed to send message to dispatchd: %s",
@@ -346,4 +350,13 @@ int     lpjs_chaperone_checkin_loop(node_list_t *node_list,
     
     close(msg_fd);
     return 0;   // FIXME: Define return codes
+}
+
+
+void    chaperone_cancel_handler(int s2)
+
+{
+    lpjs_log("Terminating %d...\n", Pid);
+    if ( kill(Pid, SIGTERM) != 0 )
+	kill(Pid, SIGKILL);
 }
