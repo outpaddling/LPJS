@@ -22,6 +22,8 @@
 #include <pwd.h>            // getpwnam()
 #include <grp.h>            // getgrnam()
 #include <fcntl.h>          // open()
+#include <signal.h>
+#include <sys/wait.h>
 
 #include <xtend/string.h>
 #include <xtend/proc.h>
@@ -50,7 +52,7 @@ int     main (int argc, char *argv[])
     extern FILE *Log_stream;
     uid_t       uid;
     gid_t       gid;
-    
+
     if ( argc > 2 )
     {
 	fprintf (stderr, "Usage: %s [--daemonize|--log-output]\n", argv[0]);
@@ -460,6 +462,8 @@ int     run_chaperone(job_t *job, const char *job_script_name)
 		err_file[PATH_MAX + 1];
     extern FILE *Log_stream;
     
+    signal(SIGCHLD, sigchld_handler);
+    
     if ( fork() == 0 )
     {
 	/*
@@ -554,6 +558,8 @@ int     run_chaperone(job_t *job, const char *job_script_name)
      *  lpjs_compd does not wait for chaperone, but resumes listening
      *  for more jobs.
      */
+
+    // FIXME: Reap exited chaperone processes
     
     return EX_OK;
 }
@@ -584,4 +590,25 @@ void    lpjs_chown(job_t *job, const char *path)
     else
 	lpjs_log("INFO: No %s group on this host.\n",
 		job_get_primary_group_name(job));
+}
+
+
+/***************************************************************************
+ *  Description:
+ *      Per Alma sigaction man page, catching SIGCHLD and calling wait()
+ *      is the only fully portable way to avoid zombie chaperone processes.
+ *      Modern systems can just explictly set signal(SIGCHLD, SIG_IGN),
+ *      but using a handler seems safer.
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-05-04  Jason Bacon Begin
+ ***************************************************************************/
+
+void    sigchld_handler(int s2)
+
+{
+    int     status;
+    
+    wait(&status);
 }

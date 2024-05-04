@@ -38,8 +38,7 @@ pid_t   Pid;
 int     main (int argc, char *argv[])
 
 {
-    int         msg_fd,
-		status,
+    int         status,
 		push_status;
     unsigned    procs;
     unsigned long   mem_per_proc;
@@ -51,7 +50,6 @@ int     main (int argc, char *argv[])
 		*job_id,
 		log_dir[PATH_MAX + 1],
 		log_file[PATH_MAX + 1],
-		outgoing_msg[LPJS_MSG_LEN_MAX + 1],
 		wd[PATH_MAX + 1],
 		hostname[sysconf(_SC_HOST_NAME_MAX) + 1],
 		shared_fs_marker[PATH_MAX + 1],
@@ -133,28 +131,7 @@ int     main (int argc, char *argv[])
     wait(&status);
     lpjs_log("Process exited with status %d.\n", status);
 
-    // Don't connect until the job terminates, or dispatchd will
-    // hang waiting for the message
-    if ( (msg_fd = lpjs_connect_to_dispatchd(node_list)) == -1 )
-    {
-	lpjs_log("lpjs-chaperone: Failed to connect to dispatch: %s",
-		strerror(errno));
-	return EX_IOERR;
-    }
-    
-    /* Send job completion message to dispatchd */
-    snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%s %s %s %s %d\n",
-	     LPJS_DISPATCHD_REQUEST_JOB_COMPLETE, hostname,
-	     job_id, getenv("LPJS_CORES_PER_JOB"),
-	     getenv("LPJS_MEM_PER_CORE"), status);
-    if ( lpjs_send_munge(msg_fd, outgoing_msg) != EX_OK )
-    {
-	lpjs_log("lpjs-chaperone: Failed to send message to dispatchd: %s",
-		strerror(errno));
-	close(msg_fd);
-	return EX_IOERR;
-    }
-    close(msg_fd);
+    lpjs_chaperone_completion_loop(node_list, hostname, job_id, status);
     
     // Transfer working dir to submit host or according to user
     // settings, if not shared
@@ -255,6 +232,7 @@ int     main (int argc, char *argv[])
 	}
     }
 
+    lpjs_log("Exiting with status %d...\n", status);
     return status;
 }
 
@@ -307,7 +285,6 @@ int     lpjs_chaperone_checkin(int msg_fd,
 }
 
 
-
 /***************************************************************************
  *  Description:
  *      Connect to dispatchd and send checkin request.
@@ -347,6 +324,85 @@ int     lpjs_chaperone_checkin_loop(node_list_t *node_list,
     }
     
     lpjs_log("%s(): Checkin successful.\n", __FUNCTION__);
+    
+    close(msg_fd);
+    return 0;   // FIXME: Define return codes
+}
+
+
+/***************************************************************************
+ *  Description:
+ *      Attempt to send job completion report to dispatchd
+ *
+ *  Returns:
+ *      EX_OK on success, EX_IOERR otherwise
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-05-04  Jason Bacon Begin
+ ***************************************************************************/
+
+int     lpjs_chaperone_completion(int msg_fd, const char *hostname,
+				  const char *job_id, int status)
+
+{
+    char    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
+    
+    /* Send job completion message to dispatchd */
+    snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%s %s %s %s %d\n",
+	     LPJS_DISPATCHD_REQUEST_JOB_COMPLETE, hostname,
+	     job_id, getenv("LPJS_CORES_PER_JOB"),
+	     getenv("LPJS_MEM_PER_CORE"), status);
+    if ( lpjs_send_munge(msg_fd, outgoing_msg) != EX_OK )
+    {
+	lpjs_log("lpjs-chaperone: Failed to send message to dispatchd: %s",
+		strerror(errno));
+	close(msg_fd);
+	return EX_IOERR;
+    }
+    
+    return EX_OK;
+}
+
+/***************************************************************************
+ *  Description:
+ *      Connect to dispatchd and send checkin request.
+ *      Retry indefinitely if failure occurs.
+ *
+ *  Returns:
+ *      File descriptor for ongoing connection to dispatchd.
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-05-04  Jason Bacon Begin
+ ***************************************************************************/
+
+int     lpjs_chaperone_completion_loop(node_list_t *node_list,
+				    const char *hostname,
+				    const char *job_id, int status)
+
+{
+    int     msg_fd;
+    
+    // Retry socket connection indefinitely
+    while ( (msg_fd = lpjs_connect_to_dispatchd(node_list)) == -1 )
+    {
+	lpjs_log("%s(): Failed to connect to dispatchd: %s\n",
+		__FUNCTION__, strerror(errno));
+	lpjs_log("Retry in %d seconds...\n", LPJS_RETRY_TIME);
+	sleep(LPJS_RETRY_TIME);
+    }
+    
+    // Retry checking request indefinitely
+    while ( (status = lpjs_chaperone_completion(msg_fd, hostname, job_id,
+						status)) != EX_OK )
+    {
+	lpjs_log("%s(): Message send failed.  Retry in %d seconds...\n",
+		 __FUNCTION__, LPJS_RETRY_TIME);
+	sleep(LPJS_RETRY_TIME);
+    }
+    
+    lpjs_log("%s(): Completion report sent.\n", __FUNCTION__);
     
     close(msg_fd);
     return 0;   // FIXME: Define return codes
