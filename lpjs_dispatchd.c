@@ -567,7 +567,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    
 		    // Job compute node and PIDs are in text form following
 		    // the one byte LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN
-		    lpjs_update_job(munge_payload + 1, running_jobs);
+		    lpjs_update_job(munge_payload + 1, pending_jobs, running_jobs);
 		    break;
 		    
 		case    LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:
@@ -940,12 +940,14 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
 }
 
 
-int     lpjs_update_job(char *payload, job_list_t *job_list)
+int     lpjs_update_job(char *payload,
+			job_list_t *pending_jobs, job_list_t *running_jobs)
 
 {
     char    *compute_node,
 	    *p,
-	    running_dir[PATH_MAX + 1],
+	    pending_job_dir[PATH_MAX + 1],
+	    running_job_dir[PATH_MAX + 1],
 	    specs_path[PATH_MAX + 1];
     FILE    *fp;
     unsigned long   job_id, chaperone_pid, job_pid;
@@ -956,33 +958,43 @@ int     lpjs_update_job(char *payload, job_list_t *job_list)
     compute_node = strsep(&p, " ");
     sscanf(p, "%lu %lu %lu", &job_id, &chaperone_pid, &job_pid);
     
-    job_list_index = job_list_find_job(job_list, job_id);
+    job_list_index = job_list_find_job(pending_jobs, job_id);
     if ( job_list_index == JOB_LIST_NOT_FOUND )
 	lpjs_log("%s(): Job id not found.  This is a software bug.\n",
 		__FUNCTION__);
     else
     {
-	lpjs_log("%s(): Updating job %lu: %s %lu %lu\n",
-		__FUNCTION__, job_id, compute_node, chaperone_pid, job_pid);
-	job = job_list_get_jobs_ae(job_list, job_list_index);
-	// FIXME: Check success
+	// FIXME: Check success of all steps below
+	// Move job from pending spool dir to running
+	snprintf(pending_job_dir, PATH_MAX + 1,
+		LPJS_PENDING_DIR "/%lu", job_id);
+	snprintf(running_job_dir, PATH_MAX + 1,
+		LPJS_RUNNING_DIR "/%lu", job_id);
+	lpjs_log("Moving %s to %s...\n", pending_job_dir, running_job_dir);
+	rename(pending_job_dir, running_job_dir);
+	
+	// Add node and PID info to job object
+	job = job_list_get_jobs_ae(pending_jobs, job_list_index);
+	lpjs_log("%s(): Adding %s %lu %lu to job %lu\n",
+		__FUNCTION__, compute_node, chaperone_pid, job_pid, job_id);
 	job_set_compute_node(job, strdup(compute_node));
 	job_set_chaperone_pid(job, chaperone_pid);
 	job_set_job_pid(job, job_pid);
+
+	// Update in-memory job lists
+	job_list_add_job(running_jobs, job);
+	job_list_remove_job(pending_jobs, job_get_job_id(job));
 	
-	// FIXME: Update file in running dir
-	snprintf(running_dir, PATH_MAX + 1, "%s/%lu", LPJS_RUNNING_DIR,
-		job_id);
-	snprintf(specs_path, PATH_MAX + 1, "%s/job.specs", running_dir);
-	lpjs_log("Storing specs to %s.\n", specs_path);
-	// Bump job num after successful spool
-	// FIXME: Switch to low-level I/O
+	// FIXME: Update specs file in running dir with node and PIDs
+	snprintf(specs_path, PATH_MAX + 1, "%s/job.specs", running_job_dir);
+	lpjs_log("Storing updated specs to %s.\n", specs_path);
+	
+	// FIXME: Switch to low-level I/O?
 	if ( (fp = fopen(specs_path, "w")) == NULL )
 	{
 	    lpjs_log("Cannot create %s: %s\n", specs_path, strerror(errno));
 	    return -1;
 	}
-	
 	job_print_full_specs(job, fp);
 	fclose(fp);
     }

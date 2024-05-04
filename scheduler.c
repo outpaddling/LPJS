@@ -63,7 +63,6 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
     // Terminates process if malloc() fails, no check required
     node_list_t *matched_nodes = node_list_new();
     char        pending_path[PATH_MAX + 1],
-		running_path[PATH_MAX + 1],
 		script_path[PATH_MAX + 1],
 		script_buff[LPJS_SCRIPT_SIZE_MAX + 1],
 		outgoing_msg[LPJS_JOB_MSG_MAX + 1];
@@ -93,27 +92,19 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 		__FUNCTION__, node_list_get_compute_node_count(matched_nodes));
 	
 	/*
-	 *  Move from pending to running
+	 *  Do not move from pending to running yet.
+	 *  Wait until chaperone checks in and provides the compute node
+	 *  and PIDs.
 	 */
-	
-	snprintf(pending_path, PATH_MAX + 1,
-		LPJS_PENDING_DIR "/%lu", job_get_job_id(job));
-	snprintf(running_path, PATH_MAX + 1,
-		LPJS_RUNNING_DIR "/%lu", job_get_job_id(job));
-	lpjs_log("Moving %s to %s...\n", pending_path, running_path);
-	// FIXME: Should we wait until chaperone checks in and
-	// provides the compute node and PIDs?
-	rename(pending_path, running_path);
-	
-	job_list_add_job(running_jobs, job);
-	job_list_remove_job(pending_jobs, job_get_job_id(job));
 	
 	/*
-	 *  Load script from spool/lpjs/running
+	 *  Load script from spool/lpjs/pending
 	 */
 	
+	snprintf(pending_path, PATH_MAX + 1, "%s/%lu",
+		 LPJS_PENDING_DIR, job_get_job_id(job));
 	snprintf(script_path, PATH_MAX + 1, "%s/%s",
-		running_path, job_get_script_name(job));
+		 pending_path, job_get_script_name(job));
 	script_size = lpjs_load_script(script_path, script_buff,
 				       LPJS_SCRIPT_SIZE_MAX + 1);
 	// FIXME: Determine a real minimum script size
