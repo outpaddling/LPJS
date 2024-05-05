@@ -2,6 +2,7 @@
 
 ##########################################################################
 #   Synopsis:
+#       lpjs create-script script.lpjs
 #   
 #   Description:
 #       Generate an LPJS job script
@@ -25,7 +26,7 @@
 
 usage()
 {
-    printf "Usage: $0 script-name[.lpjs]\n" >> /dev/stderr
+    printf "Usage: $0 [--shell sh|bash|csh|...] script-name.lpjs\n" >> /dev/stderr
     exit 1
 }
 
@@ -42,7 +43,7 @@ usage()
 #   2024-02-07  Jason Bacon Begin
 ##########################################################################
 
-get_min_cores_per_node()
+get_min_procs_per_node()
 
 {
     valid_selection=no
@@ -50,12 +51,12 @@ get_min_cores_per_node()
 	cat << EOM
 
 For shared-memory parallel programs (pthreads, OpenMP, etc.),
-cores-per-node must be the same as cores-per-job, since all
+procs-per-node must be the same as procs-per-job, since all
 of the threads or processes must run on the same node.
 
 For distributed parallel programs (e.g. MPI), processes do not
-need to be on the same node, so cores-per-node may be less than
-cores-per-job.
+need to be on the same node, so procs-per-node may be less than
+procs-per-job.
 
 1.. Shared memory parallel program (OpenMP, pthreads, etc.)
 2.. Distributed parallel program   (MPI, etc.)
@@ -64,12 +65,12 @@ EOM
 	read parallel_type
 	case 0"$parallel_type" in
 	01)
-	    min_cores_per_node=$cores_per_job
+	    min_procs_per_node=$procs_per_job
 	    valid_selection=yes
 	    ;;
 	
 	02)
-	    min_cores_per_node=1
+	    min_procs_per_node=1
 	    valid_selection=yes
 	    ;;
 	
@@ -85,12 +86,24 @@ EOM
 #   Main
 ##########################################################################
 
+if [ $# -lt 1 ]; then
+    usage
+fi
+if [ $1 = "--shell" ]; then
+    shell=$2
+    shift
+    shift
+else
+    shell="sh"
+fi
 if [ $# != 1 ]; then
     usage
 fi
 script=$1
+if [ ${script##*.} != "lpjs" ]; then
+    script=${script}.lpjs
+fi
 
-shell=${script##*.}
 if [ 0"$shell" = 0"$script" ]; then # No extension
     shell="sh"
 fi
@@ -124,8 +137,8 @@ while [ 0"$submission_type" != 01 ] && [ 0"$submission_type" != 02 ] && \
 
 1.. Batch serial job
 2.. Array of serial jobs (embarrassingly parallel)
-3.. Multicore (parallel program using OpenMP, pthreads, MPI, etc)
-4.. Array of multicore jobs
+3.. Multiproc (parallel program using OpenMP, pthreads, MPI, etc)
+4.. Array of multiproc jobs
 
 EOM
     printf 'Submission type? '
@@ -135,30 +148,30 @@ done
 case 0"$submission_type" in
 01)
     jobs=1
-    cores_per_job=1
-    min_cores_per_node=1
+    procs_per_job=1
+    min_procs_per_node=1
     ;;
 
 02)
     printf 'Number of jobs? '
     read jobs
-    cores_per_job=1
-    min_cores_per_node=1
+    procs_per_job=1
+    min_procs_per_node=1
     ;;
 
 03)
     jobs=1
-    printf 'Cores per job? '
-    read cores_per_job
-    get_min_cores_per_node
+    printf 'Processors per job? '
+    read procs_per_job
+    get_min_procs_per_node
     ;;
 
 04)
     printf 'Number of jobs? '
     read jobs
-    printf 'Cores per job? '
-    read cores_per_job
-    get_min_cores_per_node
+    printf 'Processors per job? '
+    read procs_per_job
+    get_min_procs_per_node
     ;;
 
 *)
@@ -181,9 +194,9 @@ GiB = gibibytes = 2^30 bytes = $(echo '2^30' | bc) bytes
 Examples: 100MB, 100MiB, 2GB, 4GiB
 
 EOM
-    printf 'Memory per core? '
-    read mem_per_core
-    if echo $mem_per_core | grep -Eq '^[0-9]+[MG]i?B'; then
+    printf 'Memory per proc? '
+    read mem_per_proc
+    if echo $mem_per_proc | grep -Eq '^[0-9]+[MG]i?B'; then
 	valid_mem=yes
     else
 	printf "Invalid memory specification.\n"
@@ -207,9 +220,9 @@ cat << EOM >> $script
 # shebang line (first line of the script) should be "#!/usr/bin/env bash".
 
 #lpjs jobs $jobs
-#lpjs cores-per-job $cores_per_job
-#lpjs min-cores-per-node $min_cores_per_node
-#lpjs mem-per-core $mem_per_core
+#lpjs procs-per-job $procs_per_job
+#lpjs min-procs-per-node $min_procs_per_node
+#lpjs mem-per-proc $mem_per_proc
 
 $command
 EOM

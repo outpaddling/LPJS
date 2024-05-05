@@ -5,7 +5,7 @@ cat << EOM
 Not yet implenented.
 
 This script will simulate the LPJS environment, allowing the user to run an
-LPJS batch script on any Unix computer.  Multiple cores may be utilized
+LPJS batch script on any Unix computer.  Multiple procs may be utilized
 using xargs --max-procs, GNU parallel, or similar tools.
 
 EOM
