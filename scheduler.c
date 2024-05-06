@@ -97,6 +97,8 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	 *  and PIDs.
 	 */
 	
+	job_set_dispatched(job, 1);
+	
 	/*
 	 *  Load script from spool/lpjs/pending
 	 */
@@ -225,6 +227,8 @@ unsigned long   lpjs_select_next_job(job_list_t *pending_jobs, job_t **job)
 {
     unsigned long   low_job_id;
     extern FILE     *Log_stream;
+    size_t          c;
+    job_t           *temp_job;
     
     if ( job_list_get_count(pending_jobs) == 0 )
     {
@@ -233,7 +237,20 @@ unsigned long   lpjs_select_next_job(job_list_t *pending_jobs, job_t **job)
     }
     else
     {
-	*job = job_list_get_jobs_ae(pending_jobs, 0);
+	for (c = 0; c < job_list_get_count(pending_jobs); ++c)
+	{
+	    temp_job = job_list_get_jobs_ae(pending_jobs, c);
+	    if ( job_get_dispatched(temp_job) == 0 )
+		// Found a pending job not yet dispatched
+		break;
+	}
+	if ( c == job_list_get_count(pending_jobs) )
+	{
+	    lpjs_log("%s(): All jobs already dispatched.\n", __FUNCTION__);
+	    return 0;
+	}
+	
+	*job = job_list_get_jobs_ae(pending_jobs, c);
 	low_job_id = job_get_job_id(*job);
 	lpjs_log("%s(): Selected job %lu to dispatch.\n",
 		 __FUNCTION__, low_job_id);

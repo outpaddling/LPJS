@@ -64,6 +64,7 @@ void    job_init(job_t *job)
     job->mem_per_proc = 0;
     job->chaperone_pid = 0;
     job->job_pid = 0;
+    job->dispatched = 0;
     job->user_name = NULL;
     job->primary_group_name = NULL;
     job->submit_node = NULL;
@@ -114,7 +115,7 @@ int     job_print_full_specs(job_t *job, FILE *stream)
     return fprintf(stream, JOB_SPEC_FORMAT, job->job_id, job->array_index,
 	    job->job_count, job->procs_per_job,
 	    job->min_procs_per_node, job->mem_per_proc,
-	    job->chaperone_pid, job->job_pid,
+	    job->chaperone_pid, job->job_pid, job->dispatched,
 	    job->user_name, job->primary_group_name,
 	    job->submit_node, job->submit_directory,
 	    job->script_name, job->compute_node, job->push_command);
@@ -137,7 +138,7 @@ int     job_print_to_string(job_t *job, char *str, size_t buff_size)
 		    job->job_id, job->array_index,
 		    job->job_count, job->procs_per_job,
 		    job->min_procs_per_node, job->mem_per_proc,
-		    job->chaperone_pid, job->job_pid,
+		    job->chaperone_pid, job->job_pid, job->dispatched,
 		    job->user_name, job->primary_group_name,
 		    job->submit_node, job->submit_directory,
 		    job->script_name, job->compute_node, job->push_command);
@@ -404,7 +405,7 @@ int     job_read_from_string(job_t *job, const char *string, char **end)
 	    &job->job_id, &job->array_index,
 	    &job->job_count, &job->procs_per_job,
 	    &job->min_procs_per_node, &job->mem_per_proc,
-	    &job->chaperone_pid, &job->job_pid);
+	    &job->chaperone_pid, &job->job_pid, &job->dispatched);
     
     // Skips past numeric fields
     for (start = string, tokens = 0;

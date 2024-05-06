@@ -23,6 +23,7 @@ struct job
     size_t          mem_per_proc;
     pid_t           chaperone_pid;
     pid_t           job_pid;
+    int             dispatched;     // 0 = false, 1 = true
     char            *user_name;
     char            *primary_group_name;
     char            *submit_node;

@@ -13,6 +13,10 @@
  *  as needed before adding to your code.
  */
 
+#ifndef _UNISTD_H_
+#include <unistd.h>
+#endif
+
 /* temp-job-mutators.c */
 int job_set_job_id(job_t *job_ptr, unsigned long new_job_id);
 int job_set_array_index(job_t *job_ptr, unsigned long new_array_index);
@@ -22,6 +26,7 @@ int job_set_min_procs_per_node(job_t *job_ptr, unsigned new_min_procs_per_node);
 int job_set_mem_per_proc(job_t *job_ptr, size_t new_mem_per_proc);
 int job_set_chaperone_pid(job_t *job_ptr, pid_t new_chaperone_pid);
 int job_set_job_pid(job_t *job_ptr, pid_t new_job_pid);
+int job_set_dispatched(job_t *job_ptr, int new_dispatched);
 int job_set_user_name(job_t *job_ptr, char *new_user_name);
 int job_set_user_name_ae(job_t *job_ptr, size_t c, char new_user_name_element);
 int job_set_user_name_cpy(job_t *job_ptr, char *new_user_name, size_t array_size);
