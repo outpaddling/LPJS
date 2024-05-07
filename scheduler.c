@@ -163,16 +163,22 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	    // Get status back from compd
 	    payload_bytes = lpjs_recv_munge(msg_fd, &munge_payload,
 					    0, 0, &uid, &gid);
-	    exit_code = munge_payload[0];
-	    if ( exit_code != EX_OK )
+	    lpjs_log("payload_bytes = %d\n", payload_bytes);
+	    if ( payload_bytes > 0 )
 	    {
-		lpjs_log("%s(): Job script failed to start: %d\n",
-			__FUNCTION__, exit_code);
-		job_set_dispatched(job, 0);     // Try dispatching again
-		// FIXME: Don't try this node again for this job
+		exit_code = munge_payload[0];
+		if ( exit_code != LPJS_DISPATCH_OK )
+		{
+		    lpjs_log("%s(): Job script failed to start: %d\n",
+			    __FUNCTION__, exit_code);
+		    // FIXME: Don't try this node again for this job
+		}
+		else
+		    job_set_dispatched(job, 1);
 	    }
 	    else
-		job_set_dispatched(job, 1);
+		lpjs_log("%s(): Failed receive dispatch status from compd.\n",
+			__FUNCTION__);
 	}
 	
 	/*

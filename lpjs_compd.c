@@ -188,11 +188,11 @@ int     main (int argc, char *argv[])
 		{
 		    lpjs_log("Failed to start script.\n");
 		    snprintf(dispatch_response, LPJS_MSG_LEN_MAX + 1,
-			    "%c", EX_UNAVAILABLE);
+			    "%c", LPJS_DISPATCH_FAILED);
 		}
 		else
 		    snprintf(dispatch_response, LPJS_MSG_LEN_MAX + 1,
-			    "%c", EX_OK);
+			    "%c", LPJS_DISPATCH_OK);
 		lpjs_send_munge(msg_fd, dispatch_response);
 	    }
 	    else if ( munge_payload[0] == LPJS_COMPD_REQUEST_CANCEL )

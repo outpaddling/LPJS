@@ -24,6 +24,12 @@ enum
     LPJS_COMPD_REQUEST_CANCEL
 };
 
+enum
+{
+    LPJS_DISPATCH_OK = 1,
+    LPJS_DISPATCH_FAILED
+};
+
 // IPv6 max address size is 39
 #define LPJS_TEXT_IP_ADDRESS_MAX    64
 // FIXME: 4096 is just a guestimate
