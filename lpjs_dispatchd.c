@@ -352,7 +352,7 @@ void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
 	     *  lpjs_recv() will return 0 in this case.
 	     */
 	    
-	    bytes = lpjs_recv(fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 0);
+	    bytes = lpjs_recv(fd, incoming_msg, LPJS_MSG_LEN_MAX + 1, 0, 0);
 	    if ( bytes == 0 )
 	    {
 		lpjs_log("Lost connection to %s.  Closing...\n",

@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <unistd.h>     // close()
 #include <sys/wait.h>
+#include <sysexits.h>
 
 #include <xtend/file.h>
 #include <xtend/math.h>     // XT_MIN()
@@ -65,13 +66,18 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
     char        pending_path[PATH_MAX + 1],
 		script_path[PATH_MAX + 1],
 		script_buff[LPJS_SCRIPT_SIZE_MAX + 1],
-		outgoing_msg[LPJS_JOB_MSG_MAX + 1];
+		outgoing_msg[LPJS_JOB_MSG_MAX + 1],
+		*munge_payload;
     int         msg_fd,
 		procs_used,
-		dispatched;
-    ssize_t     script_size;
+		dispatched,
+		exit_code;
+    ssize_t     script_size,
+		payload_bytes;
     size_t      phys_MiB_used;
     extern FILE *Log_stream;
+    uid_t       uid;
+    gid_t       gid;
     
     /*
      *  Look through spool dir and determine requirements of the
@@ -96,8 +102,6 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	 *  Wait until chaperone checks in and provides the compute node
 	 *  and PIDs.
 	 */
-	
-	job_set_dispatched(job, 1);
 	
 	/*
 	 *  Load script from spool/lpjs/pending
@@ -155,6 +159,20 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	    // lpjs_log("New MiB used = %zu\n", node_get_phys_MiB_used(node));
 	    
 	    lpjs_send_munge(msg_fd, outgoing_msg);
+	    
+	    // Get status back from compd
+	    payload_bytes = lpjs_recv_munge(msg_fd, &munge_payload,
+					    0, 0, &uid, &gid);
+	    exit_code = munge_payload[0];
+	    if ( exit_code != EX_OK )
+	    {
+		lpjs_log("%s(): Job script failed to start: %d\n",
+			__FUNCTION__, exit_code);
+		job_set_dispatched(job, 0);     // Try dispatching again
+		// FIXME: Don't try this node again for this job
+	    }
+	    else
+		job_set_dispatched(job, 1);
 	}
 	
 	/*

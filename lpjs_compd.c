@@ -45,7 +45,8 @@ int     main (int argc, char *argv[])
     // Terminates process if malloc() fails, no check required
     node_t      *node = node_new();
     char        *munge_payload,
-		vis_msg[LPJS_MSG_LEN_MAX + 1];
+		vis_msg[LPJS_MSG_LEN_MAX + 1],
+		dispatch_response[LPJS_MSG_LEN_MAX + 1];
     ssize_t     bytes;
     int         msg_fd;
     struct pollfd   poll_fd;
@@ -183,7 +184,16 @@ int     main (int argc, char *argv[])
 		// job_print(job, Log_stream);
 		// lpjs_log("Script:\n%s", script_start);
 		// FIXME: Use submitter uid and gid, not dispatchd
-		lpjs_run_script(job, script_start);
+		if ( lpjs_run_script(job, script_start) != EX_OK )
+		{
+		    lpjs_log("Failed to start script.\n");
+		    snprintf(dispatch_response, LPJS_MSG_LEN_MAX + 1,
+			    "%c", EX_UNAVAILABLE);
+		}
+		else
+		    snprintf(dispatch_response, LPJS_MSG_LEN_MAX + 1,
+			    "%c", EX_OK);
+		lpjs_send_munge(msg_fd, dispatch_response);
 	    }
 	    else if ( munge_payload[0] == LPJS_COMPD_REQUEST_CANCEL )
 	    {
@@ -387,14 +397,27 @@ int     lpjs_run_script(job_t *job, const char *script_start)
 	}
     }
     
-    //lpjs_log("Changing to %s %s...\n", working_dir, temp_wd);
+    lpjs_log("Changing to %s...\n", working_dir);
     if ( chdir(working_dir) != 0 )
     {
 	lpjs_log("Failed to enter working dir: %s\n", working_dir);
 	// FIXME: Notify dispatchd of job failure
     }
-    lpjs_log("CWD = %s\n", getcwd(temp_wd, PATH_MAX + 1));
-    lpjs_log("If CWD == NULL, this is errno: %s\n", strerror(errno));
+    getcwd(temp_wd, PATH_MAX + 1);
+    lpjs_log("CWD = %s\n", temp_wd);
+    lpjs_log("If CWD above printed as NULL, this is errno: %s\n", strerror(errno));
+    if ( getcwd(temp_wd, PATH_MAX + 1) == NULL )
+    {
+	lpjs_log("chdir() failed: errno = %s\n", strerror(errno));
+	#ifdef __APPLE__
+	lpjs_log("You may need to grant lpjs_compd full disk access in\n"
+		 "System Preferences -> Privacy and Security".  This\n"
+		 "access might be revoked when LPJS is updated.  If you\n"
+		 "find that you might repeatedly reset it, please report\n"
+		 "the problem to Apple via the developer feedback assistant.\n");
+	#endif
+	return EX_NOPERM;
+    }
     
     /*
      *  Save script
