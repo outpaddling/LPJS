@@ -411,10 +411,12 @@ int     lpjs_run_script(job_t *job, const char *script_start)
 	// Odd that chdir() indicates success, but getcwd() fails
 	#ifdef __APPLE__
 	lpjs_log("You may need to grant lpjs_compd full disk access in\n"
-		 "System Preferences -> Privacy and Security".  This\n"
-		 "access might be revoked when LPJS is updated.  If you\n"
-		 "find that you might repeatedly reset it, please report\n"
-		 "the problem to Apple via the developer feedback assistant.\n");
+		 "System Preferences -> Privacy and Security.  This access\n"
+		 "might be revoked when LPJS is updated.  If you find\n"
+		 "that you might repeatedly reset it, please report the\n"
+		 "problem to Apple via the developer feedback assistant.\n"
+		 "They need to hear from multiple people before they will\n"
+		 "take the issue seriously.\n");
 	#endif
 	return EX_NOPERM;
     }
