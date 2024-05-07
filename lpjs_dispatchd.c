@@ -590,6 +590,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 			break;
 		    }
 		    
+		    // FIXME: Factor out to node_free_resources(node, job)
 		    node_set_procs_used(node,
 			node_get_procs_used(node) - procs_per_job);
 		    node_set_phys_MiB_used(node,
@@ -809,6 +810,14 @@ int     lpjs_cancel(int msg_fd, const char *incoming_msg,
 	snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%u",
 		LPJS_COMPD_REQUEST_CANCEL, chaperone_pid);
 	lpjs_send_munge(compute_node_fd, outgoing_msg);
+	
+	// FIXME: Factor out to node_free_resources(node, job)
+	node_set_procs_used(compute_node,
+	    node_get_procs_used(compute_node) - job_get_procs_per_job(job));
+	node_set_phys_MiB_used(compute_node,
+	    node_get_phys_MiB_used(compute_node)
+		- job_get_mem_per_proc(job) * job_get_procs_per_job(job));
+	
 	job_free(&job);
     }
     else

@@ -146,18 +146,6 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	    // FIXME: Check for truncation
 	    
 	    lpjs_log("%s(): outgoing job msg:\n%s\n", __FUNCTION__, outgoing_msg + 1);
-	    
-	    // FIXME: Needs adjustment for MPI jobs at the least
-	    procs_used = node_get_procs_used(node);
-	    node_set_procs_used(node, procs_used + job_get_procs_per_job(job));
-	    phys_MiB_used = node_get_phys_MiB_used(node);
-	    node_set_phys_MiB_used(node, phys_MiB_used +
-		job_get_mem_per_proc(job) * job_get_procs_per_job(job));
-
-	    // lpjs_log("procs per job = %u\n", job_get_procs_per_job(job));
-	    // lpjs_log("MiB per proc = %zu\n", job_get_mem_per_proc(job));
-	    // lpjs_log("New MiB used = %zu\n", node_get_phys_MiB_used(node));
-	    
 	    lpjs_send_munge(msg_fd, outgoing_msg);
 	    
 	    // Get status back from compd
@@ -178,6 +166,13 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 		    job_set_dispatched(job, 1);
 		    // FIXME: Check strdup() success
 		    job_set_compute_node(job, strdup(node_get_hostname(node)));
+		    
+		    // FIXME: Needs adjustment for MPI jobs at the least
+		    procs_used = node_get_procs_used(node);
+		    node_set_procs_used(node, procs_used + job_get_procs_per_job(job));
+		    phys_MiB_used = node_get_phys_MiB_used(node);
+		    node_set_phys_MiB_used(node, phys_MiB_used +
+			job_get_mem_per_proc(job) * job_get_procs_per_job(job));
 		}
 	    }
 	    else
