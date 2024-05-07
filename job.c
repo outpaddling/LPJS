@@ -485,7 +485,6 @@ int     job_read_from_string(job_t *job, const char *string, char **end)
     
     // Same offset into original string as we are into temp copy
     *end = (char *)start + (p - temp);
-    // lpjs_log("Script1:\n%s", *end);
     free(temp);
     
     return items;
@@ -529,8 +528,6 @@ int     job_read_from_file(job_t *job, const char *path)
 	    *end;
     ssize_t bytes;
     
-    // lpjs_log("%s(): Reading job specs from %s...\n", __FUNCTION__, path);
-
     if ( (fd = open(path, O_RDONLY)) == -1 )
 	return -1;
     

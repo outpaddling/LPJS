@@ -133,7 +133,6 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	
 	for (int c = 0; c < node_list_get_compute_node_count(matched_nodes); ++c)
 	{
-	    // lpjs_log("Checking node[%d]\n", c);
 	    node_t *node = node_list_get_compute_nodes_ae(matched_nodes, c);
 	    
 	    msg_fd = node_get_msg_fd(node);
@@ -145,6 +144,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	    job_print_to_string(job, outgoing_msg + 1, LPJS_JOB_MSG_MAX + 1);
 	    strlcat(outgoing_msg, script_buff, LPJS_JOB_MSG_MAX + 1);
 	    // FIXME: Check for truncation
+	    
 	    lpjs_log("%s(): outgoing job msg:\n%s\n", __FUNCTION__, outgoing_msg + 1);
 	    
 	    // FIXME: Needs adjustment for MPI jobs at the least
@@ -163,7 +163,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	    // Get status back from compd
 	    payload_bytes = lpjs_recv_munge(msg_fd, &munge_payload,
 					    0, 0, &uid, &gid);
-	    lpjs_log("payload_bytes = %d\n", payload_bytes);
+	    // lpjs_log("payload_bytes = %d\n", payload_bytes);
 	    if ( payload_bytes > 0 )
 	    {
 		exit_code = munge_payload[0];
@@ -174,7 +174,11 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 		    // FIXME: Don't try this node again for this job
 		}
 		else
+		{
 		    job_set_dispatched(job, 1);
+		    // FIXME: Check strdup() success
+		    job_set_compute_node(job, strdup(node_get_hostname(node)));
+		}
 	    }
 	    else
 		lpjs_log("%s(): Failed receive dispatch status from compd.\n",
@@ -283,6 +287,7 @@ unsigned long   lpjs_select_next_job(job_list_t *pending_jobs, job_t **job)
     }
     
 // Old method, searching spool dir
+// FIXME: Use this code for reloading jobs on dispatchd restart
 #if 0
     DIR             *dp;
     struct dirent   *entry;

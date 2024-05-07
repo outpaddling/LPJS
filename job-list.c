@@ -72,7 +72,7 @@ int     job_list_add_job(job_list_t *job_list, job_t *job)
     if ( job_list->count < JOB_LIST_MAX_JOBS )
     {
 	job_list->jobs[job_list->count++] = job;
-	lpjs_log("%s(): Added job id %lu, count = %u\n", __FUNCTION__,
+	lpjs_log("%s(): Added job id %lu, new count = %u\n", __FUNCTION__,
 		job_get_job_id(job), job_list->count);
     }
     else
@@ -117,10 +117,6 @@ job_t   *job_list_remove_job(job_list_t *job_list, unsigned long job_id)
     
     for (int c = job_array_index; c < job_list->count - 1; ++c)
     {
-	lpjs_log("c = %d  job_list->jobs[c + 1] = %p\n",
-		c, job_list->jobs[c + 1]);
-	lpjs_log("job_list[%d] <- job_list[%d] (%lu)\n",
-		 c, c + 1, job_get_job_id(job_list->jobs[c + 1]));
 	fflush(Log_stream);
 	job_list->jobs[c] = job_list->jobs[c + 1];
     }
@@ -144,7 +140,6 @@ void    job_list_send_params(int msg_fd, job_list_t *job_list)
 {
     unsigned    c;
 
-    lpjs_log("%s(): %u jobs\n", __FUNCTION__, job_list_get_count(job_list));
     job_send_basic_params_header(msg_fd);
     for (c = 0; c < job_list->count; ++c)
 	job_send_basic_params(job_list->jobs[c], msg_fd);

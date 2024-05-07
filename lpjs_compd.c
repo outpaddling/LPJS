@@ -121,7 +121,8 @@ int     main (int argc, char *argv[])
 	    // Close this end, or dispatchd gets "address already in use"
 	    // When trying to restart
 	    close(msg_fd);
-	    lpjs_log("Lost connection to dispatchd: HUP received.\n");
+	    lpjs_log("%s(): Lost connection to dispatchd: HUP received.\n",
+		    __FUNCTION__);
 	    sleep(LPJS_RETRY_TIME);  // No point trying immediately after drop
 	    msg_fd = lpjs_compd_checkin_loop(node_list, node);
 	}
@@ -129,7 +130,8 @@ int     main (int argc, char *argv[])
 	if (poll_fd.revents & POLLERR)
 	{
 	    poll_fd.revents &= ~POLLERR;
-	    lpjs_log("Error occurred polling dispatchd: %s\n", strerror(errno));
+	    lpjs_log("%s(): Error occurred polling dispatchd: %s\n",
+		    __FUNCTION__, strerror(errno));
 	    break;
 	}
 	
@@ -160,7 +162,8 @@ int     main (int argc, char *argv[])
 		// Close this end, or dispatchd gets "address already in use"
 		// When trying to restart
 		close(msg_fd);
-		lpjs_log("Lost connection to dispatchd: EOT received.\n");
+		lpjs_log("%s(): Lost connection to dispatchd: EOT received.\n",
+			__FUNCTION__);
 		sleep(LPJS_RETRY_TIME);  // No point trying immediately after drop
 
 		// Ignore HUP that follows EOT
@@ -175,18 +178,15 @@ int     main (int argc, char *argv[])
 		char    *script_start;
 		
 		lpjs_log("LPJS_COMPD_REQUEST_NEW_JOB\n");
+		
 		/*
 		 *  Parse job specs
 		 */
 		
 		job_read_from_string(job, munge_payload + 1, &script_start);
-		// lpjs_log("New job received:\n");
-		// job_print(job, Log_stream);
-		// lpjs_log("Script:\n%s", script_start);
-		// FIXME: Use submitter uid and gid, not dispatchd
 		if ( lpjs_run_script(job, script_start) != EX_OK )
 		{
-		    lpjs_log("Failed to start script.\n");
+		    lpjs_log("%s(): Failed to start script.\n", __FUNCTION__);
 		    snprintf(dispatch_response, LPJS_MSG_LEN_MAX + 1,
 			    "%c", LPJS_DISPATCH_FAILED);
 		}
@@ -241,8 +241,8 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
     fprintf(Log_stream, "%s\n", outgoing_msg + 1);
     if ( lpjs_send_munge(msg_fd, outgoing_msg) != EX_OK )
     {
-	lpjs_log("lpjs_compd: Failed to send checkin message to dispatchd: %s",
-		strerror(errno));
+	lpjs_log("%s(): Failed to send checkin message to dispatchd: %s",
+		__FUNCTION__, strerror(errno));
 	close(msg_fd);
 	return EX_IOERR;
     }
@@ -357,7 +357,8 @@ int     lpjs_run_script(job_t *job, const char *script_start)
 	// Use pwnam_r() if multithreading, not likely
 	if ( (pw_ent = getpwnam(job_get_user_name(job))) == NULL )
 	{
-	    lpjs_log("No such user: %s\n", job_get_user_name(job));
+	    lpjs_log("%s(): No such user: %s\n",
+		    __FUNCTION__, job_get_user_name(job));
 	    // FIXME: Report job failure to dispatchd
 	}
 	else
@@ -371,8 +372,8 @@ int     lpjs_run_script(job_t *job, const char *script_start)
 	    
 	    snprintf(temp_wd, PATH_MAX + 1, "LPJS-job-%lu",
 		    job_get_job_id(job));
-	    lpjs_log("%s does not exist.  Using temp dir %s.\n",
-		    working_dir, temp_wd);
+	    lpjs_log("%s(): %s does not exist.  Using temp dir %s.\n",
+		    __FUNCTION__, working_dir, temp_wd);
 	    
 	    // If temp_wd exists, rename it first
 	    if ( stat(temp_wd, &st) == 0 )
@@ -383,7 +384,6 @@ int     lpjs_run_script(job_t *job, const char *script_start)
 		{
 		    snprintf(save_wd, PATH_MAX + 1, "%s.%d", temp_wd, c++);
 		}   while ( stat(save_wd, &st) == 0 );
-		// lpjs_log("Renaming %s to %s\n", temp_wd, save_wd);
 		rename(temp_wd, save_wd);
 	    }
 	    
@@ -401,14 +401,14 @@ int     lpjs_run_script(job_t *job, const char *script_start)
     if ( chdir(working_dir) != 0 )
     {
 	lpjs_log("Failed to enter working dir: %s\n", working_dir);
-	// FIXME: Notify dispatchd of job failure
+	// FIXME: Check for actual reason
+	return EX_NOPERM;
     }
-    getcwd(temp_wd, PATH_MAX + 1);
-    lpjs_log("CWD = %s\n", temp_wd);
-    lpjs_log("If CWD above printed as NULL, this is errno: %s\n", strerror(errno));
+    
     if ( getcwd(temp_wd, PATH_MAX + 1) == NULL )
     {
-	lpjs_log("chdir() failed: errno = %s\n", strerror(errno));
+	lpjs_log("getcwd() failed: errno = %s\n", strerror(errno));
+	// Odd that chdir() indicates success, but getcwd() fails
 	#ifdef __APPLE__
 	lpjs_log("You may need to grant lpjs_compd full disk access in\n"
 		 "System Preferences -> Privacy and Security".  This\n"
@@ -418,6 +418,8 @@ int     lpjs_run_script(job_t *job, const char *script_start)
 	#endif
 	return EX_NOPERM;
     }
+    else
+	lpjs_log("Confirmed in %s.\n", temp_wd);
     
     /*
      *  Save script
@@ -432,7 +434,8 @@ int     lpjs_run_script(job_t *job, const char *script_start)
     lpjs_log("Saving job script to %s.\n", job_script_name);
     if ( (fd = open(job_script_name, O_WRONLY|O_CREAT|O_TRUNC, 0700)) == -1 )
     {
-	lpjs_log("Cannot create %s: %s\n", job_script_name, strerror(errno));
+	lpjs_log("%s(): Cannot create %s: %s\n",
+		__FUNCTION__, job_script_name, strerror(errno));
 	// FIXME: Report job failure to dispatchd
     }
     write(fd, script_start, strlen(script_start));
@@ -510,7 +513,7 @@ int     run_chaperone(job_t *job, const char *job_script_name)
 	    user_name = job_get_user_name(job);
 	    if ( (pw_ent = getpwnam(user_name)) == NULL )
 	    {
-		lpjs_log("%s(): %s: No such user.\n", __FUNCTION__, user_name);
+		lpjs_log("%s(): ERROR: %s: No such user.\n", __FUNCTION__, user_name);
 		// FIXME: Disable this node and reschedule this job
 		return EX_NOUSER;
 	    }
@@ -518,7 +521,7 @@ int     run_chaperone(job_t *job, const char *job_script_name)
 	    group_name = job_get_primary_group_name(job);
 	    if ( (gr_ent = getgrnam(group_name)) == NULL )
 	    {
-		lpjs_log("%s(): Info: %s: No such group.\n", __FUNCTION__, group_name);
+		lpjs_log("%s(): INFO: %s: No such group.\n", __FUNCTION__, group_name);
 		gid = pw_ent->pw_gid;
 	    }
 	    else
@@ -526,12 +529,12 @@ int     run_chaperone(job_t *job, const char *job_script_name)
 	    
 	    // Set gid before uid, while still running as root
 	    if ( setgid(gid) != 0 )
-		lpjs_log("%s(): Warning: Failed to set gid to %u.\n", __FUNCTION__, gid);
+		lpjs_log("%s(): WARNING: Failed to set gid to %u.\n", __FUNCTION__, gid);
 	    
 	    uid = pw_ent->pw_uid;
 	    if ( setuid(uid) != 0 )
 	    {
-		lpjs_log("%s(): Failed to set uid to %u.\n", __FUNCTION__, uid);
+		lpjs_log("%s(): ERROR: Failed to set uid to %u.\n", __FUNCTION__, uid);
 		// FIXME: Disable this node and reschedule this job
 		return EX_NOPERM;
 	    }
@@ -566,8 +569,6 @@ int     run_chaperone(job_t *job, const char *job_script_name)
 	
 	// FIXME: Build should use realpath
 	lpjs_log("Running chaperone: %s %s...\n", chaperone_bin, job_script_name);
-	fflush(Log_stream);
-	// FIXME: Failing on macOS
 	execl(chaperone_bin, chaperone_bin, job_script_name, NULL);
 	
 	// We only get here if execl() failed
@@ -605,7 +606,7 @@ void    lpjs_chown(job_t *job, const char *path)
     // It's OK if this fails, groups may differ on different nodes
     if ( (gr_ent = getgrnam(job_get_primary_group_name(job))) != NULL )
     {
-	lpjs_log("User %u changing ownership of %s to group %u.\n",
+	lpjs_log("User %u changing group ownership of %s to %u.\n",
 		getuid(), path, gr_ent->gr_gid);
 	if ( chown(path, -1, gr_ent->gr_gid) != 0 )
 	    lpjs_log("%s(): chown() failed.\n", __FUNCTION__);
