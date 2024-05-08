@@ -479,147 +479,142 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
     job_t           *job;
     
     bytes = 0;
-    if ( FD_ISSET(listen_fd, read_fds) )
+    /* Accept a connection request */
+    if ((msg_fd = accept(listen_fd,
+	    (struct sockaddr *)server_address, &address_len)) == -1)
     {
-	/* Accept a connection request */
-	if ((msg_fd = accept(listen_fd,
-		(struct sockaddr *)server_address, &address_len)) == -1)
-	{
-	    lpjs_log("%s(): accept() failed, even though select indicated listen_fd.\n",
-		    __FUNCTION__);
-	    exit(EX_SOFTWARE);
-	}
-	else
-	{
-	    lpjs_log("%s(): Accepted connection. fd = %d\n",
-		    __FUNCTION__, msg_fd);
-
-	    /* Read a message through the socket */
-	    if ( (bytes = lpjs_recv_munge(msg_fd,
-			 &munge_payload, 0, 0, &munge_uid, &munge_gid)) < 1 )
-	    {
-		lpjs_log("%s(): lpjs_recv_munge() failed (%zd bytes): %s\n",
-			__FUNCTION__, bytes, strerror(errno));
-		close(msg_fd);
-		free(munge_payload);
-		return bytes;
-	    }
-	    // lpjs_log("%s(): Got %zd byte message.\n", __FUNCTION__, bytes);
-	    // bytes must be at least 1, or no mem is allocated
-
-	    /* Process request */
-	    switch(munge_payload[0])
-	    {
-		case    LPJS_DISPATCHD_REQUEST_COMPD_CHECKIN:
-		    lpjs_log("LPJS_DISPATCHD_REQUEST_COMPD_CHECKIN\n");
-		    lpjs_process_compute_node_checkin(msg_fd, munge_payload,
-						      node_list, munge_uid, munge_gid);
-		    lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
-		    break;
-		
-		case    LPJS_DISPATCHD_REQUEST_NODE_STATUS:
-		    lpjs_log("LPJS_DISPATCHD_REQUEST_NODE_STATUS\n");
-		    node_list_send_status(msg_fd, node_list);
-		    // lpjs_server_safe_close(msg_fd);
-		    // node_list_send_status() sends EOT,
-		    // so don't use safe_close here.
-		    close(msg_fd);
-		    break;
-		
-		case    LPJS_DISPATCHD_REQUEST_JOB_STATUS:
-		    lpjs_log("LPJS_DISPATCHD_REQUEST_JOB_STATUS\n");
-		    lpjs_send_munge(msg_fd, "Pending\n\n");
-		    job_list_send_params(msg_fd, pending_jobs);
-		    lpjs_send_munge(msg_fd, "\nRunning\n\n");
-		    job_list_send_params(msg_fd, running_jobs);
-		    lpjs_server_safe_close(msg_fd);
-		    break;
-		
-		case    LPJS_DISPATCHD_REQUEST_SUBMIT:
-		    lpjs_log("LPJS_DISPATCHD_REQUEST_SUBMIT\n");
-		    lpjs_submit(msg_fd, munge_payload, node_list,
-				pending_jobs, running_jobs,
-				munge_uid, munge_gid);
-		    lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
-		    break;
-		
-		case    LPJS_DISPATCHD_REQUEST_CANCEL:
-		    lpjs_log("LPJS_DISPATCHD_REQUEST_CANCEL\n");
-		    lpjs_cancel(msg_fd, munge_payload + 1, node_list,
-				pending_jobs, running_jobs,
-				munge_uid, munge_gid);
-		    lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
-		    break;
-
-		case    LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN:
-		    lpjs_log("LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN:\n%s\n",
-			    munge_payload + 1);
-		    lpjs_send(msg_fd, 0, "Node authorized");
-		    
-		    /*
-		     *  We don't keep potentially thousands of open
-		     *  connections, one for every process
-		     *  No change in node status, don't try to dispatch jobs
-		     */
-		    close(msg_fd);
-		    
-		    // Job compute node and PIDs are in text form following
-		    // the one byte LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN
-		    lpjs_update_job(munge_payload + 1, pending_jobs, running_jobs);
-		    break;
-		    
-		case    LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:
-		    lpjs_log("LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:\n%s\n",
-			    munge_payload + 1);
-		    
-		    p = munge_payload + 1;
-		    hostname = strsep(&p, " ");
-		    node = node_list_find_hostname(node_list, hostname);
-		    if ( node == NULL )
-		    {
-			lpjs_log("%s(): Invalid hostname in job completion report.\n",
-				__FUNCTION__);
-			break;
-		    }
-		    if ( (items = sscanf(p, "%lu %u %zu %d",
-			    &job_id, &procs_per_job, &mem_per_proc,
-				&exit_status)) != 4 )
-		    {
-			lpjs_log("%s(): Error: Got %d items reading job_id, procs, mem, status.\n",
-				items);
-			break;
-		    }
-		    
-		    node_set_procs_used(node,
-			node_get_procs_used(node) - procs_per_job);
-		    node_set_phys_MiB_used(node,
-			node_get_phys_MiB_used(node)
-			    - mem_per_proc * procs_per_job);
-		
-		    /*
-		     *  FIXME:
-		     *      Write a completed job record to accounting log
-		     *      Note the job completion in the main log
-		     */
-		    
-		    // FIXME: Report error if NULL
-		    if ( (job = lpjs_remove_running_job(running_jobs,
-							job_id)) != NULL )
-			job_free(&job);
-		    
-		    lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
-		    break;
-		    
-		default:
-		    lpjs_log("%s(): Invalid request code byte on listen_fd: %d\n",
-			    __FUNCTION__, munge_payload[0]);
-		    
-	    }   // switch
-	    free(munge_payload);
-	}
+	lpjs_log("%s(): accept() failed, even though select indicated listen_fd.\n",
+		__FUNCTION__);
+	return -1;
     }
     else
-	lpjs_log("%s(): listen_fd is not ready.\n", __FUNCTION__);
+    {
+	lpjs_log("%s(): Accepted connection. fd = %d\n",
+		__FUNCTION__, msg_fd);
+
+	/* Read a message through the socket */
+	if ( (bytes = lpjs_recv_munge(msg_fd,
+		     &munge_payload, 0, 0, &munge_uid, &munge_gid)) < 1 )
+	{
+	    lpjs_log("%s(): lpjs_recv_munge() failed (%zd bytes): %s\n",
+		    __FUNCTION__, bytes, strerror(errno));
+	    close(msg_fd);
+	    free(munge_payload);
+	    return bytes;
+	}
+	// lpjs_log("%s(): Got %zd byte message.\n", __FUNCTION__, bytes);
+	// bytes must be at least 1, or no mem is allocated
+
+	/* Process request */
+	switch(munge_payload[0])
+	{
+	    case    LPJS_DISPATCHD_REQUEST_COMPD_CHECKIN:
+		lpjs_log("LPJS_DISPATCHD_REQUEST_COMPD_CHECKIN\n");
+		lpjs_process_compute_node_checkin(msg_fd, munge_payload,
+						  node_list, munge_uid, munge_gid);
+		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
+		break;
+	    
+	    case    LPJS_DISPATCHD_REQUEST_NODE_STATUS:
+		lpjs_log("LPJS_DISPATCHD_REQUEST_NODE_STATUS\n");
+		node_list_send_status(msg_fd, node_list);
+		// lpjs_server_safe_close(msg_fd);
+		// node_list_send_status() sends EOT,
+		// so don't use safe_close here.
+		close(msg_fd);
+		break;
+	    
+	    case    LPJS_DISPATCHD_REQUEST_JOB_STATUS:
+		lpjs_log("LPJS_DISPATCHD_REQUEST_JOB_STATUS\n");
+		lpjs_send_munge(msg_fd, "Pending\n\n");
+		job_list_send_params(msg_fd, pending_jobs);
+		lpjs_send_munge(msg_fd, "\nRunning\n\n");
+		job_list_send_params(msg_fd, running_jobs);
+		lpjs_server_safe_close(msg_fd);
+		break;
+	    
+	    case    LPJS_DISPATCHD_REQUEST_SUBMIT:
+		lpjs_log("LPJS_DISPATCHD_REQUEST_SUBMIT\n");
+		lpjs_submit(msg_fd, munge_payload, node_list,
+			    pending_jobs, running_jobs,
+			    munge_uid, munge_gid);
+		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
+		break;
+	    
+	    case    LPJS_DISPATCHD_REQUEST_CANCEL:
+		lpjs_log("LPJS_DISPATCHD_REQUEST_CANCEL\n");
+		lpjs_cancel(msg_fd, munge_payload + 1, node_list,
+			    pending_jobs, running_jobs,
+			    munge_uid, munge_gid);
+		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
+		break;
+
+	    case    LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN:
+		lpjs_log("LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN:\n%s\n",
+			munge_payload + 1);
+		lpjs_send(msg_fd, 0, "Node authorized");
+		
+		/*
+		 *  We don't keep potentially thousands of open
+		 *  connections, one for every process
+		 *  No change in node status, don't try to dispatch jobs
+		 */
+		close(msg_fd);
+		
+		// Job compute node and PIDs are in text form following
+		// the one byte LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN
+		lpjs_update_job(munge_payload + 1, pending_jobs, running_jobs);
+		break;
+		
+	    case    LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:
+		lpjs_log("LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:\n%s\n",
+			munge_payload + 1);
+		
+		p = munge_payload + 1;
+		hostname = strsep(&p, " ");
+		node = node_list_find_hostname(node_list, hostname);
+		if ( node == NULL )
+		{
+		    lpjs_log("%s(): Invalid hostname in job completion report.\n",
+			    __FUNCTION__);
+		    break;
+		}
+		if ( (items = sscanf(p, "%lu %u %zu %d",
+			&job_id, &procs_per_job, &mem_per_proc,
+			    &exit_status)) != 4 )
+		{
+		    lpjs_log("%s(): Error: Got %d items reading job_id, procs, mem, status.\n",
+			    items);
+		    break;
+		}
+		
+		node_set_procs_used(node,
+		    node_get_procs_used(node) - procs_per_job);
+		node_set_phys_MiB_used(node,
+		    node_get_phys_MiB_used(node)
+			- mem_per_proc * procs_per_job);
+	    
+		/*
+		 *  FIXME:
+		 *      Write a completed job record to accounting log
+		 *      Note the job completion in the main log
+		 */
+		
+		// FIXME: Report error if NULL
+		if ( (job = lpjs_remove_running_job(running_jobs,
+						    job_id)) != NULL )
+		    job_free(&job);
+		
+		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
+		break;
+		
+	    default:
+		lpjs_log("%s(): Invalid request code byte on listen_fd: %d\n",
+			__FUNCTION__, munge_payload[0]);
+		
+	}   // switch
+	free(munge_payload);
+    }
     
     return bytes;
 }

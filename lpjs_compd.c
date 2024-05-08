@@ -176,6 +176,7 @@ int     main (int argc, char *argv[])
 		// Terminates process if malloc() fails, no check required
 		job_t   *job = job_new();
 		char    *script_start;
+		int     status;
 		
 		lpjs_log("LPJS_COMPD_REQUEST_NEW_JOB\n");
 		
@@ -184,15 +185,26 @@ int     main (int argc, char *argv[])
 		 */
 		
 		job_read_from_string(job, munge_payload + 1, &script_start);
-		if ( lpjs_run_script(job, script_start) != EX_OK )
+		status = lpjs_run_script(job, script_start);
+		switch(status)
 		{
-		    lpjs_log("%s(): Failed to start script.\n", __FUNCTION__);
-		    snprintf(dispatch_response, LPJS_MSG_LEN_MAX + 1,
-			    "%c", LPJS_DISPATCH_FAILED);
+		    case    EX_OK:
+			snprintf(dispatch_response, LPJS_MSG_LEN_MAX + 1,
+				"%c", LPJS_DISPATCH_OK);
+			break;
+		    
+		    case    EX_OSERR:
+			lpjs_log("%s(): OS error.\n", __FUNCTION__);
+			snprintf(dispatch_response, LPJS_MSG_LEN_MAX + 1,
+				"%c", LPJS_DISPATCH_OSERR);
+			break;
+		    
+		    default:
+			lpjs_log("%s(): Failed to start script.\n", __FUNCTION__);
+			snprintf(dispatch_response, LPJS_MSG_LEN_MAX + 1,
+				"%c", LPJS_DISPATCH_SCRIPT_FAILED);
+			break;
 		}
-		else
-		    snprintf(dispatch_response, LPJS_MSG_LEN_MAX + 1,
-			    "%c", LPJS_DISPATCH_OK);
 		lpjs_send_munge(msg_fd, dispatch_response);
 	    }
 	    else if ( munge_payload[0] == LPJS_COMPD_REQUEST_CANCEL )
@@ -420,7 +432,11 @@ int     lpjs_run_script(job_t *job, const char *script_start)
 	#endif
 	
 	// Take node down to prevent further problems
-	exit(EX_OSERR);
+	// lpjs_server_safe_close(msg_fd);
+	// FIXME: Terminating here causes dispatchd to crash
+	// dispatchd should be able to tolerate lost connections at any time
+	// exit(EX_OSERR);
+	return EX_OSERR;
     }
     else
 	lpjs_log("Confirmed in %s.\n", temp_wd);

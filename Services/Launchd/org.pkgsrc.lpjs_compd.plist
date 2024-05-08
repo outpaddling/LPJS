@@ -11,6 +11,8 @@
 	</array>
 	<key>RunAtLoad</key>
 	<true/>
+	<!-- Must be true, or launch will fail if it can't connect -->
+	<!-- Unfortunately also restarts automatically when terminated -->
 	<key>KeepAlive</key>
 	<true/>
     </dict>

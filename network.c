@@ -348,8 +348,8 @@ int     lpjs_send_munge(int msg_fd, const char *msg)
     
     // Read acknowledgment
     bytes = lpjs_recv(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 0);
-    // lpjs_log("%s(): Response: %zu '%s'\n", __FUNCTION__, bytes, incoming_msg);
-    if ( (bytes == 0) || (strcmp(incoming_msg, LPJS_MUNGE_CRED_VERIFIED) != 0) )
+    lpjs_log("%s(): Response: %zd '%s'\n", __FUNCTION__, bytes, incoming_msg);
+    if ( (bytes < 1) || (strcmp(incoming_msg, LPJS_MUNGE_CRED_VERIFIED) != 0) )
     {
 	lpjs_log("%s(): Expected %s.\n", __FUNCTION__, LPJS_MUNGE_CRED_VERIFIED);
 	return EX_DATAERR;

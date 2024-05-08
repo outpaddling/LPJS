@@ -27,7 +27,8 @@ enum
 enum
 {
     LPJS_DISPATCH_OK = 1,
-    LPJS_DISPATCH_FAILED
+    LPJS_DISPATCH_SCRIPT_FAILED,
+    LPJS_DISPATCH_OSERR
 };
 
 // IPv6 max address size is 39

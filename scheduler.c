@@ -142,14 +142,16 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	    
 	    outgoing_msg[0] = LPJS_COMPD_REQUEST_NEW_JOB;
 	    job_print_to_string(job, outgoing_msg + 1, LPJS_JOB_MSG_MAX + 1);
-	    strlcat(outgoing_msg, script_buff, LPJS_JOB_MSG_MAX + 1);
-	    // FIXME: Check for truncation
+
+	    lpjs_log("Job specs: %s\n", outgoing_msg + 1);
 	    
-	    lpjs_log("%s(): outgoing job msg:\n[script text]\n",
-		    __FUNCTION__, outgoing_msg + 1);
+	    // FIXME: Check for truncation
+	    strlcat(outgoing_msg, script_buff, LPJS_JOB_MSG_MAX + 1);
 	    lpjs_send_munge(msg_fd, outgoing_msg);
 	    
 	    // Get status back from compd
+	    lpjs_log("Awaiting dispatch status from compd...\n");
+	    fflush(Log_stream);
 	    payload_bytes = lpjs_recv_munge(msg_fd, &munge_payload,
 					    0, 0, &uid, &gid);
 	    // lpjs_log("payload_bytes = %d\n", payload_bytes);
@@ -161,6 +163,12 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 		    lpjs_log("%s(): Job script failed to start: %d\n",
 			    __FUNCTION__, exit_code);
 		    lpjs_remove_pending_job(pending_jobs, job_get_job_id(job));
+		}
+		else if ( exit_code == LPJS_DISPATCH_OSERR )
+		{
+		    lpjs_log("%s(): OS error detected on %s.\n",
+			    __FUNCTION__, node_get_hostname(node));
+		    node_set_state(node, "Down");
 		}
 		else
 		{
