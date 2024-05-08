@@ -145,7 +145,8 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	    strlcat(outgoing_msg, script_buff, LPJS_JOB_MSG_MAX + 1);
 	    // FIXME: Check for truncation
 	    
-	    lpjs_log("%s(): outgoing job msg:\n%s\n", __FUNCTION__, outgoing_msg + 1);
+	    lpjs_log("%s(): outgoing job msg:\n[script text]\n",
+		    __FUNCTION__, outgoing_msg + 1);
 	    lpjs_send_munge(msg_fd, outgoing_msg);
 	    
 	    // Get status back from compd
@@ -159,13 +160,13 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 		{
 		    lpjs_log("%s(): Job script failed to start: %d\n",
 			    __FUNCTION__, exit_code);
-		    // FIXME: Don't try this node again for this job
+		    lpjs_remove_pending_job(pending_jobs, job_get_job_id(job));
 		}
 		else
 		{
 		    job_set_dispatched(job, 1);
-		    // FIXME: Check strdup() success
-		    job_set_compute_node(job, strdup(node_get_hostname(node)));
+		    // Don't set compute node until chaperone confirms
+		    // successful launch
 		    
 		    // FIXME: Needs adjustment for MPI jobs at the least
 		    procs_used = node_get_procs_used(node);
@@ -176,7 +177,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 		}
 	    }
 	    else
-		lpjs_log("%s(): Failed receive dispatch status from compd.\n",
+		lpjs_log("%s(): Failed to receive dispatch status from compd.\n",
 			__FUNCTION__);
 	}
 	

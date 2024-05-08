@@ -418,7 +418,9 @@ int     lpjs_run_script(job_t *job, const char *script_start)
 		 "They need to hear from multiple people before they will\n"
 		 "take the issue seriously.\n");
 	#endif
-	return EX_NOPERM;
+	
+	// Take node down to prevent further problems
+	exit(EX_OSERR);
     }
     else
 	lpjs_log("Confirmed in %s.\n", temp_wd);
