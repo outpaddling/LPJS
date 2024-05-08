@@ -158,7 +158,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	    if ( payload_bytes > 0 )
 	    {
 		exit_code = munge_payload[0];
-		if ( exit_code != LPJS_DISPATCH_OK )
+		if ( exit_code == LPJS_DISPATCH_SCRIPT_FAILED )
 		{
 		    lpjs_log("%s(): Job script failed to start: %d\n",
 			    __FUNCTION__, exit_code);
