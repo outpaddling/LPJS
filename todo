@@ -1,7 +1,5 @@
 
-Remove job when script fails
-
-Set node state to down when getcwd() fails (macOS full disk access issue)
+dispatchd: cd to a dir with write perms for dispatchd so cores can be dumped
 
 Reload jobs from running dir upon dispatchd startup
 
