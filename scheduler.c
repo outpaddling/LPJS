@@ -491,7 +491,6 @@ job_t   *lpjs_remove_pending_job(job_list_t *pending_jobs, unsigned long job_id)
 	// WEXITED is implicitly set for waitpid(), but specify for readability
 	waitpid(pid, &status, WEXITED);
     
-    // FIXME: Remove from pending_jobs
     return job_list_remove_job(pending_jobs, job_id);
 }
 

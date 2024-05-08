@@ -562,7 +562,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		
 		// Job compute node and PIDs are in text form following
 		// the one byte LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN
-		lpjs_update_job(munge_payload + 1, pending_jobs, running_jobs);
+		lpjs_update_job(node_list, munge_payload + 1, pending_jobs, running_jobs);
 		break;
 		
 	    case    LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:
@@ -765,13 +765,9 @@ int     lpjs_cancel(int msg_fd, const char *incoming_msg,
 
 {
     unsigned long   job_id;
-    char            *end,
-		    *compute_node_name,
-		    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
+    char            *end;
     job_t           *job;
-    pid_t           chaperone_pid;
-    node_t          *compute_node;
-    int             compute_node_fd;
+    size_t          index;
     
     // lpjs_log("%s(): '%s'\n", __FUNCTION__, incoming_msg);
     job_id = strtoul(incoming_msg, &end, 10);
@@ -782,34 +778,76 @@ int     lpjs_cancel(int msg_fd, const char *incoming_msg,
 	return -1;
     }
     
-    if ( (job = lpjs_remove_pending_job(pending_jobs, job_id)) != NULL )
+    // If job is pending, but dispatched, wait for chaperone checkin
+    // before removing it, so the processes can be terminated.
+    // FIXME: Check success
+    if ( (index = job_list_find_job(pending_jobs, job_id)) != JOB_LIST_NOT_FOUND )
     {
-	job_free(&job);
-	lpjs_log("%s(): Canceled pending job %lu...\n", __FUNCTION__, job_id);
+	lpjs_log("%s(): index = %zu\n", __FUNCTION__, index);
+	if ( (job = job_list_get_jobs_ae(pending_jobs, index)) != NULL )
+	{
+	    if ( job_get_dispatched(job) == 1 )
+	    {
+		job_set_dispatched(job, 2);
+		lpjs_log("%s(): Pending job %lu is dispatched.  Scheduled for removal after chaperone checkin.\n",
+			__FUNCTION__, job_id);
+	    }
+	    else
+	    {
+		lpjs_remove_pending_job(pending_jobs, job_id);
+		job_free(&job);
+		lpjs_log("%s(): Canceled pending job %lu...\n", __FUNCTION__, job_id);
+	    }
+	}
+	else
+	    lpjs_log("%s(): Got valid index for pending job, but no job object.  This is a bug.\n",
+		    __FUNCTION__);
     }
     else if ( (job = lpjs_remove_running_job(running_jobs, job_id)) != NULL )
     {
 	lpjs_log("%s(): Canceled running job %lu...\n", __FUNCTION__, job_id);
-	
-	// FIXME: Send SIGTERM and if necessary, SIGKILL via compd
-	// FIXME: Check for errors
-	compute_node_name = job_get_compute_node(job);
-	chaperone_pid = job_get_chaperone_pid(job);
-	lpjs_log("%s(): Signaling chaperone PID %lu on %s\n",
-		__FUNCTION__, chaperone_pid, compute_node_name);
-	compute_node = node_list_find_hostname(node_list, compute_node_name);
-	compute_node_fd = node_get_msg_fd(compute_node);
-	
-	snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%u",
-		LPJS_COMPD_REQUEST_CANCEL, chaperone_pid);
-	lpjs_send_munge(compute_node_fd, outgoing_msg);
-	
-	job_free(&job);
+	lpjs_kill_processes(node_list, job);
     }
     else
 	lpjs_log("%s(): No such active job ID: %lu.\n", __FUNCTION__, job_id);
 	
     lpjs_server_safe_close(msg_fd);
+    
+    return 0;   // FIXME: Define return codes
+}
+
+
+/***************************************************************************
+ *  Description:
+ *      Terminate processes associated with a job
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-05-08  Jason Bacon Begin
+ ***************************************************************************/
+
+int     lpjs_kill_processes(node_list_t *node_list, job_t *job)
+
+{
+    char            *compute_node_name,
+		    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
+    pid_t           chaperone_pid;
+    node_t          *compute_node;
+    int             compute_node_fd;
+    // FIXME: Send SIGTERM and if necessary, SIGKILL via compd
+    // FIXME: Check for errors
+    compute_node_name = job_get_compute_node(job);
+    chaperone_pid = job_get_chaperone_pid(job);
+    lpjs_log("%s(): Signaling chaperone PID %lu on %s\n",
+	    __FUNCTION__, chaperone_pid, compute_node_name);
+    compute_node = node_list_find_hostname(node_list, compute_node_name);
+    compute_node_fd = node_get_msg_fd(compute_node);
+
+    snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%u",
+	    LPJS_COMPD_REQUEST_CANCEL, chaperone_pid);
+    lpjs_send_munge(compute_node_fd, outgoing_msg);
+    
+    job_free(&job);
     
     return 0;   // FIXME: Define return codes
 }
@@ -932,7 +970,7 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
 }
 
 
-int     lpjs_update_job(char *payload,
+int     lpjs_update_job(node_list_t *node_list, char *payload,
 			job_list_t *pending_jobs, job_list_t *running_jobs)
 
 {
@@ -993,6 +1031,19 @@ int     lpjs_update_job(char *payload,
 	}
 	job_print_full_specs(job, fp);
 	fclose(fp);
+	
+	/*
+	 *  If job was canceled while still pending but after dispatched,
+	 *  we need to terminate the processes now.
+	 */
+	
+	if ( job_get_dispatched(job) == 2 )
+	{
+	    lpjs_log("%s(): Job %lu was canceled after dispatch.  Removing...\n",
+		    __FUNCTION__, job_id);
+	    lpjs_remove_running_job(running_jobs, job_id);
+	    lpjs_kill_processes(node_list, job);
+	}
     }
     
     return 0;   // FIXME: Define return codes
