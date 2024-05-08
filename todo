@@ -1,5 +1,7 @@
 
-Add lpjs cancel job[-job] [job ...]
+Remove job when script fails
+
+Set node state to down when getcwd() fails (macOS full disk access issue)
 
 Reload jobs from running dir upon dispatchd startup
 
