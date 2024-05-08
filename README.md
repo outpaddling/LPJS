@@ -44,10 +44,11 @@ the highest possible code quality.
 The user interface may undergo significant changes as testing reveals
 oversights in design.
 
-Development is currently moving along nicely.  The system is running
-simple jobs on our test clusters and grids, though it currently
-supports only the
-most basic features and the code is in need significant cleanup.
+We're nearing usability on reliable hardware.  Support for unreliable
+compute nodes (part-time resources that are likely to spontaneously
+disconnect) is a can of worms we're going to kick down the road a bit.
+These will be fully supported in the future, but for now, we'll focus
+on the user interface and documentation for dedicated cluster hardware.
 
 ```
 FreeBSD coral.acadix  bacon ~/Barracuda/LPJS-test 1024: lpjs submit fastq-trim.lpjs
@@ -84,8 +85,7 @@ Running
       176    3    5   3   3    50 bacon coral.acadix.biz fastq-trim.lpjs
 ```
 
-We anticipate having a minimal working batch system in place sometime in
-early 2024.  Basic usability for brave souls willing to test alpha-quality
+Basic usability for brave souls willing to test alpha-quality
 software and provide feedback will be indicated by the first full
 release, 0.1.0.  Pre-releases beginning with 0.0.1 will follow the
 addition of essential core features.
