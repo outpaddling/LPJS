@@ -1,4 +1,6 @@
 
+compd: Respond properly to EOT (enter reconnect loop)
+
 dispatchd: cd to a dir with write perms for dispatchd so cores can be dumped
 
 Reload jobs from running dir upon dispatchd startup

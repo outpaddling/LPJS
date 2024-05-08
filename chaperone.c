@@ -412,13 +412,40 @@ int     lpjs_chaperone_completion_loop(node_list_t *node_list,
 void    chaperone_cancel_handler(int s2)
 
 {
-    lpjs_log("Terminating %d...\n", Pid);
+    char    cmd[LPJS_CMD_MAX + 1],
+	    pid_str[100],
+	    *end;
+    FILE    *fp;
+    pid_t   child_pid;
+    
+    lpjs_log("Canceling PID %d...\n", Pid);
     
     /*
      *  Terminate mafia-style: Don't just terminate the process, go
      *  after his family as well.  killpg() vs kill()
      */
     
-    if ( killpg(Pid, SIGTERM) != 0 )
-	killpg(Pid, SIGKILL);
+    // Get list of child processes in a kludgy, but portable way
+    snprintf(cmd, LPJS_CMD_MAX + 1, "pgrep -P %u", Pid);
+    lpjs_log("Running %s...\n", cmd);
+    
+    // Signal each child to terminate
+    if ( (fp = popen(cmd, "r")) == NULL )
+    {
+	lpjs_log("Failed to run %s.\n", cmd);
+	return;
+    }
+    while ( fgets(pid_str, 100, fp) != NULL )
+    {
+	// FIXME: Check success
+	child_pid = strtoul(pid_str, &end, 10);
+	lpjs_log("Signaling child PID %u...\n", child_pid);
+	if ( kill(child_pid, SIGTERM) != 0 )
+	    kill(child_pid, SIGKILL);
+    }
+    pclose(fp);
+
+    // Signal LPJS script to terminate
+    if ( kill(Pid, SIGTERM) != 0 )
+	kill(Pid, SIGKILL);
 }
