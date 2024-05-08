@@ -260,7 +260,6 @@ int     lpjs_chaperone_checkin(int msg_fd,
     {
 	lpjs_log("Failed to send checkin message to dispatchd: %s",
 		strerror(errno));
-	close(msg_fd);
 	return EX_IOERR;
     }
     lpjs_log("%s(): Sent checkin request.\n", __FUNCTION__);
