@@ -413,6 +413,12 @@ void    chaperone_cancel_handler(int s2)
 
 {
     lpjs_log("Terminating %d...\n", Pid);
-    if ( kill(Pid, SIGTERM) != 0 )
-	kill(Pid, SIGKILL);
+    
+    /*
+     *  Terminate mafia-style: Don't just terminate the process, go
+     *  after his family as well.  killpg() vs kill()
+     */
+    
+    if ( killpg(Pid, SIGTERM) != 0 )
+	killpg(Pid, SIGKILL);
 }
