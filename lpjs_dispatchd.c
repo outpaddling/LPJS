@@ -550,8 +550,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		break;
 
 	    case    LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN:
-		lpjs_log("LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN:\n%s\n",
-			munge_payload + 1);
+		lpjs_log("LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN:\n");
 		lpjs_send(msg_fd, 0, "Node authorized");
 		
 		/*
@@ -943,13 +942,16 @@ int     lpjs_update_job(char *payload,
 	    running_job_dir[PATH_MAX + 1],
 	    specs_path[PATH_MAX + 1];
     FILE    *fp;
-    unsigned long   job_id, chaperone_pid, job_pid;
+    unsigned long   job_id;
+    pid_t   chaperone_pid, job_pid;
     size_t  job_list_index;
     job_t   *job;
     
     p = payload;
     compute_node = strsep(&p, " ");
-    sscanf(p, "%lu %lu %lu", &job_id, &chaperone_pid, &job_pid);
+    sscanf(p, "%lu %u %u", &job_id, &chaperone_pid, &job_pid);
+    lpjs_log("%s(): job_id = %lu  chaperone_pid = %u  job_pid = %u\n",
+	    __FUNCTION__, job_id, chaperone_pid, job_pid);
     
     job_list_index = job_list_find_job(pending_jobs, job_id);
     if ( job_list_index == JOB_LIST_NOT_FOUND )

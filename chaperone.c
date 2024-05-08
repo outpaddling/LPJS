@@ -116,6 +116,9 @@ int     main (int argc, char *argv[])
     
     if ( (Pid = fork()) == 0 )
     {
+	// Create new process group with the script's PID
+	setpgid(0, getpid());
+	
 	// Child, run script
 	// FIXME: Set CPU and memory (virtual and physical) limits
 	fclose(Log_stream); // Not useful to child
@@ -412,18 +415,47 @@ int     lpjs_chaperone_completion_loop(node_list_t *node_list,
 void    chaperone_cancel_handler(int s2)
 
 {
+    lpjs_log("Canceling PID %d...\n", Pid);
+    
+    /*
+     *  Terminate mafia-style: Don't just terminate the process, go
+     *  after his family as well.  killpg() vs kill().  Although chaperone
+     *  creates a process group for the LPJS script, it killpg() will
+     *  not work if programs run by the script create process groups
+     *  as well.  So we need to traverse the process tree, depth-first,
+     *  kill children before their parents to ensure that all descendent
+     *  processes are discovered.
+     */
+    
+    whack_family(Pid);
+    
+    // Signal LPJS script to terminate.  Using kill() vs killpg()
+    // shouldn't matter at this point, but we use killpg() in case
+    // there are stragglers.
+    if ( killpg(Pid, SIGTERM) != 0 )
+	killpg(Pid, SIGKILL);
+}
+
+
+
+
+/***************************************************************************
+ *  Description:
+ *      Kill descendents of a process in depth-first order
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-05-08  Jason Bacon Begin
+ ***************************************************************************/
+
+void    whack_family(pid_t pid)
+
+{
     char    cmd[LPJS_CMD_MAX + 1],
 	    pid_str[100],
 	    *end;
     FILE    *fp;
     pid_t   child_pid;
-    
-    lpjs_log("Canceling PID %d...\n", Pid);
-    
-    /*
-     *  Terminate mafia-style: Don't just terminate the process, go
-     *  after his family as well.  killpg() vs kill()
-     */
     
     // Get list of child processes in a kludgy, but portable way
     snprintf(cmd, LPJS_CMD_MAX + 1, "pgrep -P %u", Pid);
@@ -439,13 +471,17 @@ void    chaperone_cancel_handler(int s2)
     {
 	// FIXME: Check success
 	child_pid = strtoul(pid_str, &end, 10);
+	
+	// Depth-first traversal of process tree
+	if ( child_pid != pid )
+	    whack_family(child_pid);
+	
 	lpjs_log("Signaling child PID %u...\n", child_pid);
 	if ( kill(child_pid, SIGTERM) != 0 )
+	{
+	    lpjs_log("Sending SIGKILL...\n");
 	    kill(child_pid, SIGKILL);
+	}
     }
     pclose(fp);
-
-    // Signal LPJS script to terminate
-    if ( kill(Pid, SIGTERM) != 0 )
-	kill(Pid, SIGKILL);
 }
