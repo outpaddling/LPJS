@@ -1,8 +1,6 @@
 
 Now
 ---
-lpjs jobs: Show compute node
-
 compd: Respond properly to EOT (enter reconnect loop)
 
 chaperone: Disconnect from dispatchd after checkin to prevent hangs

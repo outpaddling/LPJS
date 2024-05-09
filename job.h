@@ -17,7 +17,7 @@
 #define JOB_SPEC_STRING_FIELDS  7
 // For lpjs jobs output
 #define JOB_BASIC_PARAMS_HEADER \
-    "    JobID  IDX Jobs P/J P/N MiB/P User Submit-host Script\n"
+    "    JobID  IDX Jobs P/J P/N MiB/P User Compute-node Script\n"
 #define JOB_BASIC_PARAMS_FORMAT JOB_BASIC_NUMS_FORMAT " %s %s %s\n"
 #define JOB_FIELD_MAX_LEN       1024
 #define JOB_STR_MAX_LEN         2048    // Fixme: MAX_PATH + x?

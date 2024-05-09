@@ -164,7 +164,7 @@ void    job_send_basic_params(job_t *job, int msg_fd)
 	    job->job_count, job->procs_per_job,
 	    job->min_procs_per_node, job->mem_per_proc,
 	    job->user_name,
-	    job->submit_node,
+	    job->compute_node == NULL ? "TBD" : job->compute_node,
 	    job->script_name);
     
     if ( lpjs_send_munge(msg_fd, msg) != EX_OK )
