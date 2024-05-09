@@ -1,40 +1,28 @@
 
+Now
+---
 compd: Respond properly to EOT (enter reconnect loop)
 
-dispatchd: cd to a dir with write perms for dispatchd so cores can be dumped
+chaperone: Disconnect from dispatchd after checkin to prevent hangs
+    netstat is showing connections in CLOSE_WAIT state
 
 Add #lpjs log-dir for chaperone-*, *.stderr, *.stdout
-
-Add #lpjs concurrent-job-limit
 
 systemctl restart lpjs_compd doesn't work
     Waiting a while and running restart again starts the daemon
 
-Report peak resource use compared to specified
-
 Doc:
-    Use any scripting language that treats "^#lpjs" as a comment
-	Requests to support other comment formats will be considered
-    Submission: All jobs under one "lpjs submit" command
-    Job: An independent computational run
-	Serial
-	Shared memory multiproc (e.g. multithreaded via pthreads, OpenMP)
-	Distributed multiproc (e.g. MPI)
     Config file can be the same on all nodes, but the compute nodes
 	only need the head node listed
 
 Required submission parameters
-    Jobs
-    Processors per job
-	Processor as defined by sysconf(_SC_NPROCESSORS_CONF)
-	or getconf _NPROCESSORS_CONF
-    Nodes per job
-    pmem per job or pmem per proc
     vmem per job or vmem per proc
-    
-    Array: Jobs > 1
-    Multithreaded: nodes per job = 1, procs per job = # or "all"
-    MPI: Procs per job > 1
+
+Later
+-----
+Add #lpjs concurrent-job-limit
+
+Report peak resource use compared to specified
 
 Optional submission parameters
     has_command, where command is any program in the standard PATH on node

@@ -389,6 +389,7 @@ int     lpjs_server_safe_close(int msg_fd)
      *  FIXME: No data should be read here.  The first read() should
      *  return EOF.  Add a check for this.
      */
+    lpjs_log("%s(): Waiting for client to hang up...\n", __FUNCTION__);
     while ( read(msg_fd, buff, 64) > 0 )
 	sleep(1);
     

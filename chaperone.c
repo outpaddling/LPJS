@@ -308,26 +308,37 @@ int     lpjs_chaperone_checkin_loop(node_list_t *node_list,
     int     msg_fd,
 	    status;
     
-    // Retry socket connection indefinitely
-    while ( (msg_fd = lpjs_connect_to_dispatchd(node_list)) == -1 )
-    {
-	lpjs_log("%s(): Failed to connect to dispatchd: %s\n",
-		__FUNCTION__, strerror(errno));
-	lpjs_log("Retry in %d seconds...\n", LPJS_RETRY_TIME);
-	sleep(LPJS_RETRY_TIME);
-    }
+    /*
+     *  Retry socket connection and checkin request indefinitely.
+     *  Close msg_fd if checkin fails, to prevent deamons from
+     *  hanging on an open socket connection.
+     */
     
-    // Retry checking request indefinitely
-    while ( (status = lpjs_chaperone_checkin(msg_fd, hostname, job_id, job_pid)) != EX_OK )
+    do
     {
-	lpjs_log("%s(): chaperone-checkin failed.  Retry in %d seconds...\n",
-		 __FUNCTION__, LPJS_RETRY_TIME);
-	sleep(LPJS_RETRY_TIME);
-    }
+	msg_fd = lpjs_connect_to_dispatchd(node_list);
+	if ( msg_fd == -1 )
+	{
+	    lpjs_log("%s(): Failed to connect to dispatchd: %s\n",
+		    __FUNCTION__, strerror(errno));
+	    lpjs_log("Retry in %d seconds...\n", LPJS_RETRY_TIME);
+	    sleep(LPJS_RETRY_TIME);
+	}
+	else
+	{
+	    status = lpjs_chaperone_checkin(msg_fd, hostname, job_id, job_pid);
+	    if ( status != EX_OK )
+	    {
+		lpjs_log("%s(): chaperone-checkin failed.  Retry in %d seconds...\n",
+			 __FUNCTION__, LPJS_RETRY_TIME);
+		sleep(LPJS_RETRY_TIME);
+	    }
+	    close(msg_fd);
+	}
+    }   while ( (msg_fd == -1) || (status != EX_OK) );
     
     lpjs_log("%s(): Checkin successful.\n", __FUNCTION__);
     
-    close(msg_fd);
     return 0;   // FIXME: Define return codes
 }
 
@@ -386,27 +397,32 @@ int     lpjs_chaperone_completion_loop(node_list_t *node_list,
 {
     int     msg_fd;
     
-    // Retry socket connection indefinitely
-    while ( (msg_fd = lpjs_connect_to_dispatchd(node_list)) == -1 )
+    // Retry socket connection and message send indefinitely
+    do
     {
-	lpjs_log("%s(): Failed to connect to dispatchd: %s\n",
-		__FUNCTION__, strerror(errno));
-	lpjs_log("Retry in %d seconds...\n", LPJS_RETRY_TIME);
-	sleep(LPJS_RETRY_TIME);
-    }
-    
-    // Retry checking request indefinitely
-    while ( (status = lpjs_chaperone_completion(msg_fd, hostname, job_id,
-						status)) != EX_OK )
-    {
-	lpjs_log("%s(): Message send failed.  Retry in %d seconds...\n",
-		 __FUNCTION__, LPJS_RETRY_TIME);
-	sleep(LPJS_RETRY_TIME);
-    }
-    
+	msg_fd = lpjs_connect_to_dispatchd(node_list);
+	if ( msg_fd == -1 )
+	{
+	    lpjs_log("%s(): Failed to connect to dispatchd: %s\n",
+		    __FUNCTION__, strerror(errno));
+	    lpjs_log("Retry in %d seconds...\n", LPJS_RETRY_TIME);
+	    sleep(LPJS_RETRY_TIME);
+	}
+	else
+	{
+	    status = lpjs_chaperone_completion(msg_fd, hostname, job_id,
+						status);
+	    if ( status != EX_OK )
+	    {
+		lpjs_log("%s(): Message send failed.  Retry in %d seconds...\n",
+			 __FUNCTION__, LPJS_RETRY_TIME);
+		sleep(LPJS_RETRY_TIME);
+	    }
+	    close(msg_fd);
+	}
+    }   while ( (msg_fd == -1) || (status != EX_OK) );
     lpjs_log("%s(): Completion report sent.\n", __FUNCTION__);
     
-    close(msg_fd);
     return 0;   // FIXME: Define return codes
 }
 

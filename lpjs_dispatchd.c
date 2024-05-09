@@ -137,6 +137,10 @@ int     main(int argc,char *argv[])
     chown(LPJS_LOG_DIR, daemon_uid, daemon_gid);
     chown(LPJS_DISPATCHD_LOG, daemon_uid, daemon_gid);
     
+    // Go where daemon has write permissions, so a core can be dumped
+    // in the event of a crash
+    chdir(LPJS_LOG_DIR);
+    
     // Parent of all new job directories
     if ( xt_rmkdir(LPJS_PENDING_DIR, 0755) != 0 )
     {
@@ -362,7 +366,7 @@ void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
 	    {
 		lpjs_log("%s(): Lost connection to %s.  Closing...\n",
 			__FUNCTION__, node_get_hostname(node));
-		close(fd);
+		lpjs_server_safe_close(fd);
 		node_set_msg_fd(node, NODE_MSG_FD_NOT_OPEN);
 		node_set_state(node, "Down");
 	    }
@@ -503,7 +507,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	{
 	    lpjs_log("%s(): lpjs_recv_munge() failed (%zd bytes): %s\n",
 		    __FUNCTION__, bytes, strerror(errno));
-	    close(msg_fd);
+	    lpjs_server_safe_close(msg_fd);
 	    free(munge_payload);
 	    return bytes;
 	}
@@ -563,7 +567,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		 *  connections, one for every process
 		 *  No change in node status, don't try to dispatch jobs
 		 */
-		close(msg_fd);
+		lpjs_server_safe_close(msg_fd);
 		
 		// Job compute node and PIDs are in text form following
 		// the one byte LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN
@@ -683,7 +687,7 @@ void    lpjs_process_compute_node_checkin(int msg_fd, const char *incoming_msg,
     {
 	lpjs_log("Unauthorized checkin request from host %s.\n",
 		node_get_hostname(new_node));
-	close(msg_fd);
+	lpjs_server_safe_close(msg_fd);
     }
     else
     {

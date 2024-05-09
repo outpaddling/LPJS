@@ -300,7 +300,7 @@ int     job_parse_script(job_t *job, const char *script_name)
 		}
 		else if ( strcmp(var, "min-procs-per-node") == 0 )
 		{
-		    if ( strcmp(val, "all") == 0 )
+		    if ( strcmp(val, "procs-per-job") == 0 )
 			job->min_procs_per_node = job->procs_per_job;
 		    else
 		    {
@@ -317,7 +317,7 @@ int     job_parse_script(job_t *job, const char *script_name)
 			}
 		    }
 		}
-		else if ( strcmp(var, "mem-per-proc") == 0 )
+		else if ( strcmp(var, "pmem-per-proc") == 0 )
 		{
 		    job->mem_per_proc = strtoul(val, &end, 10);
 		    
@@ -334,7 +334,7 @@ int     job_parse_script(job_t *job, const char *script_name)
 			job->mem_per_proc = job->mem_per_proc * LPJS_GiB / LPJS_MiB;
 		    else
 		    {
-			fprintf(stderr, "Error: #lpjs mem-per-proc '%s':\n", val);
+			fprintf(stderr, "Error: #lpjs pmem-per-proc '%s':\n", val);
 			fprintf(stderr, "Requires a decimal number followed by MB, MiB, GB, or GiB.\n");
 			exit(EX_DATAERR);
 		    }
@@ -352,7 +352,7 @@ int     job_parse_script(job_t *job, const char *script_name)
     fclose(fp);
     
     // FIXME: Error out if not all required parameters present
-    // jobs, procs-per-job, mem-per-proc
+    // jobs, procs-per-job, pmem-per-proc
     
     if ( job->min_procs_per_node == 0 )
 	fprintf(stderr, "%u job, %u procs per job, all procs per node, %zu MiB\n",
