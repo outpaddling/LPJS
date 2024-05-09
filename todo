@@ -16,6 +16,8 @@ systemctl restart lpjs_compd doesn't work
 
 Later
 -----
+MPI support
+
 Submission parameter:
     vmem per proc
 
