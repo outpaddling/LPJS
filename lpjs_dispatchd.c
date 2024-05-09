@@ -53,8 +53,6 @@ int     main(int argc,char *argv[])
     uid_t       daemon_uid;
     gid_t       daemon_gid;
     
-    // FIXME: Load existing jobs from spool dir on startup
-    
     // Must be global for signal handler
     // FIXME: Maybe use ucontext to pass these to handler
     extern FILE         *Log_stream;
@@ -145,14 +143,14 @@ int     main(int argc,char *argv[])
     if ( xt_rmkdir(LPJS_PENDING_DIR, 0755) != 0 )
     {
 	fprintf(stderr, "Cannot create %s: %s\n", LPJS_PENDING_DIR, strerror(errno));
-	return -1;  // FIXME: Define error codes
+	return EX_CANTCREAT;
     }
 
     // Parent of all running job directories
     if ( xt_rmkdir(LPJS_RUNNING_DIR, 0755) != 0 )
     {
 	fprintf(stderr, "Cannot create %s: %s\n", LPJS_RUNNING_DIR, strerror(errno));
-	return -1;  // FIXME: Define error codes
+	return EX_CANTCREAT;
     }
     
     // Make spool dir writable to daemon owner after root creates it
@@ -607,11 +605,14 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		 *      Write a completed job record to accounting log
 		 *      Note the job completion in the main log
 		 */
+		// lpjs_log_job();
 		
-		// FIXME: Report error if NULL
 		if ( (job = lpjs_remove_running_job(running_jobs,
 						    job_id)) != NULL )
 		    job_free(&job);
+		else
+		    lpjs_log("%s(): remove_running_job returned NULL.  This is a bug.\n",
+			    __FUNCTION__);
 		
 		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
 		break;
@@ -724,9 +725,6 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
 		*job;
     int         c, job_array_index;
     
-    // FIXME:
-    // if ( job_list_get_count(running_jobs) + submit_count > LPJS_MAX_JOBS )
-    
     // FIXME: Don't accept job submissions from root until
     // security issues have been considered
     
@@ -746,7 +744,7 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
 	job_array_index = c + 1;    // Job arrays are 1-based
 	
 	// Create a separate job_t object for each member of the job array
-	// FIXME: Check for success
+	// job_dup() terminates process if malloc() fails
 	job = job_dup(submission);
 	lpjs_queue_job(msg_fd, pending_jobs, job, job_array_index, script_text);
     }
@@ -761,6 +759,9 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
 /***************************************************************************
  *  Description:
  *      Add a new submission to the queue
+ *
+ *  Returns:
+ *      LPJS_SUCCESS, etc.
  *  
  *  History: 
  *  Date        Name        Modification
@@ -789,15 +790,14 @@ int     lpjs_cancel(int msg_fd, const char *incoming_msg,
     
     // If job is pending, but dispatched, wait for chaperone checkin
     // before removing it, so the processes can be terminated.
-    // FIXME: Check success
     if ( (index = job_list_find_job(pending_jobs, job_id)) != JOB_LIST_NOT_FOUND )
     {
 	lpjs_log("%s(): index = %zu\n", __FUNCTION__, index);
 	if ( (job = job_list_get_jobs_ae(pending_jobs, index)) != NULL )
 	{
-	    if ( job_get_dispatched(job) == 1 )
+	    if ( job_get_state(job) == JOB_STATE_DISPATCHED )
 	    {
-		job_set_dispatched(job, 2);
+		job_set_state(job, JOB_STATE_CANCELED);
 		lpjs_log("%s(): Pending job %lu is dispatched.  Scheduled for removal after chaperone checkin.\n",
 			__FUNCTION__, job_id);
 	    }
@@ -816,19 +816,23 @@ int     lpjs_cancel(int msg_fd, const char *incoming_msg,
     {
 	lpjs_log("%s(): Canceled running job %lu...\n", __FUNCTION__, job_id);
 	lpjs_kill_processes(node_list, job);
+	job_free(&job);
     }
     else
 	lpjs_log("%s(): No such active job ID: %lu.\n", __FUNCTION__, job_id);
 	
     lpjs_server_safe_close(msg_fd);
     
-    return 0;   // FIXME: Define return codes
+    return LPJS_SUCCESS;
 }
 
 
 /***************************************************************************
  *  Description:
  *      Terminate processes associated with a job
+ *
+ *  Returns:
+ *      Number of jobs killed
  *
  *  History: 
  *  Date        Name        Modification
@@ -843,28 +847,60 @@ int     lpjs_kill_processes(node_list_t *node_list, job_t *job)
     pid_t           chaperone_pid;
     node_t          *compute_node;
     int             compute_node_fd;
-    // FIXME: Send SIGTERM and if necessary, SIGKILL via compd
-    // FIXME: Check for errors
-    compute_node_name = job_get_compute_node(job);
-    chaperone_pid = job_get_chaperone_pid(job);
+    
+    if ( job == NULL )
+    {
+	lpjs_log("%s(): Received NULL job pointer.  This is a bug.\n",
+		__FUNCTION__);
+	return 0;
+    }
+    
+    if ( (compute_node_name = job_get_compute_node(job)) == NULL )
+    {
+	lpjs_log("%s(): Received job with no compute node name.  This is a bug.\n",
+		__FUNCTION__);
+	return 0;
+    }
+    
+    if ( (chaperone_pid = job_get_chaperone_pid(job)) == 0 )
+    {
+	lpjs_log("%s(): Received job with no chaperone PID.  This is a bug.\n",
+		__FUNCTION__);
+	return 0;
+    }
+    
     lpjs_log("%s(): Signaling chaperone PID %lu on %s\n",
 	    __FUNCTION__, chaperone_pid, compute_node_name);
+    
     compute_node = node_list_find_hostname(node_list, compute_node_name);
-    compute_node_fd = node_get_msg_fd(compute_node);
+    if ( compute_node == NULL )
+    {
+	lpjs_log("%s(): Compute node name not in node list.\n",
+		__FUNCTION__);
+	return 0;
+    }
+    
+    if ( (compute_node_fd = node_get_msg_fd(compute_node)) == -1 )
+    {
+	lpjs_log("%s(): Compute node msg_fd is not open.\n",
+		__FUNCTION__);
+	return 0;
+    }
 
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%u",
 	    LPJS_COMPD_REQUEST_CANCEL, chaperone_pid);
     lpjs_send_munge(compute_node_fd, outgoing_msg);
     
-    job_free(&job);
-    
-    return 0;   // FIXME: Define return codes
+    return 1;
 }
 
 
 /***************************************************************************
  *  Description:
  *      Add a job to the queue
+ *
+ *  Returns:
+ *      LPJS_SUCCESS on success
  *
  *  History: 
  *  Date        Name        Modification
@@ -912,26 +948,25 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
     if ( xt_rmkdir(pending_dir, 0755) != 0 )
     {
 	fprintf(stderr, "Cannot create %s: %s\n", pending_dir, strerror(errno));
-	return -1;  // FIXME: Define error codes
+	return LPJS_WRITE_FAILED;
     }
 
     snprintf(script_path, PATH_MAX + 1, "%s/%s", pending_dir,
 	    xt_basename(job_get_script_name(job)));
     
-    // FIXME: Use a symlink instead?  Copy is safer in case user
-    // modifies the script while a job is running.
-    // lpjs_log("CWD = %s  script = '%s'\n", getcwd(NULL, 0), script_path);
-    // lpjs_log("stat(): %d\n", stat(script_path, &st));
     if ( (fd = open(script_path, O_WRONLY|O_CREAT|O_TRUNC, 0644)) == -1 )
-    // if ( (status = xt_fast_cp(script_path, pending_path)) != 0 )
     {
 	lpjs_log("%s(): Failed to copy %s to %s: %s\n", __FUNCTION__,
 		job_get_script_name(job), script_path, strerror(errno));
-	return -1;
+	return LPJS_WRITE_FAILED;
     }
     
-    // FIXME: Check success
-    write(fd, script_text, strlen(script_text));
+    if ( write(fd, script_text, strlen(script_text)) == -1 )
+    {
+	lpjs_log("%s(): write() failed for %s: %s\n", __FUNCTION__,
+		script_path, strerror(errno));
+	return LPJS_WRITE_FAILED;
+    }
     close(fd);
     
     /*
@@ -939,17 +974,19 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
      */
     
     snprintf(specs_path, PATH_MAX + 1, "%s/job.specs", pending_dir);
-    // lpjs_log("Storing specs to %s.\n", specs_path);
-    // Bump job num after successful spool
-    // FIXME: Switch to low-level I/O
+    // FIXME: Switch to low-level I/O?
     if ( (fp = fopen(specs_path, "w")) == NULL )
     {
 	lpjs_log("%s(): Cannot create %s: %s\n", __FUNCTION__,
 		specs_path, strerror(errno));
-	return -1;
+	return LPJS_WRITE_FAILED;
     }
-    
-    job_print_full_specs(job, fp);
+    if ( job_print_full_specs(job, fp) < 0 )
+    {
+	lpjs_log("%s(): write() failed for %s: %s\n", __FUNCTION__,
+		specs_path, strerror(errno));
+	return LPJS_WRITE_FAILED;
+    }
     fclose(fp);
     
     // Back to submit command for terminal output
@@ -958,26 +995,42 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
     lpjs_send_munge(msg_fd, outgoing_msg);
     
     // FIXME: Log job queue event to the job log
-    // lpjs_log(outgoing_msg);
+    // lpjs_log_job()
     
     // Bump job num after successful spool
     if ( (fd = open(job_id_path, O_WRONLY|O_CREAT|O_TRUNC, 0644)) == -1 )
     {
 	lpjs_log("%s(): Cannot update %s: %s\n", __FUNCTION__,
 		job_id_path, strerror(errno));
-	return -1;
+	return LPJS_WRITE_FAILED;
     }
     else
     {
-	xt_dprintf(fd, "%lu\n", ++next_job_id);
+	if ( xt_dprintf(fd, "%lu\n", ++next_job_id) < 0 )
+	{
+	    lpjs_log("%s(): write() failed for %job_id_path: %s\n", __FUNCTION__,
+		    script_path, strerror(errno));
+	    return LPJS_WRITE_FAILED;
+	}
 	close(fd);
     }
     
     job_list_add_job(pending_jobs, job);
     
-    return 0;   // FIXME: Define error codes
+    return LPJS_SUCCESS;
 }
 
+
+/***************************************************************************
+ *  Description:
+ *  
+ *  Returns:
+ *      LPJS_SUCCESS, etc.
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-05-01  Jason Bacon Begin
+ ***************************************************************************/
 
 int     lpjs_update_job(node_list_t *node_list, char *payload,
 			job_list_t *pending_jobs, job_list_t *running_jobs)
@@ -1036,7 +1089,7 @@ int     lpjs_update_job(node_list_t *node_list, char *payload,
 	{
 	    lpjs_log("%S(): Cannot create %s: %s\n", __FUNCTION__,
 		    specs_path, strerror(errno));
-	    return -1;
+	    return LPJS_WRITE_FAILED;
 	}
 	job_print_full_specs(job, fp);
 	fclose(fp);
@@ -1046,21 +1099,25 @@ int     lpjs_update_job(node_list_t *node_list, char *payload,
 	 *  we need to terminate the processes now.
 	 */
 	
-	if ( job_get_dispatched(job) == 2 )
+	if ( job_get_state(job) == JOB_STATE_CANCELED )
 	{
 	    lpjs_log("%s(): Job %lu was canceled after dispatch.  Removing...\n",
 		    __FUNCTION__, job_id);
 	    lpjs_remove_running_job(running_jobs, job_id);
 	    lpjs_kill_processes(node_list, job);
+	    job_free(&job);
 	}
     }
     
-    return 0;   // FIXME: Define return codes
+    return LPJS_SUCCESS;
 }
 
 
 /***************************************************************************
  *  Description:
+ *
+ *  Returns:
+ *      LPJS_SUCCESS, etc.
  *  
  *  Arguments:
  *      spool_dir:  LPJS_PENDING_DIR or LPJS_RUNNING_DIR
@@ -1083,7 +1140,7 @@ int     lpjs_load_job_list(job_list_t *job_list, char *spool_dir)
     {
 	lpjs_log("%s(): Cannot open %s: %s\n", __FUNCTION__,
 		spool_dir, strerror(errno));
-	return 0;  // FIXME: Define error codes
+	return LPJS_READ_FAILED;
     }
     
     while ( (entry = readdir(dp)) != NULL )
@@ -1104,7 +1161,7 @@ int     lpjs_load_job_list(job_list_t *job_list, char *spool_dir)
 	    {
 		lpjs_log("%s(): Error reading specs file %s.\n",
 			__FUNCTION__, specs_path);
-		return 0;
+		return LPJS_READ_FAILED;
 	    }
 	    lpjs_log("Loaded job #%s\n", entry->d_name);
 	    job_list_add_job(job_list, job);
@@ -1115,5 +1172,5 @@ int     lpjs_load_job_list(job_list_t *job_list, char *spool_dir)
     // FIXME: Sort numerically by job id
     job_list_sort(job_list);
 
-    return 0;   // FIXME: Define return codes
+    return LPJS_SUCCESS;   // FIXME: Define return codes
 }

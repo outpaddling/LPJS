@@ -23,6 +23,14 @@
 #define JOB_STR_MAX_LEN         2048    // Fixme: MAX_PATH + x?
 #define JOB_SPECS_ITEMS         (JOB_SPEC_NUMERIC_FIELDS + JOB_SPEC_STRING_FIELDS)
 
+typedef enum
+{
+    JOB_STATE_PENDING = 0,
+    JOB_STATE_DISPATCHED,
+    JOB_STATE_CANCELED,
+    JOB_STATE_RUNNING
+}   job_state_t;
+
 typedef struct job  job_t;
 
 #include <stdio.h>

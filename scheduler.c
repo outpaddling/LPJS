@@ -171,7 +171,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 		}
 		else
 		{
-		    job_set_dispatched(job, 1);
+		    job_set_state(job, JOB_STATE_DISPATCHED);
 		    // Don't set compute node until chaperone confirms
 		    // successful launch
 		    
@@ -271,7 +271,7 @@ unsigned long   lpjs_select_next_job(job_list_t *pending_jobs, job_t **job)
 	for (c = 0; c < job_list_get_count(pending_jobs); ++c)
 	{
 	    temp_job = job_list_get_jobs_ae(pending_jobs, c);
-	    if ( job_get_dispatched(temp_job) == 0 )
+	    if ( job_get_state(temp_job) == JOB_STATE_PENDING )
 		// Found a pending job not yet dispatched
 		break;
 	}

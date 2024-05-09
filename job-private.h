@@ -13,6 +13,10 @@ extern "C" {
 #include "node-list.h"
 #endif
 
+#ifndef __JOB_H__
+#include "job.h"
+#endif
+
 struct job
 {
     unsigned long   job_id;
@@ -23,7 +27,7 @@ struct job
     size_t          mem_per_proc;
     pid_t           chaperone_pid;
     pid_t           job_pid;
-    int             dispatched;     // 0 = false, 1 = true
+    job_state_t     state;
     char            *user_name;
     char            *primary_group_name;
     char            *submit_node;
@@ -32,10 +36,6 @@ struct job
     char            *compute_node;
     char            *push_command;
 };
-
-#ifndef __JOB_H__
-#include "job.h"
-#endif
 
 #ifdef  __cplusplus
 }

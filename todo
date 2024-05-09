@@ -1,6 +1,8 @@
 
 Now
 ---
+CLI to set node state
+
 compd: Respond properly to EOT (enter reconnect loop)
 
 chaperone: Disconnect from dispatchd after checkin to prevent hangs
@@ -14,6 +16,8 @@ systemctl restart lpjs_compd doesn't work
 
 Later
 -----
+Log job stats in a separate accounting log
+
 MPI support
 
 Submission parameter:

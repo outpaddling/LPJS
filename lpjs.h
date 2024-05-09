@@ -9,6 +9,13 @@
 #include "job-list.h"
 #endif
 
+enum
+{
+    LPJS_SUCCESS = 0,
+    LPJS_READ_FAILED,
+    LPJS_WRITE_FAILED
+};
+
 #define LPJS_FIELD_MAX          1024
 #define LPJS_CMD_MAX            4096
 #define LPJS_PAYLOAD_MAX        1024 * 1024 // FIXME: Does munge have a max?
