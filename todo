@@ -11,15 +11,12 @@ Add #lpjs log-dir for chaperone-*, *.stderr, *.stdout
 systemctl restart lpjs_compd doesn't work
     Waiting a while and running restart again starts the daemon
 
-Doc:
-    Config file can be the same on all nodes, but the compute nodes
-	only need the head node listed
-
-Required submission parameters
-    vmem per job or vmem per proc
 
 Later
 -----
+Submission parameter:
+    vmem per proc
+
 Add #lpjs concurrent-job-limit
 
 Report peak resource use compared to specified
