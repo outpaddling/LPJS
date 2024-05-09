@@ -27,11 +27,13 @@
 #include <fcntl.h>      // open()
 #include <pwd.h>        // getpwnam()
 #include <grp.h>        // getgrnam()
+#include <dirent.h>     // opendir(), ...
 
 // Addons
 #include <munge.h>
 #include <xtend/proc.h>
 #include <xtend/file.h>     // xt_rmkdir()
+#include <xtend/string.h>   // strisint()
 
 // Project headers
 #include "lpjs.h"
@@ -234,6 +236,9 @@ int     lpjs_process_events(node_list_t *node_list)
     job_list_t          *pending_jobs = job_list_new(),
 			*running_jobs = job_list_new();
 
+    lpjs_load_job_list(pending_jobs, LPJS_PENDING_DIR);
+    lpjs_load_job_list(running_jobs, LPJS_RUNNING_DIR);
+    
     /*
      *  Step 1: Create a socket for listening for new connections.
      */
@@ -1046,5 +1051,65 @@ int     lpjs_update_job(node_list_t *node_list, char *payload,
 	}
     }
     
+    return 0;   // FIXME: Define return codes
+}
+
+
+/***************************************************************************
+ *  Description:
+ *  
+ *  Arguments:
+ *      spool_dir:  LPJS_PENDING_DIR or LPJS_RUNNING_DIR
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-05-08  Jason Bacon Begin
+ ***************************************************************************/
+
+int     lpjs_load_job_list(job_list_t *job_list, char *spool_dir)
+
+{
+    DIR             *dp;
+    struct dirent   *entry;
+    char            specs_path[PATH_MAX + 1];
+    extern FILE     *Log_stream;
+    
+    lpjs_log("Reloading jobs from %s...\n", spool_dir);
+    if ( (dp = opendir(spool_dir)) == NULL )
+    {
+	lpjs_log("%s(): Cannot open %s: %s\n", __FUNCTION__,
+		spool_dir, strerror(errno));
+	return 0;  // FIXME: Define error codes
+    }
+    
+    while ( (entry = readdir(dp)) != NULL )
+    {
+	// Job directories are named after job #s
+	if ( xt_strisint(entry->d_name, 10) )
+	{
+	    // job_new() terminates the process if malloc fails
+	    job_t   *job = job_new();
+	    
+	    /*
+	     *  Load job specs from file
+	     */
+	    
+	    snprintf(specs_path, PATH_MAX + 1, "%s/%s/%s",
+		    spool_dir, entry->d_name, LPJS_SPECS_FILE_NAME);
+	    if ( job_read_from_file(job, specs_path) != JOB_SPECS_ITEMS )
+	    {
+		lpjs_log("%s(): Error reading specs file %s.\n",
+			__FUNCTION__, specs_path);
+		return 0;
+	    }
+	    lpjs_log("Loaded job #%s\n", entry->d_name);
+	    job_list_add_job(job_list, job);
+	}
+    }
+    closedir(dp);
+    
+    // FIXME: Sort numerically by job id
+    job_list_sort(job_list);
+
     return 0;   // FIXME: Define return codes
 }

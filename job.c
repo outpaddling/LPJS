@@ -664,5 +664,17 @@ void    job_setenv(job_t *job)
 }
 
 
-// FIXME: Add pseudo-accessors and pseudo-mutators for available
-// procs and mem
+/***************************************************************************
+ *  Description:
+ *      Compare two jobs by numeric job_id, returning results like strcmp()
+ *  
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-05-08  Jason Bacon Begin
+ ***************************************************************************/
+
+int     job_id_cmp(job_t **job1, job_t **job2)
+
+{
+    return (*job1)->job_id - (*job2)->job_id;
+}

@@ -12,3 +12,4 @@ void job_free(job_t **job);
 void job_send_basic_params_header(int msg_fd);
 void job_print_basic_params_header(FILE *stream);
 void job_setenv(job_t *job);
+int job_id_cmp(job_t **job1, job_t **job2);

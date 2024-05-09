@@ -144,3 +144,20 @@ void    job_list_send_params(int msg_fd, job_list_t *job_list)
     for (c = 0; c < job_list->count; ++c)
 	job_send_basic_params(job_list->jobs[c], msg_fd);
 }
+
+
+/***************************************************************************
+ *  Description:
+ *      Sort job list numerically by job id
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-05-08  Jason Bacon Begin
+ ***************************************************************************/
+
+void    job_list_sort(job_list_t *job_list)
+
+{
+    qsort(job_list->jobs, job_list->count, sizeof(job_t *),
+	    (int(*)(const void *, const void *))job_id_cmp);
+}

@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <dirent.h>     // opendir(), ...
 #include <stdlib.h>     // strtoul()
 #include <limits.h>     // ULONG_MAX
 #include <string.h>     // strerror()
@@ -289,71 +288,6 @@ unsigned long   lpjs_select_next_job(job_list_t *pending_jobs, job_t **job)
 	job_print_full_specs(*job, Log_stream);
 	return low_job_id;
     }
-    
-// Old method, searching spool dir
-// FIXME: Use this code for reloading jobs on dispatchd restart
-#if 0
-    DIR             *dp;
-    struct dirent   *entry;
-    unsigned long   low_job_id,
-		    int_dir_name;
-    char            specs_path[PATH_MAX + 1],
-		    *end;
-    extern FILE     *Log_stream;
-    
-    /*
-     *  Find spooled job with lowest job id
-     */
-    if ( (dp = opendir(LPJS_PENDING_DIR)) == NULL )
-    {
-	lpjs_log("%s(): Cannot open %s: %s\n", __FUNCTION__,
-		LPJS_PENDING_DIR, strerror(errno));
-	return 0;  // FIXME: Define error codes
-    }
-    
-    low_job_id = ULONG_MAX;
-    while ( (entry = readdir(dp)) != NULL )
-    {
-	// The directory name is the job ID
-	int_dir_name = strtoul(entry->d_name, &end, 10);
-	if ( *end == '\0' )
-	{
-	    if ( int_dir_name < low_job_id )
-	    {
-		low_job_id = int_dir_name;
-		// script_name = 
-	    }
-	}
-    }
-    closedir(dp);
-    
-    if ( low_job_id == ULONG_MAX )
-    {
-	lpjs_log("%s(): No pending jobs.\n", __FUNCTION__);
-	return 0;
-    }
-    else
-    {
-	lpjs_log("%s(): Selected job %lu to dispatch.\n",
-		 __FUNCTION__, low_job_id);
-	
-	/*
-	 *  Load job specs from file
-	 */
-	
-	snprintf(specs_path, PATH_MAX + 1, "%s/%lu/%s",
-		LPJS_PENDING_DIR, low_job_id, LPJS_SPECS_FILE_NAME);
-	if ( job_read_from_file(job, specs_path) != JOB_SPECS_ITEMS )
-	{
-	    lpjs_log("%s(): Error reading specs for job %lu.\n",
-		    __FUNCTION__, low_job_id);
-	    return 0;
-	}
-	job_print(job, Log_stream);
-	
-	return low_job_id;
-    }
-#endif
 }
 
 
