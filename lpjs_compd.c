@@ -185,7 +185,7 @@ int     main (int argc, char *argv[])
 		 */
 		
 		job_read_from_string(job, munge_payload + 1, &script_start);
-		status = lpjs_run_chaperone(job, script_start);
+		status = lpjs_run_chaperone(job, script_start, msg_fd);
 		switch(status)
 		{
 		    case    EX_OK:
@@ -499,7 +499,7 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_start,
  *  2024-03-10  Jason Bacon Begin
  ***************************************************************************/
 
-int     lpjs_run_chaperone(job_t *job, const char *script_start)
+int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
 
 {
     char        *chaperone_bin = PREFIX "/libexec/lpjs/chaperone",
@@ -512,6 +512,10 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start)
     
     if ( fork() == 0 )
     {
+	// We don't want chaperone and its childre to inherit
+	// the socket connection between dispatchd and compd
+	close(msg_fd);
+	
 	/*
 	 *  Child, exec the chaperone command with the script as an arg.
 	 *  The chaperone runs in the background, monitoring the job,
