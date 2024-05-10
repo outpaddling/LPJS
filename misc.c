@@ -338,7 +338,7 @@ void    lpjs_job_log_dir(const char *log_parent, unsigned long job_id,
 			  char *log_dir, size_t array_size)
 
 {
-    snprintf(log_dir, array_size, "%s/LPJS-job-%lu",
+    snprintf(log_dir, array_size, "%s/Job-%lu",
 	    log_parent, job_id);
 }
 

@@ -72,9 +72,13 @@ void    job_init(job_t *job)
     job->submit_directory = NULL;
     job->script_name = NULL;
     job->compute_node = NULL;
-    job->log_dir = strdup("Logs");
+    job->log_dir = NULL;
     // Default: Send contents of temp working dir to working dir on submit host
-    job->push_command = strdup("rsync -av %w/ %h:%d");
+    if ( (job->push_command = strdup("rsync -av %w/ %h:%d")) == NULL )
+    {
+	lpjs_log("%s(): strdup() failed.\n", __FUNCTION__);
+	exit(EX_UNAVAILABLE);
+    }
 }
 
 
@@ -91,12 +95,22 @@ job_t   *job_dup(job_t *job)
     new_job->mem_per_proc = job->mem_per_proc;
     
     // FIXME: Check malloc success
-    new_job->user_name = strdup(job->user_name);
-    new_job->primary_group_name = strdup(job->primary_group_name);
-    new_job->submit_node = strdup(job->submit_node);
-    new_job->submit_directory = strdup(job->submit_directory);
-    new_job->script_name = strdup(job->script_name);
-    new_job->push_command = strdup(job->push_command);
+    if ( job->user_name != NULL )
+	new_job->user_name = strdup(job->user_name);
+    if ( job->primary_group_name != NULL )
+	new_job->primary_group_name = strdup(job->primary_group_name);
+    if ( job->submit_node != NULL )
+	new_job->submit_node = strdup(job->submit_node);
+    if ( job->submit_directory != NULL )
+	new_job->submit_directory = strdup(job->submit_directory);
+    if ( job->script_name != NULL )
+	new_job->script_name = strdup(job->script_name);
+    if ( job->compute_node != NULL )
+	new_job->compute_node = strdup(job->compute_node);
+    if ( job->log_dir != NULL )
+	new_job->log_dir = strdup(job->log_dir);
+    if ( job->push_command != NULL )
+	new_job->push_command = strdup(job->push_command);
     
     return new_job;
 }
@@ -181,10 +195,9 @@ void    job_send_basic_params(job_t *job, int msg_fd)
 
 /***************************************************************************
  *  Description:
- *  
- *  Arguments:
- *
- *  Returns:
+ *      Take a blank job object and populate it using system calls to
+ *      get username, etc. and other info from #lpjs directives in the
+ *      job script.
  *
  *  History: 
  *  Date        Name        Modification
@@ -201,6 +214,8 @@ int     job_parse_script(job_t *job, const char *script_name)
 	    val[JOB_FIELD_MAX_LEN + 1],
 	    temp_user_name[65],
 	    temp_group_name[65],
+	    temp_log_dir[PATH_MAX + 1],
+	    *p,
 	    *end,
 	    temp_hostname[sysconf(_SC_HOST_NAME_MAX) + 1];
     size_t  field_len;
@@ -215,6 +230,22 @@ int     job_parse_script(job_t *job, const char *script_name)
     {
 	fprintf(stderr, "Cannot open %s: %s\n", script_path, strerror(errno));
 	return -1;  // FIXME: Define error code
+    }
+    
+    // FIXME: Make all functions here and in libs take actual array size, including '\0'?
+    xt_get_user_name(temp_user_name, 64);
+    if ( (job->user_name = strdup(temp_user_name)) == NULL )
+    {
+	fprintf(stderr, "%s: malloc() failed.\n", __FUNCTION__);
+	exit(EX_UNAVAILABLE);
+    }
+    
+    // FIXME: Make all functions here and in libs take actual array size, including '\0'?
+    xt_get_primary_group_name(temp_group_name, 64);
+    if ( (job->primary_group_name = strdup(temp_group_name)) == NULL )
+    {
+	fprintf(stderr, "%s: malloc() failed.\n", __FUNCTION__);
+	exit(EX_UNAVAILABLE);
     }
     
     gethostname(temp_hostname, sysconf(_SC_HOST_NAME_MAX));
@@ -236,22 +267,6 @@ int     job_parse_script(job_t *job, const char *script_name)
 	exit(EX_UNAVAILABLE);
     }
     
-    // FIXME: Make all functions here and in libs take actual array size, including '\0'?
-    xt_get_user_name(temp_user_name, 64);
-    if ( (job->user_name = strdup(temp_user_name)) == NULL )
-    {
-	fprintf(stderr, "%s: malloc() failed.\n", __FUNCTION__);
-	exit(EX_UNAVAILABLE);
-    }
-    
-    // FIXME: Make all functions here and in libs take actual array size, including '\0'?
-    xt_get_primary_group_name(temp_group_name, 64);
-    if ( (job->primary_group_name = strdup(temp_group_name)) == NULL )
-    {
-	fprintf(stderr, "%s: malloc() failed.\n", __FUNCTION__);
-	exit(EX_UNAVAILABLE);
-    }
-    
     // FIXME: Check return value and update xt_dsv_read_field() man page
     // regarding EOF
     while ( xt_dsv_read_field(fp, field, JOB_FIELD_MAX_LEN + 1, " \t", &field_len) != EOF )
@@ -260,6 +275,7 @@ int     job_parse_script(job_t *job, const char *script_name)
 	if ( strcmp(field, "#lpjs") == 0 )
 	{
 	    var_delim = xt_dsv_read_field(fp, var, JOB_FIELD_MAX_LEN + 1, " \t", &field_len);
+	    
 	    // Process directives where the value main contain whitespace first
 	    if ( strcmp(var, "push-command") == 0 )
 	    {
@@ -346,7 +362,11 @@ int     job_parse_script(job_t *job, const char *script_name)
 		else if ( strcmp(var, "log-dir") == 0 )
 		{
 		    // FIXME: Handle strdup() failure
-		    job->log_dir = strdup(val);
+		    if ( (job->log_dir = strdup(val)) == NULL )
+		    {
+			fprintf(stderr, "%s: malloc() failed.\n", __FUNCTION__);
+			exit(EX_UNAVAILABLE);
+		    }
 		}
 		else
 		{
@@ -359,6 +379,20 @@ int     job_parse_script(job_t *job, const char *script_name)
 	    xt_dsv_skip_rest_of_line(fp);
     }
     fclose(fp);
+
+    // Default log dir to LPJS-logs/script-name%.*
+    if ( job->log_dir == NULL )
+    {
+	snprintf(temp_log_dir, PATH_MAX + 1, "LPJS-logs/%s", script_name);
+	if ( (p = strrchr(temp_log_dir, '.')) != NULL )
+	    *p = '\0';
+	
+	if ( (job->log_dir = strdup(temp_log_dir)) == NULL )
+	{
+	    fprintf(stderr, "%s: malloc() failed.\n", __FUNCTION__);
+	    exit(EX_UNAVAILABLE);
+	}
+    }
     
     // FIXME: Error out if not all required parameters present
     // jobs, procs-per-job, pmem-per-proc

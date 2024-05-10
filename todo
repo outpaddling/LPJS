@@ -11,6 +11,7 @@ chaperone: Disconnect from dispatchd after checkin to prevent hangs
 systemctl restart lpjs_compd doesn't work
     Waiting a while and running restart again starts the daemon
 
+Reset job state and node resources for jobs that fail to start due to os err
 
 Later
 -----
