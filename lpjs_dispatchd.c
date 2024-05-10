@@ -366,7 +366,7 @@ void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
 			__FUNCTION__, node_get_hostname(node));
 		lpjs_server_safe_close(fd);
 		node_set_msg_fd(node, NODE_MSG_FD_NOT_OPEN);
-		node_set_state(node, "Down");
+		node_set_state(node, "down");
 	    }
 	    else
 	    {
@@ -529,6 +529,19 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		// node_list_send_status() sends EOT,
 		// so don't use safe_close here.
 		close(msg_fd);
+		break;
+	    
+	    case    LPJS_DISPATCHD_REQUEST_PAUSE:
+		lpjs_log("LPJS_DISPATCHD_REQUEST_PAUSE\n");
+		node_list_set_state(node_list, munge_payload + 1);
+		close(msg_fd);
+		break;
+		
+	    case    LPJS_DISPATCHD_REQUEST_RESUME:
+		lpjs_log("LPJS_DISPATCHD_REQUEST_RESUME\n");
+		node_list_set_state(node_list, munge_payload + 1);
+		close(msg_fd);
+		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
 		break;
 	    
 	    case    LPJS_DISPATCHD_REQUEST_JOB_STATUS:

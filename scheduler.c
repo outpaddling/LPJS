@@ -167,7 +167,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 		{
 		    lpjs_log("%s(): OS error detected on %s.\n",
 			    __FUNCTION__, node_get_hostname(node));
-		    node_set_state(node, "Down");
+		    node_set_state(node, "down");
 		}
 		else
 		{
@@ -321,7 +321,7 @@ int     lpjs_match_nodes(job_t *job, node_list_t *node_list,
 	 (total_usable < total_required); ++c)
     {
 	node = node_list_get_compute_nodes_ae(node_list, c);
-	if ( strcmp(node_get_state(node), "Up") != 0 )
+	if ( strcmp(node_get_state(node), "up") != 0 )
 	    lpjs_log("%s is unavailable.\n", node_get_hostname(node));
 	else
 	{

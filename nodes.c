@@ -19,6 +19,7 @@
 #include "network.h"
 #include "lpjs.h"
 #include "misc.h"
+#include "nodes-protos.h"
 
 int     main (int argc, char *argv[])
 
@@ -29,10 +30,18 @@ int     main (int argc, char *argv[])
     char        outgoing_msg[LPJS_MSG_LEN_MAX + 1];
     extern FILE *Log_stream;
     
-    if (argc != 1)
+    switch(argc)
     {
-	fprintf (stderr, "Usage: %s\n", argv[0]);
-	return EX_USAGE;
+	case    1:  // lpjs nodes
+	    outgoing_msg[0] = LPJS_DISPATCHD_REQUEST_NODE_STATUS;
+	    outgoing_msg[1] = '\0';
+	    break;
+	
+	default:
+	    if ( (strcmp(argv[1],"pause") == 0) || (strcmp(argv[1],"up") == 0) )
+		lpjs_pause_or_resume(argc, argv, outgoing_msg, LPJS_MSG_LEN_MAX + 1);
+	    else
+		usage(argv);
     }
     
     // Shared functions may use lpjs_log
@@ -47,8 +56,6 @@ int     main (int argc, char *argv[])
 	return EX_IOERR;
     }
 
-    outgoing_msg[0] = LPJS_DISPATCHD_REQUEST_NODE_STATUS;
-    outgoing_msg[1] = '\0';
     if ( lpjs_send_munge(msg_fd, outgoing_msg) != EX_OK )
     {
 	perror("lpjs-nodes: Failed to send message to dispatch");
@@ -56,9 +63,69 @@ int     main (int argc, char *argv[])
 	return EX_IOERR;
     }
 
-    fprintf(stderr, "LPJS_DISPATCHD_REQUEST_NODE_STATUS sent.\n");
+    // fprintf(stderr, "LPJS_DISPATCHD_REQUEST_NODE_STATUS sent.\n");
     lpjs_print_response(msg_fd, "lpjs-nodes");
     close(msg_fd);
 
     return EX_OK;
+}
+
+
+/***************************************************************************
+ *  Use auto-c2man to generate a man page from this comment
+ *
+ *  Name:
+ *      -
+ *
+ *  Library:
+ *      #include <>
+ *      -l
+ *
+ *  Description:
+ *  
+ *  Arguments:
+ *
+ *  Returns:
+ *
+ *  Examples:
+ *
+ *  Files:
+ *
+ *  Environment
+ *
+ *  See also:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-05-10  Jason Bacon Begin
+ ***************************************************************************/
+
+int     lpjs_pause_or_resume(int argc, char *argv[],
+			     char *msg, size_t msg_max)
+
+{
+    // lpjs nodes pause all | nodename [nodename ...]
+    if ( argc < 3 )
+	usage(argv);
+    if ( strcmp(argv[1], "pause") == 0 )
+	snprintf(msg, msg_max, "%c%s", LPJS_DISPATCHD_REQUEST_PAUSE, argv[1]);
+    else
+	snprintf(msg, msg_max, "%c%s", LPJS_DISPATCHD_REQUEST_RESUME, argv[1]);
+    for (int c = 2; c < argc; ++c)
+    {
+	if ( (strcmp(argv[c], "all") == 0) && ((c > 2) || (argc > 3)) )
+	    usage(argv);
+	strlcat(msg, " ", msg_max);
+	strlcat(msg, argv[c], msg_max);
+    }
+    
+    return 0;   // FIXME: Define return codes
+}
+
+
+void    usage(char *argv[])
+
+{
+    fprintf (stderr, "Usage: %s nodes [pause|up all|nodename [nodename...]]\n", argv[0]);
+    exit(EX_USAGE);
 }

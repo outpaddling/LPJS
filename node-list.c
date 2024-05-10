@@ -98,7 +98,7 @@ void    node_list_update_compute(node_list_t *node_list, node_t *node)
 	if ( strcmp(node_get_hostname(node_list->compute_nodes[c]), hostname) == 0 )
 	{
 	    // lpjs_log("Updating compute node %zu %s\n", c, NODE_HOSTNAME(node_list->compute_nodes[c]));
-	    node_set_state(node_list->compute_nodes[c], "Up");
+	    node_set_state(node_list->compute_nodes[c], "up");
 	    node_set_procs(node_list->compute_nodes[c], node_get_procs(node));
 	    node_set_phys_MiB(node_list->compute_nodes[c], node_get_phys_MiB(node));
 	    node_set_zfs(node_list->compute_nodes[c], node_get_zfs(node));
@@ -149,7 +149,7 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
     {
 	node_status_to_str(node_list->compute_nodes[c], temp, LPJS_MSG_LEN_MAX + 1);
 	strlcat(outgoing_msg, temp, LPJS_MSG_LEN_MAX + 1);
-	if ( strcmp(node_get_state(node_list->compute_nodes[c]), "Up") == 0 )
+	if ( strcmp(node_get_state(node_list->compute_nodes[c]), "up") == 0 )
 	{
 	    procs_up += node_get_procs(node_list->compute_nodes[c]);
 	    procs_up_used += node_get_procs_used(node_list->compute_nodes[c]);
@@ -165,12 +165,12 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
     
     // lpjs_log("Sending summary...\n");
     snprintf(temp, LPJS_MSG_LEN_MAX + 1,
-	    "\n" NODE_STATUS_FORMAT, "Total", "Up",
+	    "\n" NODE_STATUS_FORMAT, "Total", "up",
 	    procs_up, procs_up_used, mem_up, mem_up_used, "-", "-");
     strlcat(outgoing_msg, temp, LPJS_MSG_LEN_MAX + 1);
     
     snprintf(temp, LPJS_MSG_LEN_MAX,
-	    NODE_STATUS_FORMAT, "Total", "Down",
+	    NODE_STATUS_FORMAT, "Total", "down",
 	    procs_down, 0, mem_down, (size_t)0, "-", "-");
     strlcat(outgoing_msg, temp, LPJS_MSG_LEN_MAX + 1);
 
@@ -246,5 +246,82 @@ node_t  *node_list_find_hostname(node_list_t *node_list, const char *hostname)
 	    return node;
     }
     
+    // hostname not found
     return NULL;
+}
+
+
+/***************************************************************************
+ *  Use auto-c2man to generate a man page from this comment
+ *
+ *  Name:
+ *      -
+ *
+ *  Library:
+ *      #include <>
+ *      -l
+ *
+ *  Description:
+ *  
+ *  Arguments:
+ *
+ *  Returns:
+ *
+ *  Examples:
+ *
+ *  Files:
+ *
+ *  Environment
+ *
+ *  See also:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-05-10  Jason Bacon Begin
+ ***************************************************************************/
+
+int     node_list_set_state(node_list_t *node_list, char *arg_string)
+
+{
+    char    *p,
+	    *state,
+	    *node_name;
+    node_t  *node;
+    
+    puts(arg_string);
+    
+    p = arg_string;
+    state = strsep(&p, " ");
+    
+    // Point state to static data so it will survive function exit
+    if ( strcmp(state, "pause") == 0 )
+	state = "pause";
+    else
+	state = "up";
+    
+    node_name = strsep(&p, " ");
+    // nodes.c ensures that "all" is the only argument
+    if ( strcmp(node_name, "all") == 0 )
+    {
+	printf("Setting all nodes to %s...\n", state);
+	for (size_t c = 0; c < node_list->compute_node_count; ++c)
+	    node_set_state(node_list->compute_nodes[c], state);
+    }
+    else
+    {
+	while ( node_name != NULL )
+	{
+	    node = node_list_find_hostname(node_list, node_name);
+	    if ( node == NULL )
+		lpjs_log("%s(): Node %s not found.\n", __FUNCTION__, node_name);
+	    else
+	    {
+		printf("Setting node %s to %s...\n", node_name, state);
+		node_set_state(node, state);
+	    }
+	    node_name = strsep(&p, " ");
+	}
+    }
+    
+    return 0;   // FIXME: Define return codes
 }
