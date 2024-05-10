@@ -3,15 +3,11 @@ Now
 ---
 CLI to set node state
 
-compd: Respond properly to EOT (enter reconnect loop)
-
-chaperone: Disconnect from dispatchd after checkin to prevent hangs
-    netstat is showing connections in CLOSE_WAIT state
-
 systemctl restart lpjs_compd doesn't work
     Waiting a while and running restart again starts the daemon
 
 Reset job state and node resources for jobs that fail to start due to os err
+
 
 Later
 -----
