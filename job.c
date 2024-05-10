@@ -71,7 +71,7 @@ void    job_init(job_t *job)
     job->submit_node = NULL;
     job->submit_directory = NULL;
     job->script_name = NULL;
-    job->compute_node = NULL;
+    job->compute_node = "TBD";  // For lpjs jobs output
     job->log_dir = NULL;
     // Default: Send contents of temp working dir to working dir on submit host
     if ( (job->push_command = strdup("rsync -av %w/ %h:%d")) == NULL )
@@ -182,7 +182,7 @@ void    job_send_basic_params(job_t *job, int msg_fd)
 	    job->job_count, job->procs_per_job,
 	    job->min_procs_per_node, job->mem_per_proc,
 	    job->user_name,
-	    job->compute_node == NULL ? "TBD" : job->compute_node,
+	    job->compute_node,
 	    job->script_name);
     
     if ( lpjs_send_munge(msg_fd, msg) != EX_OK )
