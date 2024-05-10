@@ -450,8 +450,9 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_start,
      *  Save script
      */
     
-    snprintf(log_dir, PATH_MAX + 1, "LPJS-job-%lu-logs", job_get_job_id(job));
-    mkdir(log_dir, 0700);
+    lpjs_job_log_dir(job_get_log_dir(job), job_get_job_id(job),
+		      log_dir, PATH_MAX + 1);
+    xt_rmkdir(log_dir, 0700);
     snprintf(job_script_name, maxlen, "%s/%s",
 	    log_dir, job_get_script_name(job));
     lpjs_log("Saving job script to %s.\n", job_script_name);

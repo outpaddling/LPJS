@@ -7,3 +7,4 @@ const char *xt_basename(const char *restrict str);
 ssize_t lpjs_load_script(const char *script_path, char *script_buff, size_t buff_size);
 char *lpjs_get_marker_filename(char shared_fs_marker[], const char *hostname, size_t array_size);
 void lpjs_terminate_handler(int s2);
+void lpjs_job_log_dir(const char *log_parent, unsigned long job_id, char *log_dir, size_t array_size);

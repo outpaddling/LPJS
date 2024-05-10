@@ -34,6 +34,8 @@ struct job
     char            *submit_directory;
     char            *script_name;
     char            *compute_node;
+    char            *log_dir;
+    // May contain whitespace, must be last item read
     char            *push_command;
 };
 

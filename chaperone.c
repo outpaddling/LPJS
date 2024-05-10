@@ -69,9 +69,9 @@ int     main (int argc, char *argv[])
     job_script_name = argv[1];
 
     // Chaperone outputs stderr to a log file in the working dir
-    // FIXME: This is duplicated, factor it out
     job_id = getenv("LPJS_JOB_ID");
-    snprintf(log_dir, PATH_MAX + 1, "LPJS-job-%s-logs", job_id);
+    lpjs_job_log_dir(getenv("LPJS_JOB_LOG_DIR"), strtoul(job_id, &end, 10),
+		      log_dir, PATH_MAX + 1);
 
     snprintf(log_file, PATH_MAX + 1, "%s/chaperone-%s.stderr",
 	     log_dir, job_id);

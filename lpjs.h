@@ -24,7 +24,7 @@ enum
 #define LPJS_LOG_DIR            PREFIX "/var/log/lpjs"
 #define LPJS_COMPD_LOG          LPJS_LOG_DIR "/compd"
 #define LPJS_DISPATCHD_LOG      LPJS_LOG_DIR "/dispatchd"
-#define LPJS_JOB_LOG            LPJS_LOG_DIR "/jobs"
+#define LPJS_JOB_HISTORY        LPJS_LOG_DIR "/job-history"
 
 #define LPJS_SPOOL_DIR          PREFIX "/var/spool/lpjs"
 #define LPJS_PENDING_DIR        LPJS_SPOOL_DIR "/pending"

@@ -35,5 +35,7 @@ char *job_get_script_name(job_t *job_ptr);
 char job_get_script_name_ae(job_t *job_ptr, size_t c);
 char *job_get_compute_node(job_t *job_ptr);
 char job_get_compute_node_ae(job_t *job_ptr, size_t c);
+char *job_get_log_dir(job_t *job_ptr);
+char job_get_log_dir_ae(job_t *job_ptr, size_t c);
 char *job_get_push_command(job_t *job_ptr);
 char job_get_push_command_ae(job_t *job_ptr, size_t c);

@@ -41,6 +41,9 @@ int job_set_script_name_cpy(job_t *job_ptr, char *new_script_name, size_t array_
 int job_set_compute_node(job_t *job_ptr, char *new_compute_node);
 int job_set_compute_node_ae(job_t *job_ptr, size_t c, char new_compute_node_element);
 int job_set_compute_node_cpy(job_t *job_ptr, char *new_compute_node, size_t array_size);
+int job_set_log_dir(job_t *job_ptr, char *new_log_dir);
+int job_set_log_dir_ae(job_t *job_ptr, size_t c, char new_log_dir_element);
+int job_set_log_dir_cpy(job_t *job_ptr, char *new_log_dir, size_t array_size);
 int job_set_push_command(job_t *job_ptr, char *new_push_command);
 int job_set_push_command_ae(job_t *job_ptr, size_t c, char new_push_command_element);
 int job_set_push_command_cpy(job_t *job_ptr, char *new_push_command, size_t array_size);
