@@ -185,7 +185,7 @@ int     main (int argc, char *argv[])
 		 */
 		
 		job_read_from_string(job, munge_payload + 1, &script_start);
-		status = lpjs_run_script(job, script_start);
+		status = lpjs_run_chaperone(job, script_start);
 		switch(status)
 		{
 		    case    EX_OK:
@@ -328,20 +328,22 @@ int     lpjs_compd_checkin_loop(node_list_t *node_list, node_t *node)
 
 /***************************************************************************
  *  Description:
+ *      Save script copy, create log dir
  *  
  *  Returns:
+ *      LPJS_SUCCESS, etc.
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-03-10  Jason Bacon Begin
+ *  2024-05-10  Jason Bacon Factored out from lpjs_run_script()
  ***************************************************************************/
 
-int     lpjs_run_script(job_t *job, const char *script_start)
+int     lpjs_working_dir_setup(job_t *job, const char *script_start,
+				char *job_script_name, size_t maxlen)
 
 {
     char    temp_wd[PATH_MAX + 1],
 	    log_dir[PATH_MAX + 1],
-	    job_script_name[PATH_MAX + 1],
 	    shared_fs_marker[PATH_MAX + 1],
 	    shared_fs_marker_path[PATH_MAX + 1],
 	    *working_dir;
@@ -388,6 +390,7 @@ int     lpjs_run_script(job_t *job, const char *script_start)
 		    __FUNCTION__, working_dir, temp_wd);
 	    
 	    // If temp_wd exists, rename it first
+	    // This will only happen if the job ID is duplicated
 	    if ( stat(temp_wd, &st) == 0 )
 	    {
 		char    save_wd[PATH_MAX + 1];
@@ -402,10 +405,12 @@ int     lpjs_run_script(job_t *job, const char *script_start)
 	    mkdir(temp_wd, 0700);
 	    working_dir = temp_wd;
 	    
+	    /* Vestige from when running this before setuid()
 	    if ( getuid() == 0 )
 		lpjs_chown(job, working_dir);
 	    else
 		lpjs_log("lpjs_compd running as uid %d, can't change working dir ownership.\n", getuid());
+	    */
 	}
     }
     
@@ -445,11 +450,9 @@ int     lpjs_run_script(job_t *job, const char *script_start)
      *  Save script
      */
     
-    // FIXME: This is duplicated, factor it out
     snprintf(log_dir, PATH_MAX + 1, "LPJS-job-%lu-logs", job_get_job_id(job));
-
     mkdir(log_dir, 0700);
-    snprintf(job_script_name, PATH_MAX + 1, "%s/%s",
+    snprintf(job_script_name, maxlen, "%s/%s",
 	    log_dir, job_get_script_name(job));
     lpjs_log("Saving job script to %s.\n", job_script_name);
     if ( (fd = open(job_script_name, O_WRONLY|O_CREAT|O_TRUNC, 0700)) == -1 )
@@ -467,6 +470,7 @@ int     lpjs_run_script(job_t *job, const char *script_start)
      *  If running as root, chown the script to the appropriate user.
      */
     
+    /* Vestige from when running this code before setuid()
     if ( getuid() == 0 )
     {
 	lpjs_chown(job, log_dir);
@@ -474,19 +478,13 @@ int     lpjs_run_script(job_t *job, const char *script_start)
     }
     else
 	lpjs_log("lpjs_compd running as uid %d, can't change script ownership.\n", getuid());
+    */
     
     /*
      *  FIXME: Update node status (keep a copy here in case
      *  dispatchd is restarted)
      */
-    
-    /*
-     *  Run script under chaperone
-     */
-    
-    run_chaperone(job, job_script_name);
-    
-    return EX_OK;
+    return LPJS_SUCCESS;
 }
 
 
@@ -500,10 +498,11 @@ int     lpjs_run_script(job_t *job, const char *script_start)
  *  2024-03-10  Jason Bacon Begin
  ***************************************************************************/
 
-int     run_chaperone(job_t *job, const char *job_script_name)
+int     lpjs_run_chaperone(job_t *job, const char *script_start)
 
 {
     char        *chaperone_bin = PREFIX "/libexec/lpjs/chaperone",
+		job_script_name[PATH_MAX + 1],
 		out_file[PATH_MAX + 1],
 		err_file[PATH_MAX + 1];
     extern FILE *Log_stream;
@@ -568,6 +567,8 @@ int     run_chaperone(job_t *job, const char *job_script_name)
 	 *  Set env vars
 	 */
 	job_setenv(job);
+	
+	lpjs_working_dir_setup(job, script_start, job_script_name, PATH_MAX + 1);
 	
 	// FIXME: Make sure filenames are not truncated
 	

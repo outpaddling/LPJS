@@ -147,9 +147,11 @@ int     main (int argc, char *argv[])
 	
 	chdir("..");    // Can't remove dir while in use
 	
-	// FIXME: Check for errors
-	// FIXME: Allow user to specify transfer command
-	sp = getenv("LPJS_PUSH_COMMAND");
+	if ( (sp = getenv("LPJS_PUSH_COMMAND")) == NULL )
+	{
+	    lpjs_log("No LPJS_PUSH_COMMAND in env.  This is a bug.\n");
+	    exit(EX_SOFTWARE);
+	}
 	lpjs_log("LPJS_PUSH_COMMAND = %s\n", sp);
 	c =0;
 	while ( (*sp != '\0') && (c < LPJS_CMD_MAX) )
@@ -211,10 +213,6 @@ int     main (int argc, char *argv[])
 	fclose(Log_stream);
 	push_status = system(cmd);
 	
-	// FIXME: Save absolute pathnames of temporary working dirs,
-	// along with creation date, and remove them after a specified
-	// period, e.g. 1 day.
-	
 	// Remove temporary working dir if successfully transferred
 	if ( push_status == 0 )
 	{
@@ -224,8 +222,8 @@ int     main (int argc, char *argv[])
 	}
 	else
 	{
-	    // Create marker file
-	    // FIXME: Check time stamp on markers and remove them if expired
+	    // Mark this directory
+	    // FIXME: Check time stamps on markers and remove them if expired
 	    char    marker[PATH_MAX + 1];
 	    int     fd;
 	    
@@ -239,6 +237,17 @@ int     main (int argc, char *argv[])
     return status;
 }
 
+
+/***************************************************************************
+ *  Description:
+ *  
+ *  Returns:
+ *      LPJS_SUCCESS, etc.
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  ~2024-05-01 Jason Bacon Begin
+ ***************************************************************************/
 
 int     lpjs_chaperone_checkin(int msg_fd,
 			       const char *hostname, const char *job_id,
@@ -260,16 +269,9 @@ int     lpjs_chaperone_checkin(int msg_fd,
     {
 	lpjs_log("Failed to send checkin message to dispatchd: %s",
 		strerror(errno));
-	return EX_IOERR;
+	return LPJS_WRITE_FAILED;
     }
     lpjs_log("%s(): Sent checkin request.\n", __FUNCTION__);
-
-    // FIXME: Just sending a credential with no payload for now, to
-    // authenticate the socket connection.  Not sure if we should worry
-    // about a connection-oriented socket getting hijacked and
-    // munge other communication as well.
-    // if ( lpjs_send_munge(msg_fd, NULL) != EX_OK )
-    //     return EX_DATAERR;
 
     lpjs_recv(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 0);
     if ( strcmp(incoming_msg, "Node authorized") != 0 )
@@ -283,7 +285,7 @@ int     lpjs_chaperone_checkin(int msg_fd,
 	lpjs_log("%s(): Received authorization from lpjs_dispatchd.\n",
 		__FUNCTION__);
 
-    return EX_OK;
+    return LPJS_SUCCESS;
 }
 
 
@@ -327,7 +329,7 @@ int     lpjs_chaperone_checkin_loop(node_list_t *node_list,
 	else
 	{
 	    status = lpjs_chaperone_checkin(msg_fd, hostname, job_id, job_pid);
-	    if ( status != EX_OK )
+	    if ( status != LPJS_SUCCESS )
 	    {
 		lpjs_log("%s(): chaperone-checkin failed.  Retry in %d seconds...\n",
 			 __FUNCTION__, LPJS_RETRY_TIME);
@@ -335,11 +337,11 @@ int     lpjs_chaperone_checkin_loop(node_list_t *node_list,
 	    }
 	    close(msg_fd);
 	}
-    }   while ( (msg_fd == -1) || (status != EX_OK) );
+    }   while ( (msg_fd == -1) || (status != LPJS_SUCCESS) );
     
     lpjs_log("%s(): Checkin successful.\n", __FUNCTION__);
     
-    return 0;   // FIXME: Define return codes
+    return LPJS_SUCCESS;
 }
 
 
