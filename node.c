@@ -87,8 +87,6 @@ void    node_detect_specs(node_t *node)
      *  here, so just gather info the simple way
      */
 
-    node_init(node);
-    
     // FIXME: Verify malloc() success
     gethostname(temp_hostname, sysconf(_SC_HOST_NAME_MAX));
     node->hostname = strdup(temp_hostname);

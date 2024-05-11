@@ -10,7 +10,7 @@
 // String:  user_name, primary_group_name, submit_node, submit_directory,
 //          script_name, run_host, push_command
 #define JOB_BASIC_NUMS_FORMAT   "%9lu %4lu %4u %3u %3u %5zu"
-#define JOB_SPEC_NUMS_FORMAT    JOB_BASIC_NUMS_FORMAT " %u %u %d"
+#define JOB_SPEC_NUMS_FORMAT    JOB_BASIC_NUMS_FORMAT " %u %u %u"
 #define JOB_SPEC_NUMERIC_FIELDS 9
 // Complete job specs
 #define JOB_SPEC_FORMAT         JOB_SPEC_NUMS_FORMAT " %s %s %s %s %s %s %s %s\n"
