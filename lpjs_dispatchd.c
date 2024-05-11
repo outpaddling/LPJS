@@ -506,7 +506,9 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	    lpjs_log("%s(): lpjs_recv_munge() failed (%zd bytes): %s\n",
 		    __FUNCTION__, bytes, strerror(errno));
 	    lpjs_server_safe_close(msg_fd);
-	    free(munge_payload);
+	    // Nothing to free if munge_decode() failed, since it
+	    // allocates the buffer
+	    // free(munge_payload);
 	    return bytes;
 	}
 	// lpjs_log("%s(): Got %zd byte message.\n", __FUNCTION__, bytes);
