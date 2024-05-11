@@ -14,6 +14,8 @@
 #include <unistd.h>
 #include <sysexits.h>
 
+#include <xtend/string.h>   // strlcat() on linux
+
 #include "node-list.h"
 #include "config.h"
 #include "network.h"
