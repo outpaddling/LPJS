@@ -18,7 +18,9 @@ enum
 
 #define LPJS_FIELD_MAX          1024
 #define LPJS_CMD_MAX            4096
-#define LPJS_PAYLOAD_MAX        1024 * 1024 // FIXME: Does munge have a max?
+// Not too large: Auto vars may exceed stack size
+// FIXME: malloc arrays if this needs to be bigger
+#define LPJS_PAYLOAD_MAX        65536   // FIXME: Does munge have a max?
 #define LPJS_NO_SELECT_TIMEOUT  NULL
 
 #define LPJS_LOG_DIR            PREFIX "/var/log/lpjs"

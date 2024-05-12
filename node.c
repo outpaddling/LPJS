@@ -89,7 +89,9 @@ void    node_detect_specs(node_t *node)
 
     // FIXME: Verify malloc() success
     gethostname(temp_hostname, sysconf(_SC_HOST_NAME_MAX));
+    // FIXME: Check malloc success
     node->hostname = strdup(temp_hostname);
+    
     // May include SMT/Hyperthreading.  Disable in BIOS for Linux or using
     // sysctl on FreeBSD if you don't want to oversubscribe physical procs.
     node->procs = sysconf(_SC_NPROCESSORS_ONLN);
