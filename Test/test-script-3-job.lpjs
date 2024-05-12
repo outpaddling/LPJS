@@ -17,10 +17,11 @@ for prefix in /Users/$LPJS_USER_NAME/Pkgsrc/pkg \
 	      /home/$LPJS_USER_NAME/Pkgsrc/pkg \
 	      /usr/pkg \
 	      /opt/pkg; do
-if [ -e $prefix ]; then
-    PATH=$prefix/bin:$PATH
-    export PATH
-fi
+    if [ -e $prefix ]; then
+	PATH=$prefix/bin:$PATH
+	export PATH
+    fi
+done
 
 hostname
 printenv | fgrep LPJS_
