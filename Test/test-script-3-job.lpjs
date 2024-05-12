@@ -23,8 +23,11 @@ for prefix in /Users/$LPJS_USER_NAME/Pkgsrc/pkg \
     fi
 done
 
+uname -a
 hostname
-printenv | fgrep LPJS_
+pwd
+printenv
+
 printf "Sleeping...\n"
 sleep 5
 printf "Done.\n"

@@ -29,9 +29,12 @@ for prefix in /Users/$LPJS_USER_NAME/Pkgsrc/pkg \
 done
 
 # Put some job info in the output
+uname -a
 hostname
 pwd
-printenv | fgrep LPJS_
+which fastq-trim
+fastq-trim --version
+printenv
 
 # Each job will trim one raw input file
 infile=Results/01-fetch/Raw-renamed/WT-0$LPJS_ARRAY_INDEX.fastq.gz
