@@ -227,7 +227,7 @@ int     main (int argc, char *argv[])
 	    char    marker[PATH_MAX + 1];
 	    int     fd;
 	    
-	    snprintf(marker, PATH_MAX + 1, "%s/lpjs-remove-me\n", wd);
+	    snprintf(marker, PATH_MAX + 1, "%s/lpjs-remove-me", wd);
 	    if ( (fd = open(marker, O_WRONLY|O_CREAT, 0644)) != -1 )
 		close(fd);
 	}
