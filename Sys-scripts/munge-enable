@@ -109,11 +109,16 @@ EOM
     done
 fi
 
+chown -Rh daemon:daemon $(auto-localbase)/var/run/munge $(auto-localbase)/var/log/munge \
+		    $(auto-localbase)/etc/munge
+chmod -R go-rwx $(auto-localbase)/var/run/munge $(auto-localbase)/var/log/munge \
+		    $(auto-localbase)/etc/munge
+
 printf "Permissions should be -rw-------\n"
 printf "and ownership root:root or root:wheel or daemon:daemon.\n"
 printf "If they are not, you may have a security breach.\n"
 printf "Current ownership and permissions:\n"
-ls -l $munge_key
+ls -al $(auto-localbase)/etc/munge
 pause
 
 # FIXME: Make sure pkgsrc service is called "munged"?
@@ -129,8 +134,6 @@ elif [ $(uname) = Darwin ]; then
 elif [ $(uname) = Linux ]; then
     # On Linux, systemctl creates a link to the service file
     script=$(auto-localbase)/lib/systemd/system/munge.service
-    chown daemon:daemon /usr/pkg/var/run/munge /usr/pkg/var/log/munge \
-			/usr/pkg/etc/munge/munge.key
     if [ -e $script ]; then
 	auto-enable-service -s $script munge lpjs-admin
     fi
@@ -141,11 +144,11 @@ elif [ $(uname) = NetBSD ]; then
 elif [ $(uname) = SunOS ]; then
     # FIXME: The SunOS init scripts are not working yet
     # pkgsrc-specific
-    chown daemon:daemon /usr/pkg/var/run/munge /usr/pkg/var/log/munge \
-			/usr/pkg/etc/munge/munge.key
-    # FIXME: Can we enable an init script directly under /usr/pkg?
+    chown daemon:daemon $(auto-localbase)/var/run/munge $(auto-localbase)/var/log/munge \
+			$(auto-localbase)/etc/munge/munge.key
+    # FIXME: Can we enable an init script directly under $(auto-localbase)?
     # FIXME: Add SunOS support to auto-enable-service
-    cp /usr/pkg/etc/init.d/munge /etc/init.d
+    cp $(auto-localbase)/etc/init.d/munge /etc/init.d
     /etc/init.d/munge restart
 else
     printf "Could not find munge RC script.  Enable munge manually\n"
