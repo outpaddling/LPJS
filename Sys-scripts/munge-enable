@@ -113,12 +113,14 @@ chown -Rh daemon:daemon $(auto-localbase)/var/run/munge $(auto-localbase)/var/lo
 		    $(auto-localbase)/etc/munge
 chmod -R go-rwx $(auto-localbase)/var/run/munge $(auto-localbase)/var/log/munge \
 		    $(auto-localbase)/etc/munge
+chmod go+x $(auto-localbase)/var/run/munge
 
 printf "Permissions should be -rw-------\n"
 printf "and ownership root:root or root:wheel or daemon:daemon.\n"
 printf "If they are not, you may have a security breach.\n"
 printf "Current ownership and permissions:\n"
-ls -al $(auto-localbase)/etc/munge
+ls -al $(auto-localbase)/var/run/munge $(auto-localbase)/var/log/munge \
+	$(auto-localbase)/etc/munge 
 pause
 
 # FIXME: Make sure pkgsrc service is called "munged"?
