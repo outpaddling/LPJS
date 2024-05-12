@@ -5,6 +5,23 @@
 #lpjs min-procs-per-node all
 #lpjs mem-per-proc 1GiB
 
+# FreeBSD ports are installed under /usr/local
+# pkgsrc packages in a non-priveleged tree installed by auto-pkgsrc-setup
+# are installed under ~/Pkgsrc/pkg by default
+# pkgsrc packages in a priveleged tree (installed by root) on Linux and netBSD
+# are found under /usr/pkg by default
+# pkgsrc packages in a priveleged tree (installed by root) on macOS
+# are found under /opt/pkg by default (/usr is read-only on Macs)
+# Prepend common pkgsrc bin directories if they exist
+for prefix in /Users/$LPJS_USER_NAME/Pkgsrc/pkg \
+	      /home/$LPJS_USER_NAME/Pkgsrc/pkg \
+	      /usr/pkg \
+	      /opt/pkg; do
+if [ -e $prefix ]; then
+    PATH=$prefix/bin:$PATH
+    export PATH
+fi
+
 hostname
 printenv | fgrep LPJS_
 printf "Sleeping...\n"

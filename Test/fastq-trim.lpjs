@@ -17,7 +17,15 @@
 # are found under /usr/pkg by default
 # pkgsrc packages in a priveleged tree (installed by root) on macOS
 # are found under /opt/pkg by default (/usr is read-only on Macs)
-export PATH=/usr/local/bin:$HOME/Pkgsrc/pkg/bin:/usr/pkg/bin:/opt/pkg/bin:$PATH
+# Prepend common pkgsrc bin directories if they exist
+for prefix in /Users/$LPJS_USER_NAME/Pkgsrc/pkg \
+	      /home/$LPJS_USER_NAME/Pkgsrc/pkg \
+	      /usr/pkg \
+	      /opt/pkg; do
+if [ -e $prefix ]; then
+    PATH=$prefix/bin:$PATH
+    export PATH
+fi
 
 # Put some job info in the output
 hostname
