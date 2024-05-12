@@ -59,13 +59,13 @@ Spooled job 177 to /usr/local/var/spool/lpjs/pending/177.
 Spooled job 178 to /usr/local/var/spool/lpjs/pending/178.
 
 FreeBSD coral.acadix  bacon ~/Barracuda/LPJS-test 1025: lpjs nodes
-LPJS_DISPATCHD_REQUEST_NODE_STATUS sent.
 Hostname             State    Procs Used PhysMiB    Used OS        Arch     
-barracuda.acadix.biz Up           4    3   16350     150 FreeBSD   amd64    
-tarpon.acadix.biz    Up           8    6    8192     300 Darwin    arm64    
+barracuda.acadix.biz up           4    4   16350     200 FreeBSD   amd64    
+tarpon.acadix.biz    up           8    8    8192     400 Darwin    arm64    
+netbsd9.acadix.biz   up           2    2    4095     100 NetBSD    amd64    
 
-Total                Up          12    9   24542     450 -         -        
-Total                Down         0    0       0       0 -         -        
+Total                up          14   14   28637     700 -         -        
+Total                down         0    0       0       0 -         -        
 
 FreeBSD coral.acadix  bacon ~/Barracuda/LPJS-test 1026: lpjs jobs
 
@@ -73,16 +73,21 @@ Legend: P = processor  J = job  N = node
 
 Pending
 
-    JobID  IDX Jobs P/J P/N MiB/P User Submit-host Script
-      177    4    5   3   3    50 bacon coral.acadix.biz fastq-trim.lpjs
-      178    5    5   3   3    50 bacon coral.acadix.biz fastq-trim.lpjs
+    JobID  IDX Jobs P/J P/N MiB/P User Compute-node Script
+      376    8   10   2   2    50 bacon TBD fastq-trim.lpjs
+      377    9   10   2   2    50 bacon TBD fastq-trim.lpjs
+      378   10   10   2   2    50 bacon TBD fastq-trim.lpjs
 
 Running
 
-    JobID  IDX Jobs P/J P/N MiB/P User Submit-host Script
-      174    1    5   3   3    50 bacon coral.acadix.biz fastq-trim.lpjs
-      175    2    5   3   3    50 bacon coral.acadix.biz fastq-trim.lpjs
-      176    3    5   3   3    50 bacon coral.acadix.biz fastq-trim.lpjs
+    JobID  IDX Jobs P/J P/N MiB/P User Compute-node Script
+      369    1   10   2   2    50 bacon barracuda.acadix.biz fastq-trim.lpjs
+      370    2   10   2   2    50 bacon barracuda.acadix.biz fastq-trim.lpjs
+      371    3   10   2   2    50 bacon tarpon.acadix.biz fastq-trim.lpjs
+      372    4   10   2   2    50 bacon tarpon.acadix.biz fastq-trim.lpjs
+      373    5   10   2   2    50 bacon tarpon.acadix.biz fastq-trim.lpjs
+      374    6   10   2   2    50 bacon tarpon.acadix.biz fastq-trim.lpjs
+      375    7   10   2   2    50 bacon netbsd9.acadix.biz fastq-trim.lpjs
 ```
 
 Basic usability for brave souls willing to test alpha-quality
