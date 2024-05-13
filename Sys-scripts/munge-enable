@@ -13,6 +13,18 @@ pause()
     read junk
 }
 
+
+# FIXME: Can the package do this?
+pkgsrc_perms()
+
+{
+    chmod -R go-rwx $(auto-localbase)/var/log/munge $(auto-localbase)/etc/munge
+    chown -Rh daemon:daemon $(auto-localbase)/var/run/munge $(auto-localbase)/var/log/munge \
+			$(auto-localbase)/etc/munge
+    chmod 755 $(auto-localbase)/var/run/munge
+}
+
+
 ##########################################################################
 #   Function description:
 #       Enable munge daemon
@@ -109,11 +121,6 @@ EOM
     done
 fi
 
-chown -Rh daemon:daemon $(auto-localbase)/var/run/munge $(auto-localbase)/var/log/munge \
-		    $(auto-localbase)/etc/munge
-chmod -R go-rwx $(auto-localbase)/var/run/munge $(auto-localbase)/var/log/munge \
-		    $(auto-localbase)/etc/munge
-chmod go+x $(auto-localbase)/var/run/munge
 
 printf "Permissions should be -rw-------\n"
 printf "and ownership root:root or root:wheel or daemon:daemon.\n"
@@ -128,26 +135,27 @@ if [ -e $(auto-localbase)/etc/rc.d/munged ]; then
     # Dragonfly, FreeBSD
     auto-enable-service munged $0
 elif [ $(uname) = Darwin ]; then
+    pksrc_perms
     # On macOS, we must install the plist file ourselves
     plist=$(auto-localbase)/share/munge/Launchd/org.pkgsrc.munged.plist
     if [ -e $plist ]; then
 	auto-enable-service -s $plist org.pkgsrc.munged lpjs-admin
     fi
 elif [ $(uname) = Linux ]; then
+    pkgsrc_perms
     # On Linux, systemctl creates a link to the service file
     script=$(auto-localbase)/lib/systemd/system/munge.service
     if [ -e $script ]; then
 	auto-enable-service -s $script munge lpjs-admin
     fi
 elif [ $(uname) = NetBSD ]; then
+    pkgsrc_perms
     # On NetBSD, pkgsrc installs/deinstalls the RC files, but they are
     # named munge rather than munged
     auto-enable-service munge $0
 elif [ $(uname) = SunOS ]; then
+    pkgsrc_perms
     # FIXME: The SunOS init scripts are not working yet
-    # pkgsrc-specific
-    chown daemon:daemon $(auto-localbase)/var/run/munge $(auto-localbase)/var/log/munge \
-			$(auto-localbase)/etc/munge/munge.key
     # FIXME: Can we enable an init script directly under $(auto-localbase)?
     # FIXME: Add SunOS support to auto-enable-service
     cp $(auto-localbase)/etc/init.d/munge /etc/init.d
