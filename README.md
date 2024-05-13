@@ -66,12 +66,13 @@ Spooled job 546 to /usr/local/var/spool/lpjs/pending/546.
 
 FreeBSD coral.acadix  bacon ~/LPJS-test 1039: lpjs nodes
 Hostname             State    Procs Used PhysMiB    Used OS        Arch     
-barracuda.acadix.biz up           4    4   16350     200 FreeBSD   amd64    
-tarpon.acadix.biz    up           8    8    8192     400 Darwin    arm64    
-netbsd9.acadix.biz   up           2    2    4095     100 NetBSD    amd64    
-alma8.acadix.biz     up           2    2    3653     100 Linux     x86_64   
+barracuda.acadix.biz up           4    4   16350     200 FreeBSD   amd64
+tarpon.acadix.biz    up           8    8    8192     400 Darwin    arm64
+netbsd9.acadix.biz   up           2    2    4095     100 NetBSD    amd64
+alma8.acadix.biz     up           2    2    3653     100 RHEL      x86_64
+marlin.acadix.biz    up           8    2    7844     100 Debian    x86_64
 
-Total                up          16   16   32290     800 -         -        
+Total                up          24   18   40134       0 -         -        
 Total                down         0    0       0       0 -         -        
 
 FreeBSD coral.acadix  bacon ~/LPJS-test 1040: lpjs jobs
@@ -81,7 +82,6 @@ Legend: P = processor  J = job  N = node
 Pending
 
     JobID  IDX Jobs P/J P/N MiB/P User Compute-node Script
-      545    9   10   2   2    50 bacon TBD fastq-trim.lpjs
       546   10   10   2   2    50 bacon TBD fastq-trim.lpjs
 
 Running
@@ -95,6 +95,7 @@ Running
       542    6   10   2   2    50 bacon tarpon.acadix.biz fastq-trim.lpjs
       543    7   10   2   2    50 bacon netbsd9.acadix.biz fastq-trim.lpjs
       544    8   10   2   2    50 bacon alma8.acadix.biz fastq-trim.lpjs
+      545    9   10   2   2    50 bacon marlin.acadix.biz fastq-trim.lpjs
 ```
 
 Basic usability for brave souls willing to test alpha-quality
