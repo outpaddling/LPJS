@@ -18,10 +18,11 @@ pause()
 pkgsrc_perms()
 
 {
-    chmod -R go-rwx $(auto-localbase)/var/log/munge $(auto-localbase)/etc/munge
+    chmod 700 $(auto-localbase)/var/log/munge $(auto-localbase)/etc/munge
+    chmod 755 $(auto-localbase)/var/run/munge
+    chmod go-rwx $(auto-localbase)/var/log/munge/* $(auto-localbase)/etc/munge/*
     chown -Rh daemon:daemon $(auto-localbase)/var/run/munge $(auto-localbase)/var/log/munge \
 			$(auto-localbase)/etc/munge
-    chmod 755 $(auto-localbase)/var/run/munge
 }
 
 
