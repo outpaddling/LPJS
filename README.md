@@ -51,43 +51,50 @@ These will be fully supported in the future, but for now, we'll focus
 on the user interface and documentation for dedicated cluster hardware.
 
 ```
-FreeBSD coral.acadix  bacon ~/Barracuda/LPJS-test 1024: lpjs submit fastq-trim.lpjs
-Spooled job 174 to /usr/local/var/spool/lpjs/pending/174.
-Spooled job 175 to /usr/local/var/spool/lpjs/pending/175.
-Spooled job 176 to /usr/local/var/spool/lpjs/pending/176.
-Spooled job 177 to /usr/local/var/spool/lpjs/pending/177.
-Spooled job 178 to /usr/local/var/spool/lpjs/pending/178.
+FreeBSD coral.acadix  bacon ~/LPJS-test 1038: lpjs submit fastq-trim.lpjs
+10 job, 2 procs per job, 2 procs per node, 50 MiB
+Spooled job 537 to /usr/local/var/spool/lpjs/pending/537.
+Spooled job 538 to /usr/local/var/spool/lpjs/pending/538.
+Spooled job 539 to /usr/local/var/spool/lpjs/pending/539.
+Spooled job 540 to /usr/local/var/spool/lpjs/pending/540.
+Spooled job 541 to /usr/local/var/spool/lpjs/pending/541.
+Spooled job 542 to /usr/local/var/spool/lpjs/pending/542.
+Spooled job 543 to /usr/local/var/spool/lpjs/pending/543.
+Spooled job 544 to /usr/local/var/spool/lpjs/pending/544.
+Spooled job 545 to /usr/local/var/spool/lpjs/pending/545.
+Spooled job 546 to /usr/local/var/spool/lpjs/pending/546.
 
-FreeBSD coral.acadix  bacon ~/Barracuda/LPJS-test 1025: lpjs nodes
+FreeBSD coral.acadix  bacon ~/LPJS-test 1039: lpjs nodes
 Hostname             State    Procs Used PhysMiB    Used OS        Arch     
 barracuda.acadix.biz up           4    4   16350     200 FreeBSD   amd64    
 tarpon.acadix.biz    up           8    8    8192     400 Darwin    arm64    
 netbsd9.acadix.biz   up           2    2    4095     100 NetBSD    amd64    
+alma8.acadix.biz     up           2    2    3653     100 Linux     x86_64   
 
-Total                up          14   14   28637     700 -         -        
+Total                up          16   16   32290     800 -         -        
 Total                down         0    0       0       0 -         -        
 
-FreeBSD coral.acadix  bacon ~/Barracuda/LPJS-test 1026: lpjs jobs
+FreeBSD coral.acadix  bacon ~/LPJS-test 1040: lpjs jobs
 
 Legend: P = processor  J = job  N = node
 
 Pending
 
     JobID  IDX Jobs P/J P/N MiB/P User Compute-node Script
-      376    8   10   2   2    50 bacon TBD fastq-trim.lpjs
-      377    9   10   2   2    50 bacon TBD fastq-trim.lpjs
-      378   10   10   2   2    50 bacon TBD fastq-trim.lpjs
+      545    9   10   2   2    50 bacon TBD fastq-trim.lpjs
+      546   10   10   2   2    50 bacon TBD fastq-trim.lpjs
 
 Running
 
     JobID  IDX Jobs P/J P/N MiB/P User Compute-node Script
-      369    1   10   2   2    50 bacon barracuda.acadix.biz fastq-trim.lpjs
-      370    2   10   2   2    50 bacon barracuda.acadix.biz fastq-trim.lpjs
-      371    3   10   2   2    50 bacon tarpon.acadix.biz fastq-trim.lpjs
-      372    4   10   2   2    50 bacon tarpon.acadix.biz fastq-trim.lpjs
-      373    5   10   2   2    50 bacon tarpon.acadix.biz fastq-trim.lpjs
-      374    6   10   2   2    50 bacon tarpon.acadix.biz fastq-trim.lpjs
-      375    7   10   2   2    50 bacon netbsd9.acadix.biz fastq-trim.lpjs
+      537    1   10   2   2    50 bacon barracuda.acadix.biz fastq-trim.lpjs
+      538    2   10   2   2    50 bacon barracuda.acadix.biz fastq-trim.lpjs
+      539    3   10   2   2    50 bacon tarpon.acadix.biz fastq-trim.lpjs
+      540    4   10   2   2    50 bacon tarpon.acadix.biz fastq-trim.lpjs
+      541    5   10   2   2    50 bacon tarpon.acadix.biz fastq-trim.lpjs
+      542    6   10   2   2    50 bacon tarpon.acadix.biz fastq-trim.lpjs
+      543    7   10   2   2    50 bacon netbsd9.acadix.biz fastq-trim.lpjs
+      544    8   10   2   2    50 bacon alma8.acadix.biz fastq-trim.lpjs
 ```
 
 Basic usability for brave souls willing to test alpha-quality
