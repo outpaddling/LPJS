@@ -80,7 +80,9 @@ void    node_detect_specs(node_t *node)
 
 {
     struct utsname  u_name;
-    char            temp_hostname[sysconf(_SC_HOST_NAME_MAX) + 1];
+    char            temp_hostname[sysconf(_SC_HOST_NAME_MAX) + 1],
+		    temp_osname[128];
+    FILE            *fp;
     
     /*
      *  hwloc is extremely complex and we don't need most of its functionality
@@ -103,10 +105,26 @@ void    node_detect_specs(node_t *node)
      *  FIXME: There should be a better approach to this.
      */
     node->zfs = ! system("mount | fgrep -q zfs");
-    // FIXME: Use auto-ostype?
+    
     uname(&u_name);
-    // FIXME: Verify malloc() success
-    node->os = strdup(u_name.sysname);
+    if ( (fp = popen("auto-ostype", "r")) != NULL )
+    {
+	xt_fgetline(fp, temp_osname, 128);
+	if ( (node->os = strdup(temp_osname)) == NULL )
+	{
+	    lpjs_log("%s(): strdup() failed.\n", __FUNCTION__);
+	    exit(EX_UNAVAILABLE);
+	}
+	pclose(fp);
+    }
+    else
+    {
+	if ( (node->os = strdup(u_name.sysname)) == NULL )
+	{
+	    lpjs_log("%s(): strdup() failed.\n", __FUNCTION__);
+	    exit(EX_UNAVAILABLE);
+	}
+    }
     node->arch = strdup(u_name.machine);
 }
 
