@@ -103,6 +103,7 @@ void    node_detect_specs(node_t *node)
      *  FIXME: There should be a better approach to this.
      */
     node->zfs = ! system("mount | fgrep -q zfs");
+    // FIXME: Use auto-ostype?
     uname(&u_name);
     // FIXME: Verify malloc() success
     node->os = strdup(u_name.sysname);
