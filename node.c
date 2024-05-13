@@ -81,8 +81,10 @@ void    node_detect_specs(node_t *node)
 {
     struct utsname  u_name;
     char            temp_hostname[sysconf(_SC_HOST_NAME_MAX) + 1],
-		    temp_osname[128];
+		    temp_osname[128],
+		    *ostype_path;
     FILE            *fp;
+    struct stat     st;
     
     /*
      *  hwloc is extremely complex and we don't need most of its functionality
@@ -107,7 +109,8 @@ void    node_detect_specs(node_t *node)
     node->zfs = ! system("mount | fgrep -q zfs");
     
     uname(&u_name);
-    if ( (fp = popen("auto-ostype", "r")) != NULL )
+    ostype_path = LOCALBASE "/bin/auto-ostype";
+    if ( (stat(ostype_path, &st) == 0) && (fp = popen(ostype_path, "r")) != NULL )
     {
 	xt_fgetline(fp, temp_osname, 128);
 	if ( (node->os = strdup(temp_osname)) == NULL )
