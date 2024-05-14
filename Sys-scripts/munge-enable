@@ -15,8 +15,10 @@ pause()
 
 
 ##########################################################################
-#   Function description:
+#   Description:
 #       Enable munge daemon
+#
+#   FIXME: Move this functionality to auto-admin?
 #       
 #   History:
 #   Date        Name        Modification
