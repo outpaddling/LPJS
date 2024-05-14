@@ -294,8 +294,10 @@ int     node_list_set_state(node_list_t *node_list, char *arg_string)
     state = strsep(&p, " ");
     
     // Point state to static data so it will survive function exit
-    if ( strcmp(state, "pause") == 0 )
-	state = "pause";
+    if ( strcmp(state, "paused") == 0 )
+	state = "paused";
+    else if ( strcmp(state, "updating") == 0 )
+	state = "updating";
     else
 	state = "up";
     
