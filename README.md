@@ -135,6 +135,12 @@ THE MUNGE KEY FILE MUST BE KEPT SECURE AT ALL TIMES ON ALL NODES.
 Use secure procedures to distribute it to all nodes, ensuring that it
 is never visible to unauthorized users, even for a moment.
 
+If utilizing publicly accessible computers as compute nodes, you might
+consider running LPJS inside a virtual machine,
+jail, or other container, to add another layer of protection for the
+host system.  We do not recommend this for dedicated compute nodes, as
+it would generally only add needless overhead within a realm of trust.
+
 ## Description
 
 Most __clusters__ consist of a few or many dedicated rack-mounted computers
