@@ -26,12 +26,14 @@ CONF_FILE=$(auto-localbase)/etc/lpjs/config
 
 if grep -q '^head' $CONF_FILE; then
     head_node=$(awk '$1 == "head" { print $2 }' $CONF_FILE)
-    printf "This node currently lists $head_node as the head node.\n"
-    printf "$head_node will be replaced by $(hostname).\n"
-    printf "Proceed? y/[n] "
-    read proceed
-    if [ 0"$proceed" != 0y ]; then
-	break
+    if [ 0$head_node != 0$(hostname) ]; then
+	printf "This node currently lists $head_node as the head node.\n"
+	printf "$head_node will be replaced by $(hostname).\n"
+	printf "Proceed? y/[n] "
+	read proceed
+	if [ 0"$proceed" != 0y ]; then
+	    break
+	fi
     fi
 fi
 head_node=$(hostname)
