@@ -332,6 +332,10 @@ of its limited resources.
     directly routable from all nodes, or could itself be behind a
     router with NAT (network address translation) using port-forwarding.
     
+    Hence, any node in the system can be behind a NAT firewall, and
+    could in fact be a virtual machine, a jail, or some other sort
+    of container.
+    
     Note that for best communication performance, all nodes should be
     on the same subnet, preferably with a dedicated switch used only
     by cluster nodes.
