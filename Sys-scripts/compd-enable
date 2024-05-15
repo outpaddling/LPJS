@@ -58,7 +58,7 @@ elif [ $(uname) = Linux ]; then
 elif [ $(uname) = SunOS ]; then
     # FIXME: Copying to /etc/init.d doesn't cause startup at boot
     cp $(auto-localbase)/etc/init.d/munge /etc/init.d
-/et /etc/init.d/munge restart
+    /etc/init.d/munge restart
     printf "lpjs daemons not yet implemented for SunOS.\n"
 else
     if auto-service-enabled lpjs_compd; then
