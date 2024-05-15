@@ -117,8 +117,26 @@ software and provide feedback will be indicated by the first full
 release, 0.1.0.  Pre-releases beginning with 0.0.1 will follow the
 addition of essential core features.
 
-LPJS will be integrated with [SPCM](https://github.com/outpaddling/SPCM)
-(replacing SLURM) when it is sufficiently functional.
+LPJS is currently being integrated with
+[SPCM (Simple, Portable Cluster Manager)](https://github.com/outpaddling/SPCM)
+which was originally developed for SLURM clusters.  The integration is
+mostly complete, and the next SPCM release will coincide with the first
+LPJS release.  Below is a screenshot showing "lpjs nodes" output during
+SPCM automated compute node updates.
+
+```
+FreeBSD head.albacore  bacon ~ 1000: lpjs nodes
+Hostname             State    Procs Used PhysMiB    Used OS        Arch     
+compute-001.albacore up          16    0   65476       0 FreeBSD   amd64    
+compute-002.albacore down        16    0   65477       0 FreeBSD   amd64    
+compute-003.albacore updating    16    0   65477       0 FreeBSD   amd64    
+compute-004.albacore updating    16    0   65477       0 FreeBSD   amd64    
+compute-005.albacore updating    16    0  131012       0 FreeBSD   amd64    
+compute-006.albacore updating    16    0  131012       0 FreeBSD   amd64    
+
+Total                up          16    0   65476       0 -         -        
+Total                down        80    0  458455       0 -         -        
+```
 
 ## Security
 
