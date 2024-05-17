@@ -88,7 +88,7 @@ EOM
 		mv $user_home/munge.key $munge_key
 	    fi
 	    set -e
-	    if chown root:0 $munge_key && chmod 600 $munge_key; then
+	    if chown $munge_user_group $munge_key && chmod 600 $munge_key; then
 		valid=yes
 	    fi
 	    ;;
@@ -98,7 +98,7 @@ EOM
 	    printf "Ensure that it it not readable to ordinary users at any time.\n"
 	    pause
 	    valid=yes
-	    if chown root:0 $munge_key && chmod 600 $munge_key; then
+	    if chown $munge_user_group $munge_key && chmod 600 $munge_key; then
 		valid=yes
 	    fi
 	    ;;
@@ -120,10 +120,16 @@ printf "Current ownership and permissions:\n"
 ls -al $(auto-localbase)/etc/munge 
 pause
 
+# All pkgsrc systems, overwrite with root:wheel for FreeBSD
+# until port is changed
+munge_user_group=munge:munge
+
 # FIXME: Make sure pkgsrc service is called "munged"?
 if [ -e $(auto-localbase)/etc/rc.d/munged ]; then
     # Dragonfly, FreeBSD
     auto-enable-service munged $0
+    # FIXME: Request change to FreeBSD port currently using root
+    munge_user_group=root:wheel
 elif [ $(uname) = Darwin ]; then
     pksrc_perms
     # On macOS, we must install the plist file ourselves
