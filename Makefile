@@ -215,7 +215,9 @@ install: all
 		    ${DESTDIR}${MANDIR}/man1 \
 		    ${DESTDIR}${PREFIX}/etc/lpjs \
 		    ${DESTDIR}${LIBEXECDIR} \
-		    ${DESTDIR}${DATADIR}
+		    ${DESTDIR}${DATADIR} \
+		    ${DESTDIR}${PREFIX}/var/log/lpjs \
+		    ${DESTDIR}${PREFIX}/var/spool/lpjs
 	${INSTALL} -m 0755 ${BIN} ${DESTDIR}${PREFIX}/bin
 	${INSTALL} -m 0755 ${SYS_BINS} ${DESTDIR}${PREFIX}/sbin
 	${INSTALL} -m 0755 ${LIBEXEC_BINS} ${DESTDIR}${LIBEXECDIR}
