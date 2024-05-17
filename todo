@@ -1,8 +1,6 @@
 
 Now
 ---
-etc/lpjs should be owned by lpjs:lpjs
-
 Save user-specified node states to disk and reload at startup
 Add maintenance state that won't be changed to up at compd checkin
 
