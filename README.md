@@ -51,51 +51,65 @@ These will be fully supported in the future, but for now, we'll focus
 on the user interface and documentation for dedicated cluster hardware.
 
 ```
-FreeBSD coral.acadix  bacon ~/LPJS-test 1038: lpjs submit fastq-trim.lpjs
-10 job, 2 procs per job, 2 procs per node, 50 MiB
-Spooled job 537 to /usr/local/var/spool/lpjs/pending/537.
-Spooled job 538 to /usr/local/var/spool/lpjs/pending/538.
-Spooled job 539 to /usr/local/var/spool/lpjs/pending/539.
-Spooled job 540 to /usr/local/var/spool/lpjs/pending/540.
-Spooled job 541 to /usr/local/var/spool/lpjs/pending/541.
-Spooled job 542 to /usr/local/var/spool/lpjs/pending/542.
-Spooled job 543 to /usr/local/var/spool/lpjs/pending/543.
-Spooled job 544 to /usr/local/var/spool/lpjs/pending/544.
-Spooled job 545 to /usr/local/var/spool/lpjs/pending/545.
-Spooled job 546 to /usr/local/var/spool/lpjs/pending/546.
+FreeBSD coral.acadix  bacon ~/Barracuda/CNC-EMDiff/RNA-Seq/LPJS 1007: lpjs submit 04-trim.lpjs
+Spooled job 583 to /usr/local/var/spool/lpjs/pending/583.
+Spooled job 584 to /usr/local/var/spool/lpjs/pending/584.
+Spooled job 585 to /usr/local/var/spool/lpjs/pending/585.
+Spooled job 586 to /usr/local/var/spool/lpjs/pending/586.
+Spooled job 587 to /usr/local/var/spool/lpjs/pending/587.
+Spooled job 588 to /usr/local/var/spool/lpjs/pending/588.
+Spooled job 589 to /usr/local/var/spool/lpjs/pending/589.
+Spooled job 590 to /usr/local/var/spool/lpjs/pending/590.
+Spooled job 591 to /usr/local/var/spool/lpjs/pending/591.
+Spooled job 592 to /usr/local/var/spool/lpjs/pending/592.
+Spooled job 593 to /usr/local/var/spool/lpjs/pending/593.
+Spooled job 594 to /usr/local/var/spool/lpjs/pending/594.
+Spooled job 595 to /usr/local/var/spool/lpjs/pending/595.
+Spooled job 596 to /usr/local/var/spool/lpjs/pending/596.
+Spooled job 597 to /usr/local/var/spool/lpjs/pending/597.
+Spooled job 598 to /usr/local/var/spool/lpjs/pending/598.
+Spooled job 599 to /usr/local/var/spool/lpjs/pending/599.
+Spooled job 600 to /usr/local/var/spool/lpjs/pending/600.
 
-FreeBSD coral.acadix  bacon ~/LPJS-test 1039: lpjs nodes
+FreeBSD coral.acadix  bacon ~/Barracuda/CNC-EMDiff/RNA-Seq/LPJS 1009: lpjs nodes 
 Hostname             State    Procs Used PhysMiB    Used OS        Arch     
-barracuda.acadix.biz up           4    4   16350     200 FreeBSD   amd64
-tarpon.acadix.biz    up           8    8    8192     400 Darwin    arm64
-netbsd9.acadix.biz   up           2    2    4095     100 NetBSD    amd64
-alma8.acadix.biz     up           2    2    3653     100 RHEL      x86_64
-marlin.acadix.biz    up           8    2    7844     100 Debian    x86_64
+barracuda.acadix.biz up           4    4   16350      40 FreeBSD   amd64    
+tarpon.acadix.biz    up           8    8    8192      80 Darwin    arm64    
+herring.acadix.biz   up           4    4    1000      40 FreeBSD   arm64    
+netbsd9.acadix.biz   up           2    2    4095      20 NetBSD    amd64    
+alma8.acadix.biz     up           2    2    3653      20 RHEL      x86_64   
 
-Total                up          24   18   40134       0 -         -        
-Total                down         0    0       0       0 -         -        
+Total                up          20   20   33290     200 -         -        
+Total                down         0    0       0       0 -         -   
 
-FreeBSD coral.acadix  bacon ~/LPJS-test 1040: lpjs jobs
-
-Legend: P = processor  J = job  N = node
+FreeBSD coral.acadix  bacon ~/Barracuda/CNC-EMDiff/RNA-Seq/LPJS 1010: lpjs jobs
+ 
+Legend: P = processor  J = job  N = node  S = submission
 
 Pending
 
     JobID  IDX Jobs P/J P/N MiB/P User Compute-node Script
-      546   10   10   2   2    50 bacon TBD fastq-trim.lpjs
+      594   12   18   2   2    10 bacon TBD 04-trim.lpjs
+      595   13   18   2   2    10 bacon TBD 04-trim.lpjs
+      596   14   18   2   2    10 bacon TBD 04-trim.lpjs
+      597   15   18   2   2    10 bacon TBD 04-trim.lpjs
+      598   16   18   2   2    10 bacon TBD 04-trim.lpjs
+      599   17   18   2   2    10 bacon TBD 04-trim.lpjs
+      600   18   18   2   2    10 bacon TBD 04-trim.lpjs
 
 Running
 
     JobID  IDX Jobs P/J P/N MiB/P User Compute-node Script
-      537    1   10   2   2    50 bacon barracuda.acadix.biz fastq-trim.lpjs
-      538    2   10   2   2    50 bacon barracuda.acadix.biz fastq-trim.lpjs
-      539    3   10   2   2    50 bacon tarpon.acadix.biz fastq-trim.lpjs
-      540    4   10   2   2    50 bacon tarpon.acadix.biz fastq-trim.lpjs
-      541    5   10   2   2    50 bacon tarpon.acadix.biz fastq-trim.lpjs
-      542    6   10   2   2    50 bacon tarpon.acadix.biz fastq-trim.lpjs
-      543    7   10   2   2    50 bacon netbsd9.acadix.biz fastq-trim.lpjs
-      544    8   10   2   2    50 bacon alma8.acadix.biz fastq-trim.lpjs
-      545    9   10   2   2    50 bacon marlin.acadix.biz fastq-trim.lpjs
+      583    1   18   2   2    10 bacon barracuda.acadix.biz 04-trim.lpjs
+      584    2   18   2   2    10 bacon barracuda.acadix.biz 04-trim.lpjs
+      585    3   18   2   2    10 bacon tarpon.acadix.biz 04-trim.lpjs
+      586    4   18   2   2    10 bacon tarpon.acadix.biz 04-trim.lpjs
+      587    5   18   2   2    10 bacon tarpon.acadix.biz 04-trim.lpjs
+      588    6   18   2   2    10 bacon tarpon.acadix.biz 04-trim.lpjs
+      590    8   18   2   2    10 bacon herring.acadix.biz 04-trim.lpjs
+      591    9   18   2   2    10 bacon netbsd9.acadix.biz 04-trim.lpjs
+      592   10   18   2   2    10 bacon alma8.acadix.biz 04-trim.lpjs
+      593   11   18   2   2    10 bacon herring.acadix.biz 04-trim.lpjs
 ```
 
 Basic usability for brave souls willing to test alpha-quality
@@ -103,8 +117,26 @@ software and provide feedback will be indicated by the first full
 release, 0.1.0.  Pre-releases beginning with 0.0.1 will follow the
 addition of essential core features.
 
-LPJS will be integrated with [SPCM](https://github.com/outpaddling/SPCM)
-(replacing SLURM) when it is sufficiently functional.
+LPJS is currently being integrated with
+[SPCM (Simple, Portable Cluster Manager)](https://github.com/outpaddling/SPCM)
+which was originally developed for SLURM clusters.  The integration is
+mostly complete, and the next SPCM release will coincide with the first
+LPJS release.  Below is a screenshot showing "lpjs nodes" output during
+SPCM automated compute node updates.
+
+```
+FreeBSD head.albacore  bacon ~ 1000: lpjs nodes
+Hostname             State    Procs Used PhysMiB    Used OS        Arch     
+compute-001.albacore up          16    0   65476       0 FreeBSD   amd64    
+compute-002.albacore down        16    0   65477       0 FreeBSD   amd64    
+compute-003.albacore updating    16    0   65477       0 FreeBSD   amd64    
+compute-004.albacore updating    16    0   65477       0 FreeBSD   amd64    
+compute-005.albacore updating    16    0  131012       0 FreeBSD   amd64    
+compute-006.albacore updating    16    0  131012       0 FreeBSD   amd64    
+
+Total                up          16    0   65476       0 -         -        
+Total                down        80    0  458455       0 -         -        
+```
 
 ## Security
 
@@ -317,6 +349,10 @@ of its limited resources.
     to the head node.  The head node can use an IP that is
     directly routable from all nodes, or could itself be behind a
     router with NAT (network address translation) using port-forwarding.
+    
+    Hence, any node in the system can be behind a NAT firewall, and
+    could in fact be a virtual machine, a jail, or some other sort
+    of container.
     
     Note that for best communication performance, all nodes should be
     on the same subnet, preferably with a dedicated switch used only
