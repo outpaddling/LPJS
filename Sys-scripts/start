@@ -33,7 +33,9 @@ elif [ $(uname) = DragonFly ] || [ $(uname) = FreeBSD ]; then
     service munged restart
     if grep -E '^lpjs_dispatchd_enable=\"?[Yy][Ee][Ss]"?' /etc/rc.conf; then
 	service lpjs_dispatchd start
-    elif grep -E '^lpjs_compd_enable=\"?[Yy][Ee][Ss]"?' /etc/rc.conf; then
+    fi
+    
+    if grep -E '^lpjs_compd_enable=\"?[Yy][Ee][Ss]"?' /etc/rc.conf; then
 	service lpjs_compd start
     fi
 
@@ -64,7 +66,9 @@ elif [ $(uname) = NetBSD ]; then
     service munge restart
     if grep -E '^lpjs_dispatchd=\"?[Yy][Ee][Ss]"?' /etc/rc.conf; then
 	service lpjs_dispatchd start
-    elif grep -E '^lpjs_compd=\"?[Yy][Ee][Ss]"?' /etc/rc.conf; then
+    fi
+    
+    if grep -E '^lpjs_compd=\"?[Yy][Ee][Ss]"?' /etc/rc.conf; then
 	service lpjs_compd start
     fi
 

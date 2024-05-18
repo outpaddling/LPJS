@@ -29,7 +29,9 @@ if [ $(uname) = Darwin ]; then
 elif [ $(uname) = DragonFly ] || [ $(uname) = FreeBSD ]; then
     if grep -E '^lpjs_dispatchd_enable=\"?[Yy][Ee][Ss]"?' /etc/rc.conf; then
 	service lpjs_dispatchd stop
-    elif grep -E '^lpjs_compd_enable=\"?[Yy][Ee][Ss]"?' /etc/rc.conf; then
+    fi
+    
+    if grep -E '^lpjs_compd_enable=\"?[Yy][Ee][Ss]"?' /etc/rc.conf; then
 	service lpjs_compd stop
     fi
 
@@ -55,7 +57,9 @@ elif [ $(uname) = NetBSD ]; then
     set -x
     if grep -E '^lpjs_dispatchd=\"?[Yy][Ee][Ss]"?' /etc/rc.conf; then
 	service lpjs_dispatchd stop
-    elif grep -E '^lpjs_compd=\"?[Yy][Ee][Ss]"?' /etc/rc.conf; then
+    fi
+    
+    if grep -E '^lpjs_compd=\"?[Yy][Ee][Ss]"?' /etc/rc.conf; then
 	service lpjs_compd stop
     fi
 

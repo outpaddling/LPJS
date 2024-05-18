@@ -31,15 +31,16 @@ if grep -q '^head' $CONF_FILE; then
 	printf "$head_node will be replaced by $(hostname).\n"
 	printf "Proceed? y/[n] "
 	read proceed
-	if [ 0"$proceed" != 0y ]; then
-	    break
+	if [ 0"$proceed" = 0y ]; then
+	    head_node=$(hostname)
+	    printf "head    $head_node\n" >> $CONF_FILE.temp
+	    grep -v '^head' $CONF_FILE >> $CONF_FILE.temp || true
+	    mv -f $CONF_FILE.temp $CONF_FILE
+	    chmod 644 $CONF_FILE
+	    chown lpjs:lpjs $CONF_FILE
 	fi
     fi
 fi
-head_node=$(hostname)
-printf "head    $head_node\n" >> $CONF_FILE.temp
-grep -v '^head' $CONF_FILE >> $CONF_FILE.temp || true
-mv -f $CONF_FILE.temp $CONF_FILE
 /usr/local/libexec/lpjs/munge-enable
 if [ $(uname) = Darwin ]; then
     plist=$(auto-localbase)/share/lpjs/Launchd/org.pkgsrc.lpjs_dispatchd.plist

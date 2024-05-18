@@ -63,11 +63,13 @@ do
     cat << EOM
 
 1.. Set up a zero-configuration one-node cluster on this machine
-2.. Add a compute node (use this option only on the head node)
-3.. Enable dispatch daemon (make this the head node)
-4.. Enable compute daemon (make this a compute node)
-5.. Restart daemons
-6.. Edit config file (advanced users only)
+2.. Generate a new config file
+3.. Edit the config file
+4.. Enable dispatch daemon (make this the head node)
+5.. Enable compute daemon (make this a compute node)
+6.. Disable dispatch daemon (make this the head node)
+7.. Disable compute daemon (make this a compute node)
+8.. Restart daemons
 Q.. Quit
 
 EOM
@@ -76,53 +78,76 @@ EOM
     read resp
     case 0$resp in
     01)
-	/usr/local/libexec/lpjs/dispatchd-enable
-	/usr/local/libexec/lpjs/compd-enable
+	cat << EOM > $CONF_FILE
+head    $(hostname)
+compute $(hostname)
+EOM
+	chmod 644 $CONF_FILE
+	chown lpjs:lpjs $CONF_FILE
+	lpjs dispatchd-enable
+	lpjs compd-enable --batch
 	pause
 	;;
     
     02)
 	if [ -e $CONF_FILE ]; then
-	    printf "$CONF_FILE already exists.  Overwrite? y/[n] "
+	    printf "Existing config file:\n\n"
+	    cat $CONF_FILE
+	    printf "\n$CONF_FILE already exists.  Overwrite? y/[n] "
 	    read generate
 	else
 	    generate=y
 	fi
+	# FIXME: Preserve ownership
 	if [ 0"$generate" = 0y ]; then
-	    printf "Host name of head node? "
+	    printf "Complete host name of the head node? "
 	    read head_host
-	    printf "Host names of compute nodes (comma-separated) "
-	    read compute_hosts
-	    cat << EOM > $CONF_FILE
+		cat << EOM > $CONF_FILE
 head    $head_host
-compute $compute_hosts
 EOM
+	    compute_host=' '
+	    while [ -n "$compute_host" ]; do
+		printf "Complete host name of a compute node? (Press enter when done) "
+		read compute_host
+		if [ -n "$compute_host" ]; then
+		    cat << EOM >> $CONF_FILE
+compute $compute_host
+EOM
+		fi
+	    done
+	    $EDITOR $CONF_FILE
+	    chmod 644 $CONF_FILE
+	    chown lpjs:lpjs $CONF_FILE
 	fi
-	
-	# FIXME: Temporary for debugging
+	;;
+    
+    03)
 	$EDITOR $CONF_FILE
-	
-	# FIXME: Is this necessary?  If so, should it be?
-	lpjs restart
 	;;
 
-    03)
+    04)
 	/usr/local/libexec/lpjs/dispatchd-enable
 	pause
 	;;
 
-    04)
+    05)
 	/usr/local/libexec/lpjs/compd-enable
 	pause
 	;;
 
-    05)
-	lpjs restart
+    06)
+	/usr/local/libexec/lpjs/dispatchd-disable
 	pause
 	;;
     
-    06)
-	$EDITOR $(auto-localbase)/etc/lpjs/config
+    07)
+	/usr/local/libexec/lpjs/compd-disable
+	pause
+	;;
+	
+    08)
+	lpjs restart
+	pause
 	;;
     
     0Q|0q)
