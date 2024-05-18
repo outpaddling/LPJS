@@ -9,14 +9,13 @@ After=munge.service
 [Service]
 Type=forking
 # This is a temporary hack, since ExecStop fails to remove the pid file
-ExecStartPre=/usr/bin/rm -f /usr/pkg/var/run/lpjs/lpjs_compd.pid
+ExecStartPre=/usr/bin/rm -f /usr/pkg/var/run/lpjs/lpjs_dispatchd.pid
 ExecStart=/usr/pkg/sbin/lpjs_dispatchd --daemonize
 PIDFile=/usr/pkg/var/run/lpjs/lpjs_dispatchd.pid
 RuntimeDirectory=lpjs_dispatchd
 RuntimeDirectoryMode=0755
-# FIXME: Probably shouldn't have to run dispatchd as root
-User=root
-Group=root
+User=lpjs
+Group=lpjs
 Restart=on-abort
 
 [Install]
