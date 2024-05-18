@@ -70,6 +70,7 @@ do
 6.. Disable dispatch daemon (make this the head node)
 7.. Disable compute daemon (make this a compute node)
 8.. Restart daemons
+9.. View logs
 Q.. Quit
 
 EOM
@@ -147,6 +148,11 @@ EOM
 	
     08)
 	lpjs restart
+	pause
+	;;
+    
+    09)
+	lpjs log | more
 	pause
 	;;
     

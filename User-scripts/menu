@@ -57,24 +57,23 @@ EOM
     read -p 'Selection? ' resp
     case 0$resp in
     01)
-	printf "Running lpjs nodes...\n\n"
+	printf '\nRunning "lpjs nodes"...\n\n'
+	pause
 	lpjs nodes
 	pause
 	;;
     
     02)
-	printf "Running lpjs jobs...\n\n"
+	printf '\nRunning "lpjs jobs"...\n\n'
+	pause
 	lpjs jobs
 	pause
 	;;
 
     03)
 	read -p 'Script name? (".lpjs" will be added) ' script
-	if [ ${script##*.} != lpjs ]; then
-	    script=$script.lpjs
-	fi
-	if [ ! -e $script ]; then
-	    printf "Running lpjs create-script $script...\n"
+	if [ -n "$script" ] && [ ! -e $script ]; then
+	    printf "\nRunning \"lpjs create-script $script\"...\n"
 	    pause
 	    lpjs create-script $script
 	else
@@ -90,7 +89,8 @@ EOM
 	fi
 	read -p 'Submit? y/[n] ' submit
 	if [ 0"$submit" = 0y ]; then
-	    printf "Running lpjs submit $script...\n\n"
+	    printf "\nRunning \"lpjs submit $script\"...\n\n"
+	    pause
 	    lpjs submit $script
 	fi
 	pause

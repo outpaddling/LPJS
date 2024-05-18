@@ -215,9 +215,10 @@ cat << EOM >> $script
 # Make sure your command syntax is correct for the $shell shell.
 # It is a common mistake, for example, to use bash extensions with
 # #!/bin/sh, which is not portable.  Bash is an extension of sh.
-# They are actually the same program on some Unix-like platforms,
-# but not on most.  If you use bash features not present in sh, your
-# shebang line (first line of the script) should be "#!/usr/bin/env bash".
+# If you use bash features not present in sh, your shebang line
+# (first line of the script) should be
+#
+# #!/usr/bin/env bash
 
 #lpjs jobs $jobs
 #lpjs procs-per-job $procs_per_job
