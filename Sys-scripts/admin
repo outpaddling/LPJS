@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/sh
 
 ##########################################################################
 #   Script description:
@@ -127,22 +127,22 @@ EOM
 	;;
 
     04)
-	/usr/local/libexec/lpjs/dispatchd-enable
+	$(auto-localbase)/libexec/lpjs/dispatchd-enable
 	pause
 	;;
 
     05)
-	/usr/local/libexec/lpjs/compd-enable
+	$(auto-localbase)/libexec/lpjs/compd-enable
 	pause
 	;;
 
     06)
-	/usr/local/libexec/lpjs/dispatchd-disable
+	$(auto-localbase)/libexec/lpjs/dispatchd-disable
 	pause
 	;;
     
     07)
-	/usr/local/libexec/lpjs/compd-disable
+	$(auto-localbase)/libexec/lpjs/compd-disable
 	pause
 	;;
 	
