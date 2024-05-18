@@ -22,7 +22,7 @@ pause()
 #   2023-05-28  Jason Bacon Begin
 ##########################################################################
 
-CONF_FILE=$(auto-localbase)/etc/lpjs/config
+CONF_FILE=/usr/local/etc/lpjs/config
 
 if [ ! -e $CONF_FILE ] || ! grep -q '^head' $CONF_FILE; then
     printf "Host name of head node? "
@@ -46,18 +46,18 @@ EOM
 fi
 
 if [ $(uname) = Darwin ]; then
-    plist=$(auto-localbase)/share/lpjs/Launchd/org.pkgsrc.lpjs_compd.plist
+    plist=/usr/local/share/lpjs/Launchd/org.pkgsrc.lpjs_compd.plist
     if [ -e $plist ]; then
 	auto-enable-service -s $plist org.pkgsrc.lpjs_compd lpjs-admin
     fi
 elif [ $(uname) = Linux ]; then
-    script=$(auto-localbase)/share/lpjs/Systemd/lpjs_compd.service
+    script=/usr/local/share/lpjs/Systemd/lpjs_compd.service
     if [ -e $script ]; then
 	auto-enable-service -s $script lpjs_compd lpjs-admin
     fi
 elif [ $(uname) = SunOS ]; then
     # FIXME: Copying to /etc/init.d doesn't cause startup at boot
-    cp $(auto-localbase)/etc/init.d/munge /etc/init.d
+    cp /usr/local/etc/init.d/munge /etc/init.d
     /etc/init.d/munge restart
     printf "lpjs daemons not yet implemented for SunOS.\n"
 else

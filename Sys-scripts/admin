@@ -36,7 +36,7 @@ if [ $# != 0 ]; then
     usage
 fi
 
-CONF_FILE=$(auto-localbase)/etc/lpjs/config
+CONF_FILE=/usr/local/etc/lpjs/config
 
 # Prevent user from running a Trojan as root in the case their account
 # was compromised
@@ -134,22 +134,22 @@ EOM
 	;;
 
     04)
-	$(auto-localbase)/libexec/lpjs/dispatchd-enable
+	/usr/local/libexec/lpjs/dispatchd-enable
 	pause
 	;;
 
     05)
-	$(auto-localbase)/libexec/lpjs/compd-enable
+	/usr/local/libexec/lpjs/compd-enable
 	pause
 	;;
 
     06)
-	$(auto-localbase)/libexec/lpjs/dispatchd-disable
+	/usr/local/libexec/lpjs/dispatchd-disable
 	pause
 	;;
     
     07)
-	$(auto-localbase)/libexec/lpjs/compd-disable
+	/usr/local/libexec/lpjs/compd-disable
 	pause
 	;;
 	

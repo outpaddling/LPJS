@@ -1,17 +1,4 @@
-#!/bin/sh -e
-
-##########################################################################
-#   Function description:
-#       Pause until user presses return
-##########################################################################
-
-pause()
-{
-    local junk
-    
-    printf "Press return to continue..."
-    read junk
-}
+#!/bin/sh -ex
 
 ##########################################################################
 #   Description:
@@ -23,5 +10,4 @@ pause()
 ##########################################################################
 
 # Don't disable munge, let that be done separately
-# /usr/local/libexec/lpjs/munge-disable
 auto-disable-service lpjs_dispatchd
