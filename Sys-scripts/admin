@@ -107,6 +107,13 @@ EOM
 head    $head_host
 EOM
 	    compute_host=' '
+	    cat << EOM
+
+Compute node hostnames need only be listed in the config file on the
+head node.  If this is a head node, enter compute node names below,
+one at a time.  Just press enter when done.
+
+EOM
 	    while [ -n "$compute_host" ]; do
 		printf "Complete host name of a compute node? (Press enter when done) "
 		read compute_host
