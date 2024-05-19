@@ -1,8 +1,28 @@
 #!/bin/sh
 
 ##########################################################################
-#   Script description:
-#       Menu for basic LPJS setup
+#   Title:
+#       lpjs-admin
+#
+#   Synopsis:
+#       lpjs admin
+#       
+#   Description:
+#       lpjs admin presents a terminal-based menu for common lpjs
+#       administration tasks, such as creating/modifying config files
+#       and enabling/disabling services.
+#       
+#   Arguments:
+#       None
+#       
+#   Returns:
+#       0 upon success, non-zero error codes otherwise
+#
+#   See also:
+#       lpjs-ad-hoc(1), lpjs-clear-queue(1), lpjs-compd-disable(1),
+#       lpjs-compd-enable(1), lpjs-dispatchd-disable(1),
+#       lpjs-dispatchd-enable(1), lpjs-log(1), lpjs-munge-enable(1),
+#       lpjs-reset-queue(1), lpjs-restart(1), lpjs-start(1), lpjs-stop(1)
 #       
 #   History:
 #   Date        Name        Modification
