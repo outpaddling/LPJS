@@ -19,13 +19,13 @@
         Unlike most similar tools, LPJS is designed to be small, simple,
         easy to install and configure, and easy to use.  It provides an
         intuitive user interface, including menu-based operation for
-        common tasks.
+        most common tasks.
         </para>
         
         <para>
         This manual is aimed at the systems manager, covering
-        installation and configuration of LPJS.  For a user's guide
-        on LPJS use, including general information on HPC clusters
+        installation and configuration of LPJS.  For a user's guide,
+        including general information on HPC clusters
         and HTC grids, see the Research Computing User's Guide at
         <ulink url="https://acadix.biz/publications.php">https://acadix.biz/publications.php</ulink>.
         </para>
@@ -38,7 +38,7 @@
         Installation should be performed using a package manager, such as
         FreeBSD ports or pkgsrc.  We maintain a FreeBSD port for use on
         FreeBSD and Dragonfly BSD, and a pkgsrc package that should work on
-        almost any other POSIX platform, including other BSDs, most Linux
+        any other POSIX platform, including other BSDs, most Linux
         distributions, macOS, Solaris-based systems, etc.
         Other package managers may be supported by third parties.  If you
         would like to add LPJS to your favorite package manager, see
@@ -50,14 +50,14 @@
         LPJS uses <command>munge</command>
         <ulink url="https://github.com/dun/munge">(https://github.com/dun/munge)</ulink>
         to encrypt and authenticate messages between nodes.  Munge is installed
-        automatically by the package manager when installing LPJS.
+        automatically by the package manager when installing LPJS, and
+        automatically configured by LPJS administration scripts.
         </para>
         
         <para>
-        However, munge must be configured and enabled as a service as well.
         Munge requires all nodes to have a shared munge key
         file, which is unique to your installation.  It must be generated
-        by you (see the munge documentation) and distributed to all
+        by you and distributed to all
         computers that are part of your cluster or grid.
         THE MUNGE KEY FILE MUST BE KEPT SECURE AT ALL TIMES ON ALL NODES.
         Use secure procedures
@@ -71,14 +71,14 @@
         
         <para>
         LPJS is designed to require minimal configuration.  For example,
-        compute node
-        specs such as available cores and memory are determined
+        compute node resources such as processors and memory are determined
         automatically, and need not be specified in configuration files.
         </para>
         
         <para>
         Most configuration can be done entirely using
-        <command>lpjs-admin</command>, a menu-driven admin tool.
+        <command>lpjs admin</command>
+        (<command>man lpjs-admin</command>), a menu-driven admin tool.
         Simply run <command>lpjs-admin</command>, select an item from
         the menu, and answer the questions on the screen.
         </para>
@@ -105,56 +105,87 @@ compute compute002.mydomain
         The FQDN (fully qualified domain name) must match the name
         reported by the <command>hostname</command> command, or
         the <code>gethostname()</code> standard library function.
+        This is usually either listed in <filename>/etc/hosts</filename>
+        or provided by <glossterm>DNS</glossterm>
+        (<glossterm>domain name service</glossterm>).
         </para>
         
         <para>
-        Each compute node requires a similar configuration file, but it
-        need only list the head node.  It can be the same configuration
+        Each compute node requires the same type of configuration file, but
+        it need only list the head node.  It can be the same configuration
         file used on the head node, in which case the compute node entries
-        are ignored.
+        are ignored.  You may wish to create a config file on the head
+        node and simply distribute it.
         </para>
     </chapter>
     
     <chapter>
         <title>Starting Daemons</title>
         
-        <para>
-        All nodes in the cluster or grid must be running
-        <command>munged</command>, using the
-        same munge key.  The head node must run
-        <command>lpjs_dispatchd</command>, and
-        all compute nodes must run <command>lpjs_compd</command>.
-        </para>
-        
-        <para>
-        Appropriate services can be configured by running
-        <command>lpjs-admin</command> on each node.
-        </para>
-        
-        <note>
-        The head node can also serve as a compute node, though this is
-        not generally recommended.  The head node should remain lightly
-        loaded so that it can respond in real time to events that
-        occur such as new job submissions and job completions.  The
-        head node need not be a powerful machine.  A laptop or low-end
-        desktop machine will work just fine.
-        </note>
-        
-        <para>
-        Jobs can be submitted from any node with the same version of
-        LPJS and the shared munge key installed.
-        It need not be running LPJS daemons, but it
-        does require a configuration file point to the head node and munge
-        to authenticate requests.  Hence, other computers on the network
-        can act as submit nodes, even if they are not part of the
-        cluster/grid.
-        </para>
+        <section>
+            <title>General Info</title>
+
+            <para>
+            All nodes in the cluster or grid must be running
+            <command>munged</command>, using the
+            same munge key.  The head node must also run
+            <command>lpjs_dispatchd</command>, and
+            all compute nodes must run <command>lpjs_compd</command>.
+            </para>
+            
+            <para>
+            Appropriate services can be configured by running
+            <command>lpjs-admin</command> on each node.
+            </para>
+            
+            <para>
+            The head node can also serve as a compute node, though this is
+            not generally recommended.  The head node of most clusters and
+            grids should remain lightly
+            loaded so that it can respond promptly to events that
+            occur such as new job submissions and job completions.  The
+            head node need not be a powerful machine.  A laptop or low-end
+            desktop machine will work just fine for a small cluster.
+            Laptops are actually nice in that they have a built-in battery
+            backup, so your head node at least is protected against
+            power outages.
+            </para>
+            
+            <para>
+            The head node on larger clusters need not be powerful, but
+            should be highly reliable.  We recommend a server with a
+            mirrored boot disk, hot-swap disks, and possibly redundant power
+            supplies, also hot-swap.  With this hardware configuration,
+            down time should be near zero.  FreeBSD makes it easy to
+            mirror a boot disk using any computer with two drives.
+            However, a hardware RAID card will make it easier to swap
+            out a bad disk than a ZFS RAIDZ, assuming the disks are hot-swap.
+            </para>
+            
+            <para>
+            Jobs can be submitted from any node with the same version of
+            LPJS and the shared munge key installed.
+            </para>
+            
+            <note>
+            It need not even be running LPJS daemons, but it
+            does require a configuration file listing the head node, and munge
+            to authenticate requests.
+            </note>
+            
+            <para>
+            Hence, other computers on the network
+            can act as submit nodes, even if they are not part of the
+            cluster/grid.
+            </para>
+        </section>
         
         <section>
             <title>Daemons as a Service</title>
             
             <para>
-            The lpjs_dispatchd and lpjs_compd commands are normally run as a
+            The <command>lpjs_dispatchd</command> and
+            <command>lpjs_compd</command> commands are normally run as a
             service, which automatically starts when the computer is
             rebooted.  You can run <command>lpjs admin</command> and use the
             menus
@@ -162,24 +193,22 @@ compute compute002.mydomain
             appropriate services enabled.  This will require administrative
             rights on each computer in the cluster/grid.
             </para>
-            
-            <para>
-            <command>lpjs admin</command>
-            </para>
         </section>
         
         <section>
             <title>Ad hoc Clusters and Grids</title>
 
             <para>
-            It is also possible to use LPJS without having admin access.
-            Simply start the daemons manually by running <command>munged</command>
+            It is also possible to use LPJS without enabling services,
+            even without having admin rights.
+            Simply start the daemons manually by running
+            <command>munged</command>
             and <command>lpjs_dispatchd</command> on the head node, and
             <command>munged</command> and <command>lpjs_compd</command>
             on each compute node.  Note that if <command>lpjs_compd</command>
             is not running as root,
             the compute node will only be able to run jobs
-            under the same user name that submitted them.
+            under the same user name running <command>lpjs_compd</command>.
             </para>
             
             <para>
