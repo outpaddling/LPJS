@@ -1,8 +1,31 @@
 #!/bin/sh -ex
 
 ##########################################################################
-#   Function description:
-#       Enable compd on this node (make this a compute node)
+#   Title:
+#       lpjs-compd-disable
+#
+#   Section:
+#       8
+#
+#   Synopsis:
+#       lpjs compd-disable
+#       
+#   Description:
+#       lpjs compd-disable is a convenience script for stopping and
+#       disabling the LPJS compute daemon, lpjs_compd(8).  It simply
+#       runs auto-disable-service(8), part of the auto-admin package,
+#       with the appropriate arguments.
+#       
+#   Arguments:
+#       None
+#       
+#   Returns:
+#       0 on success, non-zero error codes otherwise
+#
+#   See also:
+#       lpjs-admin(8), lpjs-compd-enable(8), lpjs-dispatchd-disable(8),
+#       lpjs-dispatchd-enable(8), lpjs-restart(8), lpjs-start(8),
+#       lpjs-stop(8)
 #       
 #   History:
 #   Date        Name        Modification

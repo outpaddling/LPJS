@@ -213,6 +213,7 @@ install: all
 		    ${DESTDIR}${PREFIX}/sbin \
 		    ${DESTDIR}${PREFIX}/lib \
 		    ${DESTDIR}${MANDIR}/man1 \
+		    ${DESTDIR}${MANDIR}/man8 \
 		    ${DESTDIR}${PREFIX}/etc/lpjs \
 		    ${DESTDIR}${LIBEXECDIR} \
 		    ${DESTDIR}${DATADIR} \
@@ -228,9 +229,13 @@ install: all
 	chmod a+rx ${DESTDIR}${LIBEXECDIR}/*
 	${INSTALL} -m 0644 ${LIB} ${DESTDIR}${PREFIX}/lib
 	${INSTALL} -m 0644 config.sample ${DESTDIR}${PREFIX}/etc/lpjs
-	for f in Man/*; do \
+	for f in Man/*.1; do \
 	    ${SED} -e "s|%%PREFIX%%|`realpath ${PREFIX}`|g" $${f} > \
 		${DESTDIR}${MANDIR}/man1/`basename $${f}`; \
+	done
+	for f in Man/*.8; do \
+	    ${SED} -e "s|%%PREFIX%%|`realpath ${PREFIX}`|g" $${f} > \
+		${DESTDIR}${MANDIR}/man8/`basename $${f}`; \
 	done
 	${MKDIR} -p ${DESTDIR}${DATADIR}/Systemd
 	${INSTALL} -m 0644 Services/Systemd/* \

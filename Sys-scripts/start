@@ -1,5 +1,54 @@
 #!/bin/sh -e
 
+##########################################################################
+#   Title:
+#       lpjs-start
+#
+#   Section:
+#       8
+#
+#   Synopsis:
+#       lpjs start
+#       
+#   Description:
+#       lpjs starts lpjs_compd and lpjs_dispatchd, if they are enabled
+#       as system services.  To start and stop these daemons manually,
+#       see lpjs-ad-hoc(8).
+#
+#       Methods for starting system services differ greatly depending
+#       on the operating system.  lpjs start frees the user from these
+#       differences and from typing in complex commands in some cases.
+#       
+#   Arguments:
+#       None
+#       
+#   Returns:
+#       0 upon success, non-zero error codes otherwise
+#
+#   See also:
+#       lpjs-admin(8), lpjs-restart(8), lpjs-stop(8),
+#       lpjs-compd-enable(8), lpjs-dispatchd-enable(8),
+#       
+#   History:
+#   Date        Name        Modification
+#   2024-05     Jason Bacon Begin
+##########################################################################
+
+usage()
+{
+    printf "Usage: $0\n"
+    exit 1
+}
+
+
+##########################################################################
+#   Main
+##########################################################################
+
+if [ $# != 0 ]; then
+    usage
+fi
+
 # Prevent user from running a Trojan as root in the case their account
 # was compromised
 absolute="$(which $0)"

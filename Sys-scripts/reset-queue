@@ -1,21 +1,31 @@
 #!/bin/sh -e
 
 ##########################################################################
+#   Title:
+#       lpjs-reset-queue
+#
+#   Section:
+#       8
+#
 #   Synopsis:
+#       lpjs reset-queue
 #       
 #   Description:
+#       lpjs reset-queue removes all pending and running jobs from
+#       the spool directories, and resets the next job ID to 1.
+#
+#       It is only meant to be used by developers to clean up
+#       test jobs during debugging, or by sysadmins while setting up
+#       a new cluster.
 #       
 #   Arguments:
+#       None
 #       
 #   Returns:
-#
-#   Examples:
-#
-#   Files:
-#
-#   Environment:
+#       0 upon success, non-zero error codes otherwise
 #
 #   See also:
+#       lpjs-clear-queue(1), lpjs-admin(1)
 #       
 #   History:
 #   Date        Name        Modification

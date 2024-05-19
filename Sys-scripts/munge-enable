@@ -15,14 +15,37 @@ pause()
 
 
 ##########################################################################
-#   Description:
-#       Enable munge daemon
+#   Title:
+#       lpjs-munge-enable
 #
-#   FIXME: Move this functionality to auto-admin?
+#   Section:
+#       8
+#
+#   Synopsis:
+#       lpjs munge-enable
+#       
+#   Description:
+#       lpjs munge-enable is a convenience script for enabling the
+#       munge authentication service.  This process is dependent on
+#       the operating system and the package manager used to install
+#       munge.  lpjs munge-enable eliminates the need to deal with
+#       these differences or to type in lengthy pathnames.
+#
+#       lpjs munge-enable is not generally run directly by the user,
+#       but is used by lpjs-compd-enable(8) and lpjs-dispatchd-enable(8).
+#       
+#   Arguments:
+#       None
+#       
+#   Returns:
+#       0 upon success, non-zero error codes otherwise
+#
+#   See also:
+#       lpjs-admin(8), lpjs-compd-enable(8), lpjs-dispatchd-enable(8)
 #       
 #   History:
 #   Date        Name        Modification
-#   2023-05-28  Charlie &   Begin
+#   2023-05-28  J Bacon     Begin
 ##########################################################################
 
 munge_key=/usr/local/etc/munge/munge.key

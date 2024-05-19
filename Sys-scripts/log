@@ -1,21 +1,30 @@
 #!/bin/sh -e
 
 ##########################################################################
+#   Title:
+#       lpjs-log
+#
+#   Section:
+#       8
+#
 #   Synopsis:
+#       lpjs log
 #       
 #   Description:
+#       lpjs log is a convenience script for displaying all LPJS log
+#       files.  The location of the logs is dependent on the operating
+#       system and package manager used to install LPJS.  lpjs log
+#       eliminates the need to know this location or to type lengthy
+#       pathnames.
 #       
 #   Arguments:
+#       None
 #       
 #   Returns:
-#
-#   Examples:
-#
-#   Files:
-#
-#   Environment:
+#       0 upon success, non-zero error codes otherwise
 #
 #   See also:
+#       lpjs-admin(8)
 #       
 #   History:
 #   Date        Name        Modification

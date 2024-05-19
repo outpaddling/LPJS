@@ -1,21 +1,31 @@
 #!/bin/sh -e
 
 ##########################################################################
+#   Title:
+#       lpjs-clear-queue
+#
+#   Section:
+#       8
+#
 #   Synopsis:
+#       lpjs clear-queue
 #       
 #   Description:
+#       lpjs clear-queue removes all pending and running jobs from
+#       the spool directories.
+#
+#       It is only meant to be used by developers to clean up
+#       test jobs during debugging, or by sysadmins while setting up
+#       a new cluster.
 #       
 #   Arguments:
+#       None
 #       
 #   Returns:
-#
-#   Examples:
-#
-#   Files:
-#
-#   Environment:
+#       0 upon success, non-zero error codes otherwise
 #
 #   See also:
+#       lpjs-reset-queue(1), lpjs-admin(1)
 #       
 #   History:
 #   Date        Name        Modification
