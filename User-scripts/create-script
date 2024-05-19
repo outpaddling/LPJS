@@ -1,23 +1,30 @@
 #!/bin/sh -e
 
 ##########################################################################
+#   Title:
+#       lpjs-create-script
+#
 #   Synopsis:
-#       lpjs create-script script.lpjs
+#       lpjs create-script script[.lpjs]
 #   
 #   Description:
-#       Generate an LPJS job script
+#       lpjs create-script interactively generates an LPJS job script,
+#       guiding the user with prompts for basic parameters.  Scripts
+#       should have a .lpjs filename extension.  If one is not included
+#       in the command line, it will be added.
 #
 #   Arguments:
+#       Name of the script, with or without .lpjs extension
 #       
 #   Returns:
+#       0 upon success, otherwise non-zero error codes
 #
 #   Examples:
-#
-#   Files:
-#
-#   Environment:
+#       lpjs create-script fastq-trim
+#       lpjs create-script fastq-trim.lpjs
 #
 #   See also:
+#       lpjs-menu(1), lpjs-ad-hoc(1)
 #       
 #   History:
 #   Date        Name        Modification

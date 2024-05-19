@@ -1,8 +1,25 @@
 #!/bin/sh
 
 ##########################################################################
-#   Script description:
-#       Menu for basic LPJS setup
+#   Title:
+#       lpjs-menu
+#
+#   Synopsis:
+#       lpjs menu
+#       
+#   Description:
+#       lpjs menu presents a terminal-based menu of common LPJS user
+#       tools, such as creating and submitting scripts, checking node
+#       and job status, etc.
+#       
+#   Arguments:
+#       None
+#       
+#   Returns:
+#       0 upon success, non-zero error codes otherwise
+#
+#   See also:
+#       lpjs-create-script(1), lpjs-nodes(1), lpjs-jobs(1), lpjs-submit(1)
 #       
 #   History:
 #   Date        Name        Modification

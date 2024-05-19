@@ -1,20 +1,31 @@
 #!/bin/sh
 
 ##########################################################################
-#   Script description:
-#       Menu for basic LPJS setup
+#   Title:
+#       lpjs-adhoc
+#
+#   Synopsis:
+#       lpjs ad-hoc
+#
+#   Description:
+#       This script provides a terminal-base menu system for starting
+#       up an ad-hoc cluster or grid, i.e. one where the dispatch and
+#       compute daemons are started and stopped manually, rather than
+#       using system services.
+#       
+#   Arguments:
+#       None
+#       
+#   Returns:
+#       0 on success, non-zero error codes otherwise
+#
+#   See also:
+#       lpjs-admin(1), lpjs-menu(1)
 #       
 #   History:
 #   Date        Name        Modification
 #   2021-10-06  J Bacon     Begin
 ##########################################################################
-
-usage()
-{
-    printf "Usage: $0\n"
-    exit 1
-}
-
 
 ##########################################################################
 #   Function description:
