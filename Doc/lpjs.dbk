@@ -47,6 +47,11 @@
         </para>
         
         <para>
+        See <ulink url="http://netbsd.org/~bacon/">http://netbsd.org/~bacon/</ulink>
+        for an introduction to installing pkgsrc.
+        </para>
+        
+        <para>
         LPJS uses <command>munge</command>
         <ulink url="https://github.com/dun/munge">(https://github.com/dun/munge)</ulink>
         to encrypt and authenticate messages between nodes.  Munge is installed
@@ -114,7 +119,7 @@ compute compute002.mydomain
         Each compute node requires the same type of configuration file, but
         it need only list the head node.  It can be the same configuration
         file used on the head node, in which case the compute node entries
-        are ignored.  You may wish to create a config file on the head
+        are ignored.  You may wish to create a configuration file on the head
         node and simply distribute it.
         </para>
     </chapter>
@@ -213,7 +218,7 @@ compute compute002.mydomain
             
             <para>
             The <command>lpjs ad-hoc</command> command displays a menu,
-            allowing you to start and stop the apporopriate daemons
+            allowing you to start and stop the appropriate daemons
             without having to know the precise commands.
             </para>
         </section>
@@ -224,70 +229,63 @@ compute compute002.mydomain
         
         <para>
         A <glossterm>cluster</glossterm> is generally a collection of
-        dedicated computers, all connected directly to the same private, high
-        speed network.  In this sense, a cluster is a LAN (local area network).
-        In many cases, special network technology,
+        dedicated computers, all connected directly to the same private,
+        often high speed network.  In this sense, a cluster is a LAN
+        (local area network).  In many cases, special network technology,
         such as <glossterm>Infiniband</glossterm>, is used in place
-        of standard Ethernet, for the sake of much lower latency per
-        message, and higher throughput.  All nodes in a cluster typically
-        have direct access to the same files on file servers using NFS,
-        parallel file systems, or the like.
+        of, or in addition to, standard Ethernet.  Infiniband and
+        similar technologies offer much lower latency per
+        message, and higher throughput.
         </para>
         
         <para>
         A <glossterm>grid</glossterm> is conceptually like a cluster,
-        in that it is used for parallel computing.  However, grids are
-        more loosely coupled, often including computers that are not
-        on the same LAN.  Hence, a grid is not as good for parallel
+        in that it is used for distributed
+        parallel computing.  However, grids are
+        more loosely coupled, often utilizing computers that are not
+        on the same LAN.  Hence, a grid is not as suitable for parallel
         computing that involves a lot of communication between processes,
         such as MPI (Message Passing Interface) distributed parallel programs.
-        Grid nodes typically do not share access to file servers, since
-        this is inefficient and difficult to secure over the slower,
-        wider networks used by grids.
         </para>
         
         <para>
-        One of the most important factors in network performance, besides
-        the network hardware used, is the number of "hops" between two
-        computers communicating with each other.  Computers on the same
-        LAN are 1 hop away from each other, meaning there is only one
-        piece of network equipment between them.  Computers a thousand
-        miles from each other may by a dozen or more hops from either other.
-        That is, packages of information must pass through many network
-        devices such as switches and routers along the way.  This
-        significantly slows down communication when using protocols such
-        as TCP/IP, which requires acknowledgment of correct transmission
-        for each hop, before the next hop is attempted.  While your PC's
-        network interface is probably capable of 1,000 megabits per
-        second, and you may approach this speed transferring data across
-        a LAN, you may only see a few megabits per second when transferring
-        data from another part of the continent.
-        </para>
-        
-        <para>
-        LPJS is very flexible with network topology.  The only requirement
-        is that all nodes are able to contact the head node.
+        LPJS is very flexible with network topology.  The
+        <emphasis>only</emphasis> requirement
+        is that all nodes are able to connect to the head node.
         This means that a cluster or grid using LPJS can consist of
         other computers on the same LAN, computers in different buildings,
+        virtual machines behind a <glossterm>NAT</glossterm>
+        (<glossterm>network address translation</glossterm>) firewall,
         or cloud instances in a data center a thousand miles away.  You
         must consider how each of these resources can effectively be used.
+        Network latency and throughput may be quite poor for resources
+        that are far away.
         </para>
         
         <para>
         Clusters normally have some sort of file server, so that jobs
         run in a directory that is directly accessible from all nodes.
-        This is the ideal situation, as inputs are available to jobs,
-        and outputs from jobs are available without needing to transfer
-        files.
+        This is the ideal situation, as input files are directly
+        available to jobs, and output files from jobs can be written
+        to their final location without needing to transfer them.
         </para>
         
         <para>
         Grids normally do not have file servers.  In this case, it will
         be necessary for all nodes to have the ability to pull files
         from and push files to <emphasis>somewhere</emphasis>.  Typically,
-        this somewhere would be the submit node, or a file server
-        accessible from the submit node and all compute nodes.
+        this somewhere would be the submit node, or a server accessible
+        for file transfers from the submit node and all compute nodes.
         </para>
+        
+        <note>
+        All compute nodes must be able to perform a passwordless
+        file transfers to the designated server.
+        This is generally accomplished by installing ssh
+        keys on the submit node, which can be done by running
+        <command>auto-ssh-authorize submit-host</command> from every
+        compute node, as every user who will run jobs.
+        </note>
         
         <para>
         LPJS does not provide file
@@ -296,8 +294,7 @@ compute compute002.mydomain
         systems manager and user to decide which one(s) to use.
         We recommend using <command>rsync</command> if possible, as it
         is highly portable and reliable, and minimizes the amount of
-        data transferred when jobs are rerun and some input or output is the
-        same as before.
+        data transferred when repeating a transfer.
         </para>
         
         <para>
@@ -307,25 +304,21 @@ compute compute002.mydomain
         LPJS will, by default, transfer the entire temporary working
         directory back to the submit node, using
         <command>rsync -av temp-working-dir submit-host:working-dir</command>,
-        where "working-dir" is the directory from which the job was submitted.
+        where "working-dir" is the directory from which the job was submitted,
+        and "temp-working-dir" is a job-specific temporary directory
+        created by LPJS on the compute node.  Users can override this
+        command.  See the Research Computing User Guide for details.
+        </para>
+        
+        <para>
         The <command>lpjs submit</command> command creates a marker file
         in the working directory on the submit host, named
         "lpjs-submit-host-name-shared-fs-marker" (replace "submit-host-name"
-        with the FQDN of your submit node).  If this file does not
-        exist on the compute node, then <command>lpjs_compd</command>
-        and <command>chaperone</command> will take the necessary steps
-        to create a temporary working directory and transfer it back
+        with the FQDN of your submit node).  If this file is not accessible
+        to the compute node, then LPJS will take the necessary steps
+        to create the temporary working directory and transfer it back
         to the submit node after the script terminates.
         </para>
-        
-        <note>
-        All compute nodes must be able to perform a passwordless
-        <command>ssh</command> login to the submit node in order for
-        this file transfer to succeed.  This requires installing ssh
-        keys on the submit node, which can be done by running
-        <command>auto-ssh-authorize submit-host</command> from every
-        compute node, as every user who will run jobs.
-        </note>
     </chapter>
     
     <chapter>
