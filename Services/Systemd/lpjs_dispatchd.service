@@ -1,7 +1,6 @@
 [Unit]
 Description=Lightweight, Portable Job Scheduler dispatch service
 Documentation=man:lpjs_dispatchd(8)
-Wants=network-online.target
 After=network-online.target
 After=time-sync.target
 After=munge.service
