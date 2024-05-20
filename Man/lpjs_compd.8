@@ -1,0 +1,56 @@
+.TH lpjs_compd 8
+.SH NAME    \" Section header
+.PP
+
+lpjs_compd \- Compute node daemon
+
+\" Convention:
+\" Underline anything that is typed verbatim - commands, etc.
+.SH SYNOPSIS
+.PP
+.nf 
+.na 
+lpjs_compd
+.ad
+.fi
+
+\" Optional sections
+.SH "DESCRIPTION"
+
+.B lpjs_compd
+is a daemon that runs on compute nodes.  It establishes a connection
+with
+.B lpjs_dispatchd
+on the head node and then monitors the connection for job dispatch
+and cancellation requests.
+
+.B lpjs_compd
+normally runs as root, which is necessary to support multiple users.
+It uses setuid(2) to run job scripts as the submitting user.
+The user is authenticated using munge(1).  Note that munge requires
+user IDs to match across systems.
+.B lpjs_compd is typically launched as a system service at boot time.  This
+can be easily configured using "lpjs admin" (see lpjs-admin(8)), which
+handles differences between operating systems.
+
+.B lpjs_compd
+can be run as a non-privileged user, but only that user will be able
+to submit jobs to that compute node.  This may be the desired
+scenario when running an ad-hoc cluster/grid, where a user manually
+starts daemons rather than running them as a system service.
+See lpjs-ad-hoc(1) for details.
+
+.SH FILES
+.nf
+.na
+%%PREFIX%%/etc/lpjs/config
+.ad
+.fi
+
+.SH "SEE ALSO"
+lpjs-admin(8), lpjs_dispatchd(8)
+
+.SH AUTHOR
+.nf
+.na
+J. Bacon

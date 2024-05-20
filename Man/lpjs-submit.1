@@ -1,0 +1,133 @@
+.TH lpjs-submit 1
+.SH NAME    \" Section header
+.PP
+
+lpjs submit \- Submit a job script
+
+\" Convention:
+\" Underline anything that is typed verbatim - commands, etc.
+.SH SYNOPSIS
+.PP
+.nf 
+.na 
+lpjs submit script.lpjs
+.ad
+.fi
+
+\" Optional sections
+.SH "DESCRIPTION"
+
+This is a brief reference for lpjs-submit(1).  See the Research Computing
+User's Guide at https://acadix.biz/publications.php for a more complete
+tutorial on using LPJS.
+
+.B "lpjs submit"
+submits a new job to the LPJS queue.
+
+A job script is an ordinary script, which can be written in any
+interpreted language that uses '#' to denote a comment.
+
+Script can be generated using lpjs-create-script(1), which is also a
+menu item in lpjs-menu(1).
+
+LPJS job parameters are embedded in the script as comments beginning
+with '#lpjs'.
+
+When the scheduler dispatches a job to a compute node, lpjs_compd(8)
+starts a chaperone process, which then runs and monitors your batch script.
+Output from the chaperone and the script are saved on the submit node.
+
+.SH REQUIRED JOB PARAMETERS
+
+There are four parameters required for every LPJS batch script:
+
+.TP
+\fBjobs\fR
+The number of jobs to queue.  The script will be run this many times,
+with as many as possible running simultaneously.
+
+.TP
+\fBprocs-per-job\fR
+The number of processors to allocate for each job.  This is 1 for
+serial programs and >1 where each job runs a parallel program.
+
+.TP
+\fBmin-procs-per-node\fR
+The number of processors that must be on the same node.  For shared
+memory parallel programs, such as OpenMP and pthreads, this must equal
+procs-per-job.  It can be specified as "procs-per-job", rather than
+a hard-coded number, so that you need not keep the two in sync with
+future changes.
+
+.TP
+\fBmem-per-proc\fR
+The amount of physical memory to allocate per processor.  Must be
+followed by MiB, MB, GiB, or GB.
+
+.SH OPTIONAL JOB PARAMETERS
+
+.TP
+\fBpush-command\fR
+Command used by chaperone(8) to transfer the temporary working directory
+after the job completes.  This defaults to "rsync -av %w/ %h:%d",
+which transfers the contents back to the directory from which the
+jobs was submitted on the submit node.
+
+.TP
+\fBlog-dir\fR
+The parent directory for storing job logs (standard output and
+standard error from the script and chaperone) on the submit node.
+The default is LPJS-logs/script-name.
+
+.SH PORTABILITY
+
+Since LPJS is a portable scheduler, and cluster/grids may include
+multiple operating systems, care must be taken to write scripts in
+a portable way.  We generally recommend using POSIX Bourne shell,
+which is supported by all Unix-like platforms.  If using other
+languages, which as bash(1), perl(1), or python(1), the shebang line,
+which indicates the language used by the script, must be done in
+a portable manner.  Only Bourne shell (sh) is included with all Unix-like
+systems.  Any other scripting language is an add-on, and may be installed
+in different locations on different platforms.  We can work around this
+using "#!/usr/bin/env".
+
+.nf
+.na
+# These are not portable, since they use platform-specific paths
+#!/bin/bash
+#!/usr/bin/perl
+#!/usr/bin/python
+
+# These are portable, since /usr/bin/env is consistent across platforms
+#!/usr/bin/env bash
+#!/usr/bin/env perl
+#!/usr/bin/env python
+
+# This is portable, since Bourne shell is included with every platform
+#!/bin/sh -e
+.ad
+.fi
+
+.SH EXAMPLES
+
+.nf
+.na
+lpjs submit fastq-trim.lpjs
+.ad
+.fi
+
+.SH FILES
+.nf
+.na
+%%PREFIX%%/etc/lpjs/config
+.ad
+.fi
+
+.SH "SEE ALSO"
+lpjs-jobs(1), lpjs-cancel(1), lpjs-nodes(1)
+
+.SH AUTHOR
+.nf
+.na
+J. Bacon

@@ -1,0 +1,52 @@
+.TH lpjs-cancel 1
+.SH NAME    \" Section header
+.PP
+
+lpjs cancel \- Cancel one or more jobs
+
+\" Convention:
+\" Underline anything that is typed verbatim - commands, etc.
+.SH SYNOPSIS
+.PP
+.nf 
+.na 
+lpjs cancel job-spec [job-spec ...]
+.ad
+.fi
+
+\" Optional sections
+.SH "DESCRIPTION"
+
+.B "lpjs cancel"
+terminates one or more running or pending jobs.
+
+The job-spec can be a single job ID, or a range of job IDs separated
+by a '-'.  There cannot be any whitespace surrounding the '-'.  The
+beginning job ID + '-' + ending job ID must be one shell argument.
+
+Any number of job IDs and ranges may be specified as arguments.
+
+.SH EXAMPLES
+
+.nf
+.na
+lpjs cancel 456
+lpjs cancel 456-470
+lpjs cancel 456-470 511-517 629
+.ad
+.fi
+
+.SH FILES
+.nf
+.na
+%%PREFIX%%/etc/lpjs/config
+.ad
+.fi
+
+.SH "SEE ALSO"
+lpjs-jobs(1), lpjs-submit(1)
+
+.SH AUTHOR
+.nf
+.na
+J. Bacon

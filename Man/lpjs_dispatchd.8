@@ -1,0 +1,55 @@
+.TH lpjs_dispatchd 8
+.SH NAME    \" Section header
+.PP
+
+lpjs_dispatchd \- Dispatch daemon
+
+\" Convention:
+\" Underline anything that is typed verbatim - commands, etc.
+.SH SYNOPSIS
+.PP
+.nf 
+.na 
+lpjs_dispatchd
+.ad
+.fi
+
+\" Optional sections
+.SH "DESCRIPTION"
+
+.B lpjs_dispatchd
+is a daemon that runs on the head node.  It accepts connections from
+.B lpjs_compd
+and from various user commands, such as lpjs-submit(1), lpjs-cancel(1),
+lpjs-nodes(1), and lpjs-jobs(1).  This allows user commands to be
+run from any node in the cluster/grid, as well as other computers
+that are not part of the cluster/grid, but have LPJS installed and
+munged(8) running with the proper munge key.
+
+Job submissions and cancellations are communicated to
+.B lpjs_compd(8)
+on the appropriate compute node(s).
+
+.B lpjs_dispatchd is typically launched as a system service at boot time.
+This can be easily configured using "lpjs admin" (see lpjs-admin(8)), which
+handles differences between operating systems.
+
+.B lpjs_dispatchd
+can also be used in an ad-hoc cluster/grid, where a user manually
+starts daemons rather than running them as a system service.
+See lpjs-ad-hoc(1) for details.
+
+.SH FILES
+.nf
+.na
+%%PREFIX%%/etc/lpjs/config
+.ad
+.fi
+
+.SH "SEE ALSO"
+lpjs-admin(8), lpjs_compd(8)
+
+.SH AUTHOR
+.nf
+.na
+J. Bacon
