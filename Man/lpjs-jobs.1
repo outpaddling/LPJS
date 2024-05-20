@@ -1,0 +1,118 @@
+.TH lpjs-jobs 1
+.SH NAME    \" Section header
+.PP
+
+lpjs jobs \- Show node status on an LPJS cluster
+
+\" Convention:
+\" Underline anything that is typed verbatim - commands, etc.
+.SH SYNOPSIS
+.PP
+.nf 
+.na 
+lpjs jobs
+.ad
+.fi
+
+\" Optional sections
+.SH "DESCRIPTION"
+
+.B "lpjs jobs"
+shows currently running and pending jobs.  The following information
+is presented:
+
+.TP
+\fBJobID\fR
+The integer job ID (serial number) of each job.
+
+.TP
+\fBIDX\fR
+The array index of each job.  For submissions of multiple jobs,
+Indexes range from 1 to the number of jobs specified in the LPJS
+batch script, e.g. "#lpjs jobs 10".  If a script schedules only one
+job, it has an index of 1.
+
+.TP
+\fBJ/S\fR
+Jobs per submission is the number of jobs scheduled by the same
+submission.
+
+.TP
+\fBP/J\fR
+Processors per job is the number of processors allocated to the
+job.  This is usually, but not necessarily the same as the number
+of threads/processes that run.  However, the number of threads/processes
+can vary during the execution of some jobs, and there are rare
+cases where it is considered OK to oversubscribe the allocation,
+i.e. run more threads/processes than the number of processors allocated.
+
+.TP
+\fBP/N\fR
+Processes per node is the number of processors that must be on the
+same node.  For shared-memory parallel programs, such as OpenMP
+and pthreads, this must be the same as processors per job.  I.e,
+all threads/processes must run on the same node.  For distributed
+parallel programs, such as MPI, processes may run on different nodes,
+and processors per node may be less than processors per job.
+
+.TP
+\fBMiB/P\fR
+Mebibytes per process is the amount of physical memory allocated
+per processor.  It will almost always differ from the amount of
+memory actually used at a given moment.
+
+.TP
+\fBUser\fR
+User is the login name of the submitting user.
+
+.TP
+\fBCompute-node\fR
+Compute-node is the hostname of the node on which the job is running.
+For pending jobs, it is TBD (to be determined).
+
+.TP
+\fBScript\fR
+Script is the filename of the LPJS batch script used to schedule the job.
+
+.SH EXAMPLES
+
+.nf
+.na
+FreeBSD coral.acadix  bacon ~/LPJS-test 1005: lpjs jobs
+
+Legend: P = processor  J = job  N = node  S = submission
+
+Pending
+
+    JobID  IDX J/S  P/J P/N MiB/P User Compute-node Script
+      737    9   10   2   2    50 bacon TBD fastq-trim.lpjs
+      738   10   10   2   2    50 bacon TBD fastq-trim.lpjs
+
+Running
+
+    JobID  IDX J/S  P/J P/N MiB/P User Compute-node Script
+      729    1   10   2   2    50 bacon tarpon.acadix.biz fastq-trim.lpjs
+      730    2   10   2   2    50 bacon tarpon.acadix.biz fastq-trim.lpjs
+      731    3   10   2   2    50 bacon tarpon.acadix.biz fastq-trim.lpjs
+      732    4   10   2   2    50 bacon tarpon.acadix.biz fastq-trim.lpjs
+      733    5   10   2   2    50 bacon herring.acadix.biz fastq-trim.lpjs
+      735    7   10   2   2    50 bacon netbsd9.acadix.biz fastq-trim.lpjs
+      734    6   10   2   2    50 bacon herring.acadix.biz fastq-trim.lpjs
+      736    8   10   2   2    50 bacon alma8.acadix.biz fastq-trim.lpjs
+.ad
+.fi
+
+.SH FILES
+.nf
+.na
+%%PREFIX%%/etc/lpjs/config
+.ad
+.fi
+
+.SH "SEE ALSO"
+lpjs-nodes(1), lpjs-submit(1)
+
+.SH AUTHOR
+.nf
+.na
+J. Bacon

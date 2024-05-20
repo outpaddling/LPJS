@@ -10,30 +10,63 @@ lpjs nodes \- Show node status on an LPJS cluster
 .PP
 .nf 
 .na 
-lpjs nodes
+lpjs nodes [new-state node [node ...]]
 .ad
 .fi
-
-.SH OPTIONS
-.TP
-\fB\-\-long\fR
-Show more detailed information
 
 \" Optional sections
 .SH "DESCRIPTION"
 
-.B "lpjs nodes"
-shows the current node status for cluster running LPJS (Lightweight Portable
-Job Scheduler).  Standard format includes basic hardware and operating
+The basic form,
+.B "lpjs nodes",
+shows the current node state, resources, and specs for each node.
+Standard format includes basic hardware and operating
 system specs and current usage of cores and memory.
+
+It can also be used by the administrator to set a new node state for
+one or more nodes, by supplying a new state and a list of nodes
+(or "all") as arguments.
+
+New states may be one of the following:
+
+.TP
+\fBpaused\fR
+The node is closed to new jobs.  Existing jobs will continue to run.
+
+.TP
+\fBupdating\fR
+The same as "paused", but used by SPCM (Simple, Portable Cluster Manager)
+to keep track of nodes that are paused for routine, automated package
+and OS updates.
+
+.TP
+\fBup\fR
+Resume scheduling jobs on a node that is paused or updating.
+
+.SH EXAMPLES
 
 .nf
 .na
-Hostname     State    Cores Used Physmem    Used OS      Arch
-moray        Up           4    0    7836       0 FreeBSD amd64
+lpjs nodes
+Hostname             State    Procs Used PhysMiB    Used OS        Arch     
+barracuda.acadix.biz down         4    0   16350       0 FreeBSD   amd64    
+tarpon.acadix.biz    up           8    0    8192       0 Darwin    arm64    
+herring.acadix.biz   up           4    0    1000       0 FreeBSD   arm64    
+netbsd9.acadix.biz   up           2    0    4095       0 NetBSD    amd64    
+alma8.acadix.biz     up           2    0    3653       0 RHEL      x86_64   
+
+Total                up          16    0   16940       0 -         -        
+Total                down         4    0   16350       0 -         -        
 .ad
 .fi
 
+.nf
+.na
+lpjs nodes paused barracuda.acadix.biz
+lpjs nodes updating all
+lpjs nodes up barracuda.acadix.biz
+.ad
+.fi
 
 .SH FILES
 .nf
@@ -44,10 +77,6 @@ moray        Up           4    0    7836       0 FreeBSD amd64
 
 .SH "SEE ALSO"
 lpjs-jobs(1), lpjs-submit(1)
-
-.SH BUGS
-Please report bugs to the author and send patches in unified diff format.
-(man diff for more information)
 
 .SH AUTHOR
 .nf
