@@ -89,7 +89,7 @@ int     main (int argc, char *argv[])
     if ( xt_rmkdir(LPJS_RUN_DIR, 0755) != 0 )
 	return EX_CANTCREAT;
     
-    snprintf(Pid_path, PATH_MAX + 1, "%s/%s.pid", LPJS_RUN_DIR, "lpjs_compd");
+    snprintf(Pid_path, PATH_MAX + 1, "%s/lpjs_compd.pid", LPJS_RUN_DIR);
     status = xt_create_pid_file(Pid_path, Log_stream);
     if ( status != EX_OK )
 	return status;

@@ -171,12 +171,12 @@ int     main(int argc,char *argv[])
     if ( xt_rmkdir(LPJS_RUN_DIR, 0755) != 0 )
 	return EX_CANTCREAT;
     
-    snprintf(Pid_path, PATH_MAX + 1, "%s/lpjs_compd.pid", LPJS_RUN_DIR);
+    snprintf(Pid_path, PATH_MAX + 1, "%s/lpjs_dispatchd.pid", LPJS_RUN_DIR);
     status = xt_create_pid_file(Pid_path, Log_stream);
     if ( status != EX_OK )
 	return status;
     chown(LPJS_RUN_DIR, daemon_uid, daemon_gid);
-    chown(LPJS_RUN_DIR "/lpjs_compd.pid", daemon_uid, daemon_gid);
+    chown(Pid_path, daemon_uid, daemon_gid);
 #endif
 
     // setgid() must be done while still running as root, so do setuid() after
