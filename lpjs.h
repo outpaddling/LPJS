@@ -16,6 +16,8 @@ enum
     LPJS_WRITE_FAILED
 };
 
+#define LPJS_SHARED_FS_MARKER_MAX   128
+
 #define LPJS_FIELD_MAX          1024
 #define LPJS_CMD_MAX            4096
 // Not too large: Auto vars may exceed stack size

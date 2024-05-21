@@ -340,9 +340,9 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_start,
 				char *job_script_name, size_t maxlen)
 
 {
-    char    temp_wd[PATH_MAX + 1],
+    char    temp_wd[PATH_MAX + 1 - 20],
 	    log_dir[PATH_MAX + 1],
-	    shared_fs_marker[PATH_MAX + 1],
+	    shared_fs_marker[LPJS_SHARED_FS_MARKER_MAX + 1],
 	    shared_fs_marker_path[PATH_MAX + 1],
 	    *working_dir;
     int     fd;
@@ -382,7 +382,7 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_start,
 	    // FIXME: Remove LPJS-job-* from previous submissions
 	    // This should replace temp workdir removal in chaperone
 	    
-	    snprintf(temp_wd, PATH_MAX + 1, "LPJS-job-%lu",
+	    snprintf(temp_wd, PATH_MAX + 1 - 20, "LPJS-job-%lu",
 		    job_get_job_id(job));
 	    lpjs_log("%s(): %s does not exist.  Using temp dir %s.\n",
 		    __FUNCTION__, working_dir, temp_wd);

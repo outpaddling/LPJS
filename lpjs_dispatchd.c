@@ -943,8 +943,8 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
 
 {
     char    pending_dir[PATH_MAX + 1],
-	    script_path[PATH_MAX + 1],
-	    specs_path[PATH_MAX + 1],
+	    script_path[PATH_MAX + 2],
+	    specs_path[PATH_MAX + 11],
 	    job_id_path[PATH_MAX + 1],
 	    job_id_buff[LPJS_MAX_INT_DIGITS + 1],
 	    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
@@ -982,7 +982,7 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
 	return LPJS_WRITE_FAILED;
     }
 
-    snprintf(script_path, PATH_MAX + 1, "%s/%s", pending_dir,
+    snprintf(script_path, PATH_MAX + 2, "%s/%s", pending_dir,
 	    xt_basename(job_get_script_name(job)));
     
     if ( (fd = open(script_path, O_WRONLY|O_CREAT|O_TRUNC, 0644)) == -1 )
@@ -1004,7 +1004,7 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
      *  Write basic job specs to a file for the dispatcher
      */
     
-    snprintf(specs_path, PATH_MAX + 1, "%s/job.specs", pending_dir);
+    snprintf(specs_path, PATH_MAX + 11, "%s/job.specs", pending_dir);
     // FIXME: Switch to low-level I/O?
     if ( (fp = fopen(specs_path, "w")) == NULL )
     {
@@ -1117,7 +1117,7 @@ int     lpjs_update_job(node_list_t *node_list, char *payload,
 	job_list_remove_job(pending_jobs, job_get_job_id(job));
 	
 	// FIXME: Update specs file in running dir with node and PIDs
-	snprintf(specs_path, PATH_MAX + 1, "%s/job.specs", running_job_dir);
+	snprintf(specs_path, PATH_MAX + 11, "%s/job.specs", running_job_dir);
 	lpjs_log("Storing updated specs to %s.\n", specs_path);
 	
 	// FIXME: Switch to low-level I/O?
@@ -1239,6 +1239,7 @@ void    lpjs_dispatchd_terminate_handler(int s2)
 	}
     }
 #ifdef __linux__
+    extern char Pid_path[PATH_MAX + 1];
     remove(Pid_path);
 #endif
     exit(EX_OK);

@@ -48,9 +48,9 @@ int     main (int argc, char *argv[])
 		*temp,
 		*end,
 		*job_id,
-		log_dir[PATH_MAX + 1],
+		log_dir[PATH_MAX + 1 - 20],
 		log_file[PATH_MAX + 1],
-		wd[PATH_MAX + 1],
+		wd[PATH_MAX + 1 - 20],
 		hostname[sysconf(_SC_HOST_NAME_MAX) + 1],
 		shared_fs_marker[PATH_MAX + 1],
 		cmd[LPJS_CMD_MAX + 1],
@@ -71,7 +71,7 @@ int     main (int argc, char *argv[])
     // Chaperone outputs stderr to a log file in the working dir
     job_id = getenv("LPJS_JOB_ID");
     lpjs_job_log_dir(getenv("LPJS_JOB_LOG_DIR"), strtoul(job_id, &end, 10),
-		      log_dir, PATH_MAX + 1);
+		      log_dir, PATH_MAX + 1 - 20);
 
     snprintf(log_file, PATH_MAX + 1, "%s/chaperone-%s.stderr",
 	     log_dir, job_id);
@@ -110,7 +110,7 @@ int     main (int argc, char *argv[])
     // status = system(cmd);
     
     gethostname(hostname, sysconf(_SC_HOST_NAME_MAX));
-    getcwd(wd, PATH_MAX + 1);
+    getcwd(wd, PATH_MAX + 1 - 20);
     lpjs_log("Running %s in %s on %s with %u procs and %lu MiB.\n",
 	    job_script_name, wd, hostname, procs, mem_per_proc);
     

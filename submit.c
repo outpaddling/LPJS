@@ -35,10 +35,10 @@ int     main (int argc, char *argv[])
 {
     int     msg_fd,
 	    fd;
-    char    outgoing_msg[LPJS_MSG_LEN_MAX + 1],
+    char    outgoing_msg[LPJS_JOB_MSG_MAX + 3],
 	    *script_name,
 	    *ext,
-	    job_string[LPJS_PAYLOAD_MAX + 1],
+	    job_string[JOB_STR_MAX_LEN + 1],
 	    hostname[sysconf(_SC_HOST_NAME_MAX) + 1],
 	    shared_fs_marker[PATH_MAX + 1],
 	    script_text[LPJS_SCRIPT_SIZE_MAX + 1];
@@ -124,7 +124,7 @@ int     main (int argc, char *argv[])
     
     job_print_to_string(job, job_string, LPJS_PAYLOAD_MAX + 1);
 
-    snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%s\n%s",
+    snprintf(outgoing_msg, LPJS_JOB_MSG_MAX + 3, "%c%s\n%s",
 	    LPJS_DISPATCHD_REQUEST_SUBMIT, job_string, script_text);
     lpjs_log("Sending payload: %s\n", outgoing_msg);
 

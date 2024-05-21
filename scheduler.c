@@ -63,7 +63,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
     // Terminates process if malloc() fails, no check required
     node_list_t *matched_nodes = node_list_new();
     char        pending_path[PATH_MAX + 1],
-		script_path[PATH_MAX + 1],
+		script_path[PATH_MAX + 2],
 		script_buff[LPJS_SCRIPT_SIZE_MAX + 1],
 		outgoing_msg[LPJS_JOB_MSG_MAX + 1],
 		*munge_payload;
@@ -74,7 +74,6 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
     ssize_t     script_size,
 		payload_bytes;
     size_t      phys_MiB_used;
-    extern FILE *Log_stream;
     uid_t       uid;
     gid_t       gid;
     
@@ -108,7 +107,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	
 	snprintf(pending_path, PATH_MAX + 1, "%s/%lu",
 		 LPJS_PENDING_DIR, job_get_job_id(job));
-	snprintf(script_path, PATH_MAX + 1, "%s/%s",
+	snprintf(script_path, PATH_MAX + 2, "%s/%s",
 		 pending_path, job_get_script_name(job));
 	script_size = lpjs_load_script(script_path, script_buff,
 				       LPJS_SCRIPT_SIZE_MAX + 1);
