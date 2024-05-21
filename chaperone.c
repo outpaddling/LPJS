@@ -265,7 +265,7 @@ int     lpjs_chaperone_checkin(int msg_fd,
 	    hostname, job_id, getpid(), job_pid);
     lpjs_log("%s(): Sending PIDs to dispatchd:\n", __FUNCTION__);
     fprintf(Log_stream, "%s\n", outgoing_msg + 1);
-    if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != EX_OK )
+    if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != LPJS_MSG_SENT )
     {
 	lpjs_log("Failed to send checkin message to dispatchd: %s",
 		strerror(errno));
@@ -368,7 +368,7 @@ int     lpjs_chaperone_completion(int msg_fd, const char *hostname,
 	     LPJS_DISPATCHD_REQUEST_JOB_COMPLETE, hostname,
 	     job_id, getenv("LPJS_CORES_PER_JOB"),
 	     getenv("LPJS_MEM_PER_CORE"), status);
-    if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != EX_OK )
+    if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != LPJS_MSG_SENT )
     {
 	lpjs_log("lpjs-chaperone: Failed to send message to dispatchd: %s",
 		strerror(errno));

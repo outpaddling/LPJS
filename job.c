@@ -185,8 +185,9 @@ void    job_send_basic_params(job_t *job, int msg_fd)
 	    job->compute_node,
 	    job->script_name);
     
+    // FIXME: Combine into one message
     // Used by dispatchd to send to lpjs jobs command
-    if ( lpjs_send_munge(msg_fd, msg, lpjs_dispatchd_safe_close) != EX_OK )
+    if ( lpjs_send_munge(msg_fd, msg, lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
     {
 	lpjs_log("%s(): send failed.\n", __FUNCTION__);
 	exit(EX_IOERR);
@@ -642,6 +643,7 @@ void    job_free(job_t **job)
 void    job_send_basic_params_header(int msg_fd)
 
 {
+    // FIXME: Combine into one message
     lpjs_send_munge(msg_fd, JOB_BASIC_PARAMS_HEADER, lpjs_dispatchd_safe_close);
 }
 

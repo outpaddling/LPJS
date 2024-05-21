@@ -147,7 +147,8 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	    
 	    // FIXME: Check for truncation
 	    strlcat(outgoing_msg, script_buff, LPJS_JOB_MSG_MAX + 1);
-	    if ( lpjs_send_munge(msg_fd, outgoing_msg, lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
+	    if ( lpjs_send_munge(msg_fd, outgoing_msg,
+				 lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
 	    {
 		lpjs_log("%s(): Failed to send job to compd.\n", __FUNCTION__);
 		free(matched_nodes);

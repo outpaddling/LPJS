@@ -174,7 +174,8 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
     strlcat(outgoing_msg, temp, LPJS_MSG_LEN_MAX + 1);
 
     // Only dispatchd calls this function, so wait for client to close first
-    if ( lpjs_send_munge(msg_fd, outgoing_msg, lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
+    if ( lpjs_send_munge(msg_fd, outgoing_msg,
+			 lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
     {
 	lpjs_log("%s(): Failed to send node list info.\n", __FUNCTION__);
 	lpjs_dispatchd_safe_close(msg_fd);
@@ -187,8 +188,11 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
      *  transmission, so the client can close first and avoid a wait
      *  state for the socket.
      */
-    lpjs_send_munge(msg_fd, LPJS_EOT_MSG, lpjs_dispatchd_safe_close);
-    lpjs_log("EOT sent.\n");
+    if ( lpjs_send_munge(msg_fd, LPJS_EOT_MSG, lpjs_dispatchd_safe_close)
+			 != LPJS_MSG_SENT )
+	lpjs_log("%s(): Failed to send EOT.\n", __FUNCTION__);
+    else
+	lpjs_log("EOT sent.\n");
 }
 
 

@@ -551,13 +551,15 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		lpjs_log("LPJS_DISPATCHD_REQUEST_JOB_STATUS\n");
 		// FIXME: factor out to lpjs_send_job_list(), check
 		// all messages for success
-		if ( lpjs_send_munge(msg_fd, "Pending\n\n", lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
+		if ( lpjs_send_munge(msg_fd, "Pending\n\n",
+				lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
 		{
 		    lpjs_log("%s(): Failed to send Pending.\n", __FUNCTION__);
 		    break;
 		}
 		job_list_send_params(msg_fd, pending_jobs);
-		if ( lpjs_send_munge(msg_fd, "\nRunning\n\n", lpjs_dispatchd_safe_close) == LPJS_MSG_SENT )
+		if ( lpjs_send_munge(msg_fd, "\nRunning\n\n",
+				lpjs_dispatchd_safe_close) == LPJS_MSG_SENT )
 		{
 		    job_list_send_params(msg_fd, running_jobs);
 		    lpjs_dispatchd_safe_close(msg_fd);
@@ -913,7 +915,8 @@ int     lpjs_kill_processes(node_list_t *node_list, job_t *job)
 
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%u",
 	    LPJS_COMPD_REQUEST_CANCEL, chaperone_pid);
-    if ( lpjs_send_munge(compute_node_fd, outgoing_msg, lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
+    if ( lpjs_send_munge(compute_node_fd, outgoing_msg,
+			 lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
     {
 	lpjs_log("%s(): Failed to send cancel request.\n", __FUNCTION__);
 	return 0;
@@ -1020,8 +1023,11 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
     // Back to submit command for terminal output
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX, "Spooled job %lu to %s.\n",
 	    next_job_id, pending_dir);
-    if ( lpjs_send_munge(msg_fd, outgoing_msg, lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
+    if ( lpjs_send_munge(msg_fd, outgoing_msg,
+			 lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
     {
+	lpjs_log("%s(): Failed to send response.\n", __FUNCTION__);
+	// FIXME: Should we continue?
     }
     
     // FIXME: Log job queue event to the job log

@@ -207,7 +207,10 @@ int     main (int argc, char *argv[])
 				"%c", LPJS_DISPATCH_SCRIPT_FAILED);
 			break;
 		}
-		lpjs_send_munge(msg_fd, dispatch_response, close);
+		if ( lpjs_send_munge(msg_fd, dispatch_response, close)
+				     != LPJS_MSG_SENT )
+		    lpjs_log("%s(): Failed to send dispatch_response.\n",
+			    __FUNCTION__);
 	    }
 	    else if ( munge_payload[0] == LPJS_COMPD_REQUEST_CANCEL )
 	    {
@@ -253,7 +256,7 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
     lpjs_log("%s(): Sending node specs:\n", __FUNCTION__);
     node_print_specs_header(Log_stream);
     fprintf(Log_stream, "%s\n", outgoing_msg + 1);
-    if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != EX_OK )
+    if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != LPJS_MSG_SENT )
     {
 	lpjs_log("%s(): Failed to send checkin message to dispatchd: %s",
 		__FUNCTION__, strerror(errno));
@@ -261,13 +264,6 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
 	return EX_IOERR;
     }
     lpjs_log("%s(): Sent checkin request.\n", __FUNCTION__);
-
-    // FIXME: Just sending a credential with no payload for now, to
-    // authenticate the socket connection.  Not sure if we should worry
-    // about a connection-oriented socket getting hijacked and
-    // munge other communication as well.
-    // if ( lpjs_send_munge(msg_fd, NULL) != EX_OK )
-    //     return EX_DATAERR;
 
     lpjs_recv(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 0);
     if ( strcmp(incoming_msg, "Node authorized") != 0 )

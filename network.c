@@ -361,7 +361,8 @@ int     lpjs_dispatchd_safe_close(int msg_fd)
      *  will cause restart of dispatchd to fail with "address already in use"
      */
     
-    if ( lpjs_send_munge(msg_fd, LPJS_EOT_MSG, lpjs_no_close) == LPJS_MSG_SENT )
+    if ( lpjs_send_munge(msg_fd, LPJS_EOT_MSG,
+			 lpjs_no_close) == LPJS_MSG_SENT )
     {
 	/*
 	 *  Wait until EOF is signaled due to the other end being closed.
