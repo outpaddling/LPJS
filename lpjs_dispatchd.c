@@ -212,8 +212,8 @@ int     main(int argc,char *argv[])
      *  FIXME: Does this handler actually help?  FDs are closed
      *  upon process termination anyway.
      */
-    signal(SIGINT, lpjs_terminate_handler);
-    signal(SIGTERM, lpjs_terminate_handler);
+    signal(SIGINT, lpjs_dispatchd_terminate_handler);
+    signal(SIGTERM, lpjs_dispatchd_terminate_handler);
 
     return lpjs_process_events(node_list);
 }
@@ -364,7 +364,7 @@ void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
 	    {
 		lpjs_log("%s(): Lost connection to %s.  Closing...\n",
 			__FUNCTION__, node_get_hostname(node));
-		lpjs_server_safe_close(fd);
+		lpjs_dispatchd_safe_close(fd);
 		node_set_msg_fd(node, NODE_MSG_FD_NOT_OPEN);
 		node_set_state(node, "down");
 	    }
@@ -501,11 +501,12 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 
 	/* Read a message through the socket */
 	if ( (bytes = lpjs_recv_munge(msg_fd,
-		     &munge_payload, 0, 0, &munge_uid, &munge_gid)) < 1 )
+		     &munge_payload, 0, 0, &munge_uid, &munge_gid,
+		     lpjs_dispatchd_safe_close)) < 1 )
 	{
 	    lpjs_log("%s(): lpjs_recv_munge() failed (%zd bytes): %s\n",
 		    __FUNCTION__, bytes, strerror(errno));
-	    lpjs_server_safe_close(msg_fd);
+	    lpjs_dispatchd_safe_close(msg_fd);
 	    // Nothing to free if munge_decode() failed, since it
 	    // allocates the buffer
 	    // free(munge_payload);
@@ -527,7 +528,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	    case    LPJS_DISPATCHD_REQUEST_NODE_STATUS:
 		lpjs_log("LPJS_DISPATCHD_REQUEST_NODE_STATUS\n");
 		node_list_send_status(msg_fd, node_list);
-		// lpjs_server_safe_close(msg_fd);
+		// lpjs_dispatchd_safe_close(msg_fd);
 		// node_list_send_status() sends EOT,
 		// so don't use safe_close here.
 		close(msg_fd);
@@ -548,11 +549,19 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	    
 	    case    LPJS_DISPATCHD_REQUEST_JOB_STATUS:
 		lpjs_log("LPJS_DISPATCHD_REQUEST_JOB_STATUS\n");
-		lpjs_send_munge(msg_fd, "Pending\n\n");
+		// FIXME: factor out to lpjs_send_job_list(), check
+		// all messages for success
+		if ( lpjs_send_munge(msg_fd, "Pending\n\n", lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
+		{
+		    lpjs_log("%s(): Failed to send Pending.\n", __FUNCTION__);
+		    break;
+		}
 		job_list_send_params(msg_fd, pending_jobs);
-		lpjs_send_munge(msg_fd, "\nRunning\n\n");
-		job_list_send_params(msg_fd, running_jobs);
-		lpjs_server_safe_close(msg_fd);
+		if ( lpjs_send_munge(msg_fd, "\nRunning\n\n", lpjs_dispatchd_safe_close) == LPJS_MSG_SENT )
+		{
+		    job_list_send_params(msg_fd, running_jobs);
+		    lpjs_dispatchd_safe_close(msg_fd);
+		}
 		break;
 	    
 	    case    LPJS_DISPATCHD_REQUEST_SUBMIT:
@@ -580,7 +589,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		 *  connections, one for every process
 		 *  No change in node status, don't try to dispatch jobs
 		 */
-		lpjs_server_safe_close(msg_fd);
+		lpjs_dispatchd_safe_close(msg_fd);
 		
 		// Job compute node and PIDs are in text form following
 		// the one byte LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN
@@ -703,7 +712,7 @@ void    lpjs_process_compute_node_checkin(int msg_fd, const char *incoming_msg,
     {
 	lpjs_log("Unauthorized checkin request from host %s.\n",
 		node_get_hostname(new_node));
-	lpjs_server_safe_close(msg_fd);
+	lpjs_dispatchd_safe_close(msg_fd);
     }
     else
     {
@@ -764,7 +773,7 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
 	lpjs_queue_job(msg_fd, pending_jobs, job, job_array_index, script_text);
     }
     
-    lpjs_server_safe_close(msg_fd);
+    lpjs_dispatchd_safe_close(msg_fd);
     job_free(&submission);
     
     return EX_OK;
@@ -836,7 +845,7 @@ int     lpjs_cancel(int msg_fd, const char *incoming_msg,
     else
 	lpjs_log("%s(): No such active job ID: %lu.\n", __FUNCTION__, job_id);
 	
-    lpjs_server_safe_close(msg_fd);
+    lpjs_dispatchd_safe_close(msg_fd);
     
     return LPJS_SUCCESS;
 }
@@ -904,9 +913,13 @@ int     lpjs_kill_processes(node_list_t *node_list, job_t *job)
 
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%u",
 	    LPJS_COMPD_REQUEST_CANCEL, chaperone_pid);
-    lpjs_send_munge(compute_node_fd, outgoing_msg);
+    if ( lpjs_send_munge(compute_node_fd, outgoing_msg, lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
+    {
+	lpjs_log("%s(): Failed to send cancel request.\n", __FUNCTION__);
+	return 0;
+    }
     
-    return 1;
+    return 1;   // FIXME: Define return codes
 }
 
 
@@ -1007,7 +1020,9 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
     // Back to submit command for terminal output
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX, "Spooled job %lu to %s.\n",
 	    next_job_id, pending_dir);
-    lpjs_send_munge(msg_fd, outgoing_msg);
+    if ( lpjs_send_munge(msg_fd, outgoing_msg, lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
+    {
+    }
     
     // FIXME: Log job queue event to the job log
     // lpjs_log_job()
@@ -1188,4 +1203,37 @@ int     lpjs_load_job_list(job_list_t *job_list, char *spool_dir)
     job_list_sort(job_list);
 
     return LPJS_SUCCESS;   // FIXME: Define return codes
+}
+
+
+/***************************************************************************
+ *  Description:
+ *      Gracefully shut down in the event of an interrupt signal
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2021-09-28  Jason Bacon Begin
+ ***************************************************************************/
+
+void    lpjs_dispatchd_terminate_handler(int s2)
+
+{
+    node_t  *node;
+    int     c;
+    extern node_list_t *Node_list;
+    
+    lpjs_log("Received signal, shutting down...\n");
+    for (c = 0; c < node_list_get_compute_node_count(Node_list); ++c)
+    {
+	node = node_list_get_compute_nodes_ae(Node_list, c);
+	if ( node_get_msg_fd(node) != -1 )
+	{
+	    lpjs_log("Closing connection with %s...\n", node_get_hostname(node));
+	    lpjs_dispatchd_safe_close(node_get_msg_fd(node));
+	}
+    }
+#ifdef __linux__
+    remove(Pid_path);
+#endif
+    exit(EX_OK);
 }

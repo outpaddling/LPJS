@@ -130,6 +130,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	 *          Use script cached in spool dir at submission
 	 */
 	
+	// FIXME: Revamp and verify handling of failed dispatches
 	for (int c = 0; c < node_list_get_compute_node_count(matched_nodes); ++c)
 	{
 	    node_t *node = node_list_get_compute_nodes_ae(matched_nodes, c);
@@ -146,13 +147,18 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	    
 	    // FIXME: Check for truncation
 	    strlcat(outgoing_msg, script_buff, LPJS_JOB_MSG_MAX + 1);
-	    lpjs_send_munge(msg_fd, outgoing_msg);
+	    if ( lpjs_send_munge(msg_fd, outgoing_msg, lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
+	    {
+		lpjs_log("%s(): Failed to send job to compd.\n", __FUNCTION__);
+		free(matched_nodes);
+		return 0;
+	    }
 	    
 	    // Get status back from compd
 	    lpjs_log("Awaiting dispatch status from compd...\n");
-	    fflush(Log_stream);
 	    payload_bytes = lpjs_recv_munge(msg_fd, &munge_payload,
-					    0, 0, &uid, &gid);
+					    0, 0, &uid, &gid,
+					    lpjs_dispatchd_safe_close);
 	    // lpjs_log("payload_bytes = %d\n", payload_bytes);
 	    if ( payload_bytes > 0 )
 	    {
@@ -168,6 +174,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 		    lpjs_log("%s(): OS error detected on %s.\n",
 			    __FUNCTION__, node_get_hostname(node));
 		    node_set_state(node, "down");
+		    // FIXME: Make sure job state is fully reset
 		}
 		else
 		{

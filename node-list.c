@@ -139,7 +139,6 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
     snprintf(temp, LPJS_MSG_LEN_MAX,
 	    NODE_STATUS_HEADER_FORMAT, "Hostname", "State",
 	    "Procs", "Used", "PhysMiB", "Used", "OS", "Arch");
-    // lpjs_send_munge(msg_fd, header);
     strlcat(outgoing_msg, temp, LPJS_MSG_LEN_MAX + 1);
     
     procs_up = procs_up_used = procs_down = 0;
@@ -174,7 +173,13 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
 	    procs_down, 0, mem_down, (size_t)0, "-", "-");
     strlcat(outgoing_msg, temp, LPJS_MSG_LEN_MAX + 1);
 
-    lpjs_send_munge(msg_fd, outgoing_msg);
+    // Only dispatchd calls this function, so wait for client to close first
+    if ( lpjs_send_munge(msg_fd, outgoing_msg, lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
+    {
+	lpjs_log("%s(): Failed to send node list info.\n", __FUNCTION__);
+	lpjs_dispatchd_safe_close(msg_fd);
+	return; // FIXME: Define return codes
+    }
     
     /*
      *  Closing the listener first results in "address already in use"
@@ -182,7 +187,7 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
      *  transmission, so the client can close first and avoid a wait
      *  state for the socket.
      */
-    lpjs_send_eot(msg_fd);
+    lpjs_send_munge(msg_fd, LPJS_EOT_MSG, lpjs_dispatchd_safe_close);
     lpjs_log("EOT sent.\n");
 }
 

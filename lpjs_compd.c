@@ -138,8 +138,10 @@ int     main (int argc, char *argv[])
 	if (poll_fd.revents & POLLIN)
 	{
 	    poll_fd.revents &= ~POLLIN;
-	    bytes = lpjs_recv_munge(msg_fd, &munge_payload, 0, 0, &uid, &gid);
-	    munge_payload[bytes] = '\0';
+	    bytes = lpjs_recv_munge(msg_fd, &munge_payload, 0, 0,
+				    &uid, &gid, close);
+	    if ( bytes >= 0 )
+		munge_payload[bytes] = '\0';
 	    xt_strviscpy((unsigned char *)vis_msg,
 			 (unsigned char *)munge_payload, LPJS_MSG_LEN_MAX + 1);
 	    // lpjs_log("Received %zd bytes from dispatchd: \"%s\"\n", bytes, vis_msg);
@@ -205,7 +207,7 @@ int     main (int argc, char *argv[])
 				"%c", LPJS_DISPATCH_SCRIPT_FAILED);
 			break;
 		}
-		lpjs_send_munge(msg_fd, dispatch_response);
+		lpjs_send_munge(msg_fd, dispatch_response, close);
 	    }
 	    else if ( munge_payload[0] == LPJS_COMPD_REQUEST_CANCEL )
 	    {
@@ -251,7 +253,7 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
     lpjs_log("%s(): Sending node specs:\n", __FUNCTION__);
     node_print_specs_header(Log_stream);
     fprintf(Log_stream, "%s\n", outgoing_msg + 1);
-    if ( lpjs_send_munge(msg_fd, outgoing_msg) != EX_OK )
+    if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != EX_OK )
     {
 	lpjs_log("%s(): Failed to send checkin message to dispatchd: %s",
 		__FUNCTION__, strerror(errno));
@@ -437,7 +439,7 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_start,
 	#endif
 	
 	// Take node down to prevent further problems
-	// lpjs_server_safe_close(msg_fd);
+	// close(msg_fd);
 	// FIXME: Terminating here causes dispatchd to crash
 	// dispatchd should be able to tolerate lost connections at any time
 	// exit(EX_OSERR);

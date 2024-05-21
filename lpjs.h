@@ -52,7 +52,6 @@ enum
 #define LPJS_GB                 1000000000
 #define LPJS_GiB                1073741824
 
-#define LPJS_EOT                '\004'
 #define LPJS_MAX_INT_DIGITS     64
 
 #endif  // _LPJS_H_

@@ -130,7 +130,7 @@ int     main (int argc, char *argv[])
 
     // FIXME: Exiting here causes dispatchd to crash
 
-    if ( lpjs_send_munge(msg_fd, outgoing_msg) != EX_OK )
+    if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != LPJS_MSG_SENT )
     {
 	perror("lpjs-submit: Failed to send submit request to dispatch");
 	close(msg_fd);

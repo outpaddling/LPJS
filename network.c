@@ -104,22 +104,25 @@ int     lpjs_print_response(int msg_fd, const char *caller_name)
     uid_t   uid;
     gid_t   gid;
     
+    // This function should never be called by dispatchd, so use
+    // a normal close()
     while ( ! eot_received &&
-	    (bytes = lpjs_recv_munge(msg_fd, &payload, 0, 0, &uid, &gid)) > 0 )
+	    (bytes = lpjs_recv_munge(msg_fd, &payload, 0, 0,
+				     &uid, &gid, close)) > 0 )
     {
 	eot_received = (payload[bytes-1] == 4);
 	if ( eot_received )
-	{
 	    --bytes;
-	    // lpjs_log("EOT received.\n");
-	}
 	payload[bytes] = '\0';
 	printf("%s", payload);
 	free(payload);
     }
     
-    if ( bytes == -1 )
+    if ( bytes < 0 )
     {
+	// This function should never be called by dispatchd, so
+	// do a normal close() vs lpjs_dispatchd_safe_close()
+	close(msg_fd);
 	lpjs_log("%s: Failed to read response from dispatchd",
 		strerror(errno));
 	return EX_IOERR;
@@ -241,8 +244,8 @@ ssize_t lpjs_recv(int msg_fd, char *buff, size_t buff_len, int flags,
  *  2024-02-19  Jason Bacon Begin
  ***************************************************************************/
 
-ssize_t lpjs_recv_munge(int msg_fd, char **payload,
-			int flags, int timeout, uid_t *uid, gid_t *gid)
+ssize_t lpjs_recv_munge(int msg_fd, char **payload, int flags, int timeout,
+			uid_t *uid, gid_t *gid, int(*close_function)(int))
 
 {
     ssize_t     bytes_read;
@@ -251,7 +254,7 @@ ssize_t lpjs_recv_munge(int msg_fd, char **payload,
     char        incoming_msg[LPJS_MSG_LEN_MAX + 1];
     
     bytes_read = lpjs_recv(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX + 1,
-			    flags, timeout);
+			   flags, timeout);
     
     if ( bytes_read == -1 )
     {
@@ -266,10 +269,10 @@ ssize_t lpjs_recv_munge(int msg_fd, char **payload,
 	// lpjs_log("%s(): Payload len = %d\n", __FUNCTION__, payload_len);
 	if ( munge_status != EMUNGE_SUCCESS )
 	{
-	    lpjs_server_safe_close(msg_fd);
+	    close_function(msg_fd);
 	    lpjs_log("%s(): munge_decode() failed.  Error = %s\n",
 		     __FUNCTION__, munge_strerror(munge_status));
-	    return -1;
+	    return -1;  // FIXME: Define return codes
 	}
 	
 	// Acknolwedge successful receipt of message
@@ -278,34 +281,6 @@ ssize_t lpjs_recv_munge(int msg_fd, char **payload,
     }
     else
 	return 0;
-}
-
-
-/***************************************************************************
- *  Description:
- *      Send EOT (\004) char to signal end of communication.
- *      Note that end of message is signalled by \000.  EOT
- *      means we're done talking and the socket should be closed.
- *
- *      FIXME: Can we use send(fd, buff, len, MSG_EOF) instead?
- *
- *  History: 
- *  Date        Name        Modification
- *  2024-01-17  Jason Bacon Begin
- ***************************************************************************/
-
-int     lpjs_send_eot(int msg_fd)
-
-{
-    char    buff[2] = { LPJS_EOT, '\0' };
-    int     status;
-    
-    status = lpjs_send_munge(msg_fd, buff);
-    lpjs_log("%s(): status = %d\n", __FUNCTION__, status);
-    if ( status != EX_OK )
-	lpjs_log("%s(): Failed to send EOT.\n", __FUNCTION__);
-    
-    return status;
 }
 
 
@@ -321,7 +296,7 @@ int     lpjs_send_eot(int msg_fd)
  *  2024-01-21  Jason Bacon Begin
  ***************************************************************************/
 
-int     lpjs_send_munge(int msg_fd, const char *msg)
+int     lpjs_send_munge(int msg_fd, const char *msg, int(*close_function)(int))
 
 {
     char        *cred,
@@ -333,16 +308,19 @@ int     lpjs_send_munge(int msg_fd, const char *msg)
     {
 	lpjs_log("lpjs_compd: munge_encode() failed.\n");
 	lpjs_log("Return code = %s\n", munge_strerror(munge_status));
-	return EX_UNAVAILABLE; // FIXME: Check actual error
+	// May be close(), lpjs_dispatchd_safe_close(), or lpjs_no_close()
+	close_function(msg_fd);
+	return LPJS_MUNGE_FAILED;
     }
 
     // printf("Sending %zd bytes: %s...\n", strlen(cred), cred);
     if ( lpjs_send(msg_fd, 0, cred) < 0 )
     {
 	perror("lpjs_compd: Failed to send credential to dispatchd");
-	close(msg_fd);
+	// May be close(), lpjs_dispatchd_safe_close(), or lpjs_no_close()
+	close_function(msg_fd);
 	free(cred);
-	return EX_IOERR;
+	return LPJS_SEND_FAILED;
     }
     free(cred);
     
@@ -352,11 +330,11 @@ int     lpjs_send_munge(int msg_fd, const char *msg)
     if ( (bytes < 1) || (strcmp(incoming_msg, LPJS_MUNGE_CRED_VERIFIED) != 0) )
     {
 	lpjs_log("%s(): Expected %s.\n", __FUNCTION__, LPJS_MUNGE_CRED_VERIFIED);
-	return EX_DATAERR;
+	return LPJS_RECV_FAILED;
     }
     // lpjs_log("%s(): Munge message acknolwedged.\n", __FUNCTION__);
 
-    return EX_OK;
+    return LPJS_MSG_SENT;
 }
 
 
@@ -372,27 +350,36 @@ int     lpjs_send_munge(int msg_fd, const char *msg)
  *  2024-01-14  Jason Bacon Begin
  ***************************************************************************/
 
-int     lpjs_server_safe_close(int msg_fd)
+int     lpjs_dispatchd_safe_close(int msg_fd)
 
 {
     char    buff[64];
     
     /*
      *  Client must be looking for the EOT character at the end of
-     *  a read, or this is useless.
+     *  a read, or this is useless.  If this fails, closing msg_fd
+     *  will cause restart of dispatchd to fail with "address already in use"
      */
     
-    lpjs_send_eot(msg_fd);
-    
-    /*
-     *  Wait until EOF is signaled due to the other end being closed.
-     *  FIXME: No data should be read here.  The first read() should
-     *  return EOF.  Add a check for this.
-     */
-    lpjs_log("%s(): Waiting for client to hang up...\n", __FUNCTION__);
-    while ( read(msg_fd, buff, 64) > 0 )
-	sleep(1);
+    if ( lpjs_send_munge(msg_fd, LPJS_EOT_MSG, lpjs_no_close) == LPJS_MSG_SENT )
+    {
+	/*
+	 *  Wait until EOF is signaled due to the other end being closed.
+	 *  FIXME: No data should be read here.  The first read() should
+	 *  return EOF.  Add a check for this.
+	 */
+	lpjs_log("%s(): Waiting for client to hang up...\n", __FUNCTION__);
+	while ( read(msg_fd, buff, 64) > 0 )
+	    sleep(1);
+    }
     
     // lpjs_log(Log_stream, "Closing msg_fd.\n");
     return close(msg_fd);
+}
+
+
+int     lpjs_no_close(int fd)
+
+{
+    return 0;
 }
