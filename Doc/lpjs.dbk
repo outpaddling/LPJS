@@ -261,14 +261,39 @@ compute compute002.mydomain
         Network latency and throughput may be quite poor for resources
         that are far away.
         </para>
+    </chapter>
+    
+    <chapter>
+        <title>File Sharing</title>
         
         <para>
-        Clusters normally have some sort of file server, so that jobs
-        run in a directory that is directly accessible from all nodes.
+        Clusters normally have one or more file servers, so that jobs
+        can run in a directory that is directly accessible from all nodes.
         This is the ideal situation, as input files are directly
         available to jobs, and output files from jobs can be written
         to their final location without needing to transfer them.
         </para>
+        
+        <note>
+        <para>
+        At present, it appears to be impractical to use macOS for
+        compute nodes with data on a file server.
+        macOS has a security feature that prevents programs from
+        accessing most directories unless the user explicitly
+        grants permission via the graphical interface.  In order for
+        LPJS to access file servers as required for normal operation,
+        the program <command>lpjs_compd</command> must be granted full disk
+        access via System Settings, Privacy and Security.  Otherwise,
+        you may see "operation not permitted" errors in the log when
+        trying to access NFS shares.
+        </para>
+        
+        <para>
+        The major problem is that this is not a one-time setting.  Each
+        time LPJS is updated, full disk access is revoked, and the
+        user must enable it via the graphical interface again.
+        </para>
+        </note>
         
         <para>
         Grids normally do not have file servers.  In this case, it will
@@ -325,11 +350,7 @@ compute compute002.mydomain
         <title>Advanced configuration</title>
         
         <para>
-        macOS nodes may require that full disk access be granted to
-        lpjs_compd in System Settings, Privacy and Security.  Otherwise,
-        you may see "operation not permitted" errors in the log when
-        trying to access NFS shares and other directories that Apple
-        has deemed worthy of privacy protections.
+        TBD
         </para>
     </chapter>
 </book>
