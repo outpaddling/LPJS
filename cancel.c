@@ -89,7 +89,7 @@ int     lpjs_request_cancel(node_list_t *node_list, unsigned long jobid)
 
     // FIXME: Exiting here causes dispatchd to crash
 
-    if ( lpjs_send_munge(msg_fd, outgoing_msg) != EX_OK )
+    if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != LPJS_MSG_SENT )
     {
 	perror("lpjs-cancel: Failed to send cancel request to dispatch");
 	close(msg_fd);

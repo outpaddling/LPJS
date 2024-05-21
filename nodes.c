@@ -60,7 +60,7 @@ int     main (int argc, char *argv[])
 	return EX_IOERR;
     }
 
-    if ( lpjs_send_munge(msg_fd, outgoing_msg) != EX_OK )
+    if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != LPJS_MSG_SENT )
     {
 	perror("lpjs-nodes: Failed to send message to dispatch");
 	close(msg_fd);

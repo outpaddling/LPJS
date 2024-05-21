@@ -193,45 +193,14 @@ void    node_send_status(node_t *node, int msg_fd)
     char    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
     
     node_status_to_str(node, outgoing_msg, LPJS_MSG_LEN_MAX + 1);
-    if ( lpjs_send_munge(msg_fd, outgoing_msg) < 0 )
+    if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != LPJS_MSG_SENT )
     {
+	// This function should never be called by dispatchd, so
+	// use a simple close() vs lpjs_dispatchd_safe_close()
 	lpjs_log("send_node_specs(): xt_dprintf() failed: %s", strerror(errno));
 	exit(EX_IOERR);
     }
 }
-
-
-/***************************************************************************
- *  Description:
- *      Send node hardware and OS specs to msg_fd in
- *      machine-readable for, e.g. from compd to dispatchd
- *
- *  History: 
- *  Date        Name        Modification
- *  2021-10-02  Jason Bacon Begin
- ***************************************************************************/
-
-/*
-ssize_t node_send_specs(node_t *node, int msg_fd)
-
-{
-    char        specs_msg[LPJS_MSG_LEN_MAX + 1];
-    extern FILE *Log_stream;
-    
-    node_print_status_header(Log_stream);
-    node_print_status(node, Log_stream);
-    if ( snprintf(specs_msg, LPJS_MSG_LEN_MAX + 1,
-		  "%s\t%s\t%u\t%lu\t%u\t%s\t%s\n",
-		  node->hostname, node->state, node->procs,
-		  node->phys_MiB, node->zfs, node->os, node->arch) < 0 )
-    {
-	perror("send_node_specs(): snprintf() failed");
-	exit(EX_IOERR);
-    }
-    
-    return lpjs_send_munge(msg_fd, specs_msg);
-}
-*/
 
 
 int     node_print_specs_header(FILE *stream)

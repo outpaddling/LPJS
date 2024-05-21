@@ -295,38 +295,6 @@ char *lpjs_get_marker_filename(char shared_fs_marker[], const char *hostname,
 
 /***************************************************************************
  *  Description:
- *      Gracefully shut down in the event of an interrupt signal
- *
- *  History: 
- *  Date        Name        Modification
- *  2021-09-28  Jason Bacon Begin
- ***************************************************************************/
-
-void    lpjs_terminate_handler(int s2)
-
-{
-    node_t  *node;
-    int     c;
-    
-    lpjs_log("Received signal, shutting down...\n");
-    for (c = 0; c < node_list_get_compute_node_count(Node_list); ++c)
-    {
-	node = node_list_get_compute_nodes_ae(Node_list, c);
-	if ( node_get_msg_fd(node) != -1 )
-	{
-	    lpjs_log("Closing connection with %s...\n", node_get_hostname(node));
-	    lpjs_server_safe_close(node_get_msg_fd(node));
-	}
-    }
-#ifdef __linux__
-    remove(Pid_path);
-#endif
-    exit(EX_OK);
-}
-
-
-/***************************************************************************
- *  Description:
  *  
  *
  *  History: 

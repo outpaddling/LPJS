@@ -33,6 +33,15 @@ enum
     LPJS_DISPATCH_OSERR
 };
 
+// Must be <= 0, since recv returns number of bytes
+#define LPJS_MSG_SENT       0
+#define LPJS_RECV_FAILED    -1
+#define LPJS_SEND_FAILED    -2
+#define LPJS_MUNGE_FAILED   -3
+
+#define LPJS_EOT                '\004'
+#define LPJS_EOT_MSG            "\004"
+
 // IPv6 max address size is 39
 #define LPJS_TEXT_IP_ADDRESS_MAX    64
 // FIXME: 4096 is just a guestimate
