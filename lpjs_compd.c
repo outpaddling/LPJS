@@ -139,13 +139,12 @@ int     main (int argc, char *argv[])
 	    poll_fd.revents &= ~POLLIN;
 	    bytes = lpjs_recv_munge(msg_fd, &munge_payload, 0, 0,
 				    &uid, &gid, close);
-	    if ( bytes >= 0 )
-		munge_payload[bytes] = '\0';
-	    xt_strviscpy((unsigned char *)vis_msg,
-			 (unsigned char *)munge_payload, LPJS_MSG_LEN_MAX + 1);
-	    // lpjs_log("Received %zd bytes from dispatchd: \"%s\"\n", bytes, vis_msg);
-	    
-	    if ( bytes == 0 )
+	    if ( bytes < 0 )
+	    {
+		lpjs_log("%s(): Got 0 bytes from dispatchd.  Something is wrong.\n",
+			__FUNCTION__);
+	    }
+	    else if ( bytes == 0 )
 	    {
 		/*
 		 *  Likely lost connection due to crash or other ungraceful
@@ -158,81 +157,88 @@ int     main (int argc, char *argv[])
 		poll_fd.revents = 0;
 		msg_fd = lpjs_compd_checkin_loop(node_list, node);
 	    }
-	    else if ( munge_payload[0] == LPJS_EOT )
+	    else
 	    {
-		// Close this end, or dispatchd gets "address already in use"
-		// When trying to restart
-		close(msg_fd);
-		lpjs_log("%s(): Lost connection to dispatchd: EOT received.\n",
-			__FUNCTION__);
-		sleep(LPJS_RETRY_TIME);  // No point trying immediately after drop
-
-		// Ignore HUP that follows EOT
-		// FIXME: This might be bad timing
-		poll_fd.revents &= ~POLLHUP;
-		msg_fd = lpjs_compd_checkin_loop(node_list, node);
-	    }
-	    else if ( munge_payload[0] == LPJS_COMPD_REQUEST_NEW_JOB )
-	    {
-		// Terminates process if malloc() fails, no check required
-		job_t   *job = job_new();
-		char    *script_start;
-		int     status;
-		
-		lpjs_log("LPJS_COMPD_REQUEST_NEW_JOB\n");
-		
-		/*
-		 *  Parse job specs
-		 */
-		
-		job_read_from_string(job, munge_payload + 1, &script_start);
-		status = lpjs_run_chaperone(job, script_start, msg_fd);
-		switch(status)
+		munge_payload[bytes] = '\0';
+		xt_strviscpy((unsigned char *)vis_msg,
+			 (unsigned char *)munge_payload, LPJS_MSG_LEN_MAX + 1);
+		// lpjs_log("Received %zd bytes from dispatchd: \"%s\"\n", bytes, vis_msg);
+		if ( munge_payload[0] == LPJS_EOT )
 		{
-		    case    EX_OK:
-			lpjs_log("%s(): run_chaperone OK.\n", __FUNCTION__);
-			snprintf(dispatch_response, LPJS_MSG_LEN_MAX + 1,
-				"%c", LPJS_DISPATCH_OK);
-			break;
-		    
-		    case    EX_OSERR:
-			lpjs_log("%s(): OS error.\n", __FUNCTION__);
-			snprintf(dispatch_response, LPJS_MSG_LEN_MAX + 1,
-				"%c", LPJS_DISPATCH_OSERR);
-			break;
-		    
-		    default:
-			lpjs_log("%s(): Failed to start script.\n", __FUNCTION__);
-			snprintf(dispatch_response, LPJS_MSG_LEN_MAX + 1,
-				"%c", LPJS_DISPATCH_SCRIPT_FAILED);
-			break;
-		}
-		
-		lpjs_log("Sending dispatch response.\n");
-		if ( lpjs_send_munge(msg_fd, dispatch_response, close)
-				     != LPJS_MSG_SENT )
-		    lpjs_log("%s(): Failed to send dispatch_response.\n",
+		    // Close this end, or dispatchd gets "address already in use"
+		    // When trying to restart
+		    close(msg_fd);
+		    lpjs_log("%s(): Lost connection to dispatchd: EOT received.\n",
 			    __FUNCTION__);
-	    }
-	    else if ( munge_payload[0] == LPJS_COMPD_REQUEST_CANCEL )
-	    {
-		pid_t   chaperone_pid;
-		char    *end;
-		
-		lpjs_log("LPJS_COMPD_REQUEST_CANCEL\n");
-		lpjs_log("Payload = %s\n", munge_payload + 1);
-		
-		chaperone_pid = strtoul(munge_payload + 1, &end, 10);
-		if ( *end != '\0' )
-		    lpjs_log("Malformed cancel payload.  This is a software bug.\n");
-		else
-		{
-		    lpjs_log("Sending SIGHUP to %d...\n", chaperone_pid);
-		    kill(chaperone_pid, SIGHUP);
-		    // FIXME: Verify termination
+		    sleep(LPJS_RETRY_TIME);  // No point trying immediately after drop
+    
+		    // Ignore HUP that follows EOT
+		    // FIXME: This might be bad timing
+		    poll_fd.revents &= ~POLLHUP;
+		    msg_fd = lpjs_compd_checkin_loop(node_list, node);
 		}
+		else if ( munge_payload[0] == LPJS_COMPD_REQUEST_NEW_JOB )
+		{
+		    // Terminates process if malloc() fails, no check required
+		    job_t   *job = job_new();
+		    char    *script_start;
+		    int     status;
+		    
+		    lpjs_log("LPJS_COMPD_REQUEST_NEW_JOB\n");
+		    
+		    /*
+		     *  Parse job specs
+		     */
+		    
+		    job_read_from_string(job, munge_payload + 1, &script_start);
+		    status = lpjs_run_chaperone(job, script_start, msg_fd);
+		    switch(status)
+		    {
+			case    EX_OK:
+			    lpjs_log("%s(): run_chaperone OK.\n", __FUNCTION__);
+			    snprintf(dispatch_response, LPJS_MSG_LEN_MAX + 1,
+				    "%c", LPJS_DISPATCH_OK);
+			    break;
+			
+			case    EX_OSERR:
+			    lpjs_log("%s(): OS error.\n", __FUNCTION__);
+			    snprintf(dispatch_response, LPJS_MSG_LEN_MAX + 1,
+				    "%c", LPJS_DISPATCH_OSERR);
+			    break;
+			
+			default:
+			    lpjs_log("%s(): Failed to start script.\n", __FUNCTION__);
+			    snprintf(dispatch_response, LPJS_MSG_LEN_MAX + 1,
+				    "%c", LPJS_DISPATCH_SCRIPT_FAILED);
+			    break;
+		    }
+		    
+		    lpjs_log("Sending dispatch response.\n");
+		    if ( lpjs_send_munge(msg_fd, dispatch_response, close)
+					 != LPJS_MSG_SENT )
+			lpjs_log("%s(): Failed to send dispatch_response.\n",
+				__FUNCTION__);
+		}
+		else if ( munge_payload[0] == LPJS_COMPD_REQUEST_CANCEL )
+		{
+		    pid_t   chaperone_pid;
+		    char    *end;
+		    
+		    lpjs_log("LPJS_COMPD_REQUEST_CANCEL\n");
+		    lpjs_log("Payload = %s\n", munge_payload + 1);
+		    
+		    chaperone_pid = strtoul(munge_payload + 1, &end, 10);
+		    if ( *end != '\0' )
+			lpjs_log("Malformed cancel payload.  This is a software bug.\n");
+		    else
+		    {
+			lpjs_log("Sending SIGHUP to %d...\n", chaperone_pid);
+			kill(chaperone_pid, SIGHUP);
+			// FIXME: Verify termination
+		    }
+		}
+		free(munge_payload);
 	    }
-	    free(munge_payload);
 	}
     }
 
