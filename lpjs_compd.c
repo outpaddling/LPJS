@@ -108,12 +108,11 @@ int     main (int argc, char *argv[])
     // Almost correct: https://unix.stackexchange.com/questions/581426/how-to-get-notified-when-the-other-end-of-a-socketpair-is-closed
     while ( true )
     {
+	// Just poll the dedicated socket connection with dispatchd
+	// Time out after 2 seconds
 	poll(&poll_fd, 1, 2000);
-	
-	// FIXME: Send regular pings to lpjs_dispatchd?
-	// Or monitor compd daemons with a separate process that
-	// sends events to dispatchd?
 
+	// dispatchd closed its end of the socket?
 	if (poll_fd.revents & POLLHUP)
 	{
 	    poll_fd.revents &= ~POLLHUP;
@@ -154,7 +153,7 @@ int     main (int argc, char *argv[])
 		 *  with "address already in use".
 		 */
 		close(msg_fd);
-		lpjs_log("%s(): Error reading from dispatchd.  Disconnecting...\n",
+		lpjs_log("%s(): 0 bytes received from dispatchd.  Disconnecting...\n",
 			__FUNCTION__);
 		poll_fd.revents = 0;
 		msg_fd = lpjs_compd_checkin_loop(node_list, node);
@@ -191,6 +190,7 @@ int     main (int argc, char *argv[])
 		switch(status)
 		{
 		    case    EX_OK:
+			lpjs_log("%s(): run_chaperone OK.\n", __FUNCTION__);
 			snprintf(dispatch_response, LPJS_MSG_LEN_MAX + 1,
 				"%c", LPJS_DISPATCH_OK);
 			break;
@@ -207,6 +207,8 @@ int     main (int argc, char *argv[])
 				"%c", LPJS_DISPATCH_SCRIPT_FAILED);
 			break;
 		}
+		
+		lpjs_log("Sending dispatch response.\n");
 		if ( lpjs_send_munge(msg_fd, dispatch_response, close)
 				     != LPJS_MSG_SENT )
 		    lpjs_log("%s(): Failed to send dispatch_response.\n",
@@ -510,10 +512,6 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
     
     if ( fork() == 0 )
     {
-	// We don't want chaperone and its childre to inherit
-	// the socket connection between dispatchd and compd
-	close(msg_fd);
-	
 	/*
 	 *  Child, exec the chaperone command with the script as an arg.
 	 *  The chaperone runs in the background, monitoring the job,
@@ -521,6 +519,12 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
 	 *  stats to dispatchd.
 	 */
 	
+	// We don't want chaperone and its childre to inherit
+	// the socket connection between dispatchd and compd
+	close(msg_fd);
+	
+	// If lpjs_compd is running as root, use setuid() to switch
+	// to submitting user
 	if ( getuid() == 0 )
 	{
 	    struct passwd   *pw_ent;
@@ -567,7 +571,7 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
 	}
 	
 	/*
-	 *  Set env vars
+	 *  Set LPJS_USER, LPJS_SUBMIT_HOST, etc. for use in scripts
 	 */
 	job_setenv(job);
 	
