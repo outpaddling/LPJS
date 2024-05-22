@@ -591,7 +591,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 
 	    case    LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN:
 		lpjs_log("LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN:\n");
-		lpjs_send(msg_fd, 0, "Node authorized");
+		lpjs_send_munge(msg_fd, "Node authorized", lpjs_dispatchd_safe_close);
 		
 		/*
 		 *  We don't keep potentially thousands of open
@@ -725,7 +725,7 @@ void    lpjs_process_compute_node_checkin(int msg_fd, const char *incoming_msg,
     }
     else
     {
-	lpjs_send(msg_fd, 0, "Node authorized");
+	lpjs_send_munge(msg_fd, "Node authorized", lpjs_dispatchd_safe_close);
 	node_set_msg_fd(new_node, msg_fd);
 	
 	// Nodes were added to node_list by lpjs_load_config()

@@ -245,8 +245,11 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
 
 {
     char        outgoing_msg[LPJS_MSG_LEN_MAX + 1],
-		incoming_msg[LPJS_MSG_LEN_MAX + 1],
+		*munge_payload,
 		specs[NODE_SPECS_LEN + 1];
+    ssize_t     bytes;
+    uid_t       uid;
+    gid_t       gid;
     extern FILE *Log_stream;
     
     /* Send a message to the server */
@@ -267,8 +270,13 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
     }
     lpjs_log("%s(): Sent checkin request.\n", __FUNCTION__);
 
-    lpjs_recv(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 0);
-    if ( strcmp(incoming_msg, "Node authorized") != 0 )
+    bytes = lpjs_recv_munge(msg_fd, &munge_payload, 0, 0, &uid, &gid, close);
+    if ( bytes < 1 )
+    {
+	lpjs_log("Error receving auth message.\n");
+	exit(EX_IOERR); // FIXME: Should we retry?
+    }
+    else if ( strcmp(munge_payload, "Node authorized") != 0 )
     {
 	lpjs_log("%s(): This node is not authorized to connect.\n"
 		 "It must be added to the etc/lpjs/config on the head node.\n",
@@ -279,6 +287,8 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
 	lpjs_log("%s(): Received authorization from lpjs_dispatchd.\n",
 		__FUNCTION__);
 
+    free(munge_payload);
+    
     return EX_OK;
 }
 
