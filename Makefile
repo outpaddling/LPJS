@@ -209,6 +209,7 @@ realclean: clean
 # Install all target files (binaries, libraries, docs, etc.)
 
 install: all
+	which ${INSTALL}
 	${MKDIR} -p ${DESTDIR}${PREFIX}/bin \
 		    ${DESTDIR}${PREFIX}/sbin \
 		    ${DESTDIR}${PREFIX}/lib \

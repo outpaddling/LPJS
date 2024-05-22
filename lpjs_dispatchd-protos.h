@@ -12,3 +12,4 @@ int lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job, unsigned lo
 int lpjs_update_job(node_list_t *node_list, char *payload, job_list_t *pending_jobs, job_list_t *running_jobs);
 int lpjs_load_job_list(job_list_t *job_list, char *spool_dir);
 void lpjs_dispatchd_terminate_handler(int s2);
+void lpjs_dispatchd_sigpipe(int s2);

@@ -214,6 +214,13 @@ int     main(int argc,char *argv[])
      */
     signal(SIGINT, lpjs_dispatchd_terminate_handler);
     signal(SIGTERM, lpjs_dispatchd_terminate_handler);
+    
+    /*
+     *  dispatchd shouldn't be trying to write to broken pipes, but
+     *  we don't want it to terminate due to minor bugs.
+     */
+    
+    signal(SIGPIPE, lpjs_dispatchd_sigpipe);
 
     return lpjs_process_events(node_list);
 }
@@ -1243,4 +1250,12 @@ void    lpjs_dispatchd_terminate_handler(int s2)
     remove(Pid_path);
 #endif
     exit(EX_OK);
+}
+
+
+void    lpjs_dispatchd_sigpipe(int s2)
+
+{
+    lpjs_log("%s(): Ignoring SIGPIPE signal.  This is a software bug.\n",
+	    __FUNCTION__);
 }
