@@ -1075,7 +1075,7 @@ int     lpjs_update_job(node_list_t *node_list, char *payload,
     char    *compute_node,
 	    *p,
 	    pending_job_dir[PATH_MAX + 1],
-	    running_job_dir[PATH_MAX + 1],
+	    running_job_dir[PATH_MAX + 1 - 10],
 	    specs_path[PATH_MAX + 1];
     FILE    *fp;
     unsigned long   job_id;
@@ -1099,7 +1099,7 @@ int     lpjs_update_job(node_list_t *node_list, char *payload,
 	// Move job from pending spool dir to running
 	snprintf(pending_job_dir, PATH_MAX + 1,
 		LPJS_PENDING_DIR "/%lu", job_id);
-	snprintf(running_job_dir, PATH_MAX + 1,
+	snprintf(running_job_dir, PATH_MAX + 1 - 10,
 		LPJS_RUNNING_DIR "/%lu", job_id);
 	// lpjs_log("Moving %s to %s...\n", pending_job_dir, running_job_dir);
 	rename(pending_job_dir, running_job_dir);
@@ -1117,7 +1117,7 @@ int     lpjs_update_job(node_list_t *node_list, char *payload,
 	job_list_remove_job(pending_jobs, job_get_job_id(job));
 	
 	// FIXME: Update specs file in running dir with node and PIDs
-	snprintf(specs_path, PATH_MAX + 11, "%s/job.specs", running_job_dir);
+	snprintf(specs_path, PATH_MAX + 1, "%s/job.specs", running_job_dir);
 	lpjs_log("Storing updated specs to %s.\n", specs_path);
 	
 	// FIXME: Switch to low-level I/O?
