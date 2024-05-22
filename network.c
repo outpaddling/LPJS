@@ -316,7 +316,7 @@ int     lpjs_send_munge(int msg_fd, const char *msg, int(*close_function)(int))
     // printf("Sending %zd bytes: %s...\n", strlen(cred), cred);
     if ( lpjs_send(msg_fd, 0, cred) < 0 )
     {
-	perror("lpjs_compd: Failed to send credential to dispatchd");
+	perror("%s(): Failed to send credential to dispatchd", __FUNCTION__);
 	// May be close(), lpjs_dispatchd_safe_close(), or lpjs_no_close()
 	close_function(msg_fd);
 	free(cred);
@@ -329,7 +329,8 @@ int     lpjs_send_munge(int msg_fd, const char *msg, int(*close_function)(int))
     // lpjs_log("%s(): Response: %zd byte response '%s'\n", __FUNCTION__, bytes, incoming_msg);
     if ( (bytes < 1) || (strcmp(incoming_msg, LPJS_MUNGE_CRED_VERIFIED) != 0) )
     {
-	lpjs_log("%s(): Expected %s.\n", __FUNCTION__, LPJS_MUNGE_CRED_VERIFIED);
+	lpjs_log("%s(): Expected %s, got %zd bytes.\n", __FUNCTION__,
+		 LPJS_MUNGE_CRED_VERIFIED, bytes);
 	return LPJS_RECV_FAILED;
     }
     // lpjs_log("%s(): Munge message acknolwedged.\n", __FUNCTION__);
