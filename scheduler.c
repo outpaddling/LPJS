@@ -178,8 +178,9 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 		}
 		else
 		{
+		    lpjs_log("%s(): Script started successfully.\n", __FUNCTION__);
 		    job_set_state(job, JOB_STATE_DISPATCHED);
-		    // Don't set compute node until chaperone confirms
+		    // Don't update compute node until chaperone confirms
 		    // successful launch
 		    
 		    // FIXME: Needs adjustment for MPI jobs at the least

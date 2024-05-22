@@ -652,7 +652,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		// FIXME: Somehow this prevents munge_decode() failures in
 		// compd when a series of jobs fail immediately
 		// 300000 seems to be about the minimum
-		usleep(500000);
+		// usleep(500000);
 		
 		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
 		break;
