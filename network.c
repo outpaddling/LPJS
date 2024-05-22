@@ -316,7 +316,7 @@ int     lpjs_send_munge(int msg_fd, const char *msg, int(*close_function)(int))
     // printf("Sending %zd bytes: %s...\n", strlen(cred), cred);
     if ( lpjs_send(msg_fd, 0, cred) < 0 )
     {
-	perror("%s(): Failed to send credential to dispatchd", __FUNCTION__);
+	lpjs_log("%s(): Failed to send credential to dispatchd", __FUNCTION__);
 	// May be close(), lpjs_dispatchd_safe_close(), or lpjs_no_close()
 	close_function(msg_fd);
 	free(cred);
