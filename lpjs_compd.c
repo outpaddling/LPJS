@@ -137,6 +137,7 @@ int     main (int argc, char *argv[])
 	if (poll_fd.revents & POLLIN)
 	{
 	    poll_fd.revents &= ~POLLIN;
+	    lpjs_log("%s(): New event received.\n", __FUNCTION__);
 	    bytes = lpjs_recv_munge(msg_fd, &munge_payload, 0, 0,
 				    &uid, &gid, close);
 	    if ( bytes < 0 )
@@ -480,22 +481,6 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_start,
     }
     write(fd, script_start, strlen(script_start));
     close(fd);
-    
-    /*
-     *  Make sure script is owned by the submitting user.  If lpjs_compd
-     *  is running as non-root, then only that user can run jobs.
-     *  If running as root, chown the script to the appropriate user.
-     */
-    
-    /* Vestige from when running this code before setuid()
-    if ( getuid() == 0 )
-    {
-	lpjs_chown(job, log_dir);
-	lpjs_chown(job, job_script_name);
-    }
-    else
-	lpjs_log("lpjs_compd running as uid %d, can't change script ownership.\n", getuid());
-    */
     
     /*
      *  FIXME: Update node status (keep a copy here in case
