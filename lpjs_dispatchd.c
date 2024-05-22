@@ -591,7 +591,9 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 
 	    case    LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN:
 		lpjs_log("LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN:\n");
+		lpjs_log("Sending auth message.\n");
 		lpjs_send_munge(msg_fd, "Node authorized", lpjs_dispatchd_safe_close);
+		lpjs_log("Auth sent.\n");
 		
 		/*
 		 *  We don't keep potentially thousands of open
@@ -646,6 +648,11 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		else
 		    lpjs_log("%s(): remove_running_job returned NULL.  This is a bug.\n",
 			    __FUNCTION__);
+		
+		// FIXME: Somehow this prevents munge_decode() failures in
+		// compd when a series of jobs fail immediately
+		// 300000 seems to be about the minimum
+		usleep(500000);
 		
 		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
 		break;

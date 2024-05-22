@@ -329,8 +329,8 @@ int     lpjs_send_munge(int msg_fd, const char *msg, int(*close_function)(int))
     // lpjs_log("%s(): Response: %zd byte response '%s'\n", __FUNCTION__, bytes, incoming_msg);
     if ( (bytes < 1) || (strcmp(incoming_msg, LPJS_MUNGE_CRED_VERIFIED) != 0) )
     {
-	lpjs_log("%s(): Expected %s, got %zd bytes.\n", __FUNCTION__,
-		 LPJS_MUNGE_CRED_VERIFIED, bytes);
+	lpjs_log("%s(): Expected %s, got %zd bytes on fd %d.\n", __FUNCTION__,
+		 LPJS_MUNGE_CRED_VERIFIED, bytes, msg_fd);
 	return LPJS_RECV_FAILED;
     }
     // lpjs_log("%s(): Munge message acknolwedged.\n", __FUNCTION__);
@@ -362,6 +362,7 @@ int     lpjs_dispatchd_safe_close(int msg_fd)
      *  will cause restart of dispatchd to fail with "address already in use"
      */
     
+    lpjs_log("%s(): Sending EOT.  No response expected.\n", __FUNCTION__);
     if ( lpjs_send_munge(msg_fd, LPJS_EOT_MSG,
 			 lpjs_no_close) == LPJS_MSG_SENT )
     {
