@@ -17,7 +17,7 @@
 #define JOB_SPEC_STRING_FIELDS  8
 // For lpjs jobs output
 #define JOB_BASIC_PARAMS_HEADER \
-    "    JobID  IDX J/S  P/J P/N MiB/P User Compute-node Script\n"
+    "    JobID  IDX  J/S P/J P/N MiB/P User Compute-node Script\n"
 #define JOB_BASIC_PARAMS_FORMAT JOB_BASIC_NUMS_FORMAT " %s %s %s\n"
 #define JOB_SPECS_ITEMS         (JOB_SPEC_NUMERIC_FIELDS + JOB_SPEC_STRING_FIELDS)
 
