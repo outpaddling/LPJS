@@ -149,16 +149,20 @@ ssize_t lpjs_send(int msg_fd, int send_flags, const char *format, ...)
     int         status;
     uint32_t    msg_len;
     char        buff[LPJS_MSG_LEN_MAX + 1];
-    
-    va_start(ap, format);
-    status = vsnprintf(buff, LPJS_MSG_LEN_MAX + 1, format, ap);
-   
+
     // vsnprintf() returns the length the the string would have been
     // if buff were unlimited, so we have to use strlen.
-    msg_len = htonl(strlen(buff));
-    send(msg_fd, &msg_len, sizeof(uint32_t), 0);
-    
     // Also send '\0' byte to mark end of message
+    msg_len = strlen(buff) + 1;
+    
+    // Prefix message with length
+    snprintf(buff, sizeof(uint32_t), PRId32, htonl(msg_len));
+    
+    // Append message
+    va_start(ap, format);
+    status = vsnprintf(buff + sizeof(uint32_t),
+		       LPJS_MSG_LEN_MAX + 1 - sizeof(uint32_t), format, ap);
+   
     send(msg_fd, buff, strlen(buff) + 1, send_flags);
     va_end(ap);
     
@@ -186,13 +190,14 @@ ssize_t lpjs_recv(int msg_fd, char *buff, size_t buff_len, int flags,
     fd_set      read_fds;
     struct timeval  timeout_tv = { timeout, 0 };    // timeout sec, 0 us
     
+    // FIXME: Use poll() instead?
     // Use select() to implement timeout without using non-blocking fds
     if ( timeout != 0 )
     {
 	// FIXME: select() will return if a lower fd is ready
 	FD_ZERO(&read_fds);
 	FD_SET(msg_fd, &read_fds);
-	lpjs_log("%s: Entering select()...\n", __FUNCTION__);
+	// lpjs_log("%s: Entering select()...\n", __FUNCTION__);
 	if ( select(msg_fd + 1, &read_fds, NULL, NULL, &timeout_tv) == 0 )
 	{
 	    lpjs_log("select() returned 0.\n");
@@ -215,10 +220,10 @@ ssize_t lpjs_recv(int msg_fd, char *buff, size_t buff_len, int flags,
 		bytes_read);
 	exit(EX_DATAERR);
     }
-    msg_len = ntohs(msg_len);
+    msg_len = ntohl(msg_len);
     // lpjs_log("lpjs_recv(): msg_len = %u\n", msg_len);
     
-    if ( msg_len > buff_len - 1 )
+    if ( msg_len > buff_len )
     {
 	lpjs_log("lpjs_recv(): msg_len > buff_len -1.\n");
 	lpjs_log("This is a software bug.\n");
