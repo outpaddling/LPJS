@@ -159,15 +159,15 @@ ssize_t lpjs_send(int msg_fd, int send_flags, const char *format, ...)
     // if buff were unlimited, so we have to use strlen.
     // Also send '\0' byte to mark end of message
     msg_len = strlen(buff + sizeof(uint32_t)) + 1;
-    lpjs_log("buff = %s\n", buff + sizeof(uint32_t));
-    lpjs_log("%s(): msg_len = %" PRId32 "\n", __FUNCTION__, msg_len);
+    // lpjs_log("buff = %s\n", buff + sizeof(uint32_t));
+    // lpjs_log("%s(): msg_len = %" PRId32 "\n", __FUNCTION__, msg_len);
     
     // Prefix message with length in binary format, network byte-order
     *(uint32_t *)buff = htonl(msg_len);
    
     /*
      *  Send length and message in one send() to ensure they're
-     *  received together
+     *  received together, not interleaved with unrelated messages
      */
     send(msg_fd, buff, sizeof(uint32_t) + msg_len, send_flags);
     va_end(ap);

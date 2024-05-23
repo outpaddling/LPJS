@@ -126,7 +126,7 @@ int     main (int argc, char *argv[])
 
     snprintf(outgoing_msg, LPJS_JOB_MSG_MAX + 3, "%c%s\n%s",
 	    LPJS_DISPATCHD_REQUEST_SUBMIT, job_string, script_text);
-    lpjs_log("Sending payload: %s\n", outgoing_msg);
+    // lpjs_log("Sending payload: %s\n", outgoing_msg);
 
     // FIXME: Exiting here causes dispatchd to crash
 
