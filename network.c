@@ -134,7 +134,7 @@ int     lpjs_print_response(int msg_fd, const char *caller_name)
 /***************************************************************************
  *  Description:
  *      Construct and send a message through a socket.  The length of
- *      the entire message is sent as a uint16_t in network byte order
+ *      the entire message is sent as a uint32_t in network byte order
  *      first, so the receiver knows exactly how many bytes to read.
  *
  *  History: 
@@ -147,7 +147,7 @@ ssize_t lpjs_send(int msg_fd, int send_flags, const char *format, ...)
 {
     va_list     ap;
     int         status;
-    uint16_t    msg_len;
+    uint32_t    msg_len;
     char        buff[LPJS_MSG_LEN_MAX + 1];
     
     va_start(ap, format);
@@ -155,11 +155,11 @@ ssize_t lpjs_send(int msg_fd, int send_flags, const char *format, ...)
    
     // vsnprintf() returns the length the the string would have been
     // if buff were unlimited, so we have to use strlen.
-    msg_len = htons(strlen(buff));
-    send(msg_fd, &msg_len, sizeof(uint16_t), 0);
+    msg_len = htonl(strlen(buff));
+    send(msg_fd, &msg_len, sizeof(uint32_t), 0);
     
     // Also send '\0' byte to mark end of message
-    send(msg_fd, buff, strlen(buff), send_flags);
+    send(msg_fd, buff, strlen(buff) + 1, send_flags);
     va_end(ap);
     
     return status;
@@ -168,7 +168,7 @@ ssize_t lpjs_send(int msg_fd, int send_flags, const char *format, ...)
 
 /***************************************************************************
  *  Description:
- *      Receive a message sent by lpjs_send().  A uint16_t containing
+ *      Receive a message sent by lpjs_send().  A uint32_t containing
  *      the message length in network byte order is received first,
  *      followed by the message.  The interface is idential to recv(2).
  *
@@ -181,7 +181,7 @@ ssize_t lpjs_recv(int msg_fd, char *buff, size_t buff_len, int flags,
 		      int timeout)
 
 {
-    uint16_t    msg_len;
+    uint32_t    msg_len;
     ssize_t     bytes_read;
     fd_set      read_fds;
     struct timeval  timeout_tv = { timeout, 0 };    // timeout sec, 0 us
@@ -201,7 +201,7 @@ ssize_t lpjs_recv(int msg_fd, char *buff, size_t buff_len, int flags,
     }
 
     // lpjs_log("Receiving message...\n");
-    bytes_read = recv(msg_fd, &msg_len, sizeof(uint16_t), flags | MSG_WAITALL);
+    bytes_read = recv(msg_fd, &msg_len, sizeof(uint32_t), flags | MSG_WAITALL);
     if ( bytes_read == 0 )
 	return 0;
     else if ( bytes_read == -1 )
@@ -209,7 +209,7 @@ ssize_t lpjs_recv(int msg_fd, char *buff, size_t buff_len, int flags,
 	lpjs_log("lpjs_recv(): recv() returned -1: %s\n", strerror(errno));
 	return 0;
     }
-    else if ( bytes_read != sizeof(uint16_t) )
+    else if ( bytes_read != sizeof(uint32_t) )
     {
 	lpjs_log("lpjs_recv(): Read partial msg_len: %zd bytes.\n",
 		bytes_read);
@@ -226,7 +226,6 @@ ssize_t lpjs_recv(int msg_fd, char *buff, size_t buff_len, int flags,
     }
     
     bytes_read = recv(msg_fd, buff, msg_len, flags | MSG_WAITALL);
-    buff[bytes_read] = '\0';
     // lpjs_log("lpjs_recv(): Got '%s'.\n", buff);
     
     return bytes_read;
@@ -235,7 +234,7 @@ ssize_t lpjs_recv(int msg_fd, char *buff, size_t buff_len, int flags,
 
 /***************************************************************************
  *  Description:
- *      Receive a message sent by lpjs_send().  A uint16_t containing
+ *      Receive a message sent by lpjs_send().  A uint32_t containing
  *      the message length in network byte order is received first,
  *      followed by the message.  The interface is idential to recv(2).
  *
@@ -270,8 +269,8 @@ ssize_t lpjs_recv_munge(int msg_fd, char **payload, int flags, int timeout,
 	if ( munge_status != EMUNGE_SUCCESS )
 	{
 	    close_function(msg_fd);
-	    lpjs_log("%s(): munge_decode() failed.  Error = %s\n",
-		     __FUNCTION__, munge_strerror(munge_status));
+	    lpjs_log("%s(): munge_decode() failed.  %zd bytes, Error = %s\n",
+		     __FUNCTION__, bytes_read, munge_strerror(munge_status));
 	    return -1;  // FIXME: Define return codes
 	}
 	

@@ -142,7 +142,7 @@ int     main (int argc, char *argv[])
 				    &uid, &gid, close);
 	    if ( bytes < 0 )
 	    {
-		lpjs_log("%s(): Got 0 bytes from dispatchd.  Something is wrong.\n",
+		lpjs_log("%s(): Got < 0 bytes from dispatchd.  Something is wrong.\n",
 			__FUNCTION__);
 	    }
 	    else if ( bytes == 0 )
