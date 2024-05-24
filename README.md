@@ -35,20 +35,21 @@ package managers.
 
 ## Status
 
-LPJS is undergoing intensive development of basic functionality, such
-as socket communication, job queuing, node selection, and job
-dispatch.
-Early development will move slowly as we carefully deliberate the
-specification, design, and implementation of each new feature to ensure
-the highest possible code quality.
-The user interface may undergo significant changes as testing reveals
-oversights in design.
+LPJS is basically functional for simple shared-memory multiprocessing
+jobs and job arrays.  Error handling still needs a lot of work, but
+correct batch scripts running on reliable hardware should generally
+work fine at this stage.
 
-We're nearing usability on reliable hardware.  Support for unreliable
+Support for unreliable
 compute nodes (part-time resources that are likely to spontaneously
 disconnect) is a can of worms we're going to kick down the road a bit.
-These will be fully supported in the future, but for now, we'll focus
-on the user interface and documentation for dedicated cluster hardware.
+This will be fully supported in the future, but for now, we'll focus
+on dedicated cluster hardware.
+
+Development will continue move slowly as we focus on improving code
+quality and robustness over adding more features.
+The user interface may undergo significant changes as testing reveals
+oversights in design.
 
 ```
 FreeBSD coral.acadix  bacon ~/Barracuda/CNC-EMDiff/RNA-Seq/LPJS 1007: lpjs submit 04-trim.lpjs

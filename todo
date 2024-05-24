@@ -17,6 +17,8 @@ chaperone: Set LPJS_HOME_DIR for use by scripts?
 
 Later
 -----
+Support real numbers for pmem, useful when using GB or GiB
+
 Log job stats in a separate accounting log
 
 MPI support
