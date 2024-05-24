@@ -24,6 +24,7 @@
 
 #include <xtend/string.h>
 #include <xtend/file.h>
+#include <xtend/proc.h>     // xt_get_home_dir()
 
 #include "node-list.h"
 #include "config.h"
@@ -54,7 +55,8 @@ int     main (int argc, char *argv[])
 		hostname[sysconf(_SC_HOST_NAME_MAX) + 1],
 		shared_fs_marker[PATH_MAX + 1],
 		cmd[LPJS_CMD_MAX + 1],
-		new_path[4096];
+		new_path[LPJS_PATH_ENV_MAX + 1],
+		home_dir[PATH_MAX + 1];
     extern FILE *Log_stream;
     struct stat st;
 
@@ -81,9 +83,12 @@ int     main (int argc, char *argv[])
 	return EX_CANTCREAT;
     }
     
-    snprintf(new_path, 4096, "%s/bin:%s/bin:%s", LOCALBASE, PREFIX, getenv("PATH"));
+    snprintf(new_path, LPJS_PATH_ENV_MAX + 1, "%s/bin:%s/bin:%s", LOCALBASE, PREFIX, getenv("PATH"));
     setenv("PATH", new_path, 1);
     // lpjs_log("PATH = %s\n", new_path);
+    
+    xt_get_home_dir(home_dir, PATH_MAX + 1);
+    setenv("LPJS_HOME_DIR", home_dir, 1);
     
     temp = getenv("LPJS_CORES_PER_JOB");
     procs = strtoul(temp, &end, 10);

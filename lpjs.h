@@ -55,5 +55,6 @@ enum
 #define LPJS_GiB                1073741824
 
 #define LPJS_MAX_INT_DIGITS     64
+#define LPJS_PATH_ENV_MAX       4096
 
 #endif  // _LPJS_H_

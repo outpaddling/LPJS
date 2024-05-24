@@ -10,8 +10,6 @@ lpjs restart not working on Linux
 systemctl restart lpjs_compd doesn't work
     Waiting a while and running restart again starts the daemon
 
-chaperone: Set LPJS_HOME_DIR for use by scripts?
-
 
 Later
 -----
