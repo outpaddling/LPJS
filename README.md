@@ -10,12 +10,13 @@ A cluster or grid is anywhere from one to thousands of computers
 with managed CPU and memory resources, for the purpose of performing
 computationally intensive jobs in parallel (simultaneously).
 
-Unlike other batch systems, LPJS is designed to be simple, easy to deploy and
-manage, and portable to __all__ POSIX platforms.
+Unlike other batch systems, LPJS is designed to be simple, easy to deploy,
+manage and use, and portable to __all__ POSIX platforms.
 
 Users are often forced to use a particular operating system by
 software vendors, who only support one or a few systems.  In contrast,
-LPJS will never limit your freedom to choose an operating system.
+LPJS will never limit your freedom to choose between POSIX standard
+operating systems.
 This choice should be based on the technical merits of the OS, such
 as reliability and performance, not on what platforms will run the
 software you need.
@@ -29,9 +30,11 @@ systems, or OpenBSD for maximum security.  Use the highly portable NetBSD
 to utilize hardware not supported by other platforms, and use NetBSD's
 portable pkgsrc package manager to install common software on all of
 your nodes, whether running BSD, Linux, macOS, or any other POSIX platform.
+
 The pkgsrc package manager is also highly portable to POSIX-compatible
 systems and provides one of the largest package collections of existing
-package managers.
+package managers.  Hence, pkgsrc enables the use of multiple operating
+systems running __exactly__ the same application software.
 
 ## Status
 
@@ -50,6 +53,12 @@ Development will continue move slowly as we focus on improving code
 quality and robustness over adding more features.
 The user interface may undergo significant changes as testing reveals
 oversights in design.
+
+Example job scripts for a real RNA-Seq differential analysis are available
+at [https://github.com/auerlab/CNC-EMDiff/tree/master/RNA-Seq/LPJS](https://github.com/auerlab/CNC-EMDiff/tree/master/RNA-Seq/LPJS).
+The output below shows LPJS performing adapter trimming on our small
+hybrid test cluster consisting of PC workstations, Virtual Machines, and
+a Mac Mini M1.
 
 ```
 FreeBSD coral.acadix  bacon ~/Barracuda/CNC-EMDiff/RNA-Seq/LPJS 1007: lpjs submit 04-trim.lpjs
@@ -113,10 +122,9 @@ Running
       593   11   18   2   2    10 bacon herring.acadix.biz 04-trim.lpjs
 ```
 
-Basic usability for brave souls willing to test alpha-quality
-software and provide feedback will be indicated by the first full
-release, 0.1.0.  Pre-releases beginning with 0.0.1 will follow the
-addition of essential core features.
+Basic usability for those willing to test alpha-quality software
+and provide feedback will be indicated by the first full
+release, 0.1.0.
 
 LPJS is currently being integrated with
 [SPCM (Simple, Portable Cluster Manager)](https://github.com/outpaddling/SPCM)
@@ -142,7 +150,7 @@ Total                down        80    0  458455       0 -         -
 ## Security
 
 LPJS, like other job schedulers and resource managers, is a tool that
-facilitates *remote execution of arbitrary code*.  These words should
+facilitates __remote execution of arbitrary code__.  These words should
 instill a healthy level of fear, and motivate you to be extra careful
 to protect your own data security.
 
@@ -166,7 +174,7 @@ LPJS uses [munge](https://github.com/dun/munge) to authenticate messages
 between nodes.  This requires all nodes to have a shared munge key file.
 THE MUNGE KEY FILE MUST BE KEPT SECURE AT ALL TIMES ON ALL NODES.
 Use secure procedures to distribute it to all nodes, ensuring that it
-is never visible to unauthorized users, even for a moment.
+is never visible to anyone except the systems manager, even for a moment.
 
 If utilizing publicly accessible computers as compute nodes, you might
 consider running LPJS inside a virtual machine,
