@@ -558,19 +558,21 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		lpjs_log("LPJS_DISPATCHD_REQUEST_JOB_STATUS\n");
 		// FIXME: factor out to lpjs_send_job_list(), check
 		// all messages for success
-		if ( lpjs_send_munge(msg_fd, "\nRunning\n\n",
-				lpjs_dispatchd_safe_close) == LPJS_MSG_SENT )
+		if ( lpjs_send_munge(msg_fd, "Running\n\n",
+				lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
 		{
-		    job_list_send_params(msg_fd, running_jobs);
-		    lpjs_dispatchd_safe_close(msg_fd);
+		    lpjs_log("%s(): Failed to send Running.\n", __FUNCTION__);
+		    break;
 		}
-		if ( lpjs_send_munge(msg_fd, "Pending\n\n",
+		job_list_send_params(msg_fd, running_jobs);
+		if ( lpjs_send_munge(msg_fd, "\nPending\n\n",
 				lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
 		{
 		    lpjs_log("%s(): Failed to send Pending.\n", __FUNCTION__);
 		    break;
 		}
 		job_list_send_params(msg_fd, pending_jobs);
+		lpjs_dispatchd_safe_close(msg_fd);
 		break;
 	    
 	    case    LPJS_DISPATCHD_REQUEST_SUBMIT:
