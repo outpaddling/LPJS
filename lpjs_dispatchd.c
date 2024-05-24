@@ -777,7 +777,7 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
     script_text = end + 1;
     
     snprintf(script_path, PATH_MAX + 1, "%s/%s",
-	     job_get_submit_directory(submission), job_get_script_name(submission));
+	     job_get_submit_dir(submission), job_get_script_name(submission));
     for (c = 0; c < job_get_job_count(submission); ++c)
     {
 	lpjs_log("%s(): Submit script %s:%s from %d, %d\n", __FUNCTION__,

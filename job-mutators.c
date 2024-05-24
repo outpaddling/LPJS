@@ -950,17 +950,17 @@ int     job_set_submit_node_cpy(job_t *job_ptr, char * new_submit_node, size_t a
  *      
  *
  *  Description:
- *      Mutator for submit_directory member in a job_t structure.
- *      Use this function to set submit_directory in a job_t object
+ *      Mutator for submit_dir member in a job_t structure.
+ *      Use this function to set submit_dir in a job_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
- *      submit_directory is a pointer, data previously pointed to should
+ *      submit_dir is a pointer, data previously pointed to should
  *      be freed before calling this function to avoid memory
  *      leaks.
  *
  *  Arguments:
  *      job_ptr         Pointer to the structure to set
- *      new_submit_directory The new value for submit_directory
+ *      new_submit_dir The new value for submit_dir
  *
  *  Returns:
  *      JOB_DATA_OK if the new value is acceptable and assigned
@@ -968,9 +968,9 @@ int     job_set_submit_node_cpy(job_t *job_ptr, char * new_submit_node, size_t a
  *
  *  Examples:
  *      job_t           job;
- *      char *          new_submit_directory;
+ *      char *          new_submit_dir;
  *
- *      if ( job_set_submit_directory(&job, new_submit_directory)
+ *      if ( job_set_submit_dir(&job, new_submit_dir)
  *              == JOB_DATA_OK )
  *      {
  *      }
@@ -983,14 +983,14 @@ int     job_set_submit_node_cpy(job_t *job_ptr, char * new_submit_node, size_t a
  *  2024-05-10  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-int     job_set_submit_directory(job_t *job_ptr, char * new_submit_directory)
+int     job_set_submit_dir(job_t *job_ptr, char * new_submit_dir)
 
 {
-    if ( new_submit_directory == NULL )
+    if ( new_submit_dir == NULL )
 	return JOB_DATA_OUT_OF_RANGE;
     else
     {
-	job_ptr->submit_directory = new_submit_directory;
+	job_ptr->submit_dir = new_submit_dir;
 	return JOB_DATA_OK;
     }
 }
@@ -1002,14 +1002,14 @@ int     job_set_submit_directory(job_t *job_ptr, char * new_submit_directory)
  *      
  *
  *  Description:
- *      Mutator for an array element of submit_directory member in a job_t
- *      structure. Use this function to set job_ptr->submit_directory[c]
+ *      Mutator for an array element of submit_dir member in a job_t
+ *      structure. Use this function to set job_ptr->submit_dir[c]
  *      in a job_t object from non-member functions.
  *
  *  Arguments:
  *      job_ptr         Pointer to the structure to set
- *      c               Subscript to the submit_directory array
- *      new_submit_directory_element The new value for submit_directory[c]
+ *      c               Subscript to the submit_dir array
+ *      new_submit_dir_element The new value for submit_dir[c]
  *
  *  Returns:
  *      JOB_DATA_OK if the new value is acceptable and assigned
@@ -1018,9 +1018,9 @@ int     job_set_submit_directory(job_t *job_ptr, char * new_submit_directory)
  *  Examples:
  *      job_t           job;
  *      size_t          c;
- *      char *          new_submit_directory_element;
+ *      char *          new_submit_dir_element;
  *
- *      if ( job_set_submit_directory_ae(&job, c, new_submit_directory_element)
+ *      if ( job_set_submit_dir_ae(&job, c, new_submit_dir_element)
  *              == JOB_DATA_OK )
  *      {
  *      }
@@ -1033,14 +1033,14 @@ int     job_set_submit_directory(job_t *job_ptr, char * new_submit_directory)
  *  2024-05-10  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-int     job_set_submit_directory_ae(job_t *job_ptr, size_t c, char  new_submit_directory_element)
+int     job_set_submit_dir_ae(job_t *job_ptr, size_t c, char  new_submit_dir_element)
 
 {
     if ( false )
 	return JOB_DATA_OUT_OF_RANGE;
     else
     {
-	job_ptr->submit_directory[c] = new_submit_directory_element;
+	job_ptr->submit_dir[c] = new_submit_dir_element;
 	return JOB_DATA_OK;
     }
 }
@@ -1052,15 +1052,15 @@ int     job_set_submit_directory_ae(job_t *job_ptr, size_t c, char  new_submit_d
  *      
  *
  *  Description:
- *      Mutator for submit_directory member in a job_t structure.
- *      Use this function to set submit_directory in a job_t object
+ *      Mutator for submit_dir member in a job_t structure.
+ *      Use this function to set submit_dir in a job_t object
  *      from non-member functions.  This function copies the array pointed to
- *      by new_submit_directory to job_ptr->submit_directory.
+ *      by new_submit_dir to job_ptr->submit_dir.
  *
  *  Arguments:
  *      job_ptr         Pointer to the structure to set
- *      new_submit_directory The new value for submit_directory
- *      array_size      Size of the submit_directory array.
+ *      new_submit_dir The new value for submit_dir
+ *      array_size      Size of the submit_dir array.
  *
  *  Returns:
  *      JOB_DATA_OK if the new value is acceptable and assigned
@@ -1068,10 +1068,10 @@ int     job_set_submit_directory_ae(job_t *job_ptr, size_t c, char  new_submit_d
  *
  *  Examples:
  *      job_t           job;
- *      char *          new_submit_directory;
+ *      char *          new_submit_dir;
  *      size_t          array_size;
  *
- *      if ( job_set_submit_directory_cpy(&job, new_submit_directory, array_size)
+ *      if ( job_set_submit_dir_cpy(&job, new_submit_dir, array_size)
  *              == JOB_DATA_OK )
  *      {
  *      }
@@ -1084,15 +1084,15 @@ int     job_set_submit_directory_ae(job_t *job_ptr, size_t c, char  new_submit_d
  *  2024-05-10  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-int     job_set_submit_directory_cpy(job_t *job_ptr, char * new_submit_directory, size_t array_size)
+int     job_set_submit_dir_cpy(job_t *job_ptr, char * new_submit_dir, size_t array_size)
 
 {
-    if ( new_submit_directory == NULL )
+    if ( new_submit_dir == NULL )
 	return JOB_DATA_OUT_OF_RANGE;
     else
     {
 	// FIXME: Assuming char array is a null-terminated string
-	strlcpy(job_ptr->submit_directory, new_submit_directory, array_size);
+	strlcpy(job_ptr->submit_dir, new_submit_dir, array_size);
 	return JOB_DATA_OK;
     }
 }

@@ -109,8 +109,8 @@ int     main (int argc, char *argv[])
     lpjs_log("push_command = %s\n", job_get_push_command(job));
     
     script_name = job_get_script_name(job);
-    // submit_directory = job_get_submit_directory(job);
-    // printf("Absolute path = %s/%s\n", submit_directory, script_name);
+    // submit_dir = job_get_submit_dir(job);
+    // printf("Absolute path = %s/%s\n", submit_dir, script_name);
 
     if ( (msg_fd = lpjs_connect_to_dispatchd(node_list)) == -1 )
     {

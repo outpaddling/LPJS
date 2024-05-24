@@ -31,7 +31,7 @@ struct job
     char            *user_name;
     char            *primary_group_name;
     char            *submit_node;
-    char            *submit_directory;
+    char            *submit_dir;
     char            *script_name;
     char            *compute_node;
     char            *log_dir;

@@ -32,9 +32,9 @@ int job_set_primary_group_name_cpy(job_t *job_ptr, char *new_primary_group_name,
 int job_set_submit_node(job_t *job_ptr, char *new_submit_node);
 int job_set_submit_node_ae(job_t *job_ptr, size_t c, char new_submit_node_element);
 int job_set_submit_node_cpy(job_t *job_ptr, char *new_submit_node, size_t array_size);
-int job_set_submit_directory(job_t *job_ptr, char *new_submit_directory);
-int job_set_submit_directory_ae(job_t *job_ptr, size_t c, char new_submit_directory_element);
-int job_set_submit_directory_cpy(job_t *job_ptr, char *new_submit_directory, size_t array_size);
+int job_set_submit_dir(job_t *job_ptr, char *new_submit_dir);
+int job_set_submit_dir_ae(job_t *job_ptr, size_t c, char new_submit_dir_element);
+int job_set_submit_dir_cpy(job_t *job_ptr, char *new_submit_dir, size_t array_size);
 int job_set_script_name(job_t *job_ptr, char *new_script_name);
 int job_set_script_name_ae(job_t *job_ptr, size_t c, char new_script_name_element);
 int job_set_script_name_cpy(job_t *job_ptr, char *new_script_name, size_t array_size);

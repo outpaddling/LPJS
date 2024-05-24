@@ -7,7 +7,7 @@
 // for job_read_from_string()
 // Numeric: job_id, array_index, job_count, procs_per_job, min_procs_per_node,
 //          mem_per_proc, chaperone_pid, job_pid
-// String:  user_name, primary_group_name, submit_node, submit_directory,
+// String:  user_name, primary_group_name, submit_node, submit_dir,
 //          script_name, run_host, push_command
 #define JOB_BASIC_NUMS_FORMAT   "%9lu %4lu %4u %3u %3u %5zu"
 #define JOB_SPEC_NUMS_FORMAT    JOB_BASIC_NUMS_FORMAT " %u %u %u"

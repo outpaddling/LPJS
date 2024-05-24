@@ -536,31 +536,31 @@ char  job_get_submit_node_ae(job_t *job_ptr, size_t c)
  *      
  *
  *  Description:
- *      Accessor for submit_directory member in a job_t structure.
- *      Use this function to get submit_directory in a job_t object
+ *      Accessor for submit_dir member in a job_t structure.
+ *      Use this function to get submit_dir in a job_t object
  *      from non-member functions.
  *
  *  Arguments:
  *      job_ptr         Pointer to the structure to set
  *
  *  Returns:
- *      Value of the structure member submit_directory.
+ *      Value of the structure member submit_dir.
  *
  *  Examples:
  *      job_t           job;
- *      char *          submit_directory;
+ *      char *          submit_dir;
  *
- *      submit_directory = job_get_submit_directory(&job);
+ *      submit_dir = job_get_submit_dir(&job);
  *
  *  History: 
  *  Date        Name        Modification
  *  2024-05-10  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-char *    job_get_submit_directory(job_t *job_ptr)
+char *    job_get_submit_dir(job_t *job_ptr)
 
 {
-    return job_ptr->submit_directory;
+    return job_ptr->submit_dir;
 }
 
 
@@ -570,33 +570,33 @@ char *    job_get_submit_directory(job_t *job_ptr)
  *      
  *
  *  Description:
- *      Accessor for an array element of submit_directory member in a job_t
- *      structure. Use this function to get job_ptr->submit_directory[c]
+ *      Accessor for an array element of submit_dir member in a job_t
+ *      structure. Use this function to get job_ptr->submit_dir[c]
  *      in a job_t object from non-member functions.
  *
  *  Arguments:
  *      job_ptr         Pointer to the structure to get
- *      c               Subscript to the submit_directory array
+ *      c               Subscript to the submit_dir array
  *
  *  Returns:
- *      Value of one element of structure member submit_directory.
+ *      Value of one element of structure member submit_dir.
  *
  *  Examples:
  *      job_t           job;
  *      size_t          c;
- *      char *          submit_directory_element;
+ *      char *          submit_dir_element;
  *
- *      submit_directory_element = job_get_submit_directory_ae(&job, c);
+ *      submit_dir_element = job_get_submit_dir_ae(&job, c);
  *
  *  History: 
  *  Date        Name        Modification
  *  2024-05-10  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-char  job_get_submit_directory_ae(job_t *job_ptr, size_t c)
+char  job_get_submit_dir_ae(job_t *job_ptr, size_t c)
 
 {
-    return job_ptr->submit_directory[c];
+    return job_ptr->submit_dir[c];
 }
 
 

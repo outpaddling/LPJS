@@ -375,7 +375,7 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_start,
      *  go to user's home dir.
      */
     
-    working_dir = job_get_submit_directory(job);
+    working_dir = job_get_submit_dir(job);
     
     lpjs_get_marker_filename(shared_fs_marker, job_get_submit_node(job),
 			     PATH_MAX + 1);

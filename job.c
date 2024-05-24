@@ -69,7 +69,7 @@ void    job_init(job_t *job)
     job->user_name = NULL;
     job->primary_group_name = NULL;
     job->submit_node = NULL;
-    job->submit_directory = NULL;
+    job->submit_dir = NULL;
     job->script_name = NULL;
     job->compute_node = "TBD";  // For lpjs jobs output
     job->log_dir = NULL;
@@ -101,8 +101,8 @@ job_t   *job_dup(job_t *job)
 	new_job->primary_group_name = strdup(job->primary_group_name);
     if ( job->submit_node != NULL )
 	new_job->submit_node = strdup(job->submit_node);
-    if ( job->submit_directory != NULL )
-	new_job->submit_directory = strdup(job->submit_directory);
+    if ( job->submit_dir != NULL )
+	new_job->submit_dir = strdup(job->submit_dir);
     if ( job->script_name != NULL )
 	new_job->script_name = strdup(job->script_name);
     if ( job->compute_node != NULL )
@@ -133,7 +133,7 @@ int     job_print_full_specs(job_t *job, FILE *stream)
 	    job->min_procs_per_node, job->mem_per_proc,
 	    job->chaperone_pid, job->job_pid, job->state,
 	    job->user_name, job->primary_group_name,
-	    job->submit_node, job->submit_directory,
+	    job->submit_node, job->submit_dir,
 	    job->script_name, job->compute_node,
 	    job->log_dir, job->push_command);
 }
@@ -157,7 +157,7 @@ int     job_print_to_string(job_t *job, char *str, size_t buff_size)
 		    job->min_procs_per_node, job->mem_per_proc,
 		    job->chaperone_pid, job->job_pid, job->state,
 		    job->user_name, job->primary_group_name,
-		    job->submit_node, job->submit_directory,
+		    job->submit_node, job->submit_dir,
 		    job->script_name, job->compute_node,
 		    job->log_dir, job->push_command);
 }
@@ -257,7 +257,7 @@ int     job_parse_script(job_t *job, const char *script_name)
 	exit(EX_UNAVAILABLE);
     }
     
-    if ( (job->submit_directory = getcwd(NULL, 0)) == NULL )
+    if ( (job->submit_dir = getcwd(NULL, 0)) == NULL )
     {
 	fprintf(stderr, "%s: malloc() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
@@ -499,7 +499,7 @@ int     job_read_from_string(job_t *job, const char *string, char **end)
     }
     ++items;
     
-    if ( (job->submit_directory = strdup(strsep(&p, " \t"))) == NULL )
+    if ( (job->submit_dir = strdup(strsep(&p, " \t"))) == NULL )
     {
 	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
@@ -620,7 +620,7 @@ void    job_free(job_t **job)
     free((*job)->user_name);
     free((*job)->primary_group_name);
     free((*job)->submit_node);
-    free((*job)->submit_directory);
+    free((*job)->submit_dir);
     free((*job)->script_name);
     if ( (*job)->compute_node != NULL )
 	free((*job)->compute_node);
@@ -714,7 +714,7 @@ void    job_setenv(job_t *job)
     setenv("LPJS_USER_NAME", job->user_name, 1);
     setenv("LPJS_PRIMARY_GROUP_NAME", job->primary_group_name, 1);
     setenv("LPJS_SUBMIT_HOST", job->submit_node, 1);
-    setenv("LPJS_SUBMIT_DIRECTORY", job->submit_directory, 1);
+    setenv("LPJS_SUBMIT_DIRECTORY", job->submit_dir, 1);
     setenv("LPJS_SCRIPT_NAME", job->script_name, 1);
     setenv("LPJS_COMPUTE_NODE", job->compute_node, 1);
     setenv("LPJS_JOB_LOG_DIR", job->log_dir, 1);
