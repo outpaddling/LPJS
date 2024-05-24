@@ -75,13 +75,21 @@ EOM
     if [ $resp = 1 ]; then
 	printf "Type Ctrl+c to terminate $daemon.\n"
 	pause
-	$daemon
+	if [ $daemon = munged ]; then
+	    $daemon --foreground
+	else
+	    $daemon
+	fi
 	pause
     else
 	printf "Logged messages can be viewed using \"lpjs log\"\n"
 	printf "or the \"View log(s)\" menu option.\n"
 	pause
-	$daemon --daemonize
+	if [ $daemon = munged ]; then
+	    $daemon
+	else
+	    $daemon --daemonize
+	fi
 	echo $?
 	pgrep -lf $daemon
 	pause
@@ -104,11 +112,13 @@ do
     lpjs banner
     cat << EOM
 
-1.. Manually start dispatchd (temporarily make this a head node)
-2.. Manually start compd (temporarily make this a compute node)
-3.. Stop background dispatchd
-4.. Stop background compd
-5.. View log(s)
+1.. Manually start munged (required by both dispatchd and compd)
+2.. Manually start dispatchd (temporarily make this a head node)
+3.. Manually start compd (temporarily make this a compute node)
+4.. Stop background munged
+5.. Stop background dispatchd
+6.. Stop background compd
+7.. View log(s)
 Q.. Quit
 
 EOM
@@ -116,26 +126,48 @@ EOM
     read -p 'Selection? ' resp
     case 0$resp in
     01)
-	start_daemon lpjs_dispatchd
+	start_daemon munged
 	;;
     
     02)
+	start_daemon lpjs_dispatchd
+	;;
+    
+    03)
 	start_daemon lpjs_compd
 	;;
 
-    03)
-	pkill -f lpjs_dispatchd
-	pgrep -lf lpjs_dispatchd
-	pause
-	;;
-    
     04)
-	pkill -f lpjs_compd
-	pgrep -lf lpjs_compd
+	printf "Before pkill:\n"
+	pgrep -lf munged
+	pkill -f munged
+	printf "After pkill:\n"
+	sleep 1
+	pgrep -lf munged
 	pause
 	;;
     
     05)
+	printf "Before pkill:\n"
+	pgrep -lf lpjs_dispatchd
+	pkill -f lpjs_dispatchd
+	sleep 1
+	printf "After pkill:\n"
+	pgrep -lf lpjs_dispatchd
+	pause
+	;;
+    
+    06)
+	printf "Before pkill:\n"
+	pgrep -lf lpjs_compd
+	pkill -f lpjs_compd
+	sleep 1
+	printf "After pkill:\n"
+	pgrep -lf lpjs_compd
+	pause
+	;;
+    
+    07)
 	lpjs log
 	pause
 	;;
