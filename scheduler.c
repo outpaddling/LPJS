@@ -92,7 +92,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
     
     if ( lpjs_match_nodes(job, node_list, matched_nodes) > 0 )
     {
-	lpjs_log("%s(): Found %u available nodes.  Dispatching...\n",
+	lpjs_log("%s(): Found %u available nodes.\n",
 		__FUNCTION__, node_list_get_compute_node_count(matched_nodes));
 	
 	/*

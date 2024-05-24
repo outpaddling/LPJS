@@ -233,7 +233,7 @@ ssize_t lpjs_recv(int msg_fd, char *buff, size_t buff_len, int flags,
     {
 	lpjs_log("lpjs_recv(): msg_len > buff_len -1.\n");
 	lpjs_log("This is a software bug.\n");
-	exit(EX_SOFTWARE);
+	return 0;
     }
     
     bytes_read = recv(msg_fd, buff, msg_len, flags | MSG_WAITALL);

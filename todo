@@ -1,6 +1,8 @@
 
 Now
 ---
+lpjs restart reloads jobs, but does not restore node states
+
 Add munge to ad-hoc
 
 Save user-specified node states to disk and reload at startup
