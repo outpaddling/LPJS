@@ -24,7 +24,7 @@ struct job
     unsigned        job_count;
     unsigned        procs_per_job;
     unsigned        min_procs_per_node;
-    size_t          mem_per_proc;
+    size_t          mem_per_proc;       // FIXME: Change to phys_MiB
     pid_t           chaperone_pid;
     pid_t           job_pid;
     job_state_t     state;

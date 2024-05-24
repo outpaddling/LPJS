@@ -245,8 +245,8 @@ int     lpjs_process_events(node_list_t *node_list)
     job_list_t          *pending_jobs = job_list_new(),
 			*running_jobs = job_list_new();
 
-    lpjs_load_job_list(pending_jobs, LPJS_PENDING_DIR);
-    lpjs_load_job_list(running_jobs, LPJS_RUNNING_DIR);
+    lpjs_load_job_list(pending_jobs, node_list, LPJS_PENDING_DIR);
+    lpjs_load_job_list(running_jobs, node_list, LPJS_RUNNING_DIR);
     
     /*
      *  Step 1: Create a socket for listening for new connections.
@@ -1179,13 +1179,15 @@ int     lpjs_update_job(node_list_t *node_list, char *payload,
  *  2024-05-08  Jason Bacon Begin
  ***************************************************************************/
 
-int     lpjs_load_job_list(job_list_t *job_list, char *spool_dir)
+int     lpjs_load_job_list(job_list_t *job_list, node_list_t *node_list,
+			   char *spool_dir)
 
 {
     DIR             *dp;
     struct dirent   *entry;
     char            specs_path[PATH_MAX + 1];
     extern FILE     *Log_stream;
+    node_t          *compute_node;
     
     lpjs_log("Reloading jobs from %s...\n", spool_dir);
     if ( (dp = opendir(spool_dir)) == NULL )
@@ -1217,6 +1219,21 @@ int     lpjs_load_job_list(job_list_t *job_list, char *spool_dir)
 	    }
 	    lpjs_log("Loaded job #%s\n", entry->d_name);
 	    job_list_add_job(job_list, job);
+	    
+	    // FIXME: Update node status if job is running
+	    // This code is untested
+	    if ( strcmp(spool_dir, LPJS_RUNNING_DIR) == 0 )
+	    {
+		compute_node = node_list_find_hostname(node_list,
+						       job_get_compute_node(job));
+		node_set_procs_used(compute_node,
+				    node_get_procs_used(compute_node) - 
+				    job_get_procs_per_job(job));
+		node_set_phys_MiB_used(compute_node,
+				       node_get_phys_MiB_used(compute_node) - 
+				       job_get_procs_per_job(job) *
+				       job_get_mem_per_proc(job));
+	    }
 	}
     }
     closedir(dp);
