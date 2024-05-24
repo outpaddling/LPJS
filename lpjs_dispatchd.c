@@ -1227,10 +1227,10 @@ int     lpjs_load_job_list(job_list_t *job_list, node_list_t *node_list,
 		compute_node = node_list_find_hostname(node_list,
 						       job_get_compute_node(job));
 		node_set_procs_used(compute_node,
-				    node_get_procs_used(compute_node) - 
+				    node_get_procs_used(compute_node) +
 				    job_get_procs_per_job(job));
 		node_set_phys_MiB_used(compute_node,
-				       node_get_phys_MiB_used(compute_node) - 
+				       node_get_phys_MiB_used(compute_node) +
 				       job_get_procs_per_job(job) *
 				       job_get_mem_per_proc(job));
 	    }
