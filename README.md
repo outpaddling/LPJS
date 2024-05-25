@@ -15,24 +15,24 @@ manage and use, and portable to __all__ POSIX platforms.
 
 Users are often forced to use a particular operating system by
 software vendors, who only support one or a few systems.  In contrast,
-LPJS will never limit your freedom to choose between POSIX standard
-operating systems.
+LPJS will never limit your freedom to choose between POSIX-based systems.
 This choice should be based on the technical merits of the OS, such
-as reliability and performance, not on what platforms will run the
+as reliability and performance, not on which platforms will run the
 software you need.
 
-With LPJS, you are even free to use multiple
+With LPJS, you can even use multiple
 operating systems in the same cluster or grid.  E.g., use RHEL on some nodes
-to run commercial software, Debian or FreeBSD for easy installation from
-huge collections of the latest open source packages, DragonFly for optimal
+to run commercial software, Debian or FreeBSD for easy installation of
+open source software from huge package collections, DragonFly for optimal
 multithreading, macOS to capitalize on the power of Apple Silicon
 systems, or OpenBSD for maximum security.  Use the highly portable NetBSD
-to utilize hardware not supported by other platforms, and use NetBSD's
-portable pkgsrc package manager to install common software on all of
-your nodes, whether running BSD, Linux, macOS, or any other POSIX platform.
+to utilize hardware not supported by other platforms.
 
-The pkgsrc package manager is also highly portable to POSIX-compatible
-systems and provides one of the largest package collections of existing
+Use NetBSD's portable [pkgsrc](https://pkgsrc.org) package manager to
+install common software on all of your nodes, whether running BSD,
+Linux, macOS, or any other POSIX platform.
+The pkgsrc package manager is portable to virtually all POSIX-compatible
+systems and provides one of the largest package collections among existing
 package managers.  Hence, pkgsrc enables the use of multiple operating
 systems running __exactly__ the same application software.
 
@@ -47,10 +47,10 @@ Support for unreliable
 compute nodes (part-time resources that are likely to spontaneously
 disconnect) is a can of worms we're going to kick down the road a bit.
 This will be fully supported in the future, but for now, we'll focus
-on dedicated cluster hardware.
+on reliable, dedicated hardware.
 
 Development will continue move slowly as we focus on improving code
-quality and robustness over adding more features.
+quality and robustness before adding many more features.
 The user interface may undergo significant changes as testing reveals
 oversights in design.
 
