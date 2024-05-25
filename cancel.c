@@ -85,7 +85,7 @@ int     lpjs_request_cancel(node_list_t *node_list, unsigned long jobid)
     
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%lu",
 	    LPJS_DISPATCHD_REQUEST_CANCEL, jobid);
-    lpjs_log("Sending payload: %s\n", outgoing_msg);
+    lpjs_log("Canceling job %lu\n", jobid);
 
     // FIXME: Exiting here causes dispatchd to crash
 
