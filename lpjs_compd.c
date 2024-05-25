@@ -360,6 +360,7 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_start,
 
 {
     char    temp_wd[PATH_MAX + 1 - 20],
+	    start_wd[PATH_MAX + 1 - 20],
 	    log_dir[PATH_MAX + 1],
 	    shared_fs_marker[LPJS_SHARED_FS_MARKER_MAX + 1],
 	    shared_fs_marker_path[PATH_MAX + 1],
@@ -431,7 +432,8 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_start,
 	}
     }
     
-    lpjs_log("Changing to %s...\n", working_dir);
+    getcwd(start_wd, PATH_MAX + 1);
+    lpjs_log("Changing from %s to %s...\n", start_wd, working_dir);
     if ( chdir(working_dir) != 0 )
     {
 	lpjs_log("Failed to enter working dir: %s\n", working_dir);
