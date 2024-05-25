@@ -422,17 +422,13 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_start,
 	    
 	    mkdir(temp_wd, 0700);
 	    working_dir = temp_wd;
-	    
-	    /* Vestige from when running this before setuid()
-	    if ( getuid() == 0 )
-		lpjs_chown(job, working_dir);
-	    else
-		lpjs_log("lpjs_compd running as uid %d, can't change working dir ownership.\n", getuid());
-	    */
 	}
     }
     
-    getcwd(start_wd, PATH_MAX + 1);
+    // FIXME: Attempting to fix hanging getcwd() on NetBSD
+    xt_get_home_dir(start_wd, PATH_MAX + 1 - 20);
+    chdir(start_wd);
+    // getcwd(start_wd, PATH_MAX + 1 - 20);
     lpjs_log("Changing from %s to %s...\n", start_wd, working_dir);
     if ( chdir(working_dir) != 0 )
     {
@@ -441,7 +437,7 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_start,
 	return EX_NOPERM;
     }
     
-    if ( getcwd(temp_wd, PATH_MAX + 1) == NULL )
+    if ( getcwd(temp_wd, PATH_MAX + 1 - 20) == NULL )
     {
 	lpjs_log("getcwd() failed: errno = %s\n", strerror(errno));
 	// Odd that chdir() indicates success, but getcwd() fails
