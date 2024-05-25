@@ -79,7 +79,8 @@ int     main (int argc, char *argv[])
 	     log_dir, job_id);
     if ( (Log_stream = lpjs_log_output(log_file)) == NULL )
     {
-	fprintf(stderr, "chaperone: Failed to create log file.\n");
+	fprintf(stderr, "chaperone: Failed to create log file: %s.\n",
+		log_file);
 	return EX_CANTCREAT;
     }
     

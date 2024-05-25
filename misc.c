@@ -90,14 +90,26 @@ FILE    *lpjs_log_output(const char *pathname)
 
 {
     FILE    *fp;
+    char    *log_dir,
+	    *end;
     
     // FIXME: Prevent unchecked log growth
-    if ( xt_rmkdir(LPJS_LOG_DIR, 0755) != 0 )
+    // FIXME: Should we even be doing this here, or rely on the package
+    // manager and compd to create directory structure?
+    // FIXME: Error out if strdup() fails
+    log_dir = strdup(pathname);
+    if ( (end = strrchr(log_dir, '/')) != NULL )
     {
-	fprintf(stderr, "%s(): Cannot create %s: %s\n", __FUNCTION__,
-		LPJS_LOG_DIR, strerror(errno));
-	return NULL;
+	*end = '\0';
+	fprintf(stderr, "Creating %s...\n", log_dir);
+	if ( xt_rmkdir(log_dir, 0755) != 0 )
+	{
+	    fprintf(stderr, "%s(): Cannot create %s: %s\n", __FUNCTION__,
+		    log_dir, strerror(errno));
+	    return NULL;
+	}
     }
+    free(log_dir);
 
     fp = fopen(pathname, "w");
     if ( fp == NULL )
