@@ -425,10 +425,11 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_start,
 	}
     }
     
-    // FIXME: Attempting to fix hanging getcwd() on NetBSD
+    // getcwd() hangs on NetBSD when running as a service
+    // chdir() to $HOME beforehand fixes the issue
+    // FIXME: Find out why
     xt_get_home_dir(start_wd, PATH_MAX + 1 - 20);
     chdir(start_wd);
-    // getcwd(start_wd, PATH_MAX + 1 - 20);
     lpjs_log("Changing from %s to %s...\n", start_wd, working_dir);
     if ( chdir(working_dir) != 0 )
     {
