@@ -12,6 +12,9 @@ lpjs restart not working on Linux
 systemctl restart lpjs_compd doesn't work
     Waiting a while and running restart again starts the daemon
 
+Check kill() results during cancel
+    RV only indicates delivery of signal
+
 
 Later
 -----
