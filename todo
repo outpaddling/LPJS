@@ -1,6 +1,8 @@
 
 Now
 ---
+Resources not freed after job failure
+
 Document LPJS_ env vars
 
 Save user-specified node states to disk and reload at startup
