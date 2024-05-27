@@ -1,92 +1,93 @@
-    <chapter>
-	<title>File Sharing</title>
-	
-	<para>
-	Clusters normally have one or more file servers, so that jobs
-	can run in a directory that is directly accessible from all nodes.
-	This is the ideal situation, as input files are directly
-	available to jobs, and output files from jobs can be written
-	to their final location without needing to transfer them.
-	</para>
-	
-	<note>
-	<para>
-	At present, it appears to be impractical to use macOS for
-	compute nodes with data on a file server.
-	macOS has a security feature that prevents programs from
-	accessing most directories unless the user explicitly
-	grants permission via the graphical interface.  In order for
-	LPJS to access file servers as required for normal operation,
-	the program <command>lpjs_compd</command> must be granted full disk
-	access via System Settings, Privacy and Security.  Otherwise,
-	you may see "operation not permitted" errors in the log when
-	trying to access NFS shares.
-	</para>
-	
-	<para>
-	The major problem is that this is not a one-time setting.  Each
-	time LPJS is updated, full disk access is revoked, and the
-	user must enable it via the graphical interface again.
-	</para>
-	</note>
-	
-	<para>
-	Grids normally do not have file servers.  In this case, it will
-	be necessary for all nodes to have the ability to pull files
-	from and push files to <emphasis>somewhere</emphasis>.  Typically,
-	this somewhere would be the submit node, or a server accessible
-	for file transfers from the submit node and all compute nodes.
-	</para>
-	
-	<para>
-	LPJS does not provide file
-	transfer tools.  There are numerous highly-evolved, general-purpose
-	file transfer tools already available, so it is left to the
-	systems manager and user to decide which one(s) to use.
-	We recommend using <command>rsync</command> if possible, as it
-	is highly portable and reliable, and minimizes the amount of
-	data transferred when repeating a transfer.
-	</para>
-	
-	<note>
-	All compute nodes must be able to perform a passwordless
-	file transfers to the designated server, i.e. pulling files
-	to, or pushing files from a compute node does not prompt
-	the user for a password.
-	This is generally accomplished by installing ssh
-	keys on the submit node, which can be done by running
-	<command>auto-ssh-authorize submit-host</command> from every
-	compute node, as every user who will run jobs.
-	</note>
-	
-	<para>
-	The <command>lpjs submit</command> command creates a marker file
-	in the working directory on the submit host, named
-	"lpjs-submit-host-name-shared-fs-marker" (replace "submit-host-name"
-	with the FQDN of your submit node).  If this file is not accessible
-	to the compute node, then LPJS will take the necessary steps
-	to create the temporary working directory and transfer it back
-	to the submit node after the script terminates.
-	</para>
-	
-	<para>
-	If the working directory (the directory from which the job is
-	submitted on the submit node) is not accessible to the compute
-	nodes (e.g. using NFS), then the user's script is
-	responsible for downloading any required input files.
-	Below is an example from  <filename>Test/fastq-trim.lpjs</filename>
-	in the LPJS Github repository.
-	</para>
-	
-	<note>
-	Note that we used the <option>--copy-links</option> option with
-	rsync, so that it copies files pointed to by symbolic links,
-	rather than just recreating the symbolic link on the compute node.
-	You must understand each situation and decide whether this is
-	necessary.
-	</note>
-	
-	<programlisting language="sh">
+<!-- This text is shared with RCUG: Keep them in sync. -->
+<chapter>
+    <title>File Sharing</title>
+    
+    <para>
+    Clusters normally have one or more file servers, so that jobs
+    can run in a directory that is directly accessible from all nodes.
+    This is the ideal situation, as input files are directly
+    available to jobs, and output files from jobs can be written
+    to their final location without needing to transfer them.
+    </para>
+    
+    <note>
+    <para>
+    At present, it appears to be impractical to use macOS for
+    compute nodes with data on a file server.
+    macOS has a security feature that prevents programs from
+    accessing most directories unless the user explicitly
+    grants permission via the graphical interface.  In order for
+    LPJS to access file servers as required for normal operation,
+    the program <command>lpjs_compd</command> must be granted full disk
+    access via System Settings, Privacy and Security.  Otherwise,
+    you may see "operation not permitted" errors in the log when
+    trying to access NFS shares.
+    </para>
+    
+    <para>
+    The major problem is that this is not a one-time setting.  Each
+    time LPJS is updated, full disk access is revoked, and the
+    user must enable it via the graphical interface again.
+    </para>
+    </note>
+    
+    <para>
+    Grids normally do not have file servers.  In this case, it will
+    be necessary for all nodes to have the ability to pull files
+    from and push files to <emphasis>somewhere</emphasis>.  Typically,
+    this somewhere would be the submit node, or a server accessible
+    for file transfers from the submit node and all compute nodes.
+    </para>
+    
+    <para>
+    LPJS does not provide file
+    transfer tools.  There are numerous highly-evolved, general-purpose
+    file transfer tools already available, so it is left to the
+    systems manager and user to decide which one(s) to use.
+    We recommend using <command>rsync</command> if possible, as it
+    is highly portable and reliable, and minimizes the amount of
+    data transferred when repeating a transfer.
+    </para>
+    
+    <note>
+    All compute nodes must be able to perform a passwordless
+    file transfers to the designated server, i.e. pulling files
+    to, or pushing files from a compute node does not prompt
+    the user for a password.
+    This is generally accomplished by installing ssh
+    keys on the submit node, which can be done by running
+    <command>auto-ssh-authorize submit-host</command> from every
+    compute node, as every user who will run jobs.
+    </note>
+    
+    <para>
+    The <command>lpjs submit</command> command creates a marker file
+    in the working directory on the submit host, named
+    "lpjs-submit-host-name-shared-fs-marker" (replace "submit-host-name"
+    with the FQDN of your submit node).  If this file is not accessible
+    to the compute node, then LPJS will take the necessary steps
+    to create the temporary working directory and transfer it back
+    to the submit node after the script terminates.
+    </para>
+    
+    <para>
+    If the working directory (the directory from which the job is
+    submitted on the submit node) is not accessible to the compute
+    nodes (e.g. using NFS), then the user's script is
+    responsible for downloading any required input files.
+    Below is an example from  <filename>Test/fastq-trim.lpjs</filename>
+    in the LPJS Github repository.
+    </para>
+    
+    <note>
+    Note that we used the <option>--copy-links</option> option with
+    rsync, so that it copies files pointed to by symbolic links,
+    rather than just recreating the symbolic link on the compute node.
+    You must understand each situation and decide whether this is
+    necessary.
+    </note>
+    
+    <programlisting language="sh">
 # Marker file is created by "lpjs submit" so we can detect shared filesystems.
 # If this file does not exist on the compute nodes, then the compute nodes
 # must pull (download) the input files.
@@ -102,28 +103,28 @@ if [ ! -e $marker ]; then
 else
     printf "$marker found.  No need to transfer files.\n"
 fi
-	</programlisting>
-	
-	<para>
-	LPJS will, by default, transfer the contents of the temporary working
-	directory back to the working directory on the submit node, using
-	<command>rsync -av temp-working-dir/ submit-host:working-dir</command>.
-	The "working-dir" above is the directory from which the job was
-	submitted, and "temp-working-dir" is a job-specific temporary directory
-	created by LPJS on the compute node.  Following this transfer,
-	the working directory on the submit node should contain the same
-	output file as it would using a shared filesystem.
-	Users can override the transfer command.
-	command.  See the Research Computing User Guide for details.
-	</para>
-	
-	<programlisting language="sh">
+    </programlisting>
+    
+    <para>
+    LPJS will, by default, transfer the contents of the temporary working
+    directory back to the working directory on the submit node, using
+    <command>rsync -av temp-working-dir/ submit-host:working-dir</command>.
+    The "working-dir" above is the directory from which the job was
+    submitted, and "temp-working-dir" is a job-specific temporary directory
+    created by LPJS on the compute node.  Following this transfer,
+    the working directory on the submit node should contain the same
+    output file as it would using a shared filesystem.
+    Users can override the transfer command.
+    command.  See the Research Computing User Guide for details.
+    </para>
+    
+    <programlisting language="sh">
 # If we downloaded the input file, remove it now to avoid wasting time
 # transferring it back.  By default, LPJS transfers the entire temporary
 # working directory to the submit node using rsync.
 if [ ! -e $marker ]; then
     rm -f $infile
 fi
-	</programlisting>
-    </chapter>
+    </programlisting>
+</chapter>
 
