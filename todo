@@ -17,6 +17,8 @@ systemctl restart lpjs_compd doesn't work
 Check kill() results during cancel
     RV only indicates delivery of signal
 
+Verify gethostname() functionality, update /etc/hosts?
+
 
 Later
 -----
