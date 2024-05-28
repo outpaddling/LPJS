@@ -90,6 +90,7 @@ EOM
 printf "Are you sure you want to do this?  yes/[no] "
 read sure
 if [ 0"$sure" = 0yes ]; then
+    # FIXME: Just run clear-queue and then reset the job id?
     if [ $(id -u) = 0 ]; then
 	lpjs stop || true
     fi

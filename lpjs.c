@@ -45,7 +45,8 @@
 int     main(int argc,char *argv[])
 
 {
-    char            cmd[PATH_MAX + 1];
+    char            user_cmd[PATH_MAX + 1],
+		    sys_cmd[PATH_MAX + 1];
     DIR             *dp;
     struct dirent   *dir_entry;
     struct stat     inode;
@@ -58,10 +59,20 @@ int     main(int argc,char *argv[])
     }
     else if ( argc < 2 )
     {
-	// LIBEXECDIR must be set by Makefile
+	// LIBEXECDIR is set by Makefile if not defined by the user
 	fprintf(stderr, "Usage: %s subcommand [args]\n", argv[0]);
-	fprintf(stderr, "\nSubcommands:\n\n");
-	if ( (dp = opendir(LIBEXECDIR)) != NULL )
+	fprintf(stderr, "\nSystems management subcommands:\n\n");
+	if ( (dp = opendir(LIBEXECDIR "/SMI")) != NULL )
+	{
+	    while ( (dir_entry = readdir(dp)) != NULL )
+	    {
+		if ( *dir_entry->d_name != '.' )
+		    fprintf(stderr, "%s\n", dir_entry->d_name);
+	    }
+	    closedir(dp);
+	}
+	fprintf(stderr, "\nUser subcommands:\n\n");
+	if ( (dp = opendir(LIBEXECDIR "/UI")) != NULL )
 	{
 	    while ( (dir_entry = readdir(dp)) != NULL )
 	    {
@@ -77,12 +88,16 @@ int     main(int argc,char *argv[])
     // Shared functions may use lpjs_log
     Log_stream = stderr;
     
-    snprintf(cmd, PATH_MAX, "%s/%s", LIBEXECDIR, argv[1]);
-    if ( stat(cmd, &inode) == 0 )
-	execv(cmd, argv + 1);
+    snprintf(user_cmd, PATH_MAX, "%s/%s", LIBEXECDIR "/UI", argv[1]);
+    snprintf(sys_cmd, PATH_MAX, "%s/%s", LIBEXECDIR "/SMI", argv[1]);
+    if ( stat(user_cmd, &inode) == 0 )
+	execv(user_cmd, argv + 1);
+    if ( stat(sys_cmd, &inode) == 0 )
+	execv(sys_cmd, argv + 1);
     else
     {
-	fprintf(stderr, "%s: No %s found in %s.\n", argv[0], argv[1], LIBEXECDIR);
+	fprintf(stderr, "%s: No %s found in %s/UI or %s/SMI.\n",
+		argv[0], argv[1], LIBEXECDIR, LIBEXECDIR);
 	return EX_USAGE;
     }
 }

@@ -51,7 +51,8 @@
 BIN             = lpjs
 LIB             = liblpjs.a
 SYS_BINS        = lpjs_dispatchd lpjs_compd
-LIBEXEC_BINS    = nodes jobs submit cancel chaperone
+LIBEXEC_UI_BINS = nodes jobs submit cancel
+LIBEXEC_BINS    = chaperone
 
 ############################################################################
 # List object files that comprise BIN.
@@ -142,7 +143,7 @@ STRIP   ?= strip
 
 .PHONY: all depend clean realclean install install-strip help
 
-all:    ${BIN} ${LIBEXEC_BINS} ${SYS_BINS}
+all:    ${BIN} ${LIBEXEC_UI_BINS} ${LIBEXEC_BINS} ${SYS_BINS}
 
 ${LIB}: ${LIB_OBJS}
 	${AR} r ${LIB} ${LIB_OBJS}
@@ -199,7 +200,8 @@ depend:
 # Remove generated files (objs and nroff output from man pages)
 
 clean:
-	rm -f *.o ${BIN} ${LIBEXEC_BINS} ${SYS_BINS} ${LIB} *.nr
+	rm -f *.o ${BIN} ${LIBEXEC_UI_BINS} ${LIBEXEC_BINS} ${SYS_BINS} \
+		  ${LIB} *.nr
 
 # Keep backup files during normal clean, but provide an option to remove them
 realclean: clean
@@ -216,16 +218,26 @@ install: all
 		    ${DESTDIR}${MANDIR}/man1 \
 		    ${DESTDIR}${MANDIR}/man8 \
 		    ${DESTDIR}${PREFIX}/etc/lpjs \
-		    ${DESTDIR}${LIBEXECDIR} \
+		    ${DESTDIR}${LIBEXECDIR}/UI \
+		    ${DESTDIR}${LIBEXECDIR}/SMI \
 		    ${DESTDIR}${DATADIR} \
 		    ${DESTDIR}${PREFIX}/var/log/lpjs \
 		    ${DESTDIR}${PREFIX}/var/spool/lpjs
 	${INSTALL} -m 0755 ${BIN} ${DESTDIR}${PREFIX}/bin
 	${INSTALL} -m 0755 ${SYS_BINS} ${DESTDIR}${PREFIX}/sbin
+	${INSTALL} -m 0755 ${LIBEXEC_UI_BINS} ${DESTDIR}${LIBEXECDIR}/UI
 	${INSTALL} -m 0755 ${LIBEXEC_BINS} ${DESTDIR}${LIBEXECDIR}
-	for s in Sys-scripts/* User-scripts/*; do \
+	for s in Non-UI-scripts/*; do \
 	    ${SED} -e "s|/usr/local|`realpath ${PREFIX}`|g" \
 		    $${s} > ${DESTDIR}${LIBEXECDIR}/`basename $${s}`; \
+	done
+	for s in Sys-scripts/*; do \
+	    ${SED} -e "s|/usr/local|`realpath ${PREFIX}`|g" \
+		    $${s} > ${DESTDIR}${LIBEXECDIR}/SMI/`basename $${s}`; \
+	done
+	for s in User-scripts/*; do \
+	    ${SED} -e "s|/usr/local|`realpath ${PREFIX}`|g" \
+		    $${s} > ${DESTDIR}${LIBEXECDIR}/UI/`basename $${s}`; \
 	done
 	chmod a+rx ${DESTDIR}${LIBEXECDIR}/*
 	${INSTALL} -m 0644 ${LIB} ${DESTDIR}${PREFIX}/lib

@@ -104,7 +104,7 @@ done
 while true
 do
     clear
-    lpjs banner
+    /usr/local/libexec/lpjs/banner
     cat << EOM
 
 1.. Set up a zero-configuration one-node cluster on this machine

@@ -60,7 +60,7 @@ fi
 while true
 do
     clear
-    lpjs banner
+    /usr/local/libexec/lpjs/banner
     cat << EOM
 
 1.. Node status

@@ -109,7 +109,7 @@ fi
 while true
 do
     clear
-    lpjs banner
+    /usr/local/libexec/lpjs/banner
     cat << EOM
 
 1.. Manually start munged (required by both dispatchd and compd)
