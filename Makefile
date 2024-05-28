@@ -239,7 +239,7 @@ install: all
 	    ${SED} -e "s|/usr/local|`realpath ${PREFIX}`|g" \
 		    $${s} > ${DESTDIR}${LIBEXECDIR}/UI/`basename $${s}`; \
 	done
-	chmod a+rx ${DESTDIR}${LIBEXECDIR}/*
+	chmod a+rx ${DESTDIR}${LIBEXECDIR}/* ${DESTDIR}${LIBEXECDIR}/*/*
 	${INSTALL} -m 0644 ${LIB} ${DESTDIR}${PREFIX}/lib
 	${INSTALL} -m 0644 config.sample ${DESTDIR}${PREFIX}/etc/lpjs
 	for f in Man/*.1; do \
