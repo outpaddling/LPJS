@@ -59,8 +59,6 @@ if [ $# != 0 ]; then
     usage
 fi
 
-CONF_FILE=/usr/local/etc/lpjs/config
-
 # Prevent user from running a Trojan as root in the case their account
 # was compromised
 absolute="$(which $0)"
@@ -77,7 +75,31 @@ if ! auto-root-check $0; then
     exec su -m root -c "$cmd"
 fi
 
+CONF_FILE=/usr/local/etc/lpjs/config
 : ${EDITOR:=vi}
+
+while ! host $(hostname) && ! fgrep -w $(hostname) /etc/hosts; do
+    cat << EOM
+
+Hostname "$(hostname)" does not resolve.  It must either be
+known to your DNS servers or be listed in /etc/hosts.
+
+EOM
+    printf "Edit /etc/hosts now? [y]/n "
+    read edit
+    if [ 0"$edit" != 0n ]; then
+	ifconfig
+	ip=''
+	while [ -z "$ip" ]; do
+	    printf "IP address to add for this host? "
+	    read ip
+	done
+	printf "$ip\t$(hostname)\t$(hostname -s)\n" >> /etc/hosts
+	$EDITOR /etc/hosts
+    else
+	exit
+    fi
+done
 
 while true
 do
