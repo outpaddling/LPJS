@@ -455,7 +455,23 @@ include, but are not limited to, the following:
    This approach is extremely high-maintenance compared to maintaining a
    package for a package manager, where most dependencies are
    well-maintained by other contributors.
-   
+
+## Quick Start
+
+Trying out LPJS is easy:
+
+1. Install LPJS using FreeBSD ports, pkgsrc, or other package manager.
+2. Run "lpjs ad-hoc".
+3. Select the 1-node instant cluster option.
+
+Exit the menu, or go to another terminal window, and run
+"lpjs" for a quick help summary.
+
+For more detailed information, see the administrator's guide at
+[https://github.com/outpaddling/LPJS/blob/main/Doc/lpjs.pdf](https://github.com/outpaddling/LPJS/blob/main/Doc/lpjs.pdf)
+and the Research Computing User's Guide at
+[https://acadix.biz/publications.php](https://acadix.biz/publications.php).
+
 ## Design and Implementation
 
 The code is organized following basic object-oriented design principals, but
