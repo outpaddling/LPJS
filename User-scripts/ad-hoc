@@ -55,25 +55,32 @@ pause()
 
 start_daemon()
 {
-    if [ $# != 1 ]; then
+    if [ $# != 1 ] && [ $# != 2 ]; then
 	printf "Usage: start_daemon command\n"
 	return 1
     fi
     daemon=$1
     
-    resp=''
-    while [ 0"$resp" != 01 ] && [ 0"$resp" != 02 ]; do
-	cat << EOM
-
+    if [ $2 = background ]; then
+	resp=2
+    elif [ $2 = foreground ]; then
+	resp=1
+    else
+	resp=''
+	while [ 0"$resp" != 01 ] && [ 0"$resp" != 02 ]; do
+	    cat << EOM
+    
 1.. Foreground (log messages on-screen and do not return to menu)
 2.. Background (log messages to file and return to menu)
 
 EOM
-	printf "Selection? "
-	read resp
-    done
+	    printf "Selection? "
+	    read resp
+	done
+    fi
+    
     if [ $resp = 1 ]; then
-	printf "Type Ctrl+c to terminate $daemon.\n"
+	printf "Type Ctrl+c in this window to terminate $daemon.\n"
 	pause
 	if [ $daemon = munged ]; then
 	    $daemon --foreground
@@ -84,7 +91,6 @@ EOM
     else
 	printf "Logged messages can be viewed using \"lpjs log\"\n"
 	printf "or the \"View log(s)\" menu option.\n"
-	pause
 	if [ $daemon = munged ]; then
 	    $daemon
 	else
@@ -95,6 +101,113 @@ EOM
 	pause
     fi
 }
+
+
+##########################################################################
+#   Function description:
+#       
+#   Arguments:
+#       
+#   Returns:
+#       
+#   History:
+#   Date        Name        Modification
+#   2024-05-29  ,,,         Begin
+##########################################################################
+
+stop_daemon()
+{
+    if [ $# != 1 ]; then
+	printf "Usage: stop_daemon command\n"
+	exit 1
+    fi
+    daemon=$1
+    
+    printf "Before pkill:\n"
+    pgrep -lf $daemon
+    pkill -f $daemon
+    sleep 1
+    printf "After pkill:\n"
+    pgrep -lf $daemon
+}
+
+
+##########################################################################
+#   Function description:
+#       
+#   Arguments:
+#       
+#   Returns:
+#       
+#   History:
+#   Date        Name        Modification
+#   2024-05-29  ,,,         Begin
+##########################################################################
+
+munge_start()
+{
+    cat << EOM
+
+Note: Munge can only be started under the username by which it was installed.
+If you are not that user, you will need to ask for assistance.
+
+EOM
+    printf "Continue? [y]/n "
+    read continue
+    if [ 0"$continue" != 0n ]; then
+	key_file=$(auto-localbase)/etc/munge/munge.key
+	while [ ! -e $key_file ]; do
+	    cat << EOM
+
+Missing key file $key_file.
+
+1.. Create
+2.. Copy from another host
+
+EOM
+	    printf "Selection? "
+	    read selection
+	    case 0"$selection" in
+	    01)
+		mungekey
+		;;
+	    02)
+		printf "Copy munge.key to $(auto-localbase)/etc/munge.\n"
+		pause
+		;;
+	    *)
+		printf "Invalid selection.\n" >> /dev/stderr
+		;;
+	    esac
+	done
+	start_daemon munged $@
+    fi
+}
+
+
+##########################################################################
+#   Function description:
+#       
+#   Arguments:
+#       
+#   Returns:
+#       
+#   History:
+#   Date        Name        Modification
+#   2024-05-29  ,,,         Begin
+##########################################################################
+
+munge_stop()
+{
+    printf "Before stop:\n"
+    pgrep -lf munged
+    munged --stop
+    printf "After stop:\n"
+    sleep 1
+    pgrep -lf munged
+    pause
+}
+
 
 ##########################################################################
 #   Main
@@ -109,16 +222,18 @@ fi
 while true
 do
     clear
-    /usr/local/libexec/lpjs/banner
+    /home/bacon/Pkgsrc/pkg/libexec/lpjs/banner
     cat << EOM
 
-1.. Manually start munged (required by both dispatchd and compd)
-2.. Manually start dispatchd (temporarily make this a head node)
-3.. Manually start compd (temporarily make this a compute node)
-4.. Stop background munged
-5.. Stop background dispatchd
-6.. Stop background compd
-7.. View log(s)
+1.. Start munged (required by both dispatchd and compd)
+2.. Start dispatchd (make this the head node)
+3.. Start compd (make this a compute node)
+4.. Start all daemons in the background (1-node instant cluster)
+5.. Stop background munged
+6.. Stop background dispatchd
+7.. Stop background compd
+8.. Stop all background daemons
+9.. View log(s)
 Q.. Quit
 
 EOM
@@ -126,7 +241,7 @@ EOM
     read -p 'Selection? ' resp
     case 0$resp in
     01)
-	start_daemon munged
+	munge_start
 	;;
     
     02)
@@ -138,36 +253,32 @@ EOM
 	;;
 
     04)
-	printf "Before pkill:\n"
-	pgrep -lf munged
-	pkill -f munged
-	printf "After pkill:\n"
-	sleep 1
-	pgrep -lf munged
-	pause
+	munge_start background
+	start_daemon lpjs_dispatchd background
+	start_daemon lpjs_compd background
 	;;
     
     05)
-	printf "Before pkill:\n"
-	pgrep -lf lpjs_dispatchd
-	pkill -f lpjs_dispatchd
-	sleep 1
-	printf "After pkill:\n"
-	pgrep -lf lpjs_dispatchd
-	pause
+	munge_stop
 	;;
     
     06)
-	printf "Before pkill:\n"
-	pgrep -lf lpjs_compd
-	pkill -f lpjs_compd
-	sleep 1
-	printf "After pkill:\n"
-	pgrep -lf lpjs_compd
+	stop_daemon lpjs_dispatchd
 	pause
 	;;
     
     07)
+	stop_daemon lpjs_compd
+	pause
+	;;
+    
+    08)
+	stop_daemon lpjs_compd
+	stop_daemon lpjs_dispatchd
+	munge_stop
+	;;
+    
+    09)
 	lpjs log
 	pause
 	;;
