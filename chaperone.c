@@ -135,7 +135,7 @@ int     main (int argc, char *argv[])
     
     lpjs_chaperone_checkin_loop(node_list, hostname, job_id, Pid);
     
-    // FIXME: Chaperone, monitor resource use of child
+    // FIXME: Monitor resource use of child
     // Maybe ptrace(), though seemingly not well standardized
     wait(&status);
     lpjs_log("Process exited with status %d.\n", status);

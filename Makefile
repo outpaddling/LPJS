@@ -113,11 +113,11 @@ RANLIB      ?= ranlib
 INCLUDES    += -isystem ${PREFIX}/include -isystem ${LOCALBASE}/include
 CFLAGS      += ${INCLUDES}
 # For locating lpjs subcommands
-CFLAGS      += -DLIBEXECDIR=\"${LIBEXECDIR}\"
+CFLAGS      += -DLIBEXECDIR=\"`realpath ${LIBEXECDIR}`\"
 # Add these to PATH in chaperone, so it can find local tools
 CFLAGS      += -DPREFIX=\"`realpath ${PREFIX}`\" -DVERSION=\"`./version.sh`\"
-CFLAGS      += -DLOCALBASE=\"${LOCALBASE}\"
-LDFLAGS     += -L. -L${PREFIX}/lib -L${LOCALBASE}/lib -llpjs -lmunge -lxtend
+CFLAGS      += -DLOCALBASE=\"`realpath ${LOCALBASE}`\"
+LDFLAGS     += -L. -L"`realpath ${PREFIX}/lib`" -L"`realpath ${LOCALBASE}/lib`" -llpjs -lmunge -lxtend
 
 ############################################################################
 # Assume first command in PATH.  Override with full pathnames if necessary.
