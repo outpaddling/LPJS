@@ -465,7 +465,7 @@ void    chaperone_cancel_handler(int s2)
     
     // Try SIGTERM first in case process catches it and cleans up
     kill(Pid, SIGTERM);
-    sleep(2)
+    sleep(2);
     // If SIGTERM worked, this will fail and have no effect
     kill(Pid, SIGKILL);
 }
