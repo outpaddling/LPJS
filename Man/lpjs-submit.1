@@ -136,8 +136,8 @@ The value set in the script by "#lpjs procs-per-job".
 \fBLPJS_MIN_PROCS_PER_NODE\fR
 The value set in the script by "#lpjs min-procs-per-node".
 .TP
-\fBLPJS_MEM_PER_CORE\fR
-The value set in the script by "#lpjs mem-per-core".
+\fBLPJS_PMEM_PER_PROC\fR
+The value set in the script by "#lpjs mem-per-proc".
 .TP
 \fBLPJS_USER_NAME\fR
 The username of the user running the job.
@@ -177,8 +177,8 @@ submit node.  Below is output from a job that runs
 LPJS_JOB_COUNT=1
 LPJS_COMPUTE_NODE=TBD
 LPJS_PUSH_COMMAND=rsync -av %w/ %h:%d
-LPJS_MEM_PER_CORE=9
-LPJS_MIN_CORES_PER_NODE=1
+LPJS_PMEM_PER_PROC=9
+LPJS_MIN_PROCS_PER_NODE=1
 LPJS_PRIMARY_GROUP_NAME=bacon
 LPJS_SUBMIT_HOST=moray.acadix.biz
 LPJS_JOB_LOG_DIR=LPJS-logs/env
@@ -186,7 +186,7 @@ LPJS_USER_NAME=bacon
 LPJS_SUBMIT_DIRECTORY=/home/bacon
 LPJS_JOB_ID=1983
 LPJS_SCRIPT_NAME=env.lpjs
-LPJS_CORES_PER_JOB=1
+LPJS_PROCS_PER_JOB=1
 LPJS_ARRAY_INDEX=1
 LPJS_HOME_DIR=/home/bacon
 .ad

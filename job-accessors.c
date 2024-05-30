@@ -190,31 +190,31 @@ unsigned    job_get_min_procs_per_node(job_t *job_ptr)
  *      
  *
  *  Description:
- *      Accessor for mem_per_proc member in a job_t structure.
- *      Use this function to get mem_per_proc in a job_t object
+ *      Accessor for pmem_per_proc member in a job_t structure.
+ *      Use this function to get pmem_per_proc in a job_t object
  *      from non-member functions.
  *
  *  Arguments:
  *      job_ptr         Pointer to the structure to set
  *
  *  Returns:
- *      Value of the structure member mem_per_proc.
+ *      Value of the structure member pmem_per_proc.
  *
  *  Examples:
  *      job_t           job;
- *      size_t          mem_per_proc;
+ *      size_t          pmem_per_proc;
  *
- *      mem_per_proc = job_get_mem_per_proc(&job);
+ *      pmem_per_proc = job_get_pmem_per_proc(&job);
  *
  *  History: 
  *  Date        Name        Modification
  *  2024-05-10  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-size_t    job_get_mem_per_proc(job_t *job_ptr)
+size_t    job_get_pmem_per_proc(job_t *job_ptr)
 
 {
-    return job_ptr->mem_per_proc;
+    return job_ptr->pmem_per_proc;
 }
 
 

@@ -42,7 +42,7 @@ int     main (int argc, char *argv[])
     int         status,
 		push_status;
     unsigned    procs;
-    unsigned long   mem_per_proc;
+    unsigned long   pmem_per_proc;
     // Terminates process if malloc() fails, no check required
     node_list_t *node_list = node_list_new();
     char        *job_script_name,
@@ -99,11 +99,11 @@ int     main (int argc, char *argv[])
 	exit(EX_USAGE);
     }
     
-    temp = getenv("LPJS_MEM_PER_CORE");
-    mem_per_proc = strtoul(temp, &end, 10);
+    temp = getenv("LPJS_PMEM_PER_CORE");
+    pmem_per_proc = strtoul(temp, &end, 10);
     if ( *end != '\0' )
     {
-	fprintf(stderr, "Invalid LPJS_MEM_PER_CORE: %s\n", temp);
+	fprintf(stderr, "Invalid LPJS_PMEM_PER_CORE: %s\n", temp);
 	exit(EX_USAGE);
     }
     
@@ -118,7 +118,7 @@ int     main (int argc, char *argv[])
     gethostname(hostname, sysconf(_SC_HOST_NAME_MAX));
     getcwd(wd, PATH_MAX + 1 - 20);
     lpjs_log("Running %s in %s on %s with %u procs and %lu MiB.\n",
-	    job_script_name, wd, hostname, procs, mem_per_proc);
+	    job_script_name, wd, hostname, procs, pmem_per_proc);
     
     if ( (Pid = fork()) == 0 )
     {
@@ -384,7 +384,7 @@ int     lpjs_chaperone_completion(int msg_fd, const char *hostname,
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%s %s %s %s %d\n",
 	     LPJS_DISPATCHD_REQUEST_JOB_COMPLETE, hostname,
 	     job_id, getenv("LPJS_PROCS_PER_JOB"),
-	     getenv("LPJS_MEM_PER_CORE"), status);
+	     getenv("LPJS_PMEM_PER_CORE"), status);
     if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != LPJS_MSG_SENT )
     {
 	lpjs_log("lpjs-chaperone: Failed to send message to dispatchd: %s",

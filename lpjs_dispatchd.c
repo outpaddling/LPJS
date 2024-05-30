@@ -487,7 +487,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
     gid_t           munge_gid;
     unsigned long   job_id;
     unsigned        procs_per_job;
-    size_t          mem_per_proc;
+    size_t          pmem_per_proc;
     node_t          *node;
     int             items;
     job_t           *job;
@@ -623,7 +623,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    break;
 		}
 		if ( (items = sscanf(p, "%lu %u %zu %d",
-			&job_id, &procs_per_job, &mem_per_proc,
+			&job_id, &procs_per_job, &pmem_per_proc,
 			    &exit_status)) != 4 )
 		{
 		    lpjs_log("%s(): Error: Got %d items reading job_id, procs, mem, status.\n",
@@ -635,7 +635,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    node_get_procs_used(node) - procs_per_job);
 		node_set_phys_MiB_used(node,
 		    node_get_phys_MiB_used(node)
-			- mem_per_proc * procs_per_job);
+			- pmem_per_proc * procs_per_job);
 	    
 		/*
 		 *  FIXME:
@@ -1232,7 +1232,7 @@ int     lpjs_load_job_list(job_list_t *job_list, node_list_t *node_list,
 		node_set_phys_MiB_used(compute_node,
 				       node_get_phys_MiB_used(compute_node) +
 				       job_get_procs_per_job(job) *
-				       job_get_mem_per_proc(job));
+				       job_get_pmem_per_proc(job));
 	    }
 	}
     }

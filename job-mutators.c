@@ -280,17 +280,17 @@ int     job_set_min_procs_per_node(job_t *job_ptr, unsigned new_min_procs_per_no
  *      
  *
  *  Description:
- *      Mutator for mem_per_proc member in a job_t structure.
- *      Use this function to set mem_per_proc in a job_t object
+ *      Mutator for pmem_per_proc member in a job_t structure.
+ *      Use this function to set pmem_per_proc in a job_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
- *      mem_per_proc is a pointer, data previously pointed to should
+ *      pmem_per_proc is a pointer, data previously pointed to should
  *      be freed before calling this function to avoid memory
  *      leaks.
  *
  *  Arguments:
  *      job_ptr         Pointer to the structure to set
- *      new_mem_per_proc The new value for mem_per_proc
+ *      new_pmem_per_proc The new value for pmem_per_proc
  *
  *  Returns:
  *      JOB_DATA_OK if the new value is acceptable and assigned
@@ -298,9 +298,9 @@ int     job_set_min_procs_per_node(job_t *job_ptr, unsigned new_min_procs_per_no
  *
  *  Examples:
  *      job_t           job;
- *      size_t          new_mem_per_proc;
+ *      size_t          new_pmem_per_proc;
  *
- *      if ( job_set_mem_per_proc(&job, new_mem_per_proc)
+ *      if ( job_set_pmem_per_proc(&job, new_pmem_per_proc)
  *              == JOB_DATA_OK )
  *      {
  *      }
@@ -313,14 +313,14 @@ int     job_set_min_procs_per_node(job_t *job_ptr, unsigned new_min_procs_per_no
  *  2024-05-10  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-int     job_set_mem_per_proc(job_t *job_ptr, size_t new_mem_per_proc)
+int     job_set_pmem_per_proc(job_t *job_ptr, size_t new_pmem_per_proc)
 
 {
     if ( false )
 	return JOB_DATA_OUT_OF_RANGE;
     else
     {
-	job_ptr->mem_per_proc = new_mem_per_proc;
+	job_ptr->pmem_per_proc = new_pmem_per_proc;
 	return JOB_DATA_OK;
     }
 }

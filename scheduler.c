@@ -188,7 +188,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 		    node_set_procs_used(node, procs_used + job_get_procs_per_job(job));
 		    phys_MiB_used = node_get_phys_MiB_used(node);
 		    node_set_phys_MiB_used(node, phys_MiB_used +
-			job_get_mem_per_proc(job) * job_get_procs_per_job(job));
+			job_get_pmem_per_proc(job) * job_get_procs_per_job(job));
 		}
 	    }
 	    else
@@ -320,7 +320,7 @@ int     lpjs_match_nodes(job_t *job, node_list_t *node_list,
     
     lpjs_log("Job %u requires %u procs, %lu MiB / proc.\n",
 	    job_get_job_id(job), job_get_min_procs_per_node(job),
-	    job_get_mem_per_proc(job));
+	    job_get_pmem_per_proc(job));
     
     total_usable = 0;
     total_required = job_get_procs_per_job(job);
@@ -388,7 +388,7 @@ int     lpjs_get_usable_procs(job_t *job, node_t *node)
 	     available_procs, available_mem);
     if ( available_procs >= required_procs )
     {
-	if ( (available_mem >= job_get_mem_per_proc(job) * required_procs) )
+	if ( (available_mem >= job_get_pmem_per_proc(job) * required_procs) )
 	    usable_procs = required_procs;
 	else
 	{

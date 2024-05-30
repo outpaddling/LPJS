@@ -62,7 +62,7 @@ void    job_init(job_t *job)
     job->job_count = 0;
     job->procs_per_job = 0;
     job->min_procs_per_node = 0;
-    job->mem_per_proc = 0;
+    job->pmem_per_proc = 0;
     job->chaperone_pid = 0;
     job->job_pid = 0;
     job->state = JOB_STATE_PENDING;
@@ -92,7 +92,7 @@ job_t   *job_dup(job_t *job)
     new_job->job_count = job->job_count;
     new_job->procs_per_job = job->procs_per_job;
     new_job->min_procs_per_node = job->min_procs_per_node;
-    new_job->mem_per_proc = job->mem_per_proc;
+    new_job->pmem_per_proc = job->pmem_per_proc;
     
     // FIXME: Check malloc success
     if ( job->user_name != NULL )
@@ -130,7 +130,7 @@ int     job_print_full_specs(job_t *job, FILE *stream)
 {
     return fprintf(stream, JOB_SPEC_FORMAT, job->job_id, job->array_index,
 	    job->job_count, job->procs_per_job,
-	    job->min_procs_per_node, job->mem_per_proc,
+	    job->min_procs_per_node, job->pmem_per_proc,
 	    job->chaperone_pid, job->job_pid, job->state,
 	    job->user_name, job->primary_group_name,
 	    job->submit_node, job->submit_dir,
@@ -154,7 +154,7 @@ int     job_print_to_string(job_t *job, char *str, size_t buff_size)
     return snprintf(str, buff_size, JOB_SPEC_FORMAT,
 		    job->job_id, job->array_index,
 		    job->job_count, job->procs_per_job,
-		    job->min_procs_per_node, job->mem_per_proc,
+		    job->min_procs_per_node, job->pmem_per_proc,
 		    job->chaperone_pid, job->job_pid, job->state,
 		    job->user_name, job->primary_group_name,
 		    job->submit_node, job->submit_dir,
@@ -180,7 +180,7 @@ void    job_send_basic_params(job_t *job, int msg_fd)
     snprintf(msg, LPJS_MSG_LEN_MAX + 1, JOB_BASIC_PARAMS_FORMAT,
 	    job->job_id, job->array_index,
 	    job->job_count, job->procs_per_job,
-	    job->min_procs_per_node, job->mem_per_proc,
+	    job->min_procs_per_node, job->pmem_per_proc,
 	    job->user_name,
 	    job->compute_node,
 	    job->script_name);
@@ -341,19 +341,19 @@ int     job_parse_script(job_t *job, const char *script_name)
 		}
 		else if ( strcmp(var, "pmem-per-proc") == 0 )
 		{
-		    job->mem_per_proc = strtoul(val, &end, 10);
+		    job->pmem_per_proc = strtoul(val, &end, 10);
 		    
 		    // Convert to MiB
 		    // Careful with the integer arithmetic, to avoid overflows
 		    // and 0 results
 		    if ( strcmp(end, "MB") == 0 )
-			job->mem_per_proc = job->mem_per_proc * LPJS_MB / LPJS_MiB;
+			job->pmem_per_proc = job->pmem_per_proc * LPJS_MB / LPJS_MiB;
 		    else if ( strcmp(end, "MiB") == 0 )
 			;
 		    else if ( strcmp(end, "GB") == 0 )
-			job->mem_per_proc = job->mem_per_proc * LPJS_GB / LPJS_MiB;
+			job->pmem_per_proc = job->pmem_per_proc * LPJS_GB / LPJS_MiB;
 		    else if ( strcmp(end, "GiB") == 0 )
-			job->mem_per_proc = job->mem_per_proc * LPJS_GiB / LPJS_MiB;
+			job->pmem_per_proc = job->pmem_per_proc * LPJS_GiB / LPJS_MiB;
 		    else
 		    {
 			fprintf(stderr, "Error: #lpjs pmem-per-proc '%s':\n", val);
@@ -402,11 +402,11 @@ int     job_parse_script(job_t *job, const char *script_name)
     if ( job->min_procs_per_node == 0 )
 	fprintf(stderr, "%u job, %u procs per job, all procs per node, %zu MiB\n",
 		job->job_count, job->procs_per_job,
-		job->mem_per_proc);
+		job->pmem_per_proc);
     else
 	fprintf(stderr, "%u job, %u procs per job, %u procs per node, %zu MiB\n",
 		job->job_count, job->procs_per_job,
-		job->min_procs_per_node, job->mem_per_proc);
+		job->min_procs_per_node, job->pmem_per_proc);
     return 0;
 }
 
@@ -449,7 +449,7 @@ int     job_read_from_string(job_t *job, const char *string, char **end)
     items = sscanf(string, JOB_SPEC_NUMS_FORMAT,
 	    &job->job_id, &job->array_index,
 	    &job->job_count, &job->procs_per_job,
-	    &job->min_procs_per_node, &job->mem_per_proc,
+	    &job->min_procs_per_node, &job->pmem_per_proc,
 	    &job->chaperone_pid, &job->job_pid, &job->state);
     
     // Skips past numeric fields
@@ -709,7 +709,7 @@ void    job_setenv(job_t *job)
 	    LPJS_MAX_INT_DIGITS + 1), 1);
     setenv("LPJS_MIN_PROCS_PER_NODE", xt_ltostrn(str, job->min_procs_per_node, 10,
 	    LPJS_MAX_INT_DIGITS + 1), 1);
-    setenv("LPJS_MEM_PER_CORE", xt_ltostrn(str, job->mem_per_proc, 10,
+    setenv("LPJS_PMEM_PER_CORE", xt_ltostrn(str, job->pmem_per_proc, 10,
 	    LPJS_MAX_INT_DIGITS + 1), 1);
     setenv("LPJS_USER_NAME", job->user_name, 1);
     setenv("LPJS_PRIMARY_GROUP_NAME", job->primary_group_name, 1);
