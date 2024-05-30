@@ -51,6 +51,12 @@ int     main (int argc, char *argv[])
     
     Log_stream = stderr;
     
+    if ( (getuid() == 0) || (geteuid() == 0) )
+    {
+	fprintf(stderr, "Cannot run jobs as root.\n");
+	return EX_USAGE;
+    }
+    
     if ( argc != 2 )
     {
 	fprintf (stderr, "Usage: %s script.lpjs\n", argv[0]);

@@ -651,11 +651,6 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    lpjs_log("%s(): remove_running_job returned NULL.  This is a bug.\n",
 			    __FUNCTION__);
 		
-		// FIXME: Somehow this prevents munge_decode() failures in
-		// compd when a series of jobs fail immediately
-		// 300000 seems to be about the minimum
-		// usleep(500000);
-		
 		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
 		break;
 		
@@ -767,28 +762,34 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
 		*job;
     int         c, job_array_index;
     
-    // FIXME: Don't accept job submissions from root until
-    // security issues have been considered
-    
-    // Payload in message from lpjs submit is a job description
-    // in JOB_SPEC_FORMAT
+    // Payload from lpjs submit is a job description in JOB_SPEC_FORMAT
     job_read_from_string(submission, incoming_msg + 1, &end);
-    // Should only be a newline between job specs and script
-    script_text = end + 1;
     
-    snprintf(script_path, PATH_MAX + 1, "%s/%s",
-	     job_get_submit_dir(submission), job_get_script_name(submission));
-    for (c = 0; c < job_get_job_count(submission); ++c)
+    if ( strcmp(job_get_user_name(submission), "root") == 0 )
     {
-	lpjs_log("%s(): Submit script %s:%s from %d, %d\n", __FUNCTION__,
-		job_get_submit_node(submission), script_path, munge_uid,
-		munge_gid);
-	job_array_index = c + 1;    // Job arrays are 1-based
+	lpjs_log("%s(): Rejecting job submission from root.\n", __FUNCTION__);
+	// msg_fd is closed below
+	lpjs_send_munge(msg_fd, "Cannot run jobs as root.\n", lpjs_no_close);
+    }
+    else
+    {
+	// Should only be a newline between job specs and script
+	script_text = end + 1;
 	
-	// Create a separate job_t object for each member of the job array
-	// job_dup() terminates process if malloc() fails
-	job = job_dup(submission);
-	lpjs_queue_job(msg_fd, pending_jobs, job, job_array_index, script_text);
+	snprintf(script_path, PATH_MAX + 1, "%s/%s",
+		 job_get_submit_dir(submission), job_get_script_name(submission));
+	for (c = 0; c < job_get_job_count(submission); ++c)
+	{
+	    lpjs_log("%s(): Submit script %s:%s from %d, %d\n", __FUNCTION__,
+		    job_get_submit_node(submission), script_path, munge_uid,
+		    munge_gid);
+	    job_array_index = c + 1;    // Job arrays are 1-based
+	    
+	    // Create a separate job_t object for each member of the job array
+	    // job_dup() terminates process if malloc() fails
+	    job = job_dup(submission);
+	    lpjs_queue_job(msg_fd, pending_jobs, job, job_array_index, script_text);
+	}
     }
     
     lpjs_dispatchd_safe_close(msg_fd);
