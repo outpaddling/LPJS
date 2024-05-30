@@ -109,6 +109,89 @@ using "#!/usr/bin/env".
 .ad
 .fi
 
+.SH ENVIRONMENT
+
+LPJS sets the following environment variables for use by batch scripts:
+
+.TP
+\fBPATH\fR
+Prepended with LOCALBASE/bin and PREFIX/bin, as these may be different
+on different compute nodes.  Where LPJS was installed via a package
+manager, this provides access to all other software installed by
+the same package manager.
+.TP
+\fBLPJS_HOME_DIR\fR
+The home directory of the user on the compute node.  May be
+different on different nodes.
+.TP
+\fBLPJS_ARRAY_INDEX\fR
+The 1-base array index of each job in a job array submission.
+.TP
+\fBLPJS_JOB_COUNT\fR
+The number of jobs in the job array submission.
+.TP
+\fBLPJS_PROCS_PER_JOB\fR
+The value set in the script by "#lpjs procs-per-job".
+.TP
+\fBLPJS_MIN_PROCS_PER_NODE\fR
+The value set in the script by "#lpjs min-procs-per-node".
+.TP
+\fBLPJS_MEM_PER_CORE\fR
+The value set in the script by "#lpjs mem-per-core".
+.TP
+\fBLPJS_USER_NAME\fR
+The username of the user running the job.
+.TP
+\fBLPJS_PRIMARY_GROUP_NAME\fR
+The primary group name of the user running the job.
+.TP
+\fBLPJS_SUBMIT_HOST\fR
+The FQDN (fully qualified domain name / host name) from which the job
+was submitted.
+.TP
+\fBLPJS_SUBMIT_DIRECTORY\fR
+The absolute pathname of the directory on the submit node, from which
+the job was submitted.
+.TP
+\fBLPJS_SCRIPT_NAME\fR
+The filename of the batch script being run by the job.
+.TP
+\fBLPJS_COMPUTE_NODE\fR
+The compute node running the job (same as $(hostname) or `hostname`).
+.TP
+\fBLPJS_JOB_LOG_DIR\fR
+The path of the directory containing job terminal output, relative
+to LPJS_SUBMIT_DIRECTORY.  Defaults to LPJS-logs/script-name.
+.TP
+\fBLPJS_PUSH_COMMAND\fR
+The command used to transfer the temporary current working directory
+from compute nodes that do not have direct access to the submit
+directory on the submit node.  Defaults to "rsync -av %w/ %h:%d",
+where %w is the temporary working directory on the compute node,
+%h is the submit host, and %d is the submit directory on the
+submit node.  Below is output from a job that runs
+"printenv | grep LPJS_" in the batch script:
+
+.nf
+.na
+LPJS_JOB_COUNT=1
+LPJS_COMPUTE_NODE=TBD
+LPJS_PUSH_COMMAND=rsync -av %w/ %h:%d
+LPJS_MEM_PER_CORE=9
+LPJS_MIN_CORES_PER_NODE=1
+LPJS_PRIMARY_GROUP_NAME=bacon
+LPJS_SUBMIT_HOST=moray.acadix.biz
+LPJS_JOB_LOG_DIR=LPJS-logs/env
+LPJS_USER_NAME=bacon
+LPJS_SUBMIT_DIRECTORY=/home/bacon
+LPJS_JOB_ID=1983
+LPJS_SCRIPT_NAME=env.lpjs
+LPJS_CORES_PER_JOB=1
+LPJS_ARRAY_INDEX=1
+LPJS_HOME_DIR=/home/bacon
+.ad
+.fi
+
 .SH EXAMPLES
 
 .nf

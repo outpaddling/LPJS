@@ -91,11 +91,11 @@ int     main (int argc, char *argv[])
     xt_get_home_dir(home_dir, PATH_MAX + 1);
     setenv("LPJS_HOME_DIR", home_dir, 1);
     
-    temp = getenv("LPJS_CORES_PER_JOB");
+    temp = getenv("LPJS_PROCS_PER_JOB");
     procs = strtoul(temp, &end, 10);
     if ( *end != '\0' )
     {
-	fprintf(stderr, "Invalid LPJS_CORES_PER_JOB: %s\n", temp);
+	fprintf(stderr, "Invalid LPJS_PROCS_PER_JOB: %s\n", temp);
 	exit(EX_USAGE);
     }
     
@@ -383,7 +383,7 @@ int     lpjs_chaperone_completion(int msg_fd, const char *hostname,
     /* Send job completion message to dispatchd */
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%s %s %s %s %d\n",
 	     LPJS_DISPATCHD_REQUEST_JOB_COMPLETE, hostname,
-	     job_id, getenv("LPJS_CORES_PER_JOB"),
+	     job_id, getenv("LPJS_PROCS_PER_JOB"),
 	     getenv("LPJS_MEM_PER_CORE"), status);
     if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != LPJS_MSG_SENT )
     {
@@ -453,8 +453,8 @@ void    chaperone_cancel_handler(int s2)
     
     /*
      *  Terminate mafia-style: Don't just terminate the process, go
-     *  after his family as well.  killpg() vs kill().  Although chaperone
-     *  creates a process group for the LPJS script, it killpg() will
+     *  after his family as well.  Although chaperone
+     *  creates a process group for the LPJS script, killpg() will
      *  not work if programs run by the script create process groups
      *  as well.  So we need to traverse the process tree, depth-first,
      *  kill children before their parents to ensure that all descendent
@@ -463,11 +463,11 @@ void    chaperone_cancel_handler(int s2)
     
     whack_family(Pid);
     
-    // Signal LPJS script to terminate.  Using kill() vs killpg()
-    // shouldn't matter at this point, but we use killpg() in case
-    // there are stragglers.
-    if ( killpg(Pid, SIGTERM) != 0 )
-	killpg(Pid, SIGKILL);
+    // Try SIGTERM first in case process catches it and cleans up
+    kill(Pid, SIGTERM);
+    sleep(2)
+    // If SIGTERM worked, this will fail and have no effect
+    kill(Pid, SIGKILL);
 }
 
 
@@ -506,16 +506,15 @@ void    whack_family(pid_t pid)
 	// FIXME: Check success
 	child_pid = strtoul(pid_str, &end, 10);
 	
-	// Depth-first traversal of process tree
+	// Depth-first recursive traversal of process tree
 	if ( child_pid != pid )
 	    whack_family(child_pid);
 	
-	lpjs_log("Signaling child PID %u...\n", child_pid);
-	if ( kill(child_pid, SIGTERM) != 0 )
-	{
-	    lpjs_log("Sending SIGKILL...\n");
-	    kill(child_pid, SIGKILL);
-	}
+	// Try SIGTERM first in case process catches it and cleans up
+	kill(child_pid, SIGTERM);
+	sleep(2);
+	// If SIGTERM worked, this will fail and have no effect
+	kill(child_pid, SIGKILL);
     }
     pclose(fp);
 }
