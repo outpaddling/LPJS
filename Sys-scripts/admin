@@ -179,22 +179,22 @@ EOM
 	;;
 
     04)
-	/usr/local/libexec/lpjs/dispatchd-enable
+	/usr/local/libexec/lpjs/SMI/dispatchd-enable
 	pause
 	;;
 
     05)
-	/usr/local/libexec/lpjs/compd-enable
+	/usr/local/libexec/lpjs/SMI/compd-enable
 	pause
 	;;
 
     06)
-	/usr/local/libexec/lpjs/dispatchd-disable
+	/usr/local/libexec/lpjs/SMI/dispatchd-disable
 	pause
 	;;
     
     07)
-	/usr/local/libexec/lpjs/compd-disable
+	/usr/local/libexec/lpjs/SMI/compd-disable
 	pause
 	;;
 	

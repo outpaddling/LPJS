@@ -65,7 +65,7 @@ Then run "lpjs restart" on $head_node.
 
 EOM
     pause
-    /usr/local/libexec/lpjs/munge-enable
+    /usr/local/libexec/lpjs/SMI/munge-enable
 fi
 
 if [ $(uname) = Darwin ]; then
