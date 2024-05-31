@@ -26,12 +26,13 @@ enum
     LPJS_COMPD_REQUEST_CANCEL
 };
 
-enum
+typedef enum
 {
     LPJS_DISPATCH_OK = 1,
     LPJS_DISPATCH_SCRIPT_FAILED,
-    LPJS_DISPATCH_OSERR
-};
+    LPJS_DISPATCH_OSERR,
+    LPJS_DISPATCH_CANTCREAT
+}   dispatch_status_t;
 
 // Must be <= 0, since recv returns number of bytes
 #define LPJS_MSG_SENT       0

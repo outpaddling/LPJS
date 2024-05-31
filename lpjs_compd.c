@@ -45,8 +45,7 @@ int     main (int argc, char *argv[])
     // Terminates process if malloc() fails, no check required
     node_t      *node = node_new();
     char        *munge_payload,
-		vis_msg[LPJS_MSG_LEN_MAX + 1],
-		dispatch_response[LPJS_MSG_LEN_MAX + 1];
+		vis_msg[LPJS_MSG_LEN_MAX + 1];
     ssize_t     bytes;
     int         msg_fd;
     struct pollfd   poll_fd;
@@ -183,7 +182,6 @@ int     main (int argc, char *argv[])
 		    // Terminates process if malloc() fails, no check required
 		    job_t   *job = job_new();
 		    char    *script_start;
-		    int     status;
 		    
 		    lpjs_log("LPJS_COMPD_REQUEST_NEW_JOB\n");
 		    
@@ -192,34 +190,14 @@ int     main (int argc, char *argv[])
 		     */
 		    
 		    job_read_from_string(job, munge_payload + 1, &script_start);
-		    // FIXME: run_chaperone() always returns EX_OK from parent
-		    status = lpjs_run_chaperone(job, script_start, msg_fd);
-		    switch(status)
-		    {
-			case    LPJS_SUCCESS:
-			    lpjs_log("%s(): run_chaperone OK.\n", __FUNCTION__);
-			    snprintf(dispatch_response, LPJS_MSG_LEN_MAX + 1,
-				    "%c", LPJS_DISPATCH_OK);
-			    break;
-			
-			case    LPJS_DISPATCH_OSERR:
-			    lpjs_log("%s(): OS error.\n", __FUNCTION__);
-			    snprintf(dispatch_response, LPJS_MSG_LEN_MAX + 1,
-				    "%c", LPJS_DISPATCH_OSERR);
-			    break;
-			
-			default:
-			    lpjs_log("%s(): Failed to start script.\n", __FUNCTION__);
-			    snprintf(dispatch_response, LPJS_MSG_LEN_MAX + 1,
-				    "%c", LPJS_DISPATCH_SCRIPT_FAILED);
-			    break;
-		    }
 		    
-		    lpjs_log("Sending dispatch response.\n");
-		    if ( lpjs_send_munge(msg_fd, dispatch_response, close)
-					 != LPJS_MSG_SENT )
-			lpjs_log("%s(): Failed to send dispatch_response.\n",
-				__FUNCTION__);
+		    /*
+		     *  lpjs_run_chaperone() forks, and the child process
+		     *  sends a response to lpjs_compd, depending on
+		     *  whether the dispatch succeeds.
+		     */
+		    
+		    lpjs_run_chaperone(job, script_start, msg_fd);
 		}
 		else if ( munge_payload[0] == LPJS_COMPD_REQUEST_CANCEL )
 		{
@@ -488,6 +466,28 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_start,
 
 /***************************************************************************
  *  Description:
+ *      Send chaperone launch status to lpjs_dispatchd.
+ *  
+ ***************************************************************************/
+
+int     lpjs_send_chaperone_status(int msg_fd, dispatch_status_t status)
+
+{
+    char    dispatch_response[LPJS_MSG_LEN_MAX + 1];
+    
+    lpjs_log("Sending dispatch response.\n");
+    snprintf(dispatch_response, LPJS_MSG_LEN_MAX + 1,
+	    "%c", status);
+    if ( lpjs_send_munge(msg_fd, dispatch_response, close)
+			 != LPJS_MSG_SENT )
+	lpjs_log("%s(): Failed to send dispatch_response.\n",
+		__FUNCTION__);
+    return 0;   // FIXME: Define return values
+}
+
+
+/***************************************************************************
+ *  Description:
  *  
  *  Returns:
  *
@@ -506,6 +506,12 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
     extern FILE *Log_stream;
     
     signal(SIGCHLD, sigchld_handler);
+
+    /*
+     *  Child process must tell lpjs_compd whether chaperone was
+     *  successfully launched.  Script failures are reported by
+     *  chaperone directly to lpjs_dispatchd.
+     */
     
     if ( fork() == 0 )
     {
@@ -520,10 +526,6 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
 	 *  Permission problems, etc. should return other codes, which
 	 *  merely lead to job failure.
 	 */
-	
-	// We don't want chaperone and its childre to inherit
-	// the socket connection between dispatchd and compd
-	close(msg_fd);
 	
 	// If lpjs_compd is running as root, use setuid() to switch
 	// to submitting user
@@ -542,6 +544,7 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
 	    if ( (pw_ent = getpwnam(user_name)) == NULL )
 	    {
 		lpjs_log("%s(): ERROR: %s: No such user.\n", __FUNCTION__, user_name);
+		lpjs_send_chaperone_status(msg_fd, LPJS_DISPATCH_OSERR);
 		exit(EX_OSERR);
 	    }
 	    
@@ -562,6 +565,7 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
 	    if ( setuid(uid) != 0 )
 	    {
 		lpjs_log("%s(): ERROR: Failed to set uid to %u.\n", __FUNCTION__, uid);
+		lpjs_send_chaperone_status(msg_fd, LPJS_DISPATCH_OSERR);
 		exit(EX_OSERR);
 	    }
 	    
@@ -580,6 +584,7 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
 	    // FIXME: Take node down and reschedule jobs elsewhere
 	    // FIXME: Terminating here causes dispatchd to crash
 	    // dispatchd should be able to tolerate lost connections at any time
+	    lpjs_send_chaperone_status(msg_fd, LPJS_DISPATCH_OSERR);
 	    exit(EX_OSERR);
 	}
 	
@@ -593,6 +598,7 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
 	{
 	    lpjs_log("%s(): Could not open %s: %s\n", __FUNCTION__,
 		     out_file, strerror(errno));
+	    lpjs_send_chaperone_status(msg_fd, LPJS_DISPATCH_CANTCREAT);
 	    exit(EX_CANTCREAT);
 	}
 	
@@ -604,16 +610,27 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
 	{
 	    lpjs_log("%s(): Could not open %s: %s\n", __FUNCTION__,
 		     err_file, strerror(errno));
+	    lpjs_send_chaperone_status(msg_fd, LPJS_DISPATCH_CANTCREAT);
 	    exit(EX_CANTCREAT);
 	}
 	
 	// FIXME: Build should use realpath
 	lpjs_log("Running chaperone: %s %s...\n", chaperone_bin, job_script_name);
+	// FIXME: This assumes execl() will succeed, which is all but certain.
+	// It would be better to send msg_fd value to chaperone and let
+	// it respond to dispatchd, or send a failure message after execl().
+	lpjs_send_chaperone_status(msg_fd, LPJS_DISPATCH_OK);
+
+	// We don't want chaperone and its childre to inherit
+	// the socket connection between dispatchd and compd
+	close(msg_fd);
 	execl(chaperone_bin, chaperone_bin, job_script_name, NULL);
 	
 	// We only get here if execl() failed
 	lpjs_log("%s(): Failed to exec %s %u %u %s\n",
 		__FUNCTION__, chaperone_bin, job_script_name);
+	// See FIXME above
+	// lpjs_send_chaperone_status(LPJS_DISPATCH_EXEC_FAILED);
 	exit(EX_OSERR);
     }
     

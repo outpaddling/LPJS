@@ -154,12 +154,14 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 		return 0;
 	    }
 	    
-	    // Get status back from compd
+	    /*
+	     *  Get chaperone launch status back from compd.
+	     */
+	    
 	    lpjs_log("Awaiting dispatch status from compd...\n");
 	    payload_bytes = lpjs_recv_munge(msg_fd, &munge_payload,
 					    0, 0, &uid, &gid,
 					    lpjs_dispatchd_safe_close);
-	    // lpjs_log("payload_bytes = %d\n", payload_bytes);
 	    if ( payload_bytes > 0 )
 	    {
 		exit_code = munge_payload[0];
