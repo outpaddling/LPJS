@@ -65,7 +65,7 @@ if grep -q '^head' $CONF_FILE; then
 	fi
     fi
 fi
-/usr/local/libexec/lpjs/munge-enable
+/usr/local/libexec/lpjs/SMI/munge-enable
 if [ $(uname) = Darwin ]; then
     plist=/usr/local/share/lpjs/Launchd/org.pkgsrc.lpjs_dispatchd.plist
     if [ -e $plist ]; then
