@@ -173,6 +173,9 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 		{
 		    lpjs_log("%s(): OS error detected on %s.\n",
 			    __FUNCTION__, node_get_hostname(node));
+		    // FIXME: Node should not come back up from here when daemons
+		    // are restarted.  It should require "lpjs nodes up nodename"
+		    // node_set_state(node, "malfunction");
 		    node_set_state(node, "down");
 		    // FIXME: Make sure job state is fully reset
 		}

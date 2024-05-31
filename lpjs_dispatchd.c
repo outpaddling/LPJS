@@ -366,8 +366,9 @@ void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
 	     *  lpjs_recv() will return 0 in this case.
 	     */
 	    
+	    // FIXME: Verify that lost connections are handled properly
 	    bytes = lpjs_recv(fd, incoming_msg, LPJS_MSG_LEN_MAX + 1, 0, 0);
-	    if ( bytes == 0 )
+	    if ( bytes < 1 )
 	    {
 		lpjs_log("%s(): Lost connection to %s.  Closing...\n",
 			__FUNCTION__, node_get_hostname(node));
@@ -377,6 +378,7 @@ void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
 	    }
 	    else
 	    {
+		// At present, compd never messages dispatchd after checkin
 		switch(incoming_msg[0])
 		{
 		    default:

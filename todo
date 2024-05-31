@@ -1,6 +1,10 @@
 
 Now
 ---
+lpjs cancel doesn't work on jobs that failed and got requeued
+
+lpjs nodes showing procs used on a down node
+
 Resources not freed after job failure
 
 Save user-specified node states to disk and reload at startup

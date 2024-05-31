@@ -192,16 +192,17 @@ int     main (int argc, char *argv[])
 		     */
 		    
 		    job_read_from_string(job, munge_payload + 1, &script_start);
+		    // FIXME: run_chaperone() always returns EX_OK from parent
 		    status = lpjs_run_chaperone(job, script_start, msg_fd);
 		    switch(status)
 		    {
-			case    EX_OK:
+			case    LPJS_SUCCESS:
 			    lpjs_log("%s(): run_chaperone OK.\n", __FUNCTION__);
 			    snprintf(dispatch_response, LPJS_MSG_LEN_MAX + 1,
 				    "%c", LPJS_DISPATCH_OK);
 			    break;
 			
-			case    EX_OSERR:
+			case    LPJS_DISPATCH_OSERR:
 			    lpjs_log("%s(): OS error.\n", __FUNCTION__);
 			    snprintf(dispatch_response, LPJS_MSG_LEN_MAX + 1,
 				    "%c", LPJS_DISPATCH_OSERR);
@@ -452,12 +453,8 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_start,
 		 "take the issue seriously.\n");
 	#endif
 	
-	// Take node down to prevent further problems
-	// close(msg_fd);
-	// FIXME: Terminating here causes dispatchd to crash
-	// dispatchd should be able to tolerate lost connections at any time
-	// exit(EX_OSERR);
-	return EX_OSERR;
+	// FIXME: Use LPJS return codes
+	return LPJS_DISPATCH_OSERR;
     }
     else
 	lpjs_log("Confirmed in %s.\n", temp_wd);
@@ -517,6 +514,11 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
 	 *  The chaperone runs in the background, monitoring the job,
 	 *  enforcing resource limits, and reporting exit status and
 	 *  stats to dispatchd.
+	 *
+	 *  Exit with EX_OSERR to indicate a problem with the node.
+	 *  This will cause LPJS to take the node down.
+	 *  Permission problems, etc. should return other codes, which
+	 *  merely lead to job failure.
 	 */
 	
 	// We don't want chaperone and its childre to inherit
@@ -540,8 +542,7 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
 	    if ( (pw_ent = getpwnam(user_name)) == NULL )
 	    {
 		lpjs_log("%s(): ERROR: %s: No such user.\n", __FUNCTION__, user_name);
-		// FIXME: Disable this node and reschedule this job
-		return EX_NOUSER;
+		exit(EX_OSERR);
 	    }
 	    
 	    group_name = job_get_primary_group_name(job);
@@ -561,8 +562,7 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
 	    if ( setuid(uid) != 0 )
 	    {
 		lpjs_log("%s(): ERROR: Failed to set uid to %u.\n", __FUNCTION__, uid);
-		// FIXME: Disable this node and reschedule this job
-		return EX_NOPERM;
+		exit(EX_OSERR);
 	    }
 	    
 	    lpjs_log("%s(): user = %s  group = %s\n", __FUNCTION__,
@@ -575,7 +575,13 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
 	 */
 	job_setenv(job);
 	
-	lpjs_working_dir_setup(job, script_start, job_script_name, PATH_MAX + 1);
+	if ( lpjs_working_dir_setup(job, script_start, job_script_name, PATH_MAX + 1) != LPJS_SUCCESS )
+	{
+	    // FIXME: Take node down and reschedule jobs elsewhere
+	    // FIXME: Terminating here causes dispatchd to crash
+	    // dispatchd should be able to tolerate lost connections at any time
+	    exit(EX_OSERR);
+	}
 	
 	// FIXME: Make sure filenames are not truncated
 	
@@ -583,7 +589,12 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
 	strlcpy(out_file, job_script_name, PATH_MAX + 1);
 	strlcat(out_file, ".stdout", PATH_MAX + 1);
 	close(1);
-	open(out_file, O_WRONLY|O_CREAT, 0644);
+	if ( open(out_file, O_WRONLY|O_CREAT, 0644) == -1 )
+	{
+	    lpjs_log("%s(): Could not open %s: %s\n", __FUNCTION__,
+		     out_file, strerror(errno));
+	    exit(EX_CANTCREAT);
+	}
 	
 	// Redirect stderr
 	strlcpy(err_file, job_script_name, PATH_MAX + 1);
@@ -593,6 +604,7 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
 	{
 	    lpjs_log("%s(): Could not open %s: %s\n", __FUNCTION__,
 		     err_file, strerror(errno));
+	    exit(EX_CANTCREAT);
 	}
 	
 	// FIXME: Build should use realpath
@@ -602,8 +614,7 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
 	// We only get here if execl() failed
 	lpjs_log("%s(): Failed to exec %s %u %u %s\n",
 		__FUNCTION__, chaperone_bin, job_script_name);
-	// FIXME: Disable this node and reschedule this job
-	return EX_UNAVAILABLE;
+	exit(EX_OSERR);
     }
     
     /*
@@ -611,8 +622,6 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
      *  for more jobs.
      */
 
-    // FIXME: Reap exited chaperone processes
-    
     return EX_OK;
 }
 
