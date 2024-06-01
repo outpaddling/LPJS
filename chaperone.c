@@ -449,7 +449,7 @@ int     lpjs_chaperone_completion_loop(node_list_t *node_list,
 void    chaperone_cancel_handler(int s2)
 
 {
-    lpjs_log("Canceling PID %d...\n", Pid);
+    lpjs_log("%s(): Canceling PID %d...\n", __FUNCTION__, Pid);
     
     /*
      *  Terminate mafia-style: Don't just terminate the process, go
@@ -464,9 +464,11 @@ void    chaperone_cancel_handler(int s2)
     whack_family(Pid);
     
     // Try SIGTERM first in case process catches it and cleans up
+    lpjs_log("%s(): Sending SIGTERM to %d...\n", __FUNCTION__, Pid);
     kill(Pid, SIGTERM);
     sleep(2);
     // If SIGTERM worked, this will fail and have no effect
+    lpjs_log("%s(): Sending SIGKILL to %d...\n", __FUNCTION__, Pid);
     kill(Pid, SIGKILL);
 }
 
@@ -492,8 +494,8 @@ void    whack_family(pid_t pid)
     pid_t   child_pid;
     
     // Get list of child processes in a kludgy, but portable way
-    snprintf(cmd, LPJS_CMD_MAX + 1, "pgrep -P %u", Pid);
-    lpjs_log("Running %s...\n", cmd);
+    lpjs_log("Finding children of %d...\n", pid);
+    snprintf(cmd, LPJS_CMD_MAX + 1, "pgrep -P %u", pid);
     
     // Signal each child to terminate
     if ( (fp = popen(cmd, "r")) == NULL )
@@ -511,9 +513,11 @@ void    whack_family(pid_t pid)
 	    whack_family(child_pid);
 	
 	// Try SIGTERM first in case process catches it and cleans up
+	lpjs_log("Sending SIGTERM to child %d...\n", child_pid);
 	kill(child_pid, SIGTERM);
 	sleep(2);
 	// If SIGTERM worked, this will fail and have no effect
+	lpjs_log("Sending SIGKILL to child %d...\n", child_pid);
 	kill(child_pid, SIGKILL);
     }
     pclose(fp);
