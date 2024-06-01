@@ -3,8 +3,6 @@ Now
 ---
 lpjs cancel doesn't work on jobs that failed and got requeued
 
-lpjs cancel doesn't always terminate processes
-
 lpjs nodes showing procs used on a down node
 
 Resources not freed after job failure
