@@ -1,6 +1,9 @@
 
 Now
 ---
+dispatchd hangs while compute node is shutting down
+    Make sure all socket reads have a timeout
+
 lpjs cancel doesn't work on jobs that failed and got requeued
 
 lpjs nodes showing procs used on a down node
