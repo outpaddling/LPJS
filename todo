@@ -49,3 +49,6 @@ Terminate jobs that exceed their resource allocation
 Convert sbatch scripts to lpjs and vice versa
     #lpjs <-> #SBATCH
     LPJS_ARRAY_INDEX <-> SLURM_ARRAY_TASK_ID
+
+Add optional disk usage requirements to job specs, e.g.
+    #lpjs du /tmp 20GiB
