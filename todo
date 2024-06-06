@@ -18,6 +18,8 @@ Reset job state and node resources for jobs that fail to start due to os err
 
 Later
 -----
+Job dependencies
+
 Support real numbers for pmem, useful when using GB or GiB
 
 Log job stats in a separate accounting log
