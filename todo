@@ -1,6 +1,8 @@
 
 Now
 ---
+Preserve used procs/mem through dispatchd restart
+
 dispatchd hangs while compute node is shutting down
     Make sure all socket reads have a timeout
 
