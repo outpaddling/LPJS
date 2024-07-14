@@ -147,6 +147,34 @@ Total                up          16    0   65476       0 -         -
 Total                down        80    0  458455       0 -         -        
 ```
 
+### macOS Limitations
+
+Compute nodes running macOS and accessing file servers are currently
+problematic, due to macOS security features.  MacOS requires the user
+to grant each application permission to access certain directories, including
+those on a remote file server, via a popup window on the desktop.
+There is no command-line alternative for granting permissions, as providing
+one would essentially allow malware to grant itself permissions.
+
+The LPJS compute node daemon, lpjs_compd, needs write access to file
+servers in order to create files and directories for running jobs.
+Its descendants, including your job scripts, also need this write access.
+
+Each time lpjs_compd is updated, it will lose its authorization to access
+the file server, until the desktop user authorizes it again via the
+macOS graphical interface.
+
+There are two possible workarounds to this issue:
+
+1. Do not use a file server from macOS compute nodes.  This complicates
+jobs scripts, as they will need to automatically download input files
+and upload results.
+
+2. Use a virtual machine to run jobs on macOS compute nodes under another
+operating system, such as BSD or Linux.  There
+are several free desktop virtual machine monitors available, such as
+VirtualBox and VMWARE, as well as lightweight hypervisors such as xhyve.
+
 ## Security
 
 LPJS, like other job schedulers and resource managers, is a tool that
