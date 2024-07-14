@@ -173,7 +173,8 @@ and upload results.
 2. Use a virtual machine to run jobs on macOS compute nodes under another
 operating system, such as BSD or Linux.  There
 are several free desktop virtual machine monitors available, such as
-VirtualBox and VMWARE, as well as lightweight hypervisors such as xhyve.
+UTM, VirtualBox and VMWARE, as well as lightweight hypervisors such as qemu
+and xhyve.
 
 ## Security
 
