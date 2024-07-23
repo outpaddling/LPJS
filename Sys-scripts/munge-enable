@@ -83,33 +83,35 @@ EOM
 	    read host_name
 	    cat << EOM
 
-Enter the username of a user that exists on both $host_name
-and $(hostname), and has permission to "su" to root.
-On BSD and some Linux systems, this user must be a member of the
-root or wheel group.
+Enter the username of a user that exists on $host_name
+and has permission to "su" to root.  On BSD and some Linux systems,
+this user must be a member of the root or wheel group.
 
 This user cannot be "root".  Secure systems do not accept remote logins
 as the root user.
 
-You will need to enter the root password for $host_name
-and possibly the user's password for $(hostname).
-
 EOM
 	    printf "Username? "
 	    read user_name
-	    set +e
-	    remote_localbase=$(ssh $user_name@$host_name auto-localbase)
-	    ssh -t $user_name@$host_name asroot \
-		scp -p $remote_localbase/etc/munge/munge.key $user_name@$(hostname):
-	    # sh does not support ~ on all platforms
-	    if [ $(uname) = Darwin ]; then
-		# sh hard-quotes ~$user_name
-		# eval cleans up the cmd before executing
-		eval mv ~$user_name/munge.key $munge_key
-	    else
-		user_home=$(awk -F : -v u=$user_name '$1 == u { print $6 }' /etc/passwd)
-		mv $user_home/munge.key $munge_key
+	    printf "TCP port to ssh from $(hostname) to $host_name? [22] "
+	    read tcp_port
+	    if [ 0"$tcp_port" = 0 ]; then
+		tcp_port=22
 	    fi
+	    set +e
+	    remote_localbase=$(ssh -p $tcp_port $user_name@$host_name auto-localbase)
+	    printf "Enter root password for $host_name:\n"
+	    ssh -t -p $tcp_port $user_name@$host_name asroot \
+		cp -fp $remote_localbase/etc/munge/munge.key \
+		      /tmp/$user_name.key
+	    ssh -t -p $tcp_port $user_name@$host_name \
+		   asroot chown $user_name /tmp/$user_name.key
+	    # sh does not support ~ on all platforms
+	    printf "Enter $user_name password for $host_name\n"
+	    printf "and root password for $(hostname):\n"
+	    asroot scp -P $tcp_port $user_name@${host_name}:/tmp/$user_name.key $munge_key
+	    ls -l $munge_key
+	    ssh -p $tcp_port $user_name@$host_name rm -f /tmp/$user_name.key
 	    set -e
 	    if chown root:0 $munge_key && chmod 600 $munge_key; then
 		valid=yes
