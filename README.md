@@ -174,7 +174,9 @@ and upload results.
 operating system, such as BSD or Linux.  There
 are several free desktop virtual machine monitors available, such as
 UTM, VirtualBox and VMWARE, as well as lightweight hypervisors such as qemu
-and xhyve.
+and xhyve.  The [qemu-freebsd-guest.sh script](https://github.com/outpaddling/LPJS/blob/main/Utils/qemu-freebsd-guest.sh)
+in this repository provides
+an example for creating and running a virtual machine on an ARM-based Mac.
 
 ## Security
 
