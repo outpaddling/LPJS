@@ -361,6 +361,7 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_start,
 			     PATH_MAX + 1);
     snprintf(shared_fs_marker_path, PATH_MAX + 1, "%s/%s",
 	     working_dir, shared_fs_marker);
+    fprintf(stderr, "%s(): Checking for %s...\n", shared_fs_marker);
     if ( stat(shared_fs_marker_path, &st) != 0 )
     {
 	struct passwd *pw_ent;
