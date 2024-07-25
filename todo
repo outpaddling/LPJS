@@ -1,6 +1,10 @@
 
 Now
 ---
+dispatchd-disable
+    rm -f /Library/LaunchDaemons/org.pkgsrc.lpjs_dispatchd.plist
+    rm -i prefix/var/log/lpjs/dispatchd
+
 Preserve used procs/mem through dispatchd restart
 
 dispatchd hangs while compute node is shutting down
