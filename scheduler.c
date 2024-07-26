@@ -160,8 +160,9 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	    
 	    lpjs_log("Awaiting dispatch status from compd...\n");
 	    payload_bytes = lpjs_recv_munge(msg_fd, &munge_payload,
-					    0, 0, &uid, &gid,
+					    0, 500000, &uid, &gid,
 					    lpjs_dispatchd_safe_close);
+	    // lpjs_log("Back from lpjs_recv_munge().\n");
 	    if ( payload_bytes > 0 )
 	    {
 		exit_code = munge_payload[0];
@@ -197,8 +198,11 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 		}
 	    }
 	    else
+	    {
 		lpjs_log("%s(): Failed to receive dispatch status from compd.\n",
 			__FUNCTION__);
+		node_set_state(node, "down");
+	    }
 	}
 	
 	/*

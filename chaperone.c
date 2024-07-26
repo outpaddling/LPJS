@@ -283,6 +283,7 @@ int     lpjs_chaperone_checkin(int msg_fd,
     lpjs_log("%s(): Sent checkin request.\n", __FUNCTION__);
 
     // lpjs_recv(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 0);
+    // FIXME: Add a timeout and handling code
     bytes = lpjs_recv_munge(msg_fd, &munge_payload, 0, 0, &uid, &gid, close);
 
     if ( bytes < 1 )

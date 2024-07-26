@@ -106,6 +106,7 @@ int     lpjs_print_response(int msg_fd, const char *caller_name)
     
     // This function should never be called by dispatchd, so use
     // a normal close()
+    // FIXME: Add a timeout and handling code
     while ( ! eot_received &&
 	    (bytes = lpjs_recv_munge(msg_fd, &payload, 0, 0,
 				     &uid, &gid, close)) > 0 )
@@ -182,6 +183,8 @@ ssize_t lpjs_send(int msg_fd, int send_flags, const char *format, ...)
  *      the message length in network byte order is received first,
  *      followed by the message.  The interface is idential to recv(2).
  *
+ *  timeout:    timeout in microseconds
+ *
  *  History: 
  *  Date        Name        Modification
  *  2024-01-19  Jason Bacon Begin
@@ -194,7 +197,7 @@ ssize_t lpjs_recv(int msg_fd, char *buff, size_t buff_len, int flags,
     uint32_t    msg_len;
     ssize_t     bytes_read;
     fd_set      read_fds;
-    struct timeval  timeout_tv = { timeout, 0 };    // timeout sec, 0 us
+    struct timeval  timeout_tv = { timeout / 1000000, timeout % 1000000 };
     
     // FIXME: Use poll() instead?
     // Use select() to implement timeout without using non-blocking fds
@@ -206,7 +209,8 @@ ssize_t lpjs_recv(int msg_fd, char *buff, size_t buff_len, int flags,
 	// lpjs_log("%s: Entering select()...\n", __FUNCTION__);
 	if ( select(msg_fd + 1, &read_fds, NULL, NULL, &timeout_tv) == 0 )
 	{
-	    lpjs_log("select() returned 0.\n");
+	    lpjs_log("%s(): select() timed out.\n", __FUNCTION__);
+	    // FIXME: Define return codes
 	    return 0;
 	}
     }

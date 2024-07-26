@@ -509,6 +509,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		__FUNCTION__, msg_fd);
 
 	/* Read a message through the socket */
+	// FIXME: Add a timeout and handling code
 	if ( (bytes = lpjs_recv_munge(msg_fd,
 		     &munge_payload, 0, 0, &munge_uid, &munge_gid,
 		     lpjs_dispatchd_safe_close)) < 1 )

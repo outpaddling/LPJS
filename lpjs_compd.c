@@ -137,6 +137,7 @@ int     main (int argc, char *argv[])
 	{
 	    poll_fd.revents &= ~POLLIN;
 	    lpjs_log("%s(): New event received.\n", __FUNCTION__);
+	    // FIXME: Add a timeout and handling code
 	    bytes = lpjs_recv_munge(msg_fd, &munge_payload, 0, 0,
 				    &uid, &gid, close);
 	    if ( bytes < 0 )
@@ -256,6 +257,7 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
     }
     lpjs_log("%s(): Sent checkin request.\n", __FUNCTION__);
 
+    // FIXME: Add a timeout and handling code
     bytes = lpjs_recv_munge(msg_fd, &munge_payload, 0, 0, &uid, &gid, close);
     if ( bytes < 1 )
     {
@@ -361,6 +363,7 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_start,
 			     PATH_MAX + 1);
     snprintf(shared_fs_marker_path, PATH_MAX + 1, "%s/%s",
 	     working_dir, shared_fs_marker);
+    
     lpjs_log("%s(): Checking for %s...\n", __FUNCTION__, shared_fs_marker_path);
     if ( stat(shared_fs_marker_path, &st) != 0 )
     {
