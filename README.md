@@ -34,7 +34,7 @@ Linux, macOS, or any other POSIX platform.
 The pkgsrc package manager is portable to virtually all POSIX-compatible
 systems and provides one of the largest package collections among existing
 package managers.  Hence, pkgsrc enables the use of multiple operating
-systems running __exactly__ the same application software.
+systems running identical versions of numerous software applications.
 
 ## Status
 
@@ -50,7 +50,7 @@ This will be fully supported in the future, but for now, we'll focus
 on reliable, dedicated hardware.
 
 Development will continue move slowly as we focus on improving code
-quality and robustness before adding many more features.
+quality and robustness before adding new features.
 The user interface may undergo significant changes as testing reveals
 oversights in design.
 
@@ -96,17 +96,6 @@ FreeBSD coral.acadix  bacon ~/Barracuda/CNC-EMDiff/RNA-Seq/LPJS 1010: lpjs jobs
  
 Legend: P = processor  J = job  N = node  S = submission
 
-Pending
-
-    JobID  IDX Jobs P/J P/N MiB/P User Compute-node Script
-      594   12   18   2   2    10 bacon TBD 04-trim.lpjs
-      595   13   18   2   2    10 bacon TBD 04-trim.lpjs
-      596   14   18   2   2    10 bacon TBD 04-trim.lpjs
-      597   15   18   2   2    10 bacon TBD 04-trim.lpjs
-      598   16   18   2   2    10 bacon TBD 04-trim.lpjs
-      599   17   18   2   2    10 bacon TBD 04-trim.lpjs
-      600   18   18   2   2    10 bacon TBD 04-trim.lpjs
-
 Running
 
     JobID  IDX Jobs P/J P/N MiB/P User Compute-node Script
@@ -120,6 +109,17 @@ Running
       591    9   18   2   2    10 bacon netbsd9.acadix.biz 04-trim.lpjs
       592   10   18   2   2    10 bacon alma8.acadix.biz 04-trim.lpjs
       593   11   18   2   2    10 bacon herring.acadix.biz 04-trim.lpjs
+
+Pending
+
+    JobID  IDX Jobs P/J P/N MiB/P User Compute-node Script
+      594   12   18   2   2    10 bacon TBD 04-trim.lpjs
+      595   13   18   2   2    10 bacon TBD 04-trim.lpjs
+      596   14   18   2   2    10 bacon TBD 04-trim.lpjs
+      597   15   18   2   2    10 bacon TBD 04-trim.lpjs
+      598   16   18   2   2    10 bacon TBD 04-trim.lpjs
+      599   17   18   2   2    10 bacon TBD 04-trim.lpjs
+      600   18   18   2   2    10 bacon TBD 04-trim.lpjs
 ```
 
 Basic usability for those willing to test alpha-quality software
