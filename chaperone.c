@@ -120,6 +120,11 @@ int     main (int argc, char *argv[])
     lpjs_log("Running %s in %s on %s with %u procs and %lu MiB.\n",
 	    job_script_name, wd, hostname, procs, pmem_per_proc);
     
+    if ( stat(shared_fs_marker, &st) != 0 )
+    {
+	// FIXME: Implement input file transfer here
+    }
+    
     if ( (Pid = fork()) == 0 )
     {
 	// Create new process group with the script's PID
