@@ -21,6 +21,9 @@ Add maintenance state that won't be changed to up at compd checkin
 
 Reset job state and node resources for jobs that fail to start due to os err
 
+Add #lpjs input-files and #lpjs output-files as an alternative to
+manually code file transfers
+
 
 Later
 -----
