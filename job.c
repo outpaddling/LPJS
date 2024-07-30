@@ -182,8 +182,8 @@ void    job_send_basic_params(job_t *job, int msg_fd)
 	    job->job_count, job->procs_per_job,
 	    job->min_procs_per_node, job->pmem_per_proc,
 	    job->user_name,
-	    job->compute_node,
-	    job->script_name);
+	    job->script_name,
+	    job->compute_node);
     
     // FIXME: Combine into one message
     // Used by dispatchd to send to lpjs jobs command
