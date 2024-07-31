@@ -116,6 +116,8 @@ do
 7.. Disable compute daemon (make this a compute node)
 8.. Restart daemons
 9.. View logs
+10. Node status
+11. Job status
 Q.. Quit
 
 EOM
@@ -205,6 +207,20 @@ EOM
     
     09)
 	lpjs log | more
+	pause
+	;;
+    
+    010)
+	printf '\nRunning "lpjs nodes"...\n\n'
+	pause
+	lpjs nodes
+	pause
+	;;
+    
+    011)
+	printf '\nRunning "lpjs jobs"...\n\n'
+	pause
+	lpjs jobs
 	pause
 	;;
     
