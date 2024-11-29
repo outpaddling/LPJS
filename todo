@@ -35,6 +35,8 @@ Log job stats in a separate accounting log
 
 MPI support
 
+Resource limits via rctl, cgroups, etc?
+
 Submission parameter:
     vmem per proc
 
