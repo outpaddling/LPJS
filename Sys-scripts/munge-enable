@@ -48,6 +48,22 @@ pause()
 #   2023-05-28  J Bacon     Begin
 ##########################################################################
 
+# Prevent user from running a Trojan as root in the case their account
+# was compromised
+absolute="$(which $0)"
+# Don't count on -e being set at this point
+if ! auto-file-secure "$absolute"; then
+    exit 1
+fi
+
+if ! auto-root-check $0; then
+    printf "Root "
+    # exec quotes '$absolute --flag', causing usage error
+    # Assigning to cmd works around the problem
+    cmd="$absolute $@"
+    exec su -m root -c "$cmd"
+fi
+
 munge_etc=/usr/local/etc/munge
 munge_key=$munge_etc/munge.key
 if [ $(uname) = Linux ]; then
@@ -107,19 +123,32 @@ EOM
 	    if [ 0"$tcp_port" = 0 ]; then
 		tcp_port=22
 	    fi
+
+	    cat << EOM
+
+This process will be simpler if SSH keys are installed for
+root@$(hostname) to $user_name@$host_name.  If this has not
+already been done, run the following command as root in
+another terminal:
+
+    auto-ssh-authorize $user_name@$host_name
+
+EOM
+	    pause
 	    set +e
+	    printf "Enter password for $user_name@$host_name:\n"
 	    remote_localbase=$(ssh -p $tcp_port $user_name@$host_name auto-localbase)
-	    printf "Enter root password for $host_name:\n"
+	    printf "Enter password for $user_name@$host_name, then root@$host_name:\n"
 	    ssh -t -p $tcp_port $user_name@$host_name asroot \
 		cp -fp $remote_localbase/etc/munge/munge.key \
 		      /tmp/$user_name.key
+	    printf "Enter password for $user_name@$host_name, then root@$host_name:\n"
 	    ssh -t -p $tcp_port $user_name@$host_name \
 		   asroot chown $user_name /tmp/$user_name.key
 	    # sh does not support ~ on all platforms
 	    printf "Enter $user_name password for $host_name\n"
-	    printf "and root password for $(hostname):\n"
-	    asroot scp -P $tcp_port $user_name@${host_name}:/tmp/$user_name.key $munge_key
-	    ls -l $munge_key
+	    scp -P $tcp_port $user_name@${host_name}:/tmp/$user_name.key $munge_key
+	    printf "Enter password for $user_name@$host_name:\n"
 	    ssh -p $tcp_port $user_name@$host_name rm -f /tmp/$user_name.key
 	    set -e
 	    if chown ${munge_user}:$munge_group $munge_key && chmod 600 $munge_key; then
@@ -147,7 +176,7 @@ EOM
 fi
 
 printf "Permissions should be -rw-------\n"
-printf "and ownership root:root or root:wheel or munge:munge.\n"
+printf "and ownership munge:munge or the name:group of the pkgsrc user.\n"
 printf "If they are not, you may have a security breach.\n"
 printf "Current ownership and permissions:\n"
 ls -al /usr/local/etc/munge 
