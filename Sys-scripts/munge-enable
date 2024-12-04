@@ -48,7 +48,7 @@ pause()
 #   2023-05-28  J Bacon     Begin
 ##########################################################################
 
-munge_etc=/opt/pkg/etc/munge
+munge_etc=/usr/local/etc/munge
 munge_key=$munge_etc/munge.key
 if [ $(uname) = Linux ]; then
     munge_user=$(stat -c '%U' $munge_etc)
@@ -150,22 +150,22 @@ printf "Permissions should be -rw-------\n"
 printf "and ownership root:root or root:wheel or munge:munge.\n"
 printf "If they are not, you may have a security breach.\n"
 printf "Current ownership and permissions:\n"
-ls -al /opt/pkg/etc/munge 
+ls -al /usr/local/etc/munge 
 pause
 
 # FIXME: Make sure pkgsrc service is called "munged"?
-if [ -e /opt/pkg/etc/rc.d/munged ]; then
+if [ -e /usr/local/etc/rc.d/munged ]; then
     # Dragonfly, FreeBSD
     auto-enable-service munged $0
 elif [ $(uname) = Darwin ]; then
     # On macOS, we must install the plist file ourselves
-    plist=/opt/pkg/share/munge/Launchd/org.pkgsrc.munged.plist
+    plist=/usr/local/share/munge/Launchd/org.pkgsrc.munged.plist
     if [ -e $plist ]; then
 	auto-enable-service -s $plist org.pkgsrc.munged lpjs-admin
     fi
 elif [ $(uname) = Linux ]; then
     # On Linux, systemctl creates a link to the service file
-    script=/opt/pkg/lib/systemd/system/munge.service
+    script=/usr/local/lib/systemd/system/munge.service
     if [ -e $script ]; then
 	auto-enable-service -s $script munge lpjs-admin
     fi
@@ -175,9 +175,9 @@ elif [ $(uname) = NetBSD ]; then
     auto-enable-service munge $0
 elif [ $(uname) = SunOS ]; then
     # FIXME: The SunOS init scripts are not working yet
-    # FIXME: Can we enable an init script directly under /opt/pkg?
+    # FIXME: Can we enable an init script directly under /usr/local?
     # FIXME: Add SunOS support to auto-enable-service
-    cp /opt/pkg/etc/init.d/munge /etc/init.d
+    cp /usr/local/etc/init.d/munge /etc/init.d
     /etc/init.d/munge restart
 else
     printf "Could not find munge RC script.  Enable munge manually\n"
