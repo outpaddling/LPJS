@@ -1,0 +1,87 @@
+#!/bin/sh -e
+
+##########################################################################
+#   Function description:
+#       Pause until user presses return
+##########################################################################
+
+pause()
+{
+    local junk
+    
+    printf "Press return to continue..."
+    read junk
+}
+
+
+##########################################################################
+#   Title:
+#       lpjs-munge-disable
+#
+#   Section:
+#       8
+#
+#   Synopsis:
+#       lpjs munge-disable
+#       
+#   Description:
+#       lpjs munge-disable is a convenience script for disabling the
+#       munge authentication service.  This process is dependent on
+#       the operating system and the package manager used to install
+#       munge.  lpjs munge-disable eliminates the need to deal with
+#       these differences or to type in lengthy pathnames.
+#
+#       lpjs munge-disable is not generally run directly by the user,
+#       but is used by lpjs-compd-disable(8) and lpjs-dispatchd-disable(8).
+#       
+#   Arguments:
+#       None
+#       
+#   Returns:
+#       0 upon success, non-zero error codes otherwise
+#
+#   See also:
+#       lpjs-admin(8), lpjs-compd-disable(8), lpjs-dispatchd-disable(8)
+#       
+#   History:
+#   Date        Name        Modification
+#   2023-05-28  J Bacon     Begin
+##########################################################################
+
+munge_key=/usr/local/etc/munge/munge.key
+if [ ! -e $munge_key ]; then
+    printf "No $munge_key found.  Munge must not be running.\n"
+    exit 1
+fi
+
+# FIXME: Make sure pkgsrc service is called "munged"?
+if [ -e /usr/local/etc/rc.d/munged ]; then
+    # Dragonfly, FreeBSD
+    auto-disable-service munged
+elif [ $(uname) = Darwin ]; then
+    # On macOS, we must install the plist file ourselves
+    plist=/usr/local/share/munge/Launchd/org.pkgsrc.munged.plist
+    if [ -e $plist ]; then
+	auto-disable-service -s $plist org.pkgsrc.munged
+    fi
+elif [ $(uname) = Linux ]; then
+    # On Linux, systemctl creates a link to the service file
+    script=/usr/local/lib/systemd/system/munge.service
+    if [ -e $script ]; then
+	auto-disable-service -s $script munge
+    fi
+elif [ $(uname) = NetBSD ]; then
+    # On NetBSD, pkgsrc installs/deinstalls the RC files, but they are
+    # named munge rather than munged
+    auto-disable-service munge
+elif [ $(uname) = SunOS ]; then
+    # FIXME: The SunOS init scripts are not working yet
+    # FIXME: Can we disable an init script directly under /usr/local?
+    # FIXME: Add SunOS support to auto-disable-service
+    cp /usr/local/etc/init.d/munge /etc/init.d
+    /etc/init.d/munge restart
+else
+    printf "Could not find munge RC script.  Disable munge manually\n"
+    printf "before continuing.  Press return after munged is running.\n"
+    read junk
+fi

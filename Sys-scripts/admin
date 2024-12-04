@@ -110,14 +110,16 @@ do
 1.. Set up a zero-configuration one-node cluster on this machine
 2.. Generate a new config file
 3.. Edit the config file
-4.. Enable dispatch daemon (make this the head node)
-5.. Enable compute daemon (make this a compute node)
-6.. Disable dispatch daemon (make this the head node)
-7.. Disable compute daemon (make this a compute node)
-8.. Restart daemons
-9.. View logs
-10. Node status
-11. Job status
+4.. Enable dispatch daemon (make this computer the head node)
+5.. Enable compute daemon (make this computer an compute node)
+6.. Disable dispatch daemon (make this computer no longer the head node)
+7.. Disable compute daemon (make this computer no longer a compute node)
+8.. Enable munge daemon only (access the cluster/grid without becoming a node)
+9.. Disable munge daemon only (disable access to the cluster/grid)
+10. Restart daemons
+11. View logs
+12. Node status
+13. Job status
 Q.. Quit
 
 EOM
@@ -177,47 +179,67 @@ EOM
 	;;
     
     03)
+	printf "\nRunning \"$EDITOR $CONF_FILE\"...\n\n"
+	pause
 	$EDITOR $CONF_FILE
 	;;
 
     04)
+	printf '\nRunning "lpjs dispatchd-enable"...\n\n'
 	/usr/local/libexec/lpjs/SMI/dispatchd-enable
 	pause
 	;;
 
     05)
+	printf '\nRunning "lpjs compd-enable"...\n\n'
 	/usr/local/libexec/lpjs/SMI/compd-enable
 	pause
 	;;
 
     06)
+	printf '\nRunning "lpjs dispatchd-disable"...\n\n'
 	/usr/local/libexec/lpjs/SMI/dispatchd-disable
 	pause
 	;;
     
     07)
+	printf '\nRunning "lpjs compd-disable"...\n\n'
 	/usr/local/libexec/lpjs/SMI/compd-disable
 	pause
 	;;
-	
+    
     08)
-	lpjs restart
+	printf '\nRunning "lpjs munge-enable"...\n\n'
+	lpjs munge-enable
 	pause
 	;;
     
     09)
+	printf '\nRunning "lpjs munge-disable"...\n\n'
+	lpjs munge-disable
+	pause
+	;;
+	
+    010)
+	printf '\nRunning "lpjs restart"...\n\n'
+	lpjs restart
+	pause
+	;;
+    
+    011)
+	printf '\nRunning "lpjs log"...\n\n'
 	lpjs log | more
 	pause
 	;;
     
-    010)
+    012)
 	printf '\nRunning "lpjs nodes"...\n\n'
 	pause
 	lpjs nodes
 	pause
 	;;
     
-    011)
+    013)
 	printf '\nRunning "lpjs jobs"...\n\n'
 	pause
 	lpjs jobs
