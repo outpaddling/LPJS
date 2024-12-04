@@ -24,6 +24,8 @@ Reset job state and node resources for jobs that fail to start due to os err
 Add #lpjs input-files and #lpjs output-files as an alternative to
 manually code file transfers
 
+Don't run dispatchd as root on Darwin
+
 
 Later
 -----
