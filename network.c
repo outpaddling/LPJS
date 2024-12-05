@@ -139,8 +139,8 @@ int     lpjs_print_response(int msg_fd, const char *caller_name)
     }
     else
     {
-	lpjs_log("Internal error: Undefined return code from lpjs_recv(): %d\n",
-		 bytes);
+	lpjs_log("%s(): Internal error: Undefined return code from lpjs_recv(): %d\n",
+		 __FUNCTION__, bytes);
 	// FIXME: What should we really do here?
 	return LPJS_RECV_FAILED;
     }
@@ -296,17 +296,15 @@ ssize_t lpjs_recv_munge(int msg_fd, char **payload, int flags, int timeout,
     
     if ( bytes_read == LPJS_RECV_FAILED )
     {
-	lpjs_log("%s: lpjs_recv() failed: %s", __FUNCTION__, strerror(errno));
+	lpjs_log("%s(): lpjs_recv() failed: %s", __FUNCTION__, strerror(errno));
 	return LPJS_RECV_FAILED;
     }
     else if ( bytes_read == LPJS_RECV_TIMEOUT )
 	return LPJS_RECV_TIMEOUT;
     else if ( bytes_read > 0 )
     {
-	// lpjs_log("%s(): Unmunging %zd bytes...\n", __FUNCTION__, bytes_read);
 	munge_status = munge_decode(incoming_msg, NULL, (void **)payload,
 				    &payload_len, uid, gid);
-	// lpjs_log("%s(): Payload len = %d\n", __FUNCTION__, payload_len);
 	if ( munge_status != EMUNGE_SUCCESS )
 	{
 	    close_function(msg_fd);
@@ -321,8 +319,8 @@ ssize_t lpjs_recv_munge(int msg_fd, char **payload, int flags, int timeout,
     }
     else
     {
-	lpjs_log("Internal error: Undefined return code from lpjs_recv(): %d\n",
-		 bytes_read);
+	lpjs_log("%s(): Internal error: Undefined return code from lpjs_recv(): %d\n",
+		 __FUNCTION__, bytes_read);
 	// FIXME: What should we really do here?
 	return LPJS_RECV_FAILED;
     }
