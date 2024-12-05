@@ -106,9 +106,10 @@ int     lpjs_print_response(int msg_fd, const char *caller_name)
     
     // This function should never be called by dispatchd, so use
     // a normal close()
-    // FIXME: Add a timeout and handling code
+    // FIXME: Add timeout handling code
     while ( ! eot_received &&
-	    (bytes = lpjs_recv_munge(msg_fd, &payload, 0, 0,
+	    (bytes = lpjs_recv_munge(msg_fd, &payload, 0,
+				     LPJS_PRINT_RESPONSE_TIMEOUT,
 				     &uid, &gid, close)) > 0 )
     {
 	eot_received = (payload[bytes-1] == 4);
@@ -119,14 +120,29 @@ int     lpjs_print_response(int msg_fd, const char *caller_name)
 	free(payload);
     }
     
-    if ( bytes < 0 )
+    // FIXME: Distinguish between error and LPJS_RECV_TIMEOUT
+    if ( bytes == LPJS_RECV_TIMEOUT )
+    {
+	close(msg_fd);
+	lpjs_log("%s(): Timed out after %dus\n",
+		 __FUNCTION__, LPJS_PRINT_RESPONSE_TIMEOUT);
+	return LPJS_RECV_TIMEOUT;
+    }
+    else if ( bytes == LPJS_RECV_FAILED )
     {
 	// This function should never be called by dispatchd, so
 	// do a normal close() vs lpjs_dispatchd_safe_close()
 	close(msg_fd);
-	lpjs_log("%s: Failed to read response from dispatchd",
-		strerror(errno));
+	lpjs_log("%s(): Failed to read response from dispatchd: %s\n",
+		__FUNCTION__, strerror(errno));
 	return EX_IOERR;
+    }
+    else
+    {
+	lpjs_log("Internal error: Undefined return code from lpjs_recv(): %d\n",
+		 bytes);
+	// FIXME: What should we really do here?
+	return LPJS_RECV_FAILED;
     }
     return EX_OK;
 }
@@ -191,7 +207,7 @@ ssize_t lpjs_send(int msg_fd, int send_flags, const char *format, ...)
  ***************************************************************************/
 
 ssize_t lpjs_recv(int msg_fd, char *buff, size_t buff_len, int flags,
-		      int timeout)
+		  int timeout)
 
 {
     uint32_t    msg_len;
@@ -209,20 +225,22 @@ ssize_t lpjs_recv(int msg_fd, char *buff, size_t buff_len, int flags,
 	// lpjs_log("%s: Entering select()...\n", __FUNCTION__);
 	if ( select(msg_fd + 1, &read_fds, NULL, NULL, &timeout_tv) == 0 )
 	{
-	    lpjs_log("%s(): select() timed out.\n", __FUNCTION__);
-	    // FIXME: Define return codes
-	    return 0;
+	    lpjs_log("%s(): select() timed out after %dus.\n",
+		     __FUNCTION__, timeout);
+	    return LPJS_RECV_TIMEOUT;
 	}
     }
 
     // lpjs_log("Receiving message...\n");
     bytes_read = recv(msg_fd, &msg_len, sizeof(uint32_t), flags | MSG_WAITALL);
     if ( bytes_read == 0 )
+	// Not a timeout, just got nothing
+	// Should never happen on blocking reads
 	return 0;
     else if ( bytes_read == -1 )
     {
 	lpjs_log("lpjs_recv(): recv() returned -1: %s\n", strerror(errno));
-	return 0;
+	return LPJS_RECV_FAILED;
     }
     else if ( bytes_read != sizeof(uint32_t) )
     {
@@ -231,7 +249,6 @@ ssize_t lpjs_recv(int msg_fd, char *buff, size_t buff_len, int flags,
 	exit(EX_DATAERR);
     }
     msg_len = ntohl(msg_len);
-    // lpjs_log("lpjs_recv(): msg_len = %u\n", msg_len);
     
     if ( msg_len > buff_len )
     {
@@ -241,7 +258,6 @@ ssize_t lpjs_recv(int msg_fd, char *buff, size_t buff_len, int flags,
     }
     
     bytes_read = recv(msg_fd, buff, msg_len, flags | MSG_WAITALL);
-    // lpjs_log("lpjs_recv(): Got '%s'.\n", buff);
     
     return bytes_read;
 }
@@ -252,6 +268,14 @@ ssize_t lpjs_recv(int msg_fd, char *buff, size_t buff_len, int flags,
  *      Receive a message sent by lpjs_send().  A uint32_t containing
  *      the message length in network byte order is received first,
  *      followed by the message.  The interface is idential to recv(2).
+ *
+ *  Arguments:
+ *      msg_fd          Socket file descriptor
+ *      payload         Buffer to receive message
+ *      flags           See recv(2)
+ *      timeout         useconds, passed to lpjs_recv
+ *      uid, gid        Owner of sending process
+ *      close_function  Different close procedures for dispatch and compd
  *
  *  History: 
  *  Date        Name        Modification
@@ -270,12 +294,14 @@ ssize_t lpjs_recv_munge(int msg_fd, char **payload, int flags, int timeout,
     bytes_read = lpjs_recv(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX + 1,
 			   flags, timeout);
     
-    if ( bytes_read == -1 )
+    if ( bytes_read == LPJS_RECV_FAILED )
     {
 	lpjs_log("%s: lpjs_recv() failed: %s", __FUNCTION__, strerror(errno));
-	return -1;
+	return LPJS_RECV_FAILED;
     }
-    if ( bytes_read > 0 )
+    else if ( bytes_read == LPJS_RECV_TIMEOUT )
+	return LPJS_RECV_TIMEOUT;
+    else if ( bytes_read > 0 )
     {
 	// lpjs_log("%s(): Unmunging %zd bytes...\n", __FUNCTION__, bytes_read);
 	munge_status = munge_decode(incoming_msg, NULL, (void **)payload,
@@ -294,7 +320,12 @@ ssize_t lpjs_recv_munge(int msg_fd, char **payload, int flags, int timeout,
 	return payload_len;
     }
     else
-	return 0;
+    {
+	lpjs_log("Internal error: Undefined return code from lpjs_recv(): %d\n",
+		 bytes_read);
+	// FIXME: What should we really do here?
+	return LPJS_RECV_FAILED;
+    }
 }
 
 
@@ -340,14 +371,22 @@ int     lpjs_send_munge(int msg_fd, const char *msg, int(*close_function)(int))
     
     // Read acknowledgment
     bytes = lpjs_recv(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 0);
-    // lpjs_log("%s(): Response: %zd byte response '%s'\n", __FUNCTION__, bytes, incoming_msg);
+    if ( bytes == LPJS_RECV_FAILED )
+    {
+	lpjs_log("%s(): lpjs_recv() failed.\n", __FUNCTION__);
+	return LPJS_RECV_FAILED;
+    }
+    else if ( bytes == LPJS_RECV_TIMEOUT )
+    {
+	lpjs_log("%s(): lpjs_recv() timeout.\n", __FUNCTION__);
+	return LPJS_RECV_TIMEOUT;
+    }
     if ( (bytes < 1) || (strcmp(incoming_msg, LPJS_MUNGE_CRED_VERIFIED) != 0) )
     {
 	lpjs_log("%s(): Expected %s, got %zd bytes on fd %d.\n", __FUNCTION__,
 		 LPJS_MUNGE_CRED_VERIFIED, bytes, msg_fd);
 	return LPJS_RECV_FAILED;
     }
-    // lpjs_log("%s(): Munge message acknolwedged.\n", __FUNCTION__);
 
     return LPJS_MSG_SENT;
 }

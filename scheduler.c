@@ -160,10 +160,16 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	    
 	    lpjs_log("Awaiting dispatch status from compd...\n");
 	    payload_bytes = lpjs_recv_munge(msg_fd, &munge_payload,
-					    0, 500000, &uid, &gid,
+					    0, LPJS_DISPATCH_STATUS_TIMEOUT,
+					    &uid, &gid,
 					    lpjs_dispatchd_safe_close);
-	    // lpjs_log("Back from lpjs_recv_munge().\n");
-	    if ( payload_bytes > 0 )
+	    if ( payload_bytes == LPJS_RECV_TIMEOUT )
+	    {
+		lpjs_log("%s(): Timed out after %dus waiting dispatch status.\n",
+			 __FUNCTION__);
+		node_set_state(node, "down");
+	    }
+	    else if ( payload_bytes > 0 )
 	    {
 		exit_code = munge_payload[0];
 		if ( exit_code == LPJS_DISPATCH_SCRIPT_FAILED )
@@ -199,7 +205,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	    }
 	    else
 	    {
-		lpjs_log("%s(): Failed to receive dispatch status from compd.\n",
+		lpjs_log("%s(): Error reading dispatch status from compd.\n",
 			__FUNCTION__);
 		node_set_state(node, "down");
 	    }

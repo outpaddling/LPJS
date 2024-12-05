@@ -34,11 +34,17 @@ typedef enum
     LPJS_DISPATCH_CANTCREAT
 }   dispatch_status_t;
 
-// Must be <= 0, since recv returns number of bytes
 #define LPJS_MSG_SENT       0
-#define LPJS_RECV_FAILED    -1
 #define LPJS_SEND_FAILED    -2
 #define LPJS_MUNGE_FAILED   -3
+
+// Must be <= 0, since recv returns number of bytes
+#define LPJS_RECV_FAILED    -1  // bytes returned
+#define LPJS_RECV_TIMEOUT   -2  // bytes returned
+// 500000 results in spurious timeouts on marlin (MacBook i7 compute node)
+#define LPJS_DISPATCH_STATUS_TIMEOUT    1000000
+#define LPJS_PRINT_RESPONSE_TIMEOUT     2000000
+#define LPJS_CONNECT_TIMEOUT            1000000
 
 #define LPJS_EOT                '\004'
 #define LPJS_EOT_MSG            "\004"

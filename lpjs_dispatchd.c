@@ -510,9 +510,21 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 
 	/* Read a message through the socket */
 	// FIXME: Add a timeout and handling code
-	if ( (bytes = lpjs_recv_munge(msg_fd,
-		     &munge_payload, 0, 0, &munge_uid, &munge_gid,
-		     lpjs_dispatchd_safe_close)) < 1 )
+	bytes = lpjs_recv_munge(msg_fd,
+		     &munge_payload, 0, LPJS_CONNECT_TIMEOUT,
+		     &munge_uid, &munge_gid,
+		     lpjs_dispatchd_safe_close);
+	if ( bytes == LPJS_RECV_TIMEOUT )
+	{
+	    lpjs_log("%s(): lpjs_recv_munge() timed out after %dus: %s\n",
+		    __FUNCTION__, LPJS_CONNECT_TIMEOUT, strerror(errno));
+	    lpjs_dispatchd_safe_close(msg_fd);
+	    // Nothing to free if munge_decode() failed, since it
+	    // allocates the buffer
+	    // free(munge_payload);
+	    return LPJS_RECV_TIMEOUT;
+	}
+	else if ( bytes == LPJS_RECV_FAILED )
 	{
 	    lpjs_log("%s(): lpjs_recv_munge() failed (%zd bytes): %s\n",
 		    __FUNCTION__, bytes, strerror(errno));
@@ -520,8 +532,15 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	    // Nothing to free if munge_decode() failed, since it
 	    // allocates the buffer
 	    // free(munge_payload);
-	    return bytes;
+	    return LPJS_RECV_FAILED;
 	}
+	else if ( bytes < 1 )
+	{
+	    lpjs_log("%s(): Internal error: Invalid return code from lpjs_recv_munge(): %d\n",
+		     __FUNCTION__, bytes);
+	    return LPJS_RECV_FAILED;
+	}
+	
 	// lpjs_log("%s(): Got %zd byte message.\n", __FUNCTION__, bytes);
 	// bytes must be at least 1, or no mem is allocated
 
