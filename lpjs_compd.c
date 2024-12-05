@@ -627,7 +627,8 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
 	 */
 	job_setenv(job);
 	
-	if ( lpjs_working_dir_setup(job, script_start, job_script_name, PATH_MAX + 1) != LPJS_SUCCESS )
+	if ( lpjs_working_dir_setup(job, script_start, job_script_name,
+				    PATH_MAX + 1) != LPJS_SUCCESS )
 	{
 	    // FIXME: Take node down and reschedule jobs elsewhere
 	    // FIXME: Terminating here causes dispatchd to crash
@@ -664,6 +665,7 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
 	
 	// FIXME: Build should use realpath
 	lpjs_log("Running chaperone: %s %s...\n", chaperone_bin, job_script_name);
+	
 	// FIXME: This assumes execl() will succeed, which is all but certain.
 	// It would be better to send msg_fd value to chaperone and let
 	// it respond to dispatchd, or send a failure message after execl().

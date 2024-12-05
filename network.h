@@ -41,10 +41,11 @@ typedef enum
 // Must be <= 0, since recv returns number of bytes
 #define LPJS_RECV_FAILED    -1  // bytes returned
 #define LPJS_RECV_TIMEOUT   -2  // bytes returned
-// 500000 results in spurious timeouts on marlin (MacBook i7 compute node)
-#define LPJS_DISPATCH_STATUS_TIMEOUT    2000000
-#define LPJS_PRINT_RESPONSE_TIMEOUT     2000000
-#define LPJS_CONNECT_TIMEOUT            1000000
+// FIXME: Getting spurious timeouts on dispatch response
+// Keep timeouts small so dispatchd doesn't hang waiting for a msg
+#define LPJS_DISPATCH_STATUS_TIMEOUT    500000
+#define LPJS_PRINT_RESPONSE_TIMEOUT     500000
+#define LPJS_CONNECT_TIMEOUT            500000
 
 #define LPJS_EOT                '\004'
 #define LPJS_EOT_MSG            "\004"

@@ -119,9 +119,6 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	    return 0;
 	}
 	
-	//lpjs_log("Script %s is %zd bytes.\n", script_path, script_size);
-	//fprintf(Log_stream, "Script:\n%s\n", script_buff);
-	
 	/*
 	 *  For each matching node
 	 *      Update mem and proc availability
@@ -155,14 +152,19 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	    }
 	    
 	    /*
-	     *  Get chaperone launch status back from compd.
+	     *  Get dispatch status back from compd.
 	     */
 	    
-	    lpjs_log("Awaiting dispatch status from compd...\n");
+	    lpjs_log("%s(): Awaiting dispatch status from %s compd...\n",
+		     __FUNCTION__, node_get_hostname(node));
 	    payload_bytes = lpjs_recv_munge(msg_fd, &munge_payload,
 					    0, LPJS_DISPATCH_STATUS_TIMEOUT,
 					    &uid, &gid,
 					    lpjs_dispatchd_safe_close);
+	    
+	    // FIXME: Getting too many timeouts here
+	    // Find a way to be flexible about response time while
+	    // allowing dispatchd to continue servicing other requests
 	    if ( payload_bytes == LPJS_RECV_TIMEOUT )
 	    {
 		lpjs_log("%s(): Timed out awaiting dispatch status.\n",
@@ -472,6 +474,5 @@ job_t   *lpjs_remove_running_job(job_list_t *running_jobs, unsigned long job_id)
 	// WEXITED is implicitly set for waitpid(), but specify for readability
 	waitpid(pid, &status, WEXITED);
     
-    // FIXME: Remove from running_jobs
     return job_list_remove_job(running_jobs, job_id);
 }
