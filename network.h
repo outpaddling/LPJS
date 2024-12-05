@@ -42,7 +42,7 @@ typedef enum
 #define LPJS_RECV_FAILED    -1  // bytes returned
 #define LPJS_RECV_TIMEOUT   -2  // bytes returned
 // 500000 results in spurious timeouts on marlin (MacBook i7 compute node)
-#define LPJS_DISPATCH_STATUS_TIMEOUT    1000000
+#define LPJS_DISPATCH_STATUS_TIMEOUT    2000000
 #define LPJS_PRINT_RESPONSE_TIMEOUT     2000000
 #define LPJS_CONNECT_TIMEOUT            1000000
 

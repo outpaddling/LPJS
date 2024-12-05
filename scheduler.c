@@ -165,8 +165,10 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 					    lpjs_dispatchd_safe_close);
 	    if ( payload_bytes == LPJS_RECV_TIMEOUT )
 	    {
-		lpjs_log("%s(): Timed out after %dus waiting dispatch status.\n",
+		lpjs_log("%s(): Timed out awaiting dispatch status.\n",
 			 __FUNCTION__);
+		lpjs_log("%s(): Setting %s to down.\n", __FUNCTION__,
+			 node_get_hostname(node));
 		node_set_state(node, "down");
 	    }
 	    else if ( payload_bytes > 0 )

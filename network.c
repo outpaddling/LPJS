@@ -301,7 +301,14 @@ ssize_t lpjs_recv_munge(int msg_fd, char **payload, int flags, int timeout,
     }
     else if ( bytes_read == LPJS_RECV_TIMEOUT )
 	return LPJS_RECV_TIMEOUT;
-    else if ( bytes_read > 0 )
+    else if ( bytes_read < 0 )
+    {
+	lpjs_log("%s(): Internal error: Undefined return code from lpjs_recv(): %d\n",
+		 __FUNCTION__, bytes_read);
+	// FIXME: What should we really do here?
+	return LPJS_RECV_FAILED;
+    }
+    else
     {
 	munge_status = munge_decode(incoming_msg, NULL, (void **)payload,
 				    &payload_len, uid, gid);
@@ -316,13 +323,6 @@ ssize_t lpjs_recv_munge(int msg_fd, char **payload, int flags, int timeout,
 	// Acknolwedge successful receipt of message
 	lpjs_send(msg_fd, 0, LPJS_MUNGE_CRED_VERIFIED);
 	return payload_len;
-    }
-    else
-    {
-	lpjs_log("%s(): Internal error: Undefined return code from lpjs_recv(): %d\n",
-		 __FUNCTION__, bytes_read);
-	// FIXME: What should we really do here?
-	return LPJS_RECV_FAILED;
     }
 }
 
