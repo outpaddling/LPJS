@@ -281,6 +281,52 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
 }
 
 
+/***************************************************************************
+ *  Use auto-c2man to generate a man page from this comment
+ *
+ *  Name:
+ *      -
+ *
+ *  Library:
+ *      #include <>
+ *      -l
+ *
+ *  Description:
+ *  
+ *  Arguments:
+ *
+ *  Returns:
+ *
+ *  Examples:
+ *
+ *  Files:
+ *
+ *  Environment
+ *
+ *  See also:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-12-05  Jason Bacon Begin
+ ***************************************************************************/
+
+int     lpjs_compd_connect_loop(node_list_t *node_list)
+
+{
+    int     msg_fd;
+    
+    // Retry socket connection indefinitely
+    while ( (msg_fd = lpjs_connect_to_dispatchd(node_list)) == -1 )
+    {
+	lpjs_log("%s(): Failed to connect to dispatchd: %s\n",
+		__FUNCTION__, strerror(errno));
+	lpjs_log("Retry in %d seconds...\n", LPJS_RETRY_TIME);
+	sleep(LPJS_RETRY_TIME);
+    }
+    
+    return msg_fd;
+}
+
 
 /***************************************************************************
  *  Description:
@@ -300,19 +346,17 @@ int     lpjs_compd_checkin_loop(node_list_t *node_list, node_t *node)
 {
     int     msg_fd,
 	    status;
-    
-    // Retry socket connection indefinitely
-    while ( (msg_fd = lpjs_connect_to_dispatchd(node_list)) == -1 )
-    {
-	lpjs_log("%s(): Failed to connect to dispatchd: %s\n",
-		__FUNCTION__, strerror(errno));
-	lpjs_log("Retry in %d seconds...\n", LPJS_RETRY_TIME);
-	sleep(LPJS_RETRY_TIME);
-    }
+
+    // Does not return until successful
+    msg_fd = lpjs_compd_connect_loop(node_list);
     
     // Retry checking request indefinitely
     while ( (status = lpjs_compd_checkin(msg_fd, node)) != EX_OK )
     {
+	// In case failure is due to disconnect
+	close(msg_fd);
+	msg_fd = lpjs_compd_connect_loop(node_list);
+	
 	lpjs_log("%s(): compd-checkin failed.  Retry in %d seconds...\n",
 		 __FUNCTION__, LPJS_RETRY_TIME);
 	sleep(LPJS_RETRY_TIME);
