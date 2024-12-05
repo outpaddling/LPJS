@@ -137,7 +137,7 @@ int     lpjs_print_response(int msg_fd, const char *caller_name)
 		__FUNCTION__, strerror(errno));
 	return EX_IOERR;
     }
-    else
+    else if ( bytes < 0 )
     {
 	lpjs_log("%s(): Internal error: Undefined return code from lpjs_recv(): %d\n",
 		 __FUNCTION__, bytes);
