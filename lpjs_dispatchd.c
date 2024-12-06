@@ -554,7 +554,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
 		break;
 	    
-	    case    LPJS_DISPATCHD_REQUEST_NODE_STATUS:
+	    case    LPJS_DISPATCHD_REQUEST_NODE_LIST:
 		lpjs_log("LPJS_DISPATCHD_REQUEST_NODE_STATUS\n");
 		node_list_send_status(msg_fd, node_list);
 		// lpjs_dispatchd_safe_close(msg_fd);
@@ -576,7 +576,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
 		break;
 	    
-	    case    LPJS_DISPATCHD_REQUEST_JOB_STATUS:
+	    case    LPJS_DISPATCHD_REQUEST_JOB_LIST:
 		lpjs_log("LPJS_DISPATCHD_REQUEST_JOB_STATUS\n");
 		// FIXME: factor out to lpjs_send_job_list(), check
 		// all messages for success

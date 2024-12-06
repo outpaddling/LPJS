@@ -46,7 +46,7 @@ int     main(int argc,char *argv[])
 	return EX_IOERR;
     }
 
-    outgoing_msg[0] = LPJS_DISPATCHD_REQUEST_JOB_STATUS;
+    outgoing_msg[0] = LPJS_DISPATCHD_REQUEST_JOB_LIST;
     outgoing_msg[1] = '\0';
     if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != LPJS_MSG_SENT )
     {

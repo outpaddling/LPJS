@@ -452,9 +452,8 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_start,
 	}
     }
     
-    // getcwd() hangs on NetBSD when running as a service
+    // FIXME: getcwd() hangs on NetBSD when running as a service
     // chdir() to $HOME beforehand fixes the issue
-    // FIXME: Find out why
     xt_get_home_dir(start_wd, PATH_MAX + 1 - 20);
     chdir(start_wd);
     lpjs_log("Changing from %s to %s...\n", start_wd, working_dir);
@@ -472,14 +471,13 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_start,
 	#ifdef __APPLE__
 	lpjs_log("You may need to grant lpjs_compd full disk access in\n"
 		 "System Preferences -> Privacy and Security.  This access\n"
-		 "might be revoked when LPJS is updated.  If you find\n"
+		 "will be revoked when LPJS is updated.  If you find\n"
 		 "that you might repeatedly reset it, please report the\n"
 		 "problem to Apple via the developer feedback assistant.\n"
 		 "They need to hear from multiple people before they will\n"
 		 "take the issue seriously.\n");
 	#endif
 	
-	// FIXME: Use LPJS return codes
 	return LPJS_DISPATCH_OSERR;
     }
     else

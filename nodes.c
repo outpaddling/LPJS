@@ -35,7 +35,7 @@ int     main (int argc, char *argv[])
     switch(argc)
     {
 	case    1:  // lpjs nodes
-	    outgoing_msg[0] = LPJS_DISPATCHD_REQUEST_NODE_STATUS;
+	    outgoing_msg[0] = LPJS_DISPATCHD_REQUEST_NODE_LIST;
 	    outgoing_msg[1] = '\0';
 	    break;
 	

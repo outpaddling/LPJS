@@ -46,8 +46,10 @@ int     lpjs_select_nodes()
  *      next job, if possible.
  *
  *  Returns:
- *      The number of jobs dispatched (0 or 1), or a negative error
- *      code if something went wrong.
+ *      The number of nodes matched, or a negative error
+ *      code if something went wrong.  A positive number indicates
+ *      that nodes were available and this function should be called
+ *      again until it returns 0 or an error.
  *
  *  History: 
  *  Date        Name        Modification
@@ -69,7 +71,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 		*munge_payload;
     int         msg_fd,
 		procs_used,
-		dispatched,
+		node_count,
 		exit_code;
     ssize_t     script_size,
 		payload_bytes;
@@ -90,7 +92,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
      *  for the job requirements
      */
     
-    if ( lpjs_match_nodes(job, node_list, matched_nodes) > 0 )
+    if ( (node_count = lpjs_match_nodes(job, node_list, matched_nodes)) > 0 )
     {
 	lpjs_log("%s(): Found %u available nodes.\n",
 		__FUNCTION__, node_list_get_compute_node_count(matched_nodes));
@@ -111,12 +113,18 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 		 pending_path, job_get_script_name(job));
 	script_size = lpjs_load_script(script_path, script_buff,
 				       LPJS_SCRIPT_SIZE_MAX + 1);
-	// FIXME: Determine a real minimum script size
-	if ( script_size < 1 )
+
+	/*
+	 *  Nothing smaller than this:
+	 *
+	 *  #!/bin/sh
+	 *  w
+	 */
+	if ( script_size < 12 )
 	{
 	    lpjs_log("%s(): Error reading script %s.\n",
 		    __FUNCTION__, script_path);
-	    return 0;
+	    return node_count;
 	}
 	
 	/*
@@ -148,11 +156,20 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	    {
 		lpjs_log("%s(): Failed to send job to compd.\n", __FUNCTION__);
 		free(matched_nodes);
-		return 0;
+		return node_count;
 	    }
 	    
 	    /*
-	     *  Get dispatch status back from compd.
+	     *  Get chaperone launch status back from compd.
+	     *  FIXME: This can take a while and timeouts happen
+	     *      Spawn a separate thread to wait?
+	     *      Don't wait, but let compd/chaperone connect again
+	     *      to send status?  Modify lpjs_compd.c
+	     *      in tandem with this section to make this happen.
+	     *      Add new LPJS_DISPATCHD_REQUEST_JOB_UPDATE
+	     *      case to lpjs_check_listen_fd() for receiving
+	     *      updates such as job failures?  Or just use
+	     *      LPJS_DISPATCHD_REQUEST_JOB_COMPLETE?
 	     */
 	    
 	    lpjs_log("%s(): Awaiting dispatch status from %s compd...\n",
@@ -161,10 +178,6 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 					    0, LPJS_DISPATCH_STATUS_TIMEOUT,
 					    &uid, &gid,
 					    lpjs_dispatchd_safe_close);
-	    
-	    // FIXME: Getting too many timeouts here
-	    // Find a way to be flexible about response time while
-	    // allowing dispatchd to continue servicing other requests
 	    if ( payload_bytes == LPJS_RECV_TIMEOUT )
 	    {
 		lpjs_log("%s(): Timed out awaiting dispatch status.\n",
@@ -220,19 +233,9 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	 */
 	
 	free(matched_nodes);
-	dispatched = 1;
-    }
-    else
-    {
-	// do nothing until next event that might make it possible to dispatch
-	// Qualifying events: job completion, new node addition
-	// maybe set a flag indicating that we're stuck until one of these
-	// things happens, to avoid wasting time trying to dispatch this
-	// job again when nothing has changed
-	dispatched = 0;
     }
     
-    return dispatched;
+    return node_count;
 }
 
 
