@@ -562,7 +562,8 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
     if ( fork() == 0 )
     {
 	/*
-	 *  Child, exec the chaperone command with the script as an arg.
+	 *  Child: This is now the chaperone process.
+	 *  exec() the chaperone command with the script as an argument.
 	 *  The chaperone runs in the background, monitoring the job,
 	 *  enforcing resource limits, and reporting exit status and
 	 *  stats to dispatchd.
@@ -683,6 +684,7 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
     }
     
     /*
+     *  No else clause to if ( fork() == 0 ):
      *  lpjs_compd does not wait for chaperone, but resumes listening
      *  for more jobs.
      */

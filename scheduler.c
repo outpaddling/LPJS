@@ -162,9 +162,8 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	    /*
 	     *  Get chaperone launch status back from compd.
 	     *  FIXME: This can take a while and timeouts happen
-	     *      Spawn a separate thread to wait?
 	     *      Don't wait, but let compd/chaperone connect again
-	     *      to send status?  Modify lpjs_compd.c
+	     *      to send status.  Modify lpjs_compd.c
 	     *      in tandem with this section to make this happen.
 	     *      Add new LPJS_DISPATCHD_REQUEST_JOB_UPDATE
 	     *      case to lpjs_check_listen_fd() for receiving
@@ -189,10 +188,14 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	    else if ( payload_bytes > 0 )
 	    {
 		exit_code = munge_payload[0];
+		// FIXME: This code is never sent by compd or chaperone
 		if ( exit_code == LPJS_DISPATCH_SCRIPT_FAILED )
 		{
 		    lpjs_log("%s(): Job script failed to start: %d\n",
 			    __FUNCTION__, exit_code);
+		    // Don't try to restart a script that failed
+		    // Either the user needs to fix it, or something
+		    // is not installed properly
 		    lpjs_remove_pending_job(pending_jobs, job_get_job_id(job));
 		}
 		else if ( exit_code == LPJS_DISPATCH_OSERR )
