@@ -11,7 +11,8 @@ enum
 {
     // Internal events
     LPJS_DISPATCHD_REQUEST_COMPD_CHECKIN = 1,
-    LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN,
+    LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS,
+    LPJS_DISPATCHD_REQUEST_JOB_STARTED,
     LPJS_DISPATCHD_REQUEST_JOB_COMPLETE,
     // User command requests
     LPJS_DISPATCHD_REQUEST_NODE_LIST,
@@ -30,11 +31,19 @@ enum
 
 typedef enum
 {
-    LPJS_DISPATCH_OK = 1,
-    LPJS_DISPATCH_SCRIPT_FAILED,
-    LPJS_DISPATCH_OSERR,
-    LPJS_DISPATCH_CANTCREAT
-}   dispatch_status_t;
+    // Sent right after fork on the new job request msg_fd
+    // dispatchd should either receive either this or time out waiting
+    // This msg_fd is closed after sending, so dispatchd can resume
+    // monitoring for new requests
+    LPJS_CHAPERONE_FORKED = 1,
+    
+    // The rest are sent by chaperone on a new socket connection
+    LPJS_CHAPERONE_OK,
+    LPJS_CHAPERONE_SCRIPT_FAILED,
+    LPJS_CHAPERONE_OSERR,
+    LPJS_CHAPERONE_CANTCREAT,
+}   chaperone_status_t;
+
 
 #define LPJS_MSG_SENT       0
 #define LPJS_SEND_FAILED    -2
@@ -45,7 +54,7 @@ typedef enum
 #define LPJS_RECV_TIMEOUT   -2  // bytes returned
 // FIXME: Getting spurious timeouts on dispatch response
 // Keep timeouts small so dispatchd doesn't hang waiting for a msg
-#define LPJS_DISPATCH_STATUS_TIMEOUT    500000
+#define LPJS_CHAPERONE_STATUS_TIMEOUT   500000
 #define LPJS_PRINT_RESPONSE_TIMEOUT     500000
 #define LPJS_CONNECT_TIMEOUT            500000
 

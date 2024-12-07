@@ -47,7 +47,7 @@ int     main (int argc, char *argv[])
     char        *munge_payload,
 		vis_msg[LPJS_MSG_LEN_MAX + 1];
     ssize_t     bytes;
-    int         msg_fd;
+    int         compd_msg_fd;
     struct pollfd   poll_fd;
     extern FILE *Log_stream;
     uid_t       uid;
@@ -97,8 +97,8 @@ int     main (int argc, char *argv[])
     // Get hostname of head node
     lpjs_load_config(node_list, LPJS_CONFIG_HEAD_ONLY, Log_stream);
 
-    msg_fd = lpjs_compd_checkin_loop(node_list, node);
-    poll_fd.fd = msg_fd;
+    compd_msg_fd = lpjs_compd_checkin_loop(node_list, node);
+    poll_fd.fd = compd_msg_fd;
     // POLLERR and POLLHUP are actually always set.  Listing POLLHUP here just
     // for documentation.
     poll_fd.events = POLLIN | POLLHUP;
@@ -118,11 +118,11 @@ int     main (int argc, char *argv[])
 	    
 	    // Close this end, or dispatchd gets "address already in use"
 	    // When trying to restart
-	    close(msg_fd);
+	    close(compd_msg_fd);
 	    lpjs_log("%s(): Lost connection to dispatchd: HUP received.\n",
 		    __FUNCTION__);
 	    sleep(LPJS_RETRY_TIME);  // No point trying immediately after drop
-	    msg_fd = lpjs_compd_checkin_loop(node_list, node);
+	    compd_msg_fd = lpjs_compd_checkin_loop(node_list, node);
 	}
 	
 	if (poll_fd.revents & POLLERR)
@@ -138,7 +138,7 @@ int     main (int argc, char *argv[])
 	    poll_fd.revents &= ~POLLIN;
 	    lpjs_log("%s(): New event received.\n", __FUNCTION__);
 	    // FIXME: Add a timeout and handling code
-	    bytes = lpjs_recv_munge(msg_fd, &munge_payload, 0, 0,
+	    bytes = lpjs_recv_munge(compd_msg_fd, &munge_payload, 0, 0,
 				    &uid, &gid, close);
 	    if ( bytes < 0 )
 	    {
@@ -152,11 +152,11 @@ int     main (int argc, char *argv[])
 		 *  event.  Close connection so that dispatchd doesn't hang
 		 *  with "address already in use".
 		 */
-		close(msg_fd);
+		close(compd_msg_fd);
 		lpjs_log("%s(): 0 bytes received from dispatchd.  Disconnecting...\n",
 			__FUNCTION__);
 		poll_fd.revents = 0;
-		msg_fd = lpjs_compd_checkin_loop(node_list, node);
+		compd_msg_fd = lpjs_compd_checkin_loop(node_list, node);
 	    }
 	    else
 	    {
@@ -168,7 +168,7 @@ int     main (int argc, char *argv[])
 		{
 		    // Close this end, or dispatchd gets "address already in use"
 		    // When trying to restart
-		    close(msg_fd);
+		    close(compd_msg_fd);
 		    lpjs_log("%s(): Lost connection to dispatchd: EOT received.\n",
 			    __FUNCTION__);
 		    sleep(LPJS_RETRY_TIME);  // No point trying immediately after drop
@@ -176,7 +176,7 @@ int     main (int argc, char *argv[])
 		    // Ignore HUP that follows EOT
 		    // FIXME: This might be bad timing
 		    poll_fd.revents &= ~POLLHUP;
-		    msg_fd = lpjs_compd_checkin_loop(node_list, node);
+		    compd_msg_fd = lpjs_compd_checkin_loop(node_list, node);
 		}
 		else if ( munge_payload[0] == LPJS_COMPD_REQUEST_NEW_JOB )
 		{
@@ -198,7 +198,7 @@ int     main (int argc, char *argv[])
 		     *  whether the dispatch succeeds.
 		     */
 		    
-		    lpjs_run_chaperone(job, script_start, msg_fd);
+		    lpjs_run_chaperone(job, script_start, compd_msg_fd, node_list);
 		}
 		else if ( munge_payload[0] == LPJS_COMPD_REQUEST_CANCEL )
 		{
@@ -223,12 +223,12 @@ int     main (int argc, char *argv[])
 	}
     }
 
-    close(msg_fd);
+    close(compd_msg_fd);
     return EX_IOERR;
 }
 
 
-int     lpjs_compd_checkin(int msg_fd, node_t *node)
+int     lpjs_compd_checkin(int compd_msg_fd, node_t *node)
 
 {
     char        outgoing_msg[LPJS_MSG_LEN_MAX + 1],
@@ -248,17 +248,17 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
     lpjs_log("%s(): Sending node specs:\n", __FUNCTION__);
     node_print_specs_header(Log_stream);
     fprintf(Log_stream, "%s\n", outgoing_msg + 1);
-    if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != LPJS_MSG_SENT )
+    if ( lpjs_send_munge(compd_msg_fd, outgoing_msg, close) != LPJS_MSG_SENT )
     {
 	lpjs_log("%s(): Failed to send checkin message to dispatchd: %s",
 		__FUNCTION__, strerror(errno));
-	close(msg_fd);
+	close(compd_msg_fd);
 	return EX_IOERR;
     }
     lpjs_log("%s(): Sent checkin request.\n", __FUNCTION__);
 
     // FIXME: Add a timeout and handling code
-    bytes = lpjs_recv_munge(msg_fd, &munge_payload, 0, 0, &uid, &gid, close);
+    bytes = lpjs_recv_munge(compd_msg_fd, &munge_payload, 0, 0, &uid, &gid, close);
     if ( bytes < 1 )
     {
 	lpjs_log("Error receving auth message.\n");
@@ -310,13 +310,13 @@ int     lpjs_compd_checkin(int msg_fd, node_t *node)
  *  2024-12-05  Jason Bacon Begin
  ***************************************************************************/
 
-int     lpjs_compd_connect_loop(node_list_t *node_list)
+int     lpjs_dispatchd_connect_loop(node_list_t *node_list)
 
 {
-    int     msg_fd;
+    int     compd_msg_fd;
     
     // Retry socket connection indefinitely
-    while ( (msg_fd = lpjs_connect_to_dispatchd(node_list)) == -1 )
+    while ( (compd_msg_fd = lpjs_connect_to_dispatchd(node_list)) == -1 )
     {
 	lpjs_log("%s(): Failed to connect to dispatchd: %s\n",
 		__FUNCTION__, strerror(errno));
@@ -324,7 +324,7 @@ int     lpjs_compd_connect_loop(node_list_t *node_list)
 	sleep(LPJS_RETRY_TIME);
     }
     
-    return msg_fd;
+    return compd_msg_fd;
 }
 
 
@@ -344,18 +344,18 @@ int     lpjs_compd_connect_loop(node_list_t *node_list)
 int     lpjs_compd_checkin_loop(node_list_t *node_list, node_t *node)
 
 {
-    int     msg_fd,
+    int     compd_msg_fd,
 	    status;
 
     // Does not return until successful
-    msg_fd = lpjs_compd_connect_loop(node_list);
+    compd_msg_fd = lpjs_dispatchd_connect_loop(node_list);
     
     // Retry checking request indefinitely
-    while ( (status = lpjs_compd_checkin(msg_fd, node)) != EX_OK )
+    while ( (status = lpjs_compd_checkin(compd_msg_fd, node)) != EX_OK )
     {
 	// In case failure is due to disconnect
-	close(msg_fd);
-	msg_fd = lpjs_compd_connect_loop(node_list);
+	close(compd_msg_fd);
+	compd_msg_fd = lpjs_dispatchd_connect_loop(node_list);
 	
 	lpjs_log("%s(): compd-checkin failed.  Retry in %d seconds...\n",
 		 __FUNCTION__, LPJS_RETRY_TIME);
@@ -364,7 +364,7 @@ int     lpjs_compd_checkin_loop(node_list_t *node_list, node_t *node)
     
     lpjs_log("%s(): Checkin successful.\n", __FUNCTION__);
     
-    return msg_fd;
+    return compd_msg_fd;
 }
 
 
@@ -478,7 +478,7 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_start,
 		 "take the issue seriously.\n");
 	#endif
 	
-	return LPJS_DISPATCH_OSERR;
+	return LPJS_CHAPERONE_OSERR;
     }
     else
 	lpjs_log("Confirmed in %s.\n", temp_wd);
@@ -516,18 +516,24 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_start,
  *  
  ***************************************************************************/
 
-int     lpjs_send_chaperone_status(int msg_fd, dispatch_status_t status)
+int     lpjs_send_chaperone_status(node_list_t *node_list,
+				   chaperone_status_t status)
 
 {
-    char    dispatch_response[LPJS_MSG_LEN_MAX + 1];
+    int     chaperone_msg_fd;
+    char    chaperone_response[LPJS_MSG_LEN_MAX + 1];
     
-    lpjs_log("Sending dispatch response.\n");
-    snprintf(dispatch_response, LPJS_MSG_LEN_MAX + 1,
-	    "%c", status);
-    if ( lpjs_send_munge(msg_fd, dispatch_response, close)
+    chaperone_msg_fd = lpjs_dispatchd_connect_loop(node_list);
+    lpjs_log("%s(): Sending status = %d...\n", __FUNCTION__, status);
+    snprintf(chaperone_response, LPJS_MSG_LEN_MAX + 1,
+	    "%c%c", LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS, status);
+    if ( lpjs_send_munge(chaperone_msg_fd, chaperone_response, close)
 			 != LPJS_MSG_SENT )
-	lpjs_log("%s(): Failed to send dispatch_response.\n",
-		__FUNCTION__);
+	lpjs_log("%s(): Failed to send chaperone_response.\n", __FUNCTION__);
+    else
+	lpjs_log("%s(): status sent successfully.\n", __FUNCTION__);
+    close(chaperone_msg_fd);
+    sleep(10);
     return 0;   // FIXME: Define return values
 }
 
@@ -542,10 +548,12 @@ int     lpjs_send_chaperone_status(int msg_fd, dispatch_status_t status)
  *  2024-03-10  Jason Bacon Begin
  ***************************************************************************/
 
-int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
+int     lpjs_run_chaperone(job_t *job, const char *script_start,
+			    int compd_msg_fd, node_list_t *node_list)
 
 {
     char        *chaperone_bin = PREFIX "/libexec/lpjs/chaperone",
+		chaperone_response[LPJS_MSG_LEN_MAX + 1],
 		job_script_name[PATH_MAX + 1],
 		out_file[PATH_MAX + 1],
 		err_file[PATH_MAX + 1];
@@ -574,6 +582,25 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
 	 *  merely lead to job failure.
 	 */
 	
+	lpjs_log("Sending chaperone forked verification.\n");
+	snprintf(chaperone_response, LPJS_MSG_LEN_MAX + 1,
+		"%c", LPJS_CHAPERONE_FORKED);
+	if ( lpjs_send_munge(compd_msg_fd, chaperone_response, close)
+			     != LPJS_MSG_SENT )
+	{
+	    lpjs_log("%s(): Failed to send chaperone forked verification.\n",
+		    __FUNCTION__);
+	    close(compd_msg_fd);
+	    exit(EX_UNAVAILABLE);
+	}
+
+	// We don't want chaperone and its children to inherit
+	// the socket connection between dispatchd and compd.
+	// The parent process lpjs_compd will continue to use it,
+	// but we're done with it here.
+	lpjs_log("Closing compd_msg_fd = %d\n", compd_msg_fd);
+	close(compd_msg_fd);
+	
 	// If lpjs_compd is running as root, use setuid() to switch
 	// to submitting user
 	if ( getuid() == 0 )
@@ -591,7 +618,7 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
 	    if ( (pw_ent = getpwnam(user_name)) == NULL )
 	    {
 		lpjs_log("%s(): ERROR: %s: No such user.\n", __FUNCTION__, user_name);
-		lpjs_send_chaperone_status(msg_fd, LPJS_DISPATCH_OSERR);
+		lpjs_send_chaperone_status(node_list, LPJS_CHAPERONE_OSERR);
 		exit(EX_OSERR);
 	    }
 	    
@@ -612,7 +639,7 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
 	    if ( setuid(uid) != 0 )
 	    {
 		lpjs_log("%s(): ERROR: Failed to set uid to %u.\n", __FUNCTION__, uid);
-		lpjs_send_chaperone_status(msg_fd, LPJS_DISPATCH_OSERR);
+		lpjs_send_chaperone_status(node_list, LPJS_CHAPERONE_OSERR);
 		exit(EX_OSERR);
 	    }
 	    
@@ -624,6 +651,7 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
 	/*
 	 *  Set LPJS_USER, LPJS_SUBMIT_HOST, etc. for use in scripts
 	 */
+	lpjs_log("Setting up job env...\n");
 	job_setenv(job);
 	
 	if ( lpjs_working_dir_setup(job, script_start, job_script_name,
@@ -632,13 +660,15 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
 	    // FIXME: Take node down and reschedule jobs elsewhere
 	    // FIXME: Terminating here causes dispatchd to crash
 	    // dispatchd should be able to tolerate lost connections at any time
-	    lpjs_send_chaperone_status(msg_fd, LPJS_DISPATCH_OSERR);
+	    lpjs_log("%s(): lpjs_working_dir_setup() failed.\n", __FUNCTION__);
+	    lpjs_send_chaperone_status(node_list, LPJS_CHAPERONE_OSERR);
 	    exit(EX_OSERR);
 	}
 	
 	// FIXME: Make sure filenames are not truncated
 	
 	// Redirect stdout
+	lpjs_log("%s(): Redirecting stdout...\n", __FUNCTION__);
 	strlcpy(out_file, job_script_name, PATH_MAX + 1);
 	strlcat(out_file, ".stdout", PATH_MAX + 1);
 	close(1);
@@ -646,11 +676,13 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
 	{
 	    lpjs_log("%s(): Could not open %s: %s\n", __FUNCTION__,
 		     out_file, strerror(errno));
-	    lpjs_send_chaperone_status(msg_fd, LPJS_DISPATCH_CANTCREAT);
+	    lpjs_send_chaperone_status(node_list, LPJS_CHAPERONE_CANTCREAT);
 	    exit(EX_CANTCREAT);
 	}
 	
 	// Redirect stderr
+	#if 0
+	lpjs_log("%s(): Redirecting stderr...\n", __FUNCTION__);
 	strlcpy(err_file, job_script_name, PATH_MAX + 1);
 	strlcat(err_file, ".stderr", PATH_MAX + 1);
 	close(2);
@@ -658,28 +690,27 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start, int msg_fd)
 	{
 	    lpjs_log("%s(): Could not open %s: %s\n", __FUNCTION__,
 		     err_file, strerror(errno));
-	    lpjs_send_chaperone_status(msg_fd, LPJS_DISPATCH_CANTCREAT);
+	    lpjs_send_chaperone_status(node_list, LPJS_CHAPERONE_CANTCREAT);
 	    exit(EX_CANTCREAT);
 	}
+	#endif
+	
+	lpjs_log("%s(): Running chaperone: %s %s...\n", __FUNCTION__,
+		 chaperone_bin, job_script_name);
 	
 	// FIXME: Build should use realpath
-	lpjs_log("Running chaperone: %s %s...\n", chaperone_bin, job_script_name);
-	
 	// FIXME: This assumes execl() will succeed, which is all but certain.
 	// It would be better to send msg_fd value to chaperone and let
 	// it respond to dispatchd, or send a failure message after execl().
-	lpjs_send_chaperone_status(msg_fd, LPJS_DISPATCH_OK);
+	lpjs_send_chaperone_status(node_list, LPJS_CHAPERONE_OK);
 
-	// We don't want chaperone and its childre to inherit
-	// the socket connection between dispatchd and compd
-	close(msg_fd);
 	execl(chaperone_bin, chaperone_bin, job_script_name, NULL);
 	
 	// We only get here if execl() failed
 	lpjs_log("%s(): Failed to exec %s %u %u %s\n",
 		__FUNCTION__, chaperone_bin, job_script_name);
 	// See FIXME above
-	// lpjs_send_chaperone_status(LPJS_DISPATCH_EXEC_FAILED);
+	// lpjs_send_chaperone_status(LPJS_CHAPERONE_EXEC_FAILED);
 	exit(EX_OSERR);
     }
     

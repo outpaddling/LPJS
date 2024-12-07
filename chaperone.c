@@ -138,7 +138,7 @@ int     main (int argc, char *argv[])
 	return EX_UNAVAILABLE;
     }
     
-    lpjs_chaperone_checkin_loop(node_list, hostname, job_id, Pid);
+    lpjs_job_start_notice_loop(node_list, hostname, job_id, Pid);
     
     // FIXME: Monitor resource use of child
     // Maybe ptrace(), though seemingly not well standardized
@@ -260,7 +260,7 @@ int     main (int argc, char *argv[])
  *  ~2024-05-01 Jason Bacon Begin
  ***************************************************************************/
 
-int     lpjs_chaperone_checkin(int msg_fd,
+int     lpjs_job_start_notice(int msg_fd,
 			       const char *hostname, const char *job_id,
 			       pid_t job_pid)
 
@@ -275,7 +275,7 @@ int     lpjs_chaperone_checkin(int msg_fd,
     /* Send a message to the server */
     /* Need to send \0, so xt_dprintf() doesn't work here */
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1,
-	    "%c%s %s %u %d", LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN,
+	    "%c%s %s %u %d", LPJS_DISPATCHD_REQUEST_JOB_STARTED,
 	    hostname, job_id, getpid(), job_pid);
     lpjs_log("%s(): Sending PIDs to dispatchd:\n", __FUNCTION__);
     fprintf(Log_stream, "%s\n", outgoing_msg + 1);
@@ -325,7 +325,7 @@ int     lpjs_chaperone_checkin(int msg_fd,
  *  2024-01-23  Jason Bacon Begin
  ***************************************************************************/
 
-int     lpjs_chaperone_checkin_loop(node_list_t *node_list,
+int     lpjs_job_start_notice_loop(node_list_t *node_list,
 				    const char *hostname,
 				    const char *job_id, pid_t job_pid)
 
@@ -351,7 +351,7 @@ int     lpjs_chaperone_checkin_loop(node_list_t *node_list,
 	}
 	else
 	{
-	    status = lpjs_chaperone_checkin(msg_fd, hostname, job_id, job_pid);
+	    status = lpjs_job_start_notice(msg_fd, hostname, job_id, job_pid);
 	    if ( status != LPJS_SUCCESS )
 	    {
 		lpjs_log("%s(): chaperone-checkin failed.  Retry in %d seconds...\n",

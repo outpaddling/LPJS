@@ -612,8 +612,54 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 			    munge_uid, munge_gid);
 		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
 		break;
+		
+	    case    LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS:
+		lpjs_log("LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS\n");
+		// FIXME: This whole section is untested, must moved
+		// from scheduler.c where it used the new job msg_fd
+		// Errors that occur before exec()ing script
+		int chaperone_status  = munge_payload[1];
+		
+		lpjs_log("chaperone status = %d\n", chaperone_status);
+		#if 0
+		// FIXME: This code is never sent by compd or chaperone
+		if ( exit_code == LPJS_CHAPERONE_SCRIPT_FAILED )
+		{
+		    lpjs_log("%s(): Job script failed to start: %d\n",
+			    __FUNCTION__, exit_code);
+		    // Don't try to restart a script that failed
+		    // Either the user needs to fix it, or something
+		    // is not installed properly
+		    lpjs_remove_pending_job(pending_jobs, job_get_job_id(job));
+		}
+		else if ( exit_code == LPJS_CHAPERONE_OSERR )
+		{
+		    lpjs_log("%s(): OS error detected on %s.\n",
+			    __FUNCTION__, node_get_hostname(node));
+		    // FIXME: Node should not come back up from here when daemons
+		    // are restarted.  It should require "lpjs nodes up nodename"
+		    // node_set_state(node, "malfunction");
+		    node_set_state(node, "down");
+		    // FIXME: Make sure job state is fully reset
+		}
+		else
+		{
+		    lpjs_log("%s(): Script started successfully.\n", __FUNCTION__);
+		    job_set_state(job, JOB_STATE_DISPATCHED);
+		    // Don't update compute node until chaperone confirms
+		    // successful launch
+		    
+		    // FIXME: Needs adjustment for MPI jobs at the least
+		    procs_used = node_get_procs_used(node);
+		    node_set_procs_used(node, procs_used + job_get_procs_per_job(job));
+		    phys_MiB_used = node_get_phys_MiB_used(node);
+		    node_set_phys_MiB_used(node, phys_MiB_used +
+			job_get_pmem_per_proc(job) * job_get_procs_per_job(job));
+		}
+		#endif
+		break;
 
-	    case    LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN:
+	    case    LPJS_DISPATCHD_REQUEST_JOB_STARTED:
 		lpjs_log("LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN:\n");
 		lpjs_log("Sending auth message.\n");
 		lpjs_send_munge(msg_fd, "Node authorized", lpjs_dispatchd_safe_close);

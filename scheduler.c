@@ -70,12 +70,9 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 		outgoing_msg[LPJS_JOB_MSG_MAX + 1],
 		*munge_payload;
     int         msg_fd,
-		procs_used,
-		node_count,
-		exit_code;
+		node_count;
     ssize_t     script_size,
 		payload_bytes;
-    size_t      phys_MiB_used;
     uid_t       uid;
     gid_t       gid;
     
@@ -171,10 +168,10 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	     *      LPJS_DISPATCHD_REQUEST_JOB_COMPLETE?
 	     */
 	    
-	    lpjs_log("%s(): Awaiting dispatch status from %s compd...\n",
+	    lpjs_log("%s(): Awaiting chaperone fork verification from %s compd...\n",
 		     __FUNCTION__, node_get_hostname(node));
 	    payload_bytes = lpjs_recv_munge(msg_fd, &munge_payload,
-					    0, LPJS_DISPATCH_STATUS_TIMEOUT,
+					    0, LPJS_CHAPERONE_STATUS_TIMEOUT,
 					    &uid, &gid,
 					    lpjs_dispatchd_safe_close);
 	    if ( payload_bytes == LPJS_RECV_TIMEOUT )
@@ -185,50 +182,17 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 			 node_get_hostname(node));
 		node_set_state(node, "down");
 	    }
-	    else if ( payload_bytes > 0 )
+	    else if ( munge_payload[0] != LPJS_CHAPERONE_FORKED )
 	    {
-		exit_code = munge_payload[0];
-		// FIXME: This code is never sent by compd or chaperone
-		if ( exit_code == LPJS_DISPATCH_SCRIPT_FAILED )
-		{
-		    lpjs_log("%s(): Job script failed to start: %d\n",
-			    __FUNCTION__, exit_code);
-		    // Don't try to restart a script that failed
-		    // Either the user needs to fix it, or something
-		    // is not installed properly
-		    lpjs_remove_pending_job(pending_jobs, job_get_job_id(job));
-		}
-		else if ( exit_code == LPJS_DISPATCH_OSERR )
-		{
-		    lpjs_log("%s(): OS error detected on %s.\n",
-			    __FUNCTION__, node_get_hostname(node));
-		    // FIXME: Node should not come back up from here when daemons
-		    // are restarted.  It should require "lpjs nodes up nodename"
-		    // node_set_state(node, "malfunction");
-		    node_set_state(node, "down");
-		    // FIXME: Make sure job state is fully reset
-		}
-		else
-		{
-		    lpjs_log("%s(): Script started successfully.\n", __FUNCTION__);
-		    job_set_state(job, JOB_STATE_DISPATCHED);
-		    // Don't update compute node until chaperone confirms
-		    // successful launch
-		    
-		    // FIXME: Needs adjustment for MPI jobs at the least
-		    procs_used = node_get_procs_used(node);
-		    node_set_procs_used(node, procs_used + job_get_procs_per_job(job));
-		    phys_MiB_used = node_get_phys_MiB_used(node);
-		    node_set_phys_MiB_used(node, phys_MiB_used +
-			job_get_pmem_per_proc(job) * job_get_procs_per_job(job));
-		}
-	    }
-	    else
-	    {
-		lpjs_log("%s(): Error reading dispatch status from compd.\n",
-			__FUNCTION__);
+		lpjs_log("%s(): Software error: Should have received LPJS_CHAPERONE_FORKED.\n",
+			 __FUNCTION__);
+		lpjs_log("Got %d instead.\n", munge_payload[0]);
+		lpjs_log("%s(): Setting %s to down.\n", __FUNCTION__,
+			 node_get_hostname(node));
 		node_set_state(node, "down");
 	    }
+	    else
+		lpjs_log("chaperone fork verification received.\n");
 	}
 	
 	/*
