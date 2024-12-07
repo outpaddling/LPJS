@@ -70,7 +70,9 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 		outgoing_msg[LPJS_JOB_MSG_MAX + 1],
 		*munge_payload;
     int         msg_fd,
-		node_count;
+		node_count,
+		procs_used;
+    unsigned long   phys_MiB_used;
     ssize_t     script_size,
 		payload_bytes;
     uid_t       uid;
@@ -192,7 +194,22 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 		node_set_state(node, "down");
 	    }
 	    else
+	    {
 		lpjs_log("chaperone fork verification received.\n");
+		/*
+		 *  We must update node availability here, or
+		 *  lpjs_dispatch_next_job() will never return 0.
+		 */
+
+		lpjs_log("%s(): Script started successfully.\n", __FUNCTION__);
+		job_set_state(job, JOB_STATE_DISPATCHED);
+		// FIXME: Needs adjustment for MPI jobs at the least
+		procs_used = node_get_procs_used(node);
+		node_set_procs_used(node, procs_used + job_get_procs_per_job(job));
+		phys_MiB_used = node_get_phys_MiB_used(node);
+		node_set_phys_MiB_used(node, phys_MiB_used +
+		    job_get_pmem_per_proc(job) * job_get_procs_per_job(job));
+	    }
 	}
 	
 	/*
@@ -229,10 +246,14 @@ int     lpjs_dispatch_jobs(node_list_t *node_list,
 			   job_list_t *running_jobs)
 
 {
-    // Dispatch as many jobs as possible before resuming
-    while ( lpjs_dispatch_next_job(node_list, pending_jobs, running_jobs) > 0 )
-	;
+    int     nodes;
     
+    // Dispatch as many jobs as possible before resuming
+    while ( (nodes = lpjs_dispatch_next_job(node_list, pending_jobs,
+					    running_jobs)) > 0 )
+	lpjs_log("%s(): %d nodes available.\n", __FUNCTION__, nodes);
+    
+    lpjs_log("%s(): No more nodes available.\n", __FUNCTION__);
     return 0;
 }
 

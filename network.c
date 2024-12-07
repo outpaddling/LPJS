@@ -356,7 +356,7 @@ int     lpjs_send_munge(int msg_fd, const char *msg, int(*close_function)(int))
 	return LPJS_MUNGE_FAILED;
     }
 
-    lpjs_log("%s(): Sending %zd bytes: %s...\n", __FUNCTION__, strlen(cred), cred);
+    // lpjs_log("%s(): Sending %zd bytes: %s...\n", __FUNCTION__, strlen(cred), cred);
     if ( lpjs_send(msg_fd, 0, cred) < 0 )
     {
 	lpjs_log("%s(): Failed to send credential to dispatchd", __FUNCTION__);
@@ -367,7 +367,7 @@ int     lpjs_send_munge(int msg_fd, const char *msg, int(*close_function)(int))
     }
     free(cred);
     
-    lpjs_log("%s(): Waiting for response.\n", __FUNCTION__);
+    // lpjs_log("%s(): Waiting for response.\n", __FUNCTION__);
     // Read acknowledgment
     bytes = lpjs_recv(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 0);
     if ( bytes == LPJS_RECV_FAILED )
@@ -386,7 +386,7 @@ int     lpjs_send_munge(int msg_fd, const char *msg, int(*close_function)(int))
 		 LPJS_MUNGE_CRED_VERIFIED, bytes, msg_fd);
 	return LPJS_RECV_FAILED;
     }
-    lpjs_log("%s(): Done.\n", __FUNCTION__);
+    // lpjs_log("%s(): Done.\n", __FUNCTION__);
 
     return LPJS_MSG_SENT;
 }

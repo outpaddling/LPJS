@@ -784,8 +784,6 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start,
 	exit(EX_SOFTWARE);
     }
     
-    getchar();
-    
     /*
      *  No else clause to if ( fork() == 0 ):
      *  lpjs_compd does not wait for chaperone, but resumes listening

@@ -620,7 +620,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		lpjs_log("LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS\n");
 		sscanf(munge_payload+1, "%lu %d", &job_id, &chaperone_status);
 		lpjs_log("job_id = %lu status = %d\n", job_id, chaperone_status);
-		getchar();
+		// getchar();
 		
 		#if 0
 		// FIXME: This whole section is untested, must moved
@@ -647,17 +647,6 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		}
 		else
 		{
-		    lpjs_log("%s(): Script started successfully.\n", __FUNCTION__);
-		    job_set_state(job, JOB_STATE_DISPATCHED);
-		    // Don't update compute node until chaperone confirms
-		    // successful launch
-		    
-		    // FIXME: Needs adjustment for MPI jobs at the least
-		    procs_used = node_get_procs_used(node);
-		    node_set_procs_used(node, procs_used + job_get_procs_per_job(job));
-		    phys_MiB_used = node_get_phys_MiB_used(node);
-		    node_set_phys_MiB_used(node, phys_MiB_used +
-			job_get_pmem_per_proc(job) * job_get_procs_per_job(job));
 		}
 		#endif
 		break;
