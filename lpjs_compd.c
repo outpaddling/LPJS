@@ -512,29 +512,93 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_start,
 
 /***************************************************************************
  *  Description:
- *      Send chaperone launch status to lpjs_dispatchd.
- *  
+ *      Attempt to send job completion report to dispatchd
+ *
+ *  Returns:
+ *      EX_OK on success, EX_IOERR otherwise
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-12-07  Jason Bacon Adapt from lpjs_chaperone_completion
  ***************************************************************************/
 
-int     lpjs_send_chaperone_status(node_list_t *node_list,
-				   chaperone_status_t status)
+int     lpjs_send_chaperone_status(int msg_fd, unsigned long job_id,
+				   chaperone_status_t chaperone_status)
 
 {
-    int     chaperone_msg_fd;
-    char    chaperone_response[LPJS_MSG_LEN_MAX + 1];
+    char    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
     
-    chaperone_msg_fd = lpjs_dispatchd_connect_loop(node_list);
-    lpjs_log("%s(): Sending status = %d...\n", __FUNCTION__, status);
-    snprintf(chaperone_response, LPJS_MSG_LEN_MAX + 1,
-	    "%c%c", LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS, status);
-    if ( lpjs_send_munge(chaperone_msg_fd, chaperone_response, close)
-			 != LPJS_MSG_SENT )
-	lpjs_log("%s(): Failed to send chaperone_response.\n", __FUNCTION__);
-    else
-	lpjs_log("%s(): status sent successfully.\n", __FUNCTION__);
-    close(chaperone_msg_fd);
-    sleep(10);
-    return 0;   // FIXME: Define return values
+    lpjs_log("%s(): job_id %lu sending %d on %d\n", __FUNCTION__,
+	     job_id, chaperone_status, msg_fd);
+    /* Send job completion message to dispatchd */
+    snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%lu %d",
+	     LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS, job_id, chaperone_status);
+    lpjs_log(outgoing_msg + 1);
+    if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != LPJS_MSG_SENT )
+    {
+	lpjs_log("%s(): Failed to send message to dispatchd: %s\n",
+		 __FUNCTION__, strerror(errno));
+	close(msg_fd);
+	return LPJS_WRITE_FAILED;
+    }
+    lpjs_log("%s(): Status %d sent by job_id %lu.\n",
+	     __FUNCTION__, chaperone_status, job_id);
+    
+    return EX_OK;
+}
+
+
+/***************************************************************************
+ *  Description:
+ *      Connect to dispatchd and send checkin request.
+ *      Retry indefinitely if failure occurs.
+ *
+ *  Returns:
+ *      File descriptor for ongoing connection to dispatchd.
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-12-07  Jason Bacon Adapt from lpjs_chaperone_completion_loop
+ ***************************************************************************/
+
+int     lpjs_send_chaperone_status_loop(node_list_t *node_list,
+					unsigned long job_id,
+					chaperone_status_t chaperone_status)
+
+{
+    int     msg_fd, send_status;
+    
+    lpjs_log("%s(): job_id %lu sendind status %d\n", __FUNCTION__,
+	     job_id, chaperone_status);
+    // Retry socket connection and message send indefinitely
+    do
+    {
+	msg_fd = lpjs_connect_to_dispatchd(node_list);
+	if ( msg_fd == -1 )
+	{
+	    lpjs_log("%s(): Failed to connect to dispatchd: %s\n",
+		    __FUNCTION__, strerror(errno));
+	    lpjs_log("Retry in %d seconds...\n", LPJS_RETRY_TIME);
+	    sleep(LPJS_RETRY_TIME);
+	}
+	else
+	{
+	    send_status = lpjs_send_chaperone_status(msg_fd, job_id,
+						     chaperone_status);
+	    if ( send_status != EX_OK )
+	    {
+		lpjs_log("%s(): Message send failed.  Retry in %d seconds...\n",
+			 __FUNCTION__, LPJS_RETRY_TIME);
+		sleep(LPJS_RETRY_TIME);
+	    }
+	    close(msg_fd);
+	}
+	lpjs_log("msg_fd = %d  send_status = %d\n", msg_fd, send_status);
+    }   while ( (msg_fd == -1) || (send_status != EX_OK) );
+    
+    lpjs_log("%s(): Chaperone status %d sent.\n", __FUNCTION__, chaperone_status);
+    
+    return 0;   // FIXME: Define return codes
 }
 
 
@@ -557,6 +621,7 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start,
 		job_script_name[PATH_MAX + 1],
 		out_file[PATH_MAX + 1],
 		err_file[PATH_MAX + 1];
+    unsigned long   job_id = job_get_job_id(job);
     extern FILE *Log_stream;
     
     signal(SIGCHLD, sigchld_handler);
@@ -618,7 +683,8 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start,
 	    if ( (pw_ent = getpwnam(user_name)) == NULL )
 	    {
 		lpjs_log("%s(): ERROR: %s: No such user.\n", __FUNCTION__, user_name);
-		lpjs_send_chaperone_status(node_list, LPJS_CHAPERONE_OSERR);
+		lpjs_send_chaperone_status_loop(node_list, job_id,
+						LPJS_CHAPERONE_OSERR);
 		exit(EX_OSERR);
 	    }
 	    
@@ -639,7 +705,8 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start,
 	    if ( setuid(uid) != 0 )
 	    {
 		lpjs_log("%s(): ERROR: Failed to set uid to %u.\n", __FUNCTION__, uid);
-		lpjs_send_chaperone_status(node_list, LPJS_CHAPERONE_OSERR);
+		lpjs_send_chaperone_status_loop(node_list, job_id,
+						LPJS_CHAPERONE_OSERR);
 		exit(EX_OSERR);
 	    }
 	    
@@ -661,7 +728,7 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start,
 	    // FIXME: Terminating here causes dispatchd to crash
 	    // dispatchd should be able to tolerate lost connections at any time
 	    lpjs_log("%s(): lpjs_working_dir_setup() failed.\n", __FUNCTION__);
-	    lpjs_send_chaperone_status(node_list, LPJS_CHAPERONE_OSERR);
+	    lpjs_send_chaperone_status_loop(node_list, job_id, LPJS_CHAPERONE_OSERR);
 	    exit(EX_OSERR);
 	}
 	
@@ -676,7 +743,8 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start,
 	{
 	    lpjs_log("%s(): Could not open %s: %s\n", __FUNCTION__,
 		     out_file, strerror(errno));
-	    lpjs_send_chaperone_status(node_list, LPJS_CHAPERONE_CANTCREAT);
+	    lpjs_send_chaperone_status_loop(node_list, job_id,
+					    LPJS_CHAPERONE_CANTCREAT);
 	    exit(EX_CANTCREAT);
 	}
 	
@@ -684,13 +752,15 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start,
 	#if 0
 	lpjs_log("%s(): Redirecting stderr...\n", __FUNCTION__);
 	strlcpy(err_file, job_script_name, PATH_MAX + 1);
+    
 	strlcat(err_file, ".stderr", PATH_MAX + 1);
 	close(2);
 	if ( open(err_file, O_WRONLY|O_CREAT, 0644) == -1 )
 	{
 	    lpjs_log("%s(): Could not open %s: %s\n", __FUNCTION__,
 		     err_file, strerror(errno));
-	    lpjs_send_chaperone_status(node_list, LPJS_CHAPERONE_CANTCREAT);
+	    lpjs_send_chaperone_status_loop(node_list, job_id,
+					    LPJS_CHAPERONE_CANTCREAT);
 	    exit(EX_CANTCREAT);
 	}
 	#endif
@@ -702,7 +772,7 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start,
 	// FIXME: This assumes execl() will succeed, which is all but certain.
 	// It would be better to send msg_fd value to chaperone and let
 	// it respond to dispatchd, or send a failure message after execl().
-	lpjs_send_chaperone_status(node_list, LPJS_CHAPERONE_OK);
+	lpjs_send_chaperone_status_loop(node_list, job_id, LPJS_CHAPERONE_OK);
 
 	execl(chaperone_bin, chaperone_bin, job_script_name, NULL);
 	
@@ -710,9 +780,11 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start,
 	lpjs_log("%s(): Failed to exec %s %u %u %s\n",
 		__FUNCTION__, chaperone_bin, job_script_name);
 	// See FIXME above
-	// lpjs_send_chaperone_status(LPJS_CHAPERONE_EXEC_FAILED);
-	exit(EX_OSERR);
+	// lpjs_send_chaperone_status_loop(node_list, job_id, LPJS_CHAPERONE_EXEC_FAILED);
+	exit(EX_SOFTWARE);
     }
+    
+    getchar();
     
     /*
      *  No else clause to if ( fork() == 0 ):

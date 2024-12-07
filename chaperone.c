@@ -278,11 +278,14 @@ int     lpjs_job_start_notice(int msg_fd,
 	    "%c%s %s %u %d", LPJS_DISPATCHD_REQUEST_JOB_STARTED,
 	    hostname, job_id, getpid(), job_pid);
     lpjs_log("%s(): Sending PIDs to dispatchd:\n", __FUNCTION__);
+    // FIXME: Why not lpjs_log()?
     fprintf(Log_stream, "%s\n", outgoing_msg + 1);
     if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != LPJS_MSG_SENT )
     {
 	lpjs_log("Failed to send checkin message to dispatchd: %s",
 		strerror(errno));
+	// FIXME: This was left out.  Mistake?
+	close(msg_fd);
 	return LPJS_WRITE_FAILED;
     }
     lpjs_log("%s(): Sent checkin request.\n", __FUNCTION__);
@@ -354,7 +357,7 @@ int     lpjs_job_start_notice_loop(node_list_t *node_list,
 	    status = lpjs_job_start_notice(msg_fd, hostname, job_id, job_pid);
 	    if ( status != LPJS_SUCCESS )
 	    {
-		lpjs_log("%s(): chaperone-checkin failed.  Retry in %d seconds...\n",
+		lpjs_log("%s(): Chaperone start notice failed.  Retry in %d seconds...\n",
 			 __FUNCTION__, LPJS_RETRY_TIME);
 		sleep(LPJS_RETRY_TIME);
 	    }
@@ -362,7 +365,7 @@ int     lpjs_job_start_notice_loop(node_list_t *node_list,
 	}
     }   while ( (msg_fd == -1) || (status != LPJS_SUCCESS) );
     
-    lpjs_log("%s(): Checkin successful.\n", __FUNCTION__);
+    lpjs_log("%s(): Start notice successful.\n", __FUNCTION__);
     
     return LPJS_SUCCESS;
 }

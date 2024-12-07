@@ -479,6 +479,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 
 {
     int             msg_fd,
+		    chaperone_status,
 		    exit_status;
     ssize_t         bytes;
     char            *munge_payload,
@@ -514,6 +515,9 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		     &munge_payload, 0, LPJS_CONNECT_TIMEOUT,
 		     &munge_uid, &munge_gid,
 		     lpjs_dispatchd_safe_close);
+
+	lpjs_log("%s(): Got %zd byte message.\n", __FUNCTION__, bytes);
+
 	if ( bytes == LPJS_RECV_TIMEOUT )
 	{
 	    lpjs_log("%s(): lpjs_recv_munge() timed out after %dus: %s\n",
@@ -534,6 +538,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	    // free(munge_payload);
 	    return LPJS_RECV_FAILED;
 	}
+	// bytes must be at least 1, or no mem is allocated
 	else if ( bytes < 1 )
 	{
 	    lpjs_log("%s(): Internal error: Invalid return code from lpjs_recv_munge(): %d\n",
@@ -541,9 +546,6 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	    return LPJS_RECV_FAILED;
 	}
 	
-	// lpjs_log("%s(): Got %zd byte message.\n", __FUNCTION__, bytes);
-	// bytes must be at least 1, or no mem is allocated
-
 	/* Process request */
 	switch(munge_payload[0])
 	{
@@ -614,15 +616,16 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		break;
 		
 	    case    LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS:
+		// FIXME: This code is never received
 		lpjs_log("LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS\n");
+		sscanf(munge_payload+1, "%lu %d", &job_id, &chaperone_status);
+		lpjs_log("job_id = %lu status = %d\n", job_id, chaperone_status);
+		getchar();
+		
+		#if 0
 		// FIXME: This whole section is untested, must moved
 		// from scheduler.c where it used the new job msg_fd
 		// Errors that occur before exec()ing script
-		int chaperone_status  = munge_payload[1];
-		
-		lpjs_log("chaperone status = %d\n", chaperone_status);
-		#if 0
-		// FIXME: This code is never sent by compd or chaperone
 		if ( exit_code == LPJS_CHAPERONE_SCRIPT_FAILED )
 		{
 		    lpjs_log("%s(): Job script failed to start: %d\n",
