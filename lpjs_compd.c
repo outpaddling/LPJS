@@ -647,6 +647,15 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start,
 	 *  merely lead to job failure.
 	 */
 	
+	/*
+	 *  Send verification that the chaperone process started
+	 *  back to lpjs_dispatchd immediately, so it can resume
+	 *  listening for new events.  The work that follows
+	 *  (creating directories, redirecting, running the script,
+	 *  etc) can take a while on a busy compute node, and we
+	 *  don't want dispatchd stuck waiting.
+	 */
+	
 	lpjs_log("Sending chaperone forked verification.\n");
 	snprintf(chaperone_response, LPJS_MSG_LEN_MAX + 1,
 		"%c", LPJS_CHAPERONE_FORKED);

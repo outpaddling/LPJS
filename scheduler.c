@@ -195,15 +195,23 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	    }
 	    else
 	    {
-		lpjs_log("chaperone fork verification received.\n");
 		/*
-		 *  We must update node availability here, or
-		 *  lpjs_dispatch_next_job() will never return 0.
+		 *  At this point, all we know is that the chaperone
+		 *  process was forked successfully by lpjs_run_chaperone().
+		 *  It has more work to do setting up the job, but does
+		 *  not keep dispatchd waiting, as it can take a long time.
+		 *  (more than 1 second in rare cases on a busy compute node).
+		 *  But we must assume that job is running and update
+		 *  available resources immediately, or this function
+		 *  will never return 0 to lpjs_dispatch_jobs(), and
+		 *  it will never exit the loop.  lpjs_compd and chaperone
+		 *  must be good about reporting failures and job completion
+		 *  to dispatchd, so we can free these resources ASAP.
 		 */
 
-		lpjs_log("%s(): Script started successfully.\n", __FUNCTION__);
+		lpjs_log("chaperone fork verification received.\n");
 		job_set_state(job, JOB_STATE_DISPATCHED);
-		// FIXME: Needs adjustment for MPI jobs at the least
+		// FIXME: This will need adjustment for MPI jobs at the least
 		procs_used = node_get_procs_used(node);
 		node_set_procs_used(node, procs_used + job_get_procs_per_job(job));
 		phys_MiB_used = node_get_phys_MiB_used(node);
