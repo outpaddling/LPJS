@@ -84,7 +84,10 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
      */
     
     if ( lpjs_select_next_job(pending_jobs, &job) < 1 )
+    {
+	lpjs_log("%s(): No pending jobs.\n", __FUNCTION__);
 	return 0;
+    }
     
     /*
      *  Look through available nodes and select the best match
@@ -170,8 +173,8 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	     *      LPJS_DISPATCHD_REQUEST_JOB_COMPLETE?
 	     */
 	    
-	    lpjs_log("%s(): Awaiting chaperone fork verification from %s compd...\n",
-		     __FUNCTION__, node_get_hostname(node));
+	    // lpjs_log("%s(): Awaiting chaperone fork verification from %s compd...\n",
+	    //          __FUNCTION__, node_get_hostname(node));
 	    payload_bytes = lpjs_recv_munge(msg_fd, &munge_payload,
 					    0, LPJS_CHAPERONE_STATUS_TIMEOUT,
 					    &uid, &gid,
@@ -260,8 +263,7 @@ int     lpjs_dispatch_jobs(node_list_t *node_list,
     while ( (nodes = lpjs_dispatch_next_job(node_list, pending_jobs,
 					    running_jobs)) > 0 )
 	lpjs_log("%s(): %d nodes available.\n", __FUNCTION__, nodes);
-    
-    lpjs_log("%s(): No more nodes available.\n", __FUNCTION__);
+
     return 0;
 }
 
@@ -288,10 +290,7 @@ unsigned long   lpjs_select_next_job(job_list_t *pending_jobs, job_t **job)
     job_t           *temp_job;
     
     if ( job_list_get_count(pending_jobs) == 0 )
-    {
-	lpjs_log("%s(): No pending jobs.\n", __FUNCTION__);
 	return 0;
-    }
     else
     {
 	for (c = 0; c < job_list_get_count(pending_jobs); ++c)

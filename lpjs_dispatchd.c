@@ -480,8 +480,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 {
     int             msg_fd,
 		    chaperone_status,
-		    exit_status,
-		    job_list_index;
+		    exit_status;
     ssize_t         bytes;
     char            *munge_payload,
 		    *p,
@@ -506,8 +505,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
     }
     else
     {
-	lpjs_log("%s(): Accepted connection. fd = %d\n",
-		__FUNCTION__, msg_fd);
+	// lpjs_log("%s(): Accepted connection. fd = %d\n", __FUNCTION__, msg_fd);
 
 	/* Read a message through the socket */
 	// FIXME: Add a timeout and handling code
@@ -516,7 +514,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		     &munge_uid, &munge_gid,
 		     lpjs_dispatchd_safe_close);
 
-	lpjs_log("%s(): Got %zd byte message.\n", __FUNCTION__, bytes);
+	// lpjs_log("%s(): Got %zd byte message.\n", __FUNCTION__, bytes);
 
 	if ( bytes == LPJS_RECV_TIMEOUT )
 	{
@@ -618,7 +616,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	    case    LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS:
 		// FIXME: This code is never received
 		lpjs_log("LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS\n");
-		// FIXME: %s is unsafe
+		// FIXME: %s is unsafe.  Send hostname first and use strsep().
 		sscanf(munge_payload+1, "%lu %d %s",
 		       &job_id, &chaperone_status, chaperone_hostname);
 		lpjs_log("job_id = %lu status = %d  hostname = %s\n",
@@ -634,22 +632,24 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    // Don't try to restart a script that failed
 		    // Either the user needs to fix it, or something
 		    // is not installed properly
+		    release_resources(node_list, pending_jobs, hostname, job_id);
 		    lpjs_remove_pending_job(pending_jobs, job_id);
-		    // FIXME: Free resources allocated at dispatch
 		}
 		else if ( (chaperone_status == LPJS_CHAPERONE_OSERR) ||
 			  (chaperone_status == LPJS_CHAPERONE_EXEC_FAILED) )
 		{
 		    lpjs_log("%s(): OS error detected on %s.\n",
 			    __FUNCTION__, chaperone_hostname);
+		    
+		    release_resources(node_list, pending_jobs, hostname, job_id);
+
 		    // FIXME: Node should not come back up from here when daemons
 		    // are restarted.  It should require "lpjs nodes up nodename"
 		    // node_set_state(node, "malfunction");
 		    node = node_list_find_hostname(node_list, chaperone_hostname);
 		    node_set_state(node, "down");
-		    // FIXME: Make sure job state is fully reset
-		    // FIXME: Free resources allocated at dispatch
 		    
+		    // FIXME: Make sure job state is reset, but don't remove
 		}
 		else if ( chaperone_status == LPJS_CHAPERONE_OK )
 		{
@@ -664,9 +664,9 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 
 	    case    LPJS_DISPATCHD_REQUEST_JOB_STARTED:
 		lpjs_log("LPJS_DISPATCHD_REQUEST_JOB_STARTED:\n");
-		lpjs_log("Sending auth message.\n");
+		// lpjs_log("Sending auth message.\n");
 		lpjs_send_munge(msg_fd, "Node authorized", lpjs_dispatchd_safe_close);
-		lpjs_log("Auth sent.\n");
+		// lpjs_log("Auth sent.\n");
 		
 		/*
 		 *  We don't keep potentially thousands of open
@@ -681,11 +681,10 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		break;
 		
 	    case    LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:
-		lpjs_log("LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:\n%s\n",
-			munge_payload + 1);
-		
+		// lpjs_log("LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:\n%s\n", munge_payload + 1);
 		p = munge_payload + 1;
 		hostname = strsep(&p, " ");
+		lpjs_log("hostname = %s ", hostname);
 		node = node_list_find_hostname(node_list, hostname);
 		if ( node == NULL )
 		{
@@ -694,19 +693,16 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    break;
 		}
 		if ( (items = sscanf(p, "%lu %d", &job_id,
-				     &exit_status)) != 4 )
+				     &exit_status)) != 2 )
 		{
 		    lpjs_log("%s(): Error: Got %d items reading job_id, procs, mem, status.\n",
 			    items);
 		    break;
 		}
+		lpjs_log("job_id = %lu  status = %d\n", job_id, exit_status);
 		
-		// FIXME: MPI jobs may use multiple nodes
-		// node_list_release_resources(node_list, job);
-		job_list_index = job_list_find_job_id(running_jobs, job_id);
-		job = job_list_get_jobs_ae(running_jobs, job_list_index);
-		node_release_resources(node, job);
-	    
+		release_resources(node_list, running_jobs, hostname, job_id);
+		
 		/*
 		 *  FIXME:
 		 *      Write a completed job record to accounting log
@@ -1355,4 +1351,39 @@ void    lpjs_dispatchd_sigpipe(int s2)
 {
     lpjs_log("%s(): Ignoring SIGPIPE signal.  This is a software bug.\n",
 	    __FUNCTION__);
+}
+
+
+/***************************************************************************
+ *  Description:
+ *      Release resources allocated for a job
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-12-08  Jason Bacon Begin
+ ***************************************************************************/
+
+int     release_resources(node_list_t *node_list, job_list_t *job_list,
+			  const char *hostname, unsigned long job_id)
+
+{
+    node_t  *node;
+    job_t   *job;
+    int     job_index;
+    
+    // FIXME: MPI jobs may use multiple nodes
+    if ( (node = node_list_find_hostname(node_list, hostname)) == NULL )
+    {
+	lpjs_log("%s(): %s not found in node list.\n", __FUNCTION__, hostname);
+	return 1;
+    }
+    if ( (job_index = job_list_find_job_id(job_list, job_id)) == JOB_LIST_NOT_FOUND )
+    {
+	lpjs_log("%s(): %lu not found in job list.\n", __FUNCTION__, job_id);
+	return 1;
+    }
+    job = job_list_get_jobs_ae(job_list, job_index);
+    node_release_resources(node, job);
+    
+    return 0;   // FIXME: Define return codes
 }

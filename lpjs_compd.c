@@ -137,7 +137,6 @@ int     main (int argc, char *argv[])
 	if (poll_fd.revents & POLLIN)
 	{
 	    poll_fd.revents &= ~POLLIN;
-	    lpjs_log("%s(): New event received.\n", __FUNCTION__);
 	    // FIXME: Add a timeout and handling code
 	    bytes = lpjs_recv_munge(compd_msg_fd, &munge_payload, 0, 0,
 				    &uid, &gid, close);
@@ -700,7 +699,6 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start,
 	// the socket connection between dispatchd and compd.
 	// The parent process lpjs_compd will continue to use it,
 	// but we're done with it here.
-	lpjs_log("Closing compd_msg_fd = %d\n", compd_msg_fd);
 	close(compd_msg_fd);
 	
 	enforce_resource_limits(job);
@@ -757,7 +755,6 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start,
 	/*
 	 *  Set LPJS_USER, LPJS_SUBMIT_HOST, etc. for use in scripts
 	 */
-	lpjs_log("Setting up job env...\n");
 	job_setenv(job);
 	
 	if ( lpjs_working_dir_setup(job, script_start, job_script_name,
@@ -774,7 +771,6 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start,
 	// FIXME: Make sure filenames are not truncated
 	
 	// Redirect stdout
-	lpjs_log("%s(): Redirecting stdout...\n", __FUNCTION__);
 	strlcpy(out_file, job_script_name, PATH_MAX + 1);
 	strlcat(out_file, ".stdout", PATH_MAX + 1);
 	close(1);
@@ -788,9 +784,7 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start,
 	}
 	
 	// Redirect stderr
-	lpjs_log("%s(): Redirecting stderr...\n", __FUNCTION__);
 	strlcpy(err_file, job_script_name, PATH_MAX + 1);
-    
 	strlcat(err_file, ".stderr", PATH_MAX + 1);
 	close(2);
 	if ( open(err_file, O_WRONLY|O_CREAT, 0644) == -1 )

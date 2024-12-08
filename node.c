@@ -341,6 +341,10 @@ ssize_t node_str_to_specs(node_t *node, const char *str)
 int     node_release_resources(node_t *node, job_t *job)
 
 {
+    lpjs_log("%s(): Releasing %d procs and %lu MiB on %s.\n",
+	     __FUNCTION__, job_get_procs_per_job(job), 
+	     job_get_pmem_per_proc(job) * job_get_procs_per_job(job),
+	     node_get_hostname(node));
     node->procs_used -= job_get_procs_per_job(job);
     node->phys_MiB_used -= job_get_pmem_per_proc(job) * job_get_procs_per_job(job);
     
