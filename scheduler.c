@@ -70,9 +70,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 		outgoing_msg[LPJS_JOB_MSG_MAX + 1],
 		*munge_payload;
     int         msg_fd,
-		node_count,
-		procs_used;
-    unsigned long   phys_MiB_used;
+		node_count;
     ssize_t     script_size,
 		payload_bytes;
     uid_t       uid;
@@ -214,12 +212,17 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 
 		lpjs_log("chaperone fork verification received.\n");
 		job_set_state(job, JOB_STATE_DISPATCHED);
+		
+		
 		// FIXME: This will need adjustment for MPI jobs at the least
+		node_adjust_resources(node, job, NODE_RESOURCE_ALLOCATE);
+		/* Replaces...
 		procs_used = node_get_procs_used(node);
 		node_set_procs_used(node, procs_used + job_get_procs_per_job(job));
 		phys_MiB_used = node_get_phys_MiB_used(node);
 		node_set_phys_MiB_used(node, phys_MiB_used +
 		    job_get_pmem_per_proc(job) * job_get_procs_per_job(job));
+		*/
 	    }
 	}
 	

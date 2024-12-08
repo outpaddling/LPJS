@@ -24,6 +24,12 @@ typedef struct node node_t;
 #define NODE_STATUS_FORMAT          "%-20s %-8s %5u %4u %7zu %7zu %-9s %-9s\n"
 #define NODE_SPECS_LEN              1024
 
+typedef enum
+{
+    NODE_RESOURCE_ALLOCATE = 1,
+    NODE_RESOURCE_RELEASE = -1
+}   node_resource_t;
+
 #include "node-rvs.h"
 #include "node-accessors.h"
 #include "node-mutators.h"

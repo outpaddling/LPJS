@@ -13,5 +13,4 @@ int lpjs_update_job(node_list_t *node_list, char *payload, job_list_t *pending_j
 int lpjs_load_job_list(job_list_t *job_list, node_list_t *node_list, char *spool_dir);
 void lpjs_dispatchd_terminate_handler(int s2);
 void lpjs_dispatchd_sigpipe(int s2);
-int release_resources(node_list_t *node_list, job_list_t *job_list, const char *hostname, unsigned long job_id);
-
+int adjust_resources(node_list_t *node_list, job_list_t *job_list, const char *hostname, unsigned long job_id, node_resource_t direction);

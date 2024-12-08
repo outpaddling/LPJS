@@ -9,4 +9,4 @@ void node_send_status(node_t *node, int msg_fd);
 int node_print_specs_header(FILE *stream);
 char *node_specs_to_str(node_t *node, char *str, size_t buff_len);
 ssize_t node_str_to_specs(node_t *node, const char *str);
-int node_release_resources(node_t *node, job_t *job);
+int node_adjust_resources(node_t *node, job_t *job, node_resource_t direction);

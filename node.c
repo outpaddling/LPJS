@@ -333,20 +333,28 @@ ssize_t node_str_to_specs(node_t *node, const char *str)
  *  Description:
  *      Release resources on node associated with job
  *  
+ *  Arguments:
+ *      node        Pointer to node object
+ *      job         Pointer to job object
+ *      direction   NODE_RESOURCE_ALLOCATE | NODE_RESOURCE_RELEASE
+ *
  *  History: 
  *  Date        Name        Modification
  *  2024-12-08  Jason Bacon Begin
  ***************************************************************************/
 
-int     node_release_resources(node_t *node, job_t *job)
+int     node_adjust_resources(node_t *node, job_t *job, node_resource_t direction)
 
 {
-    lpjs_log("%s(): Releasing %d procs and %lu MiB on %s.\n",
-	     __FUNCTION__, job_get_procs_per_job(job), 
-	     job_get_pmem_per_proc(job) * job_get_procs_per_job(job),
+    // + for allocating, - for releasing
+    int     procs = direction * job_get_procs_per_job(job);
+    int     MiB = direction * job_get_pmem_per_proc(job) * job_get_procs_per_job(job);
+
+    lpjs_log("%s(): Allocating %d procs and %ld MiB on %s.\n",
+	     __FUNCTION__, procs, MiB, 
 	     node_get_hostname(node));
-    node->procs_used -= job_get_procs_per_job(job);
-    node->phys_MiB_used -= job_get_pmem_per_proc(job) * job_get_procs_per_job(job);
+    node->procs_used += procs;
+    node->phys_MiB_used += MiB;
     
     return 0;   // FIXME: Define return codes
 }

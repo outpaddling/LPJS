@@ -632,7 +632,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    // Don't try to restart a script that failed
 		    // Either the user needs to fix it, or something
 		    // is not installed properly
-		    release_resources(node_list, pending_jobs, hostname, job_id);
+		    adjust_resources(node_list, pending_jobs, hostname, job_id, NODE_RESOURCE_RELEASE);
 		    lpjs_remove_pending_job(pending_jobs, job_id);
 		}
 		else if ( (chaperone_status == LPJS_CHAPERONE_OSERR) ||
@@ -641,7 +641,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    lpjs_log("%s(): OS error detected on %s.\n",
 			    __FUNCTION__, chaperone_hostname);
 		    
-		    release_resources(node_list, pending_jobs, hostname, job_id);
+		    adjust_resources(node_list, pending_jobs, hostname, job_id, NODE_RESOURCE_RELEASE);
 
 		    // FIXME: Node should not come back up from here when daemons
 		    // are restarted.  It should require "lpjs nodes up nodename"
@@ -701,7 +701,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		}
 		lpjs_log("job_id = %lu  status = %d\n", job_id, exit_status);
 		
-		release_resources(node_list, running_jobs, hostname, job_id);
+		adjust_resources(node_list, running_jobs, hostname, job_id, NODE_RESOURCE_RELEASE);
 		
 		/*
 		 *  FIXME:
@@ -1293,6 +1293,8 @@ int     lpjs_load_job_list(job_list_t *job_list, node_list_t *node_list,
 	    {
 		compute_node = node_list_find_hostname(node_list,
 						       job_get_compute_node(job));
+		node_adjust_resources(compute_node, job, NODE_RESOURCE_ALLOCATE);
+		/* Replaces...
 		node_set_procs_used(compute_node,
 				    node_get_procs_used(compute_node) +
 				    job_get_procs_per_job(job));
@@ -1300,6 +1302,7 @@ int     lpjs_load_job_list(job_list_t *job_list, node_list_t *node_list,
 				       node_get_phys_MiB_used(compute_node) +
 				       job_get_procs_per_job(job) *
 				       job_get_pmem_per_proc(job));
+		*/
 	    }
 	}
     }
@@ -1356,15 +1359,23 @@ void    lpjs_dispatchd_sigpipe(int s2)
 
 /***************************************************************************
  *  Description:
- *      Release resources allocated for a job
+ *      Allocate or release resources allocated for a job
+ *
+ *  Arguments:
+ *      node_list   Pointer to node_list object
+ *      job_list    Pointer to job_list object (pending | running)
+ *      hostname    Name of specific node within the list
+ *      job_id      ID of job within the list
+ *      direction   NODE_RESOURCE_ALLOCATE | NODE_RESOURCE_RELEASE
  *
  *  History: 
  *  Date        Name        Modification
  *  2024-12-08  Jason Bacon Begin
  ***************************************************************************/
 
-int     release_resources(node_list_t *node_list, job_list_t *job_list,
-			  const char *hostname, unsigned long job_id)
+int     adjust_resources(node_list_t *node_list, job_list_t *job_list,
+			   const char *hostname, unsigned long job_id,
+			   node_resource_t direction)
 
 {
     node_t  *node;
@@ -1383,7 +1394,7 @@ int     release_resources(node_list_t *node_list, job_list_t *job_list,
 	return 1;
     }
     job = job_list_get_jobs_ae(job_list, job_index);
-    node_release_resources(node, job);
+    node_adjust_resources(node, job, direction);
     
     return 0;   // FIXME: Define return codes
 }

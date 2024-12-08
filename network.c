@@ -415,7 +415,7 @@ int     lpjs_dispatchd_safe_close(int msg_fd)
      *  will cause restart of dispatchd to fail with "address already in use"
      */
     
-    lpjs_log("%s(): Sending EOT.  No response expected.\n", __FUNCTION__);
+    lpjs_log("%s(): Sending EOT.  Ignore the following MCD expected warning.\n", __FUNCTION__);
     if ( lpjs_send_munge(msg_fd, LPJS_EOT_MSG,
 			 lpjs_no_close) == LPJS_MSG_SENT )
     {
