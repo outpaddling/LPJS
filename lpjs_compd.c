@@ -24,6 +24,7 @@
 #include <fcntl.h>          // open()
 #include <signal.h>
 #include <sys/wait.h>
+#include <sys/sysctl.h>
 
 #include <xtend/string.h>
 #include <xtend/proc.h>
@@ -602,6 +603,30 @@ int     lpjs_send_chaperone_status_loop(node_list_t *node_list,
 }
 
 
+void    enforce_resource_limits(job_t *job)
+
+{
+#if defined(__APPLE__)
+#elif defined(__DragonFly__)
+#elif defined(__FreeBSD__)
+    // Use rctl
+    int     enabled;
+    size_t  len = sizeof(int);
+    
+    sysctlbyname("kern.racct.enable", &enabled, &len, NULL, 0);
+    if ( enabled == 1 )
+    {
+	// Set RSS for this process
+	// rctl_add_rule();
+    }
+#elif defined(__Linux__)
+    // Use cgroups?
+#elif defined(__NetBSD__)
+#elif defined(__OpenBSD__)
+#endif
+}
+
+
 /***************************************************************************
  *  Description:
  *  
@@ -674,6 +699,8 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start,
 	// but we're done with it here.
 	lpjs_log("Closing compd_msg_fd = %d\n", compd_msg_fd);
 	close(compd_msg_fd);
+	
+	enforce_resource_limits(job);
 	
 	// If lpjs_compd is running as root, use setuid() to switch
 	// to submitting user
