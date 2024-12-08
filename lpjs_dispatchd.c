@@ -480,7 +480,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 {
     int             msg_fd,
 		    chaperone_status,
-		    exit_status;
+		    exit_status,
+		    job_list_index;
     ssize_t         bytes;
     char            *munge_payload,
 		    *p,
@@ -490,8 +491,6 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
     uid_t           munge_uid;
     gid_t           munge_gid;
     unsigned long   job_id;
-    unsigned        procs_per_job;
-    size_t          pmem_per_proc;
     node_t          *node;
     int             items;
     job_t           *job;
@@ -650,6 +649,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    node_set_state(node, "down");
 		    // FIXME: Make sure job state is fully reset
 		    // FIXME: Free resources allocated at dispatch
+		    
 		}
 		else if ( chaperone_status == LPJS_CHAPERONE_OK )
 		{
@@ -693,20 +693,19 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 			    __FUNCTION__);
 		    break;
 		}
-		if ( (items = sscanf(p, "%lu %u %zu %d",
-			&job_id, &procs_per_job, &pmem_per_proc,
-			    &exit_status)) != 4 )
+		if ( (items = sscanf(p, "%lu %d", &job_id,
+				     &exit_status)) != 4 )
 		{
 		    lpjs_log("%s(): Error: Got %d items reading job_id, procs, mem, status.\n",
 			    items);
 		    break;
 		}
 		
-		node_set_procs_used(node,
-		    node_get_procs_used(node) - procs_per_job);
-		node_set_phys_MiB_used(node,
-		    node_get_phys_MiB_used(node)
-			- pmem_per_proc * procs_per_job);
+		// FIXME: MPI jobs may use multiple nodes
+		// node_list_release_resources(node_list, job);
+		job_list_index = job_list_find_job_id(running_jobs, job_id);
+		job = job_list_get_jobs_ae(running_jobs, job_list_index);
+		node_release_resources(node, job);
 	    
 		/*
 		 *  FIXME:
@@ -904,7 +903,7 @@ int     lpjs_cancel(int msg_fd, const char *incoming_msg,
     
     // If job is pending, but dispatched, wait for chaperone checkin
     // before removing it, so the processes can be terminated.
-    if ( (index = job_list_find_job(pending_jobs, job_id)) != JOB_LIST_NOT_FOUND )
+    if ( (index = job_list_find_job_id(pending_jobs, job_id)) != JOB_LIST_NOT_FOUND )
     {
 	lpjs_log("%s(): index = %zu\n", __FUNCTION__, index);
 	if ( (job = job_list_get_jobs_ae(pending_jobs, index)) != NULL )
@@ -1177,7 +1176,7 @@ int     lpjs_update_job(node_list_t *node_list, char *payload,
     lpjs_log("%s(): job_id = %lu  chaperone_pid = %u  job_pid = %u\n",
 	    __FUNCTION__, job_id, chaperone_pid, job_pid);
     
-    job_list_index = job_list_find_job(pending_jobs, job_id);
+    job_list_index = job_list_find_job_id(pending_jobs, job_id);
     if ( job_list_index == JOB_LIST_NOT_FOUND )
 	lpjs_log("%s(): Job id not found.  This is a software bug.\n",
 		__FUNCTION__);

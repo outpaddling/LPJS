@@ -327,3 +327,22 @@ ssize_t node_str_to_specs(node_t *node, const char *str)
 
     return 0;
 }
+
+
+/***************************************************************************
+ *  Description:
+ *      Release resources on node associated with job
+ *  
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-12-08  Jason Bacon Begin
+ ***************************************************************************/
+
+int     node_release_resources(node_t *node, job_t *job)
+
+{
+    node->procs_used -= job_get_procs_per_job(job);
+    node->phys_MiB_used -= job_get_pmem_per_proc(job) * job_get_procs_per_job(job);
+    
+    return 0;   // FIXME: Define return codes
+}

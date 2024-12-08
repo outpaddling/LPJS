@@ -390,10 +390,9 @@ int     lpjs_chaperone_completion(int msg_fd, const char *hostname,
     char    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
     
     /* Send job completion message to dispatchd */
-    snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%s %s %s %s %d\n",
+    snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%s %s %d\n",
 	     LPJS_DISPATCHD_REQUEST_JOB_COMPLETE, hostname,
-	     job_id, getenv("LPJS_PROCS_PER_JOB"),
-	     getenv("LPJS_PMEM_PER_CORE"), status);
+	     job_id, status);
     if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != LPJS_MSG_SENT )
     {
 	lpjs_log("lpjs-chaperone: Failed to send message to dispatchd: %s",

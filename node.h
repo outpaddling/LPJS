@@ -13,6 +13,10 @@
 #include "node.h"
 #endif
 
+#ifndef _LPJS_JOB_H_
+#include "job.h"
+#endif
+
 typedef struct node node_t;
 
 #define NODE_MSG_FD_NOT_OPEN        -1

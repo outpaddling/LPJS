@@ -83,7 +83,7 @@ int     job_list_add_job(job_list_t *job_list, job_t *job)
 }
 
 
-size_t  job_list_find_job(job_list_t *job_list, unsigned long job_id)
+size_t  job_list_find_job_id(job_list_t *job_list, unsigned long job_id)
 
 {
     size_t  c;
@@ -107,7 +107,7 @@ job_t   *job_list_remove_job(job_list_t *job_list, unsigned long job_id)
     extern FILE *Log_stream;
     job_t   *job;
     
-    job_array_index = job_list_find_job(job_list, job_id);
+    job_array_index = job_list_find_job_id(job_list, job_id);
     if ( job_array_index == JOB_LIST_NOT_FOUND )
 	return NULL;
     
