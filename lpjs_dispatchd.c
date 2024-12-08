@@ -505,7 +505,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
     }
     else
     {
-	// lpjs_log("%s(): Accepted connection. fd = %d\n", __FUNCTION__, msg_fd);
+	lpjs_log("%s(): Accepted connection. fd = %d\n", __FUNCTION__, msg_fd);
 
 	/* Read a message through the socket */
 	// FIXME: Add a timeout and handling code
@@ -552,6 +552,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		lpjs_process_compute_node_checkin(msg_fd, munge_payload,
 						  node_list, munge_uid, munge_gid);
 		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
+		// This connection is sustained, don't close it
 		break;
 	    
 	    case    LPJS_DISPATCHD_REQUEST_NODE_LIST:
@@ -566,13 +567,16 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	    case    LPJS_DISPATCHD_REQUEST_PAUSE:
 		lpjs_log("LPJS_DISPATCHD_REQUEST_PAUSE\n");
 		node_list_set_state(node_list, munge_payload + 1);
+		// FIXME: Same as LPJS_DISPATCHD_REQUEST_NODE_LIST?
 		close(msg_fd);
 		break;
 		
 	    case    LPJS_DISPATCHD_REQUEST_RESUME:
 		lpjs_log("LPJS_DISPATCHD_REQUEST_RESUME\n");
 		node_list_set_state(node_list, munge_payload + 1);
+		// FIXME: Same as LPJS_DISPATCHD_REQUEST_NODE_LIST?
 		close(msg_fd);
+		// New resources might be available
 		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
 		break;
 	    
@@ -594,6 +598,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    break;
 		}
 		job_list_send_params(msg_fd, pending_jobs);
+		// FIXME: Same as LPJS_DISPATCHD_REQUEST_NODE_LIST?
 		lpjs_dispatchd_safe_close(msg_fd);
 		break;
 	    
@@ -603,6 +608,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 			    pending_jobs, running_jobs,
 			    munge_uid, munge_gid);
 		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
+		// FIXME: Same as LPJS_DISPATCHD_REQUEST_NODE_LIST?
+		lpjs_dispatchd_safe_close(msg_fd);
 		break;
 	    
 	    case    LPJS_DISPATCHD_REQUEST_CANCEL:
@@ -610,11 +617,16 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		lpjs_cancel(msg_fd, munge_payload + 1, node_list,
 			    pending_jobs, running_jobs,
 			    munge_uid, munge_gid);
+		// Resources might become available here
 		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
+		// FIXME: Same as LPJS_DISPATCHD_REQUEST_NODE_LIST?
+		lpjs_dispatchd_safe_close(msg_fd);
 		break;
 		
 	    case    LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS:
-		// FIXME: This code is never received
+		// This is a temporary connection from the chaperone
+		// for just this message.  Don't keep it open.
+		lpjs_dispatchd_safe_close(msg_fd);
 		lpjs_log("LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS\n");
 		// FIXME: %s is unsafe.  Send hostname first and use strsep().
 		sscanf(munge_payload+1, "%lu %d %s",
@@ -622,8 +634,6 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		lpjs_log("job_id = %lu status = %d  hostname = %s\n",
 			 job_id, chaperone_status, chaperone_hostname);
 		
-		// FIXME: This whole section is untested, must moved
-		// from scheduler.c where it used the new job msg_fd
 		// Errors that occur before exec()ing script
 		if ( chaperone_status == LPJS_CHAPERONE_SCRIPT_FAILED )
 		{
@@ -665,15 +675,16 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	    case    LPJS_DISPATCHD_REQUEST_JOB_STARTED:
 		lpjs_log("LPJS_DISPATCHD_REQUEST_JOB_STARTED:\n");
 		// lpjs_log("Sending auth message.\n");
-		lpjs_send_munge(msg_fd, "Node authorized", lpjs_dispatchd_safe_close);
+		// This is a temporary connection from the chaperone
+		// for just this message.  Don't keep it open.
+		lpjs_send_munge(msg_fd, "Node authorized",
+				lpjs_dispatchd_safe_close);
 		// lpjs_log("Auth sent.\n");
 		
 		/*
-		 *  We don't keep potentially thousands of open
-		 *  connections, one for every process
-		 *  No change in node status, don't try to dispatch jobs
+		 *  No change in node status, don't try to dispatch jobs.
+		 *  Resources were allocated at dispatch time.
 		 */
-		lpjs_dispatchd_safe_close(msg_fd);
 		
 		// Job compute node and PIDs are in text form following
 		// the one byte LPJS_DISPATCHD_REQUEST_JOB_STARTED
@@ -681,7 +692,10 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		break;
 		
 	    case    LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:
-		// lpjs_log("LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:\n%s\n", munge_payload + 1);
+		// This is a temporary connection from the chaperone
+		// for just this message.  Don't keep it open.
+		lpjs_dispatchd_safe_close(msg_fd);
+		lpjs_log("LPJS_DISPATCHD_REQUEST_JOB_COMPLETE\n");
 		p = munge_payload + 1;
 		hostname = strsep(&p, " ");
 		lpjs_log("hostname = %s ", hostname);

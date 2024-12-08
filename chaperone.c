@@ -282,13 +282,11 @@ int     lpjs_job_start_notice(int msg_fd,
     fprintf(Log_stream, "%s\n", outgoing_msg + 1);
     if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != LPJS_MSG_SENT )
     {
-	lpjs_log("Failed to send checkin message to dispatchd: %s",
+	lpjs_log("Failed to send job start message to dispatchd: %s",
 		strerror(errno));
-	// FIXME: This was left out.  Mistake?
-	close(msg_fd);
 	return LPJS_WRITE_FAILED;
     }
-    lpjs_log("%s(): Sent checkin request.\n", __FUNCTION__);
+    lpjs_log("%s(): Sent job start request.\n", __FUNCTION__);
 
     // lpjs_recv(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 0);
     // FIXME: Add a timeout and handling code
@@ -317,7 +315,7 @@ int     lpjs_job_start_notice(int msg_fd,
 
 /***************************************************************************
  *  Description:
- *      Connect to dispatchd and send checkin request.
+ *      Connect to dispatchd and send job start request.
  *      Retry indefinitely if failure occurs.
  *
  *  Returns:
@@ -337,8 +335,8 @@ int     lpjs_job_start_notice_loop(node_list_t *node_list,
 	    status;
     
     /*
-     *  Retry socket connection and checkin request indefinitely.
-     *  Close msg_fd if checkin fails, to prevent deamons from
+     *  Retry socket connection and job start request indefinitely.
+     *  Close msg_fd if request fails, to prevent deamons from
      *  hanging on an open socket connection.
      */
     
@@ -397,7 +395,6 @@ int     lpjs_chaperone_completion(int msg_fd, const char *hostname,
     {
 	lpjs_log("lpjs-chaperone: Failed to send message to dispatchd: %s",
 		strerror(errno));
-	close(msg_fd);
 	return EX_IOERR;
     }
     
@@ -406,7 +403,7 @@ int     lpjs_chaperone_completion(int msg_fd, const char *hostname,
 
 /***************************************************************************
  *  Description:
- *      Connect to dispatchd and send checkin request.
+ *      Connect to dispatchd and send job completion request.
  *      Retry indefinitely if failure occurs.
  *
  *  Returns:

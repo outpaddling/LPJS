@@ -69,7 +69,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 		script_buff[LPJS_SCRIPT_SIZE_MAX + 1],
 		outgoing_msg[LPJS_JOB_MSG_MAX + 1],
 		*munge_payload;
-    int         msg_fd,
+    int         compd_msg_fd,
 		node_count;
     ssize_t     script_size,
 		payload_bytes;
@@ -139,10 +139,10 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	{
 	    node_t *node = node_list_get_compute_nodes_ae(matched_nodes, c);
 	    
-	    msg_fd = node_get_msg_fd(node);
+	    compd_msg_fd = node_get_msg_fd(node);
 
 	    lpjs_log("Dispatching job %lu to %s on socket fd %d...\n",
-		    job_get_job_id(job), node_get_hostname(node), msg_fd);
+		    job_get_job_id(job), node_get_hostname(node), compd_msg_fd);
 	    
 	    outgoing_msg[0] = LPJS_COMPD_REQUEST_NEW_JOB;
 	    job_print_to_string(job, outgoing_msg + 1, LPJS_JOB_MSG_MAX + 1);
@@ -151,7 +151,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	    
 	    // FIXME: Check for truncation
 	    strlcat(outgoing_msg, script_buff, LPJS_JOB_MSG_MAX + 1);
-	    if ( lpjs_send_munge(msg_fd, outgoing_msg,
+	    if ( lpjs_send_munge(compd_msg_fd, outgoing_msg,
 				 lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
 	    {
 		lpjs_log("%s(): Failed to send job to compd.\n", __FUNCTION__);
@@ -173,7 +173,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	    
 	    // lpjs_log("%s(): Awaiting chaperone fork verification from %s compd...\n",
 	    //          __FUNCTION__, node_get_hostname(node));
-	    payload_bytes = lpjs_recv_munge(msg_fd, &munge_payload,
+	    payload_bytes = lpjs_recv_munge(compd_msg_fd, &munge_payload,
 					    0, LPJS_CHAPERONE_STATUS_TIMEOUT,
 					    &uid, &gid,
 					    lpjs_dispatchd_safe_close);
@@ -212,7 +212,6 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 
 		lpjs_log("chaperone fork verification received.\n");
 		job_set_state(job, JOB_STATE_DISPATCHED);
-		
 		
 		// FIXME: This will need adjustment for MPI jobs at the least
 		node_adjust_resources(node, job, NODE_RESOURCE_ALLOCATE);
