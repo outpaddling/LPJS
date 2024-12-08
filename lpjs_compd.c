@@ -785,7 +785,6 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start,
 	}
 	
 	// Redirect stderr
-	#if 0
 	lpjs_log("%s(): Redirecting stderr...\n", __FUNCTION__);
 	strlcpy(err_file, job_script_name, PATH_MAX + 1);
     
@@ -799,10 +798,10 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start,
 					    LPJS_CHAPERONE_CANTCREAT);
 	    exit(EX_CANTCREAT);
 	}
-	#endif
 	
-	lpjs_log("%s(): Running chaperone: %s %s...\n", __FUNCTION__,
-		 chaperone_bin, job_script_name);
+	// Note: This will be redirected to err_file
+	// lpjs_log("%s(): Running chaperone: %s %s...\n", __FUNCTION__,
+	//         chaperone_bin, job_script_name);
 	
 	// FIXME: Build should use realpath
 	// FIXME: This assumes execl() will succeed, which is all but certain.
@@ -813,10 +812,11 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start,
 	execl(chaperone_bin, chaperone_bin, job_script_name, NULL);
 	
 	// We only get here if execl() failed
+	// Note: This will be redirected to err_file
 	lpjs_log("%s(): Failed to exec %s %u %u %s\n",
 		__FUNCTION__, chaperone_bin, job_script_name);
 	// See FIXME above
-	// lpjs_send_chaperone_status_loop(node_list, job_id, LPJS_CHAPERONE_EXEC_FAILED);
+	lpjs_send_chaperone_status_loop(node_list, job_id, LPJS_CHAPERONE_EXEC_FAILED);
 	exit(EX_SOFTWARE);
     }
     

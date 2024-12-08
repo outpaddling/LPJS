@@ -484,7 +484,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
     ssize_t         bytes;
     char            *munge_payload,
 		    *p,
-		    *hostname;
+		    *hostname,
+		    chaperone_hostname[LPJS_HOSTNAME_MAX + 1];
     socklen_t       address_len = sizeof (struct sockaddr_in);
     uid_t           munge_uid;
     gid_t           munge_gid;
@@ -618,37 +619,47 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	    case    LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS:
 		// FIXME: This code is never received
 		lpjs_log("LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS\n");
-		sscanf(munge_payload+1, "%lu %d", &job_id, &chaperone_status);
-		lpjs_log("job_id = %lu status = %d\n", job_id, chaperone_status);
-		// getchar();
+		// FIXME: %s is unsafe
+		sscanf(munge_payload+1, "%lu %d %s",
+		       &job_id, &chaperone_status, chaperone_hostname);
+		lpjs_log("job_id = %lu status = %d  hostname = %s\n",
+			 job_id, chaperone_status, chaperone_hostname);
 		
-		#if 0
 		// FIXME: This whole section is untested, must moved
 		// from scheduler.c where it used the new job msg_fd
 		// Errors that occur before exec()ing script
-		if ( exit_code == LPJS_CHAPERONE_SCRIPT_FAILED )
+		if ( chaperone_status == LPJS_CHAPERONE_SCRIPT_FAILED )
 		{
 		    lpjs_log("%s(): Job script failed to start: %d\n",
-			    __FUNCTION__, exit_code);
+			    __FUNCTION__, chaperone_status);
 		    // Don't try to restart a script that failed
 		    // Either the user needs to fix it, or something
 		    // is not installed properly
-		    lpjs_remove_pending_job(pending_jobs, job_get_job_id(job));
+		    lpjs_remove_pending_job(pending_jobs, job_id);
+		    // FIXME: Free resources allocated at dispatch
 		}
-		else if ( exit_code == LPJS_CHAPERONE_OSERR )
+		else if ( (chaperone_status == LPJS_CHAPERONE_OSERR) ||
+			  (chaperone_status == LPJS_CHAPERONE_EXEC_FAILED) )
 		{
 		    lpjs_log("%s(): OS error detected on %s.\n",
-			    __FUNCTION__, node_get_hostname(node));
+			    __FUNCTION__, chaperone_hostname);
 		    // FIXME: Node should not come back up from here when daemons
 		    // are restarted.  It should require "lpjs nodes up nodename"
 		    // node_set_state(node, "malfunction");
+		    node = node_list_find_hostname(node_list, chaperone_hostname);
 		    node_set_state(node, "down");
 		    // FIXME: Make sure job state is fully reset
+		    // FIXME: Free resources allocated at dispatch
+		}
+		else if ( chaperone_status == LPJS_CHAPERONE_OK )
+		{
+		    // FIXME: Anything to do here?
 		}
 		else
 		{
+		    lpjs_log("%s(): Unknown chaperone_status for job %lu: %d\n",
+			     __FUNCTION__, job_id, chaperone_status);
 		}
-		#endif
 		break;
 
 	    case    LPJS_DISPATCHD_REQUEST_JOB_STARTED:
