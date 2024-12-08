@@ -527,13 +527,16 @@ int     lpjs_send_chaperone_status(int msg_fd, unsigned long job_id,
 				   chaperone_status_t chaperone_status)
 
 {
-    char    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
+    char    outgoing_msg[LPJS_MSG_LEN_MAX + 1],
+	    hostname[sysconf(_SC_HOST_NAME_MAX) + 1];
     
     lpjs_log("%s(): job_id %lu sending %d on %d\n", __FUNCTION__,
 	     job_id, chaperone_status, msg_fd);
     /* Send job completion message to dispatchd */
-    snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%lu %d",
-	     LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS, job_id, chaperone_status);
+    gethostname(hostname, sysconf(_SC_HOST_NAME_MAX));
+    snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%lu %d %s",
+	     LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS, job_id,
+	     chaperone_status, hostname);
     lpjs_log(outgoing_msg + 1);
     if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != LPJS_MSG_SENT )
     {

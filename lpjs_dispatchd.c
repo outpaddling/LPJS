@@ -663,7 +663,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		break;
 
 	    case    LPJS_DISPATCHD_REQUEST_JOB_STARTED:
-		lpjs_log("LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN:\n");
+		lpjs_log("LPJS_DISPATCHD_REQUEST_JOB_STARTED:\n");
 		lpjs_log("Sending auth message.\n");
 		lpjs_send_munge(msg_fd, "Node authorized", lpjs_dispatchd_safe_close);
 		lpjs_log("Auth sent.\n");
@@ -676,7 +676,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		lpjs_dispatchd_safe_close(msg_fd);
 		
 		// Job compute node and PIDs are in text form following
-		// the one byte LPJS_DISPATCHD_REQUEST_CHAPERONE_CHECKIN
+		// the one byte LPJS_DISPATCHD_REQUEST_JOB_STARTED
 		lpjs_update_job(node_list, munge_payload + 1, pending_jobs, running_jobs);
 		break;
 		
