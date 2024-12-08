@@ -142,8 +142,13 @@ int     main (int argc, char *argv[])
 				    &uid, &gid, close);
 	    if ( bytes < 0 )
 	    {
-		lpjs_log("%s(): Got < 0 bytes from dispatchd.  Something is wrong.\n",
-			__FUNCTION__);
+		// FIXME: Not sure what this actually means
+		// Do more digging and decide what to do about negative codes
+		close(compd_msg_fd);
+		lpjs_log("%s(): Got %zd bytes from dispatchd.  Something is wrong.\n",
+			__FUNCTION__, bytes);
+		poll_fd.revents = 0;
+		compd_msg_fd = lpjs_compd_checkin_loop(node_list, node);
 	    }
 	    else if ( bytes == 0 )
 	    {
@@ -694,6 +699,7 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start,
 	    close(compd_msg_fd);
 	    exit(EX_UNAVAILABLE);
 	}
+	lpjs_log("Verification sent.\n");
 
 	// We don't want chaperone and its children to inherit
 	// the socket connection between dispatchd and compd.

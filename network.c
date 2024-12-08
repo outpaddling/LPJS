@@ -252,8 +252,8 @@ ssize_t lpjs_recv(int msg_fd, char *buff, size_t buff_len, int flags,
     
     if ( msg_len > buff_len )
     {
-	lpjs_log("lpjs_recv(): msg_len > buff_len -1.\n");
-	lpjs_log("This is a software bug.\n");
+	lpjs_log("%s(): Internal error: msg_len (%" PRIi32 ") > buff_len - 1 (%zu).\n",
+		 __FUNCTION__, msg_len, buff_len - 1);
 	return 0;
     }
     
