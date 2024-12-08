@@ -1,6 +1,9 @@
 
 Now
 ---
+When Mac goes down due to full disk access, resource remain allocated
+    Same for timeouts?
+
 dispatchd-disable
     rm -f /Library/LaunchDaemons/org.pkgsrc.lpjs_dispatchd.plist
     rm -i prefix/var/log/lpjs/dispatchd
