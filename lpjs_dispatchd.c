@@ -17,6 +17,8 @@
 #include <stdlib.h>
 #include <sysexits.h>
 #include <unistd.h>
+#include <sys/types.h>  // inet_ntoa()
+#include <arpa/inet.h>  // inet_ntoa()
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <netinet/in.h>
@@ -301,7 +303,7 @@ int     lpjs_process_events(node_list_t *node_list)
 	    //lpjs_log("Checking listen fd...\n");
 	    // Check FD_ISSET before calling function to avoid overhead
 	    if ( FD_ISSET(listen_fd, &read_fds) )
-		lpjs_check_listen_fd(listen_fd, &read_fds, &server_address,
+		lpjs_check_listen_fd(listen_fd, &read_fds,
 				     node_list, pending_jobs, running_jobs);
 	}
 	else
@@ -474,7 +476,6 @@ int     lpjs_listen(struct sockaddr_in *server_address)
  ***************************************************************************/
 
 int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
-			     struct sockaddr_in *server_address,
 			     node_list_t *node_list,
 			     job_list_t *pending_jobs, job_list_t *running_jobs)
 
@@ -494,11 +495,12 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
     node_t          *node;
     int             items;
     job_t           *job;
+    struct sockaddr_in client_address = { 0 };
     
     bytes = 0;
     /* Accept a connection request */
     if ((msg_fd = accept(listen_fd,
-	    (struct sockaddr *)server_address, &address_len)) == -1)
+	    (struct sockaddr *)&client_address, &address_len)) == -1)
     {
 	lpjs_log("%s(): accept() failed, even though select indicated listen_fd.\n",
 		__FUNCTION__);
@@ -506,11 +508,13 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
     }
     else
     {
-	lpjs_log("%s(): Accepted connection. fd = %d\n", __FUNCTION__, msg_fd);
+	lpjs_log("%s(): Accepted connection. fd = %d  addr = %s  port = %u\n",
+		 __FUNCTION__, msg_fd, inet_ntoa(client_address.sin_addr),
+		 client_address.sin_port);
 
 	/* Read a message through the socket */
-	// FIXME: Add a timeout and handling code
-	//        Enabling timeouts was causing problems on coral
+	// FIXME: Timeouts temporarily disabled to debug hung connections
+	//              &munge_payload, 0, LPJS_CONNECT_TIMEOUT,
 	bytes = lpjs_recv_munge(msg_fd,
 		     &munge_payload, 0, 0,
 		     &munge_uid, &munge_gid,
