@@ -510,12 +510,13 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 
 	/* Read a message through the socket */
 	// FIXME: Add a timeout and handling code
+	//        Enabling timeouts was causing problems on coral
 	bytes = lpjs_recv_munge(msg_fd,
-		     &munge_payload, 0, LPJS_CONNECT_TIMEOUT,
+		     &munge_payload, 0, 0,
 		     &munge_uid, &munge_gid,
 		     lpjs_dispatchd_safe_close);
 
-	// lpjs_log("%s(): Got %zd byte message.\n", __FUNCTION__, bytes);
+	lpjs_log("%s(): Got %zd byte message.\n", __FUNCTION__, bytes);
 
 	if ( bytes == LPJS_RECV_TIMEOUT )
 	{
