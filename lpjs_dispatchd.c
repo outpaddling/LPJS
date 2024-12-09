@@ -627,7 +627,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	    case    LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS:
 		// This is a temporary connection from the chaperone
 		// for just this message.  Don't keep it open.
-		lpjs_dispatchd_safe_close(msg_fd);
+		// FIXME: Seeing if this causes stalls
+		// lpjs_dispatchd_safe_close(msg_fd);
 		lpjs_log("LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS\n");
 		// FIXME: %s is unsafe.  Send hostname first and use strsep().
 		sscanf(munge_payload+1, "%lu %d %s",
@@ -664,6 +665,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		}
 		else if ( chaperone_status == LPJS_CHAPERONE_OK )
 		{
+		    lpjs_log("%s(): Chaperone status OK.\n",__FUNCTION__);
 		    // FIXME: Anything to do here?
 		}
 		else
