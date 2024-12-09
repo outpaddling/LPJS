@@ -106,7 +106,6 @@ int     lpjs_print_response(int msg_fd, const char *caller_name)
     
     // This function should never be called by dispatchd, so use
     // a normal close()
-    // FIXME: Add timeout handling code
     while ( ! eot_received &&
 	    (bytes = lpjs_recv_munge(msg_fd, &payload, 0,
 				     LPJS_PRINT_RESPONSE_TIMEOUT,
@@ -120,7 +119,6 @@ int     lpjs_print_response(int msg_fd, const char *caller_name)
 	free(payload);
     }
     
-    // FIXME: Distinguish between error and LPJS_RECV_TIMEOUT
     if ( bytes == LPJS_RECV_TIMEOUT )
     {
 	close(msg_fd);
