@@ -307,7 +307,8 @@ int     lpjs_process_events(node_list_t *node_list)
 	else
 	    lpjs_log("select() returned 0.  This should not happen with no timeout.\n");
     }
-    close(listen_fd);
+    
+    // Never actually get here, but make the compiler happy
     return EX_OK;
 }
 
@@ -370,8 +371,8 @@ void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
 	    bytes = lpjs_recv(fd, incoming_msg, LPJS_MSG_LEN_MAX + 1, 0, 0);
 	    if ( bytes < 1 )
 	    {
-		lpjs_log("%s(): Lost connection to %s.  Closing...\n",
-			__FUNCTION__, node_get_hostname(node));
+		lpjs_log("%s(): Lost connection to %s.  Closing %d...\n",
+			__FUNCTION__, node_get_hostname(node), fd);
 		lpjs_dispatchd_safe_close(fd);
 		node_set_msg_fd(node, NODE_MSG_FD_NOT_OPEN);
 		node_set_state(node, "down");
@@ -518,8 +519,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 
 	if ( bytes == LPJS_RECV_TIMEOUT )
 	{
-	    lpjs_log("%s(): lpjs_recv_munge() timed out after %dus: %s\n",
-		    __FUNCTION__, LPJS_CONNECT_TIMEOUT, strerror(errno));
+	    lpjs_log("%s(): lpjs_recv_munge() timed out after %dus: %s, closing %d.\n",
+		    __FUNCTION__, LPJS_CONNECT_TIMEOUT, strerror(errno), msg_fd);
 	    lpjs_dispatchd_safe_close(msg_fd);
 	    // Nothing to free if munge_decode() failed, since it
 	    // allocates the buffer
@@ -528,8 +529,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	}
 	else if ( bytes == LPJS_RECV_FAILED )
 	{
-	    lpjs_log("%s(): lpjs_recv_munge() failed (%zd bytes): %s\n",
-		    __FUNCTION__, bytes, strerror(errno));
+	    lpjs_log("%s(): lpjs_recv_munge() failed (%zd bytes): %s, closing %d.\n",
+		    __FUNCTION__, bytes, strerror(errno), msg_fd);
 	    lpjs_dispatchd_safe_close(msg_fd);
 	    // Nothing to free if munge_decode() failed, since it
 	    // allocates the buffer
@@ -561,21 +562,20 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		// lpjs_dispatchd_safe_close(msg_fd);
 		// node_list_send_status() sends EOT,
 		// so don't use safe_close here.
+		lpjs_log("Closing %d.\n", msg_fd);
 		close(msg_fd);
 		break;
 	    
 	    case    LPJS_DISPATCHD_REQUEST_PAUSE:
 		lpjs_log("LPJS_DISPATCHD_REQUEST_PAUSE\n");
 		node_list_set_state(node_list, munge_payload + 1);
-		// FIXME: Same as LPJS_DISPATCHD_REQUEST_NODE_LIST?
-		close(msg_fd);
+		lpjs_dispatchd_safe_close(msg_fd);
 		break;
 		
 	    case    LPJS_DISPATCHD_REQUEST_RESUME:
 		lpjs_log("LPJS_DISPATCHD_REQUEST_RESUME\n");
 		node_list_set_state(node_list, munge_payload + 1);
-		// FIXME: Same as LPJS_DISPATCHD_REQUEST_NODE_LIST?
-		close(msg_fd);
+		lpjs_dispatchd_safe_close(msg_fd);
 		// New resources might be available
 		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
 		break;
@@ -679,6 +679,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		// for just this message.  Don't keep it open.
 		lpjs_send_munge(msg_fd, "Node authorized",
 				lpjs_dispatchd_safe_close);
+		lpjs_dispatchd_safe_close(msg_fd);
 		// lpjs_log("Auth sent.\n");
 		
 		/*
@@ -1093,6 +1094,7 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
     {
 	lpjs_log("%s(): write() failed for %s: %s\n", __FUNCTION__,
 		script_path, strerror(errno));
+	close(fd);
 	return LPJS_WRITE_FAILED;
     }
     close(fd);
@@ -1113,6 +1115,7 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
     {
 	lpjs_log("%s(): write() failed for %s: %s\n", __FUNCTION__,
 		specs_path, strerror(errno));
+	fclose(fp);
 	return LPJS_WRITE_FAILED;
     }
     fclose(fp);
@@ -1143,6 +1146,7 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
 	{
 	    lpjs_log("%s(): write() failed for %job_id_path: %s\n", __FUNCTION__,
 		    script_path, strerror(errno));
+	    close(fd);
 	    return LPJS_WRITE_FAILED;
 	}
 	close(fd);

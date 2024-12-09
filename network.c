@@ -429,7 +429,7 @@ int     lpjs_dispatchd_safe_close(int msg_fd)
 	    sleep(1);
     }
     
-    // lpjs_log(Log_stream, "Closing msg_fd.\n");
+    lpjs_log("Closing %d.\n", msg_fd);
     return close(msg_fd);
 }
 
