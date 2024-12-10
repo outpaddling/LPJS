@@ -298,6 +298,8 @@ int     lpjs_process_events(node_list_t *node_list)
 	if ( select(nfds, &read_fds, NULL, NULL, LPJS_NO_SELECT_TIMEOUT) > 0 )
 	{
 	    //lpjs_log("Checking comp fds...\n");
+	    // FIXME: Is this still needed?  Does compd send any
+	    // unsolicitied messages?
 	    lpjs_check_comp_fds(&read_fds, node_list, running_jobs);
 	    
 	    //lpjs_log("Checking listen fd...\n");

@@ -315,7 +315,7 @@ int     lpjs_job_start_notice(int msg_fd,
 
 /***************************************************************************
  *  Description:
- *      Connect to dispatchd and send job start request.
+ *      Connect to dispatchd and send job start notification.
  *      Retry indefinitely if failure occurs.
  *
  *  Returns:
