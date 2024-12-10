@@ -197,6 +197,7 @@ int     main (int argc, char *argv[])
 		     */
 		    
 		    job_read_from_string(job, munge_payload + 1, &script_start);
+		    job_print_full_specs(job, Log_stream);
 		    
 		    /*
 		     *  lpjs_run_chaperone() forks, and the child process
@@ -535,14 +536,14 @@ int     lpjs_send_chaperone_status(int msg_fd, unsigned long job_id,
     char    outgoing_msg[LPJS_MSG_LEN_MAX + 1],
 	    hostname[sysconf(_SC_HOST_NAME_MAX) + 1];
     
-    lpjs_log("%s(): job_id %lu sending %d on %d\n", __FUNCTION__,
+    lpjs_log("%s(): job_id %lu sending status %d on fd %d\n", __FUNCTION__,
 	     job_id, chaperone_status, msg_fd);
     /* Send job completion message to dispatchd */
     gethostname(hostname, sysconf(_SC_HOST_NAME_MAX));
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%lu %d %s",
 	     LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS, job_id,
 	     chaperone_status, hostname);
-    lpjs_log(outgoing_msg + 1);
+    lpjs_log("%s(): msg = %s\n", __FUNCTION__, outgoing_msg + 1);
     if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != LPJS_MSG_SENT )
     {
 	lpjs_log("%s(): Failed to send message to dispatchd: %s\n",
@@ -553,7 +554,7 @@ int     lpjs_send_chaperone_status(int msg_fd, unsigned long job_id,
     lpjs_log("%s(): Status %d sent by job_id %lu.\n",
 	     __FUNCTION__, chaperone_status, job_id);
     
-    return EX_OK;
+    return EX_OK;   // FIXME: Use LPJS return values
 }
 
 
@@ -602,7 +603,8 @@ int     lpjs_send_chaperone_status_loop(node_list_t *node_list,
 	    }
 	    close(msg_fd);
 	}
-	lpjs_log("msg_fd = %d  send_status = %d\n", msg_fd, send_status);
+	lpjs_log("%s(): msg_fd = %d  send_status = %d\n", 
+		 __FUNCTION__, msg_fd, send_status);
     }   while ( (msg_fd == -1) || (send_status != EX_OK) );
     
     lpjs_log("%s(): Chaperone status %d sent.\n", __FUNCTION__, chaperone_status);
@@ -771,7 +773,8 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start,
 	    // FIXME: Terminating here causes dispatchd to crash
 	    // dispatchd should be able to tolerate lost connections at any time
 	    lpjs_log("%s(): lpjs_working_dir_setup() failed.\n", __FUNCTION__);
-	    lpjs_send_chaperone_status_loop(node_list, job_id, LPJS_CHAPERONE_OSERR);
+	    lpjs_send_chaperone_status_loop(node_list, job_id,
+					    LPJS_CHAPERONE_OSERR);
 	    exit(EX_OSERR);
 	}
 	
@@ -812,6 +815,8 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start,
 	// It would be better to send msg_fd value to chaperone and let
 	// it respond to dispatchd, or send a failure message after execl().
 	lpjs_send_chaperone_status_loop(node_list, job_id, LPJS_CHAPERONE_OK);
+	
+	lpjs_log("%s(): Execing %s\n", __FUNCTION__, chaperone_bin);
 
 	execl(chaperone_bin, chaperone_bin, job_script_name, NULL);
 	
