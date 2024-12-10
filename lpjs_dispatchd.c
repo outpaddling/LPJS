@@ -664,17 +664,26 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		else if ( (chaperone_status == LPJS_CHAPERONE_OSERR) ||
 			  (chaperone_status == LPJS_CHAPERONE_EXEC_FAILED) )
 		{
-		    lpjs_log("%s(): OS error detected on %s.\n",
+		    lpjs_log("%s(): OS error or failed exec() detected on %s.\n",
 			    __FUNCTION__, chaperone_hostname);
 		    
-		    adjust_resources(node_list, pending_jobs, hostname, job_id, NODE_RESOURCE_RELEASE);
+		    lpjs_log("%s(): Releasing resourcesfor job %lu...\n",
+			     __FUNCTION__, job_id);
+		    adjust_resources(node_list, pending_jobs, hostname,
+				     job_id, NODE_RESOURCE_RELEASE);
 
 		    // FIXME: Node should not come back up from here when daemons
 		    // are restarted.  It should require "lpjs nodes up nodename"
 		    // node_set_state(node, "malfunction");
+		    lpjs_log("%s(): Setting %s state to down...\n",
+			     __FUNCTION__, chaperone_hostname);
 		    node = node_list_find_hostname(node_list, chaperone_hostname);
-		    node_set_state(node, "down");
-		    
+		    if ( node == NULL )
+			lpjs_log("%s(): Software error: No such node in list.\n",
+				 __FUNCTION__);
+		    else
+			node_set_state(node, "down");
+		    lpjs_log("%s(): Done.\n");
 		    // FIXME: Make sure job state is reset, but don't remove
 		}
 		else if ( chaperone_status == LPJS_CHAPERONE_OK )
