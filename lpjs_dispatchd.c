@@ -271,6 +271,7 @@ int     lpjs_process_events(node_list_t *node_list)
 	FD_ZERO(&read_fds);
 	FD_SET(listen_fd, &read_fds);
 	highest_fd = listen_fd;
+	
 	for (unsigned c = 0; c < node_list_get_compute_node_count(node_list); ++c)
 	{
 	    node_t *node = node_list_get_compute_nodes_ae(node_list, c);
@@ -298,8 +299,10 @@ int     lpjs_process_events(node_list_t *node_list)
 	if ( select(nfds, &read_fds, NULL, NULL, LPJS_NO_SELECT_TIMEOUT) > 0 )
 	{
 	    //lpjs_log("Checking comp fds...\n");
-	    // FIXME: Is this still needed?  Does compd send any
-	    // unsolicitied messages?
+	    // compd doesn't presently initiate conversations on
+	    // the persistend socket.  It is used only for dispatchd
+	    // to send new jobs to compd.  This function only serves
+	    // to check for lost connections with compd daemons.
 	    lpjs_check_comp_fds(&read_fds, node_list, running_jobs);
 	    
 	    //lpjs_log("Checking listen fd...\n");
@@ -353,7 +356,9 @@ void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
     node_t  *node = node_new();
     int     fd;
     ssize_t bytes;
-    char    incoming_msg[LPJS_MSG_LEN_MAX + 1];
+    char    *munge_payload;
+    uid_t   uid;
+    gid_t   gid;
     
     // Top priority: Active compute nodes (move existing jobs along)
     // Second priority: New compute node checkins (make resources available)
@@ -372,7 +377,10 @@ void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
 	     */
 	    
 	    // FIXME: Verify that lost connections are handled properly
-	    bytes = lpjs_recv(fd, incoming_msg, LPJS_MSG_LEN_MAX + 1, 0, 0);
+	    // FIXME: Use lpjs_recv_munge
+	    bytes = lpjs_recv_munge(fd, &munge_payload,
+				    0, 0, &uid, &gid,
+				    lpjs_dispatchd_safe_close);
 	    if ( bytes < 1 )
 	    {
 		lpjs_log("%s(): Lost connection to %s.  Closing %d...\n",
@@ -384,13 +392,13 @@ void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
 	    else
 	    {
 		// At present, compd never messages dispatchd after checkin
-		switch(incoming_msg[0])
+		switch(munge_payload[0])
 		{
 		    default:
 			lpjs_log("%s(): Invalid notification on fd %d: %d\n",
-				__FUNCTION__, fd, incoming_msg[0]);
+				__FUNCTION__, fd, munge_payload[0]);
 		}
-		
+		free(munge_payload);
 	    }
 	}
     }
