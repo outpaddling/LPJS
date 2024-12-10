@@ -138,6 +138,7 @@ int     main (int argc, char *argv[])
 	{
 	    poll_fd.revents &= ~POLLIN;
 	    // FIXME: Add a timeout and handling code
+	    lpjs_log("%s(): New message from dispatchd.\n", __FUNCTION__);
 	    bytes = lpjs_recv_munge(compd_msg_fd, &munge_payload, 0, 0,
 				    &uid, &gid, close);
 	    if ( bytes < 0 )

@@ -171,8 +171,8 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	     *      LPJS_DISPATCHD_REQUEST_JOB_COMPLETE?
 	     */
 	    
-	    // lpjs_log("%s(): Awaiting chaperone fork verification from %s compd...\n",
-	    //          __FUNCTION__, node_get_hostname(node));
+	    lpjs_log("%s(): Awaiting chaperone fork verification from %s compd...\n",
+		     __FUNCTION__, node_get_hostname(node));
 	    payload_bytes = lpjs_recv_munge(compd_msg_fd, &munge_payload,
 					    0, LPJS_CHAPERONE_STATUS_TIMEOUT,
 					    &uid, &gid,
