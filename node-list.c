@@ -50,7 +50,7 @@ node_list_t *node_list_new(void)
     
     if ( (new_list = malloc(sizeof(node_list_t))) == NULL )
     {
-	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
+	lpjs_log("%s(): Error: malloc() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
     }
     node_list_init(new_list);
@@ -97,7 +97,7 @@ void    node_list_update_compute(node_list_t *node_list, node_t *node)
     {
 	if ( strcmp(node_get_hostname(node_list->compute_nodes[c]), hostname) == 0 )
 	{
-	    // lpjs_log("Updating compute node %zu %s\n", c, NODE_HOSTNAME(node_list->compute_nodes[c]));
+	    // lpjs_debug("Updating compute node %zu %s\n", c, NODE_HOSTNAME(node_list->compute_nodes[c]));
 	    node_set_state(node_list->compute_nodes[c], "up");
 	    node_set_procs(node_list->compute_nodes[c], node_get_procs(node));
 	    node_set_phys_MiB(node_list->compute_nodes[c], node_get_phys_MiB(node));
@@ -162,7 +162,7 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
 	}
     }
     
-    // lpjs_log("Sending summary...\n");
+    // lpjs_debug("Sending summary...\n");
     snprintf(temp, LPJS_MSG_LEN_MAX + 1,
 	    "\n" NODE_STATUS_FORMAT, "Total", "up",
 	    procs_up, procs_up_used, mem_up, mem_up_used, "-", "-");
@@ -177,7 +177,7 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
     if ( lpjs_send_munge(msg_fd, outgoing_msg,
 			 lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
     {
-	lpjs_log("%s(): Failed to send node list info.\n", __FUNCTION__);
+	lpjs_log("%s(): Error: Failed to send node list info.\n", __FUNCTION__);
 	lpjs_dispatchd_safe_close(msg_fd);
 	return; // FIXME: Define return codes
     }
@@ -190,9 +190,9 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
      */
     if ( lpjs_send_munge(msg_fd, LPJS_EOT_MSG, lpjs_dispatchd_safe_close)
 			 != LPJS_MSG_SENT )
-	lpjs_log("%s(): Failed to send EOT.\n", __FUNCTION__);
+	lpjs_log("%s(): Error: Failed to send EOT.\n", __FUNCTION__);
     else
-	lpjs_log("EOT sent.\n");
+	lpjs_log("%s(): EOT sent.\n", __FUNCTION__);
 }
 
 
@@ -230,11 +230,11 @@ int     node_list_add_compute_node(node_list_t *node_list, node_t *node)
 {
     if ( node_list->compute_node_count == LPJS_MAX_NODES )
     {
-	lpjs_log("%s(): LPJS_MAX_NODES reached.  Cannot add new node.\n", __FUNCTION__);
+	lpjs_log("%s(): Error: LPJS_MAX_NODES reached.  Cannot add new node.\n", __FUNCTION__);
 	return -1;
     }
     
-    // lpjs_log("%s(): Adding %s\n", __FUNCTION__, node_get_hostname(node));
+    // lpjs_debug("%s(): Adding %s\n", __FUNCTION__, node_get_hostname(node));
     node_list->compute_nodes[node_list->compute_node_count++] = node;
     
     return 0;   // FIXME: Define return codes
@@ -250,7 +250,7 @@ node_t  *node_list_find_hostname(node_list_t *node_list, const char *hostname)
     for (c = 0; c < node_list->compute_node_count; ++c)
     {
 	node = node_list->compute_nodes[c];
-	// lpjs_log("%s(): Checking %s\n", __FUNCTION__, node_get_hostname(node));
+	// lpjs_debug("%s(): Checking %s\n", __FUNCTION__, node_get_hostname(node));
 	if ( strcmp(node_get_hostname(node), hostname) == 0 )
 	    return node;
     }
@@ -324,7 +324,7 @@ int     node_list_set_state(node_list_t *node_list, char *arg_string)
 	{
 	    node = node_list_find_hostname(node_list, node_name);
 	    if ( node == NULL )
-		lpjs_log("%s(): Node %s not found.\n", __FUNCTION__, node_name);
+		lpjs_log("%s(): Error: Node %s not found.\n", __FUNCTION__, node_name);
 	    else
 	    {
 		printf("Setting node %s to %s...\n", node_name, state);

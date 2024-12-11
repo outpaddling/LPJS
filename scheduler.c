@@ -114,16 +114,10 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	script_size = lpjs_load_script(script_path, script_buff,
 				       LPJS_SCRIPT_SIZE_MAX + 1);
 
-	/*
-	 *  Nothing smaller than this:
-	 *
-	 *  #!/bin/sh
-	 *  w
-	 */
-	if ( script_size < 12 )
+	if ( script_size < LPJS_SCRIPT_MIN_SIZE )
 	{
-	    lpjs_log("%s(): Error: Script %s < 12 characters.\n",
-		    __FUNCTION__, script_path);
+	    lpjs_log("%s(): Error: Script %s < %d characters.\n",
+		    __FUNCTION__, script_path, LPJS_SCRIPT_MIN_SIZE);
 	    return node_count;
 	}
 	

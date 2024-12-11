@@ -80,10 +80,11 @@ int     main (int argc, char *argv[])
     }
     
     // FIXME: Determine a real minimum script size
-    if ( script_size < 1 )
+    if ( script_size < LPJS_SCRIPT_MIN_SIZE )
     {
-	lpjs_log("%s(): Error reading script.\n", __FUNCTION__);
-	return 0;
+	lpjs_log("%s(): Error: Script %s < %d chars.\n",
+		__FUNCTION__, script_name, LPJS_SCRIPT_MIN_SIZE);
+	return EX_DATAERR;
     }
     
     // FIXME: Warn about misleading shell extensions, e.g. .sh for bash

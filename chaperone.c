@@ -86,7 +86,7 @@ int     main (int argc, char *argv[])
     
     snprintf(new_path, LPJS_PATH_ENV_MAX + 1, "%s/bin:%s/bin:%s", LOCALBASE, PREFIX, getenv("PATH"));
     setenv("PATH", new_path, 1);
-    // lpjs_log("PATH = %s\n", new_path);
+    // lpjs_debug("PATH = %s\n", new_path);
     
     xt_get_home_dir(home_dir, PATH_MAX + 1);
     setenv("LPJS_HOME_DIR", home_dir, 1);
@@ -117,8 +117,8 @@ int     main (int argc, char *argv[])
     
     gethostname(hostname, sysconf(_SC_HOST_NAME_MAX));
     getcwd(wd, PATH_MAX + 1 - 20);
-    lpjs_log("Running %s in %s on %s with %u procs and %lu MiB.\n",
-	    job_script_name, wd, hostname, procs, pmem_per_proc);
+    lpjs_log("%s(): Running %s in %s on %s with %u procs and %lu MiB.\n",
+	    __FUNCTION__, job_script_name, wd, hostname, procs, pmem_per_proc);
     
     if ( stat(shared_fs_marker, &st) != 0 )
     {
@@ -134,7 +134,7 @@ int     main (int argc, char *argv[])
 	// FIXME: Set CPU and memory (virtual and physical) limits
 	fclose(Log_stream); // Not useful to child
 	execl(job_script_name, job_script_name, NULL);
-	lpjs_log("%s(): execl() failed: %s\n", __FUNCTION__, strerror(errno));
+	lpjs_log("%s(): Error: execl() failed: %s\n", __FUNCTION__, strerror(errno));
 	return EX_UNAVAILABLE;
     }
     
@@ -143,7 +143,7 @@ int     main (int argc, char *argv[])
     // FIXME: Monitor resource use of child
     // Maybe ptrace(), though seemingly not well standardized
     wait(&status);
-    lpjs_log("Process exited with status %d.\n", status);
+    lpjs_log("%s(): Info: Process exited with status %d.\n", __FUNCTION__, status);
 
     lpjs_chaperone_completion_loop(node_list, hostname, job_id, status);
     
@@ -160,10 +160,11 @@ int     main (int argc, char *argv[])
 	
 	if ( (sp = getenv("LPJS_PUSH_COMMAND")) == NULL )
 	{
-	    lpjs_log("No LPJS_PUSH_COMMAND in env.  This is a bug.\n");
+	    lpjs_log("%s(): Bug: No LPJS_PUSH_COMMAND in env.\n", __FUNCTION__);
 	    exit(EX_SOFTWARE);
 	}
-	lpjs_log("LPJS_PUSH_COMMAND = %s\n", sp);
+	else
+	    lpjs_log("%s(): LPJS_PUSH_COMMAND = %s\n", __FUNCTION__, sp);
 	c =0;
 	while ( (*sp != '\0') && (c < LPJS_CMD_MAX) )
 	{
@@ -175,7 +176,8 @@ int     main (int argc, char *argv[])
 		    case    'w':
 			if ( c + strlen(wd) > LPJS_CMD_MAX )
 			{
-			    lpjs_log("LPJS_PUSH_COMMAND longer than %u, aborting.\n", LPJS_CMD_MAX);
+			    lpjs_log("%s(): Error: LPJS_PUSH_COMMAND longer than %u, aborting.\n",
+				    __FUNCTION__, LPJS_CMD_MAX);
 			    return EX_DATAERR;
 			}
 			strlcpy(cmd + c, wd, LPJS_CMD_MAX + 1);
@@ -187,7 +189,8 @@ int     main (int argc, char *argv[])
 			submit_node = getenv("LPJS_SUBMIT_HOST");
 			if ( c + strlen(submit_node) > LPJS_CMD_MAX )
 			{
-			    lpjs_log("LPJS_PUSH_COMMAND longer than %u, aborting.\n", LPJS_CMD_MAX);
+			    lpjs_log("%s(): Error: LPJS_PUSH_COMMAND longer than %u, aborting.\n",
+				    __FUNCTION__, LPJS_CMD_MAX);
 			    return EX_DATAERR;
 			}
 			strlcpy(cmd + c, submit_node, LPJS_CMD_MAX + 1);
@@ -199,7 +202,8 @@ int     main (int argc, char *argv[])
 			submit_dir = getenv("LPJS_SUBMIT_DIRECTORY");
 			if ( c + strlen(submit_dir) > LPJS_CMD_MAX )
 			{
-			    lpjs_log("LPJS_PUSH_COMMAND longer than %u, aborting.\n", LPJS_CMD_MAX);
+			    lpjs_log("%s(): Error: LPJS_PUSH_COMMAND longer than %u, aborting.\n",
+				    __FUNCTION__, LPJS_CMD_MAX);
 			    return EX_DATAERR;
 			}
 			strlcpy(cmd + c, submit_dir, LPJS_CMD_MAX + 1);
@@ -208,7 +212,8 @@ int     main (int argc, char *argv[])
 			break;
 			
 		    default:
-			lpjs_log("Invalid placeholder in LPJS_PUSH_COMMAND: %%%c\n", *sp);
+			lpjs_log("%s(): Error: Invalid placeholder in LPJS_PUSH_COMMAND: %%%c\n",
+				__FUNCTION__, *sp);
 			return EX_DATAERR;
 		}
 	    }
@@ -216,8 +221,9 @@ int     main (int argc, char *argv[])
 		cmd[c++] = *sp++;
 	}
 	*sp = '\0';
-	lpjs_log("Transferring temporary working dir: %s\n", wd);
-	lpjs_log("push command = %s\n", cmd);
+	lpjs_log("%s(): Transferring temporary working dir: %s\n",
+		__FUNCTION__, wd);
+	lpjs_log("%s(): push command = %s\n", __FUNCTION__, cmd);
 	
 	// No more lpjs_log() beyond here.  Log file already transferred.
 	// Close log before pushing temp dir to ensure that it's complete
@@ -227,7 +233,7 @@ int     main (int argc, char *argv[])
 	// Remove temporary working dir if successfully transferred
 	if ( push_status == 0 )
 	{
-	    lpjs_log("Removing temporary working dir...\n");
+	    lpjs_log("%s(): Removing temporary working dir...\n", __FUNCTION__);
 	    snprintf(cmd, LPJS_CMD_MAX + 1, "rm -rf %s", wd);
 	    system(cmd);    // Log is closed, no point checking status
 	}
@@ -244,7 +250,7 @@ int     main (int argc, char *argv[])
 	}
     }
 
-    lpjs_log("Exiting with status %d...\n", status);
+    lpjs_log("%s(): Info: Exiting with status %d...\n", __FUNCTION__, status);
     return status;
 }
 
@@ -277,16 +283,15 @@ int     lpjs_job_start_notice(int msg_fd,
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1,
 	    "%c%s %s %u %d", LPJS_DISPATCHD_REQUEST_JOB_STARTED,
 	    hostname, job_id, getpid(), job_pid);
-    lpjs_log("%s(): Sending PIDs to dispatchd:\n", __FUNCTION__);
-    // FIXME: Why not lpjs_log()?
-    fprintf(Log_stream, "%s\n", outgoing_msg + 1);
+    lpjs_log("%s(): Sending new PIDs to dispatchd:\n", __FUNCTION__);
+    lpjs_debug("%s(): msg = %s\n", __FUNCTION__, outgoing_msg + 1);
     if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != LPJS_MSG_SENT )
     {
-	lpjs_log("Failed to send job start message to dispatchd: %s",
-		strerror(errno));
+	lpjs_log("%s(): Error: Failed to send job start message to dispatchd: %s",
+		__FUNCTION__, strerror(errno));
 	return LPJS_WRITE_FAILED;
     }
-    lpjs_log("%s(): Sent job start request.\n", __FUNCTION__);
+    lpjs_debug("%s(): Sent job start request.\n", __FUNCTION__);
 
     // lpjs_recv(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 0);
     // FIXME: Add a timeout and handling code
@@ -294,12 +299,12 @@ int     lpjs_job_start_notice(int msg_fd,
 
     if ( bytes < 1 )
     {
-	lpjs_log("Error receving auth message.\n");
+	lpjs_log("%s(): Error: Failed to receive auth message.\n", __FUNCTION__);
 	exit(EX_IOERR); // FIXME: Should we retry?
     }
     else if ( strcmp(munge_payload, "Node authorized") != 0 )
     {
-	lpjs_log("%s(): This node is not authorized to connect.\n"
+	lpjs_log("%s(): Error: This node is not authorized to connect.\n"
 		 "It must be added to the etc/lpjs/config on the head node.\n",
 		 __FUNCTION__);
 	exit(EX_NOPERM);
@@ -345,9 +350,10 @@ int     lpjs_job_start_notice_loop(node_list_t *node_list,
 	msg_fd = lpjs_connect_to_dispatchd(node_list);
 	if ( msg_fd == -1 )
 	{
-	    lpjs_log("%s(): Failed to connect to dispatchd: %s\n",
+	    lpjs_log("%s(): Error: Failed to connect to dispatchd: %s\n",
 		    __FUNCTION__, strerror(errno));
-	    lpjs_log("Retry in %d seconds...\n", LPJS_RETRY_TIME);
+	    lpjs_log("%s(): Retry in %d seconds...\n",
+		    __FUNCTION__, LPJS_RETRY_TIME);
 	    sleep(LPJS_RETRY_TIME);
 	}
 	else
@@ -355,7 +361,9 @@ int     lpjs_job_start_notice_loop(node_list_t *node_list,
 	    status = lpjs_job_start_notice(msg_fd, hostname, job_id, job_pid);
 	    if ( status != LPJS_SUCCESS )
 	    {
-		lpjs_log("%s(): Chaperone start notice failed.  Retry in %d seconds...\n",
+		lpjs_log("%s(): Error: Chaperone start notice failed.\n",
+			__FUNCTION__);
+		lpjs_log("%s(): Retry in %d seconds...\n",
 			 __FUNCTION__, LPJS_RETRY_TIME);
 		sleep(LPJS_RETRY_TIME);
 	    }
@@ -363,7 +371,7 @@ int     lpjs_job_start_notice_loop(node_list_t *node_list,
 	}
     }   while ( (msg_fd == -1) || (status != LPJS_SUCCESS) );
     
-    lpjs_log("%s(): Start notice successful.\n", __FUNCTION__);
+    lpjs_debug("%s(): Start notice successful.\n", __FUNCTION__);
     
     return LPJS_SUCCESS;
 }
@@ -393,8 +401,8 @@ int     lpjs_chaperone_completion(int msg_fd, const char *hostname,
 	     job_id, status);
     if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != LPJS_MSG_SENT )
     {
-	lpjs_log("lpjs-chaperone: Failed to send message to dispatchd: %s",
-		strerror(errno));
+	lpjs_log("%s(): Failed to send message to dispatchd: %s",
+		__FUNCTION__, strerror(errno));
 	return EX_IOERR;
     }
     
@@ -427,9 +435,10 @@ int     lpjs_chaperone_completion_loop(node_list_t *node_list,
 	msg_fd = lpjs_connect_to_dispatchd(node_list);
 	if ( msg_fd == -1 )
 	{
-	    lpjs_log("%s(): Failed to connect to dispatchd: %s\n",
+	    lpjs_log("%s(): Error: Failed to connect to dispatchd: %s\n",
 		    __FUNCTION__, strerror(errno));
-	    lpjs_log("Retry in %d seconds...\n", LPJS_RETRY_TIME);
+	    lpjs_log("%s(): Retry in %d seconds...\n",
+		    __FUNCTION__, LPJS_RETRY_TIME);
 	    sleep(LPJS_RETRY_TIME);
 	}
 	else
@@ -438,7 +447,9 @@ int     lpjs_chaperone_completion_loop(node_list_t *node_list,
 						status);
 	    if ( status != EX_OK )
 	    {
-		lpjs_log("%s(): Message send failed.  Retry in %d seconds...\n",
+		lpjs_log("%s(): Error: Message send failed.\n",
+			__FUNCTION__);
+		lpjs_log("%s(): Retry in %d seconds...\n",
 			 __FUNCTION__, LPJS_RETRY_TIME);
 		sleep(LPJS_RETRY_TIME);
 	    }
@@ -499,13 +510,13 @@ void    whack_family(pid_t pid)
     pid_t   child_pid;
     
     // Get list of child processes in a kludgy, but portable way
-    lpjs_log("Finding children of %d...\n", pid);
+    lpjs_log("%s(): Finding children of %d...\n", __FUNCTION__, pid);
     snprintf(cmd, LPJS_CMD_MAX + 1, "pgrep -P %u", pid);
     
     // Signal each child to terminate
     if ( (fp = popen(cmd, "r")) == NULL )
     {
-	lpjs_log("Failed to run %s.\n", cmd);
+	lpjs_log("%s(): Error: Failed to run %s.\n", __FUNCTION__, cmd);
 	return;
     }
     while ( fgets(pid_str, 100, fp) != NULL )
@@ -518,11 +529,13 @@ void    whack_family(pid_t pid)
 	    whack_family(child_pid);
 	
 	// Try SIGTERM first in case process catches it and cleans up
-	lpjs_log("Sending SIGTERM to child %d...\n", child_pid);
+	lpjs_log("%s(): Sending SIGTERM to child %d...\n",
+		__FUNCTION__, child_pid);
 	kill(child_pid, SIGTERM);
 	sleep(2);
 	// If SIGTERM worked, this will fail and have no effect
-	lpjs_log("Sending SIGKILL to child %d...\n", child_pid);
+	lpjs_log("%s(): Sending SIGKILL to child %d...\n",
+		__FUNCTION__, child_pid);
 	kill(child_pid, SIGKILL);
     }
     pclose(fp);

@@ -32,7 +32,7 @@ node_t  *node_new(void)
     
     if ( (node = malloc(sizeof(node_t))) == NULL )
     {
-	lpjs_log("%s(): malloc failed.\n", __FUNCTION__);
+	lpjs_log("%s(): Error: malloc failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
     }
     node_init(node);
@@ -115,7 +115,7 @@ void    node_detect_specs(node_t *node)
 	xt_fgetline(fp, temp_osname, 128);
 	if ( (node->os = strdup(temp_osname)) == NULL )
 	{
-	    lpjs_log("%s(): strdup() failed.\n", __FUNCTION__);
+	    lpjs_log("%s(): Error: strdup() failed.\n", __FUNCTION__);
 	    exit(EX_UNAVAILABLE);
 	}
 	pclose(fp);
@@ -124,7 +124,7 @@ void    node_detect_specs(node_t *node)
     {
 	if ( (node->os = strdup(u_name.sysname)) == NULL )
 	{
-	    lpjs_log("%s(): strdup() failed.\n", __FUNCTION__);
+	    lpjs_log("%s(): Error: strdup() failed.\n", __FUNCTION__);
 	    exit(EX_UNAVAILABLE);
 	}
     }
@@ -197,7 +197,7 @@ void    node_send_status(node_t *node, int msg_fd)
     {
 	// This function should never be called by dispatchd, so
 	// use a simple close() vs lpjs_dispatchd_safe_close()
-	lpjs_log("send_node_specs(): xt_dprintf() failed: %s", strerror(errno));
+	lpjs_log("%s(): Error: xt_dprintf() failed: %s", __FUNCTION__, strerror(errno));
 	exit(EX_IOERR);
     }
 }
@@ -221,7 +221,7 @@ char    *node_specs_to_str(node_t *node, char *str, size_t buff_len)
 		  node->hostname, node->state, node->procs,
 		  node->phys_MiB, node->zfs, node->os, node->arch) < 0 )
     {
-	lpjs_log("%s(): snprintf() failed\n", __FUNCTION__);
+	lpjs_log("%s(): Error: snprintf() failed\n", __FUNCTION__);
 	exit(EX_IOERR);
     }
     
@@ -251,7 +251,7 @@ ssize_t node_str_to_specs(node_t *node, const char *str)
     
     if ( (temp_str = strdup(str)) == NULL )
     {
-	lpjs_log("%s(): strdup() failed.\n", __FUNCTION__);
+	lpjs_log("%s(): Error: strdup() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
     }
     
@@ -263,64 +263,64 @@ ssize_t node_str_to_specs(node_t *node, const char *str)
     
     if ( (field = strsep(&stringp, "\t")) == NULL )
     {
-	lpjs_log("%s(): Failed to extract hostname from specs.\n", __FUNCTION__);
+	lpjs_log("%s(): Bug: Failed to extract hostname from specs.\n", __FUNCTION__);
 	return -1;
     }
     node->hostname = strdup(field);
 
     if ( (field = strsep(&stringp, "\t")) == NULL )
     {
-	lpjs_log("%s(): Failed to extract state from specs.\n", __FUNCTION__);
+	lpjs_log("%s(): Bug: Failed to extract state from specs.\n", __FUNCTION__);
 	return -1;
     }
     node->state = strdup(field);
 
     if ( (field = strsep(&stringp, "\t")) == NULL )
     {
-	lpjs_log("%s(): Failed to extract procs from specs.\n", __FUNCTION__);
+	lpjs_log("%s(): Bug: Failed to extract procs from specs.\n", __FUNCTION__);
 	return -1;
     }
     node->procs = strtoul(field, &end, 10);
     if ( *end != '\0' )
     {
-	lpjs_log("%s(): Procs field is not a valid number.\n", __FUNCTION__);
+	lpjs_log("%s(): Bug: Procs field is not a valid number.\n", __FUNCTION__);
 	return -1;
     }
 
     if ( (field = strsep(&stringp, "\t")) == NULL )
     {
-	lpjs_log("%s(): Failed to extract physMiB from specs.\n", __FUNCTION__);
+	lpjs_log("%s(): Bug: Failed to extract physMiB from specs.\n", __FUNCTION__);
 	return -1;
     }
     node->phys_MiB = strtoul(field, &end, 10);
     if ( *end != '\0' )
     {
-	lpjs_log("%s(): PhysMiB field is not a valid number.\n", __FUNCTION__);
+	lpjs_log("%s(): Bug: PhysMiB field is not a valid number.\n", __FUNCTION__);
 	return -1;
     }
 
     if ( (field = strsep(&stringp, "\t")) == NULL )
     {
-	lpjs_log("%s(): Failed to extract ZFS Boolean from specs.\n", __FUNCTION__);
+	lpjs_log("%s(): Bug: Failed to extract ZFS Boolean from specs.\n", __FUNCTION__);
 	return -1;
     }
     node->zfs = strtoul(field, &end, 10);
     if ( *end != '\0' )
     {
-	lpjs_log("%s(): ZFS field is not a valid number (should be 0 or 1).\n", __FUNCTION__);
+	lpjs_log("%s(): Bug: ZFS field is not a valid number (should be 0 or 1).\n", __FUNCTION__);
 	return -1;
     }
 
     if ( (field = strsep(&stringp, "\t")) == NULL )
     {
-	lpjs_log("%s(): Failed to extract OS from specs.\n", __FUNCTION__);
+	lpjs_log("%s(): Bug: Failed to extract OS from specs.\n", __FUNCTION__);
 	return -1;
     }
     node->os = strdup(field);
 
     if ( (field = strsep(&stringp, "\t\n")) == NULL )
     {
-	lpjs_log("%s(): Failed to extract arch from specs.\n", __FUNCTION__);
+	lpjs_log("%s(): Bug: Failed to extract arch from specs.\n", __FUNCTION__);
 	return -1;
     }
     node->arch = strdup(field);

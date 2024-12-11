@@ -134,7 +134,7 @@ FILE    *lpjs_log_output(const char *pathname)
 	fprintf(stderr, "Creating %s...\n", log_dir);
 	if ( xt_rmkdir(log_dir, 0755) != 0 )
 	{
-	    fprintf(stderr, "%s(): Cannot create %s: %s\n", __FUNCTION__,
+	    fprintf(stderr, "%s(): Error: Cannot create %s: %s\n", __FUNCTION__,
 		    log_dir, strerror(errno));
 	    return NULL;
 	}
@@ -277,7 +277,7 @@ ssize_t lpjs_load_script(const char *script_path,
     
     if ( (fd = open(script_path, O_RDONLY)) == -1 )
     {
-	lpjs_log("%s(): Failed to open %s: %s\n", __FUNCTION__,
+	lpjs_log("%s(): Error: Failed to open %s: %s\n", __FUNCTION__,
 		script_path, strerror(errno));
 	return -1;
     }
@@ -285,7 +285,7 @@ ssize_t lpjs_load_script(const char *script_path,
     bytes = read(fd, script_buff, buff_size + 1);
     if ( bytes == buff_size + 1 )
     {
-	lpjs_log("%s(): Script exceeds %zd.  Reduce script size or increase script_size_max.\n",
+	lpjs_log("%s(): Error: Script exceeds %zd.  Reduce script size or increase script_size_max.\n",
 		__FUNCTION__, buff_size);
 	close(fd);
 	return -1;

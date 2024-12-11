@@ -32,7 +32,7 @@ job_list_t  *job_list_new(void)
     job_list = malloc(sizeof(job_list_t));
     if ( job_list == NULL )
     {
-	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
+	lpjs_log("%s(): Error: malloc() failed.\n", __FUNCTION__);
 	exit(EX_SOFTWARE);
     }
     job_list_init(job_list);
@@ -72,11 +72,11 @@ int     job_list_add_job(job_list_t *job_list, job_t *job)
     if ( job_list->count < JOB_LIST_MAX_JOBS )
     {
 	job_list->jobs[job_list->count++] = job;
-	//lpjs_log("%s(): Added job id %lu, new count = %u\n", __FUNCTION__,
+	//lpjs_debug("%s(): Added job id %lu, new count = %u\n", __FUNCTION__,
 	//        job_get_job_id(job), job_list->count);
     }
     else
-	lpjs_log("%s(): Maximum job count = %u reached.\n",
+	lpjs_log("%s(): Error: Maximum job count = %u reached.\n",
 		 __FUNCTION__, JOB_LIST_MAX_JOBS);
     
     return 0;   // NL_OK?
@@ -111,7 +111,7 @@ job_t   *job_list_remove_job(job_list_t *job_list, unsigned long job_id)
     if ( job_array_index == JOB_LIST_NOT_FOUND )
 	return NULL;
     
-    // lpjs_log("%s(): Removing job %lu from list\n", __FUNCTION__, job_id);
+    // lpjs_debug("%s(): Removing job %lu from list\n", __FUNCTION__, job_id);
     job = job_list->jobs[job_array_index];
     job_print_full_specs(job, Log_stream);
     

@@ -36,7 +36,7 @@ job_t   *job_new(void)
     
     if ( (job = malloc(sizeof(job_t))) == NULL )
     {
-	lpjs_log("%s: malloc() failed.\n", __FUNCTION__);
+	lpjs_log("%s(): Error: malloc() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
     }
     job_init(job);
@@ -76,7 +76,7 @@ void    job_init(job_t *job)
     // Default: Send contents of temp working dir to working dir on submit host
     if ( (job->push_command = strdup("rsync -av %w/ %h:%d")) == NULL )
     {
-	lpjs_log("%s(): strdup() failed.\n", __FUNCTION__);
+	lpjs_log("%s(): Error: strdup() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
     }
 }
@@ -189,7 +189,7 @@ void    job_send_basic_params(job_t *job, int msg_fd)
     // Used by dispatchd to send to lpjs jobs command
     if ( lpjs_send_munge(msg_fd, msg, lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
     {
-	lpjs_log("%s(): send failed.\n", __FUNCTION__);
+	lpjs_log("%s(): Error: Send failed.\n", __FUNCTION__);
 	exit(EX_IOERR);
     }
 }
@@ -464,7 +464,7 @@ int     job_read_from_string(job_t *job, const char *string, char **end)
     }
     if ( *start == '\0' )
     {
-	lpjs_log("%s: Malformed job spec string: %s\n", __FUNCTION__, string);
+	lpjs_log("%s(): Error: Malformed job spec string: %s\n", __FUNCTION__, string);
 	exit(EX_DATAERR);
     }
     
@@ -473,56 +473,56 @@ int     job_read_from_string(job_t *job, const char *string, char **end)
 	++start;
     if ( (temp = strdup(start)) == NULL )
     {
-	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
+	lpjs_log("%s(): Error: malloc() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
     }
     p = temp;
     
     if ( (job->user_name = strdup(strsep(&p, " \t"))) == NULL )
     {
-	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
+	lpjs_log("%s(): Error: malloc() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
     }
     ++items;
     
     if ( (job->primary_group_name = strdup(strsep(&p, " \t"))) == NULL )
     {
-	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
+	lpjs_log("%s(): Error: malloc() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
     }
     ++items;
     
     if ( (job->submit_node = strdup(strsep(&p, " \t"))) == NULL )
     {
-	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
+	lpjs_log("%s(): Error: malloc() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
     }
     ++items;
     
     if ( (job->submit_dir = strdup(strsep(&p, " \t"))) == NULL )
     {
-	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
+	lpjs_log("%s(): Error: malloc() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
     }
     ++items;
     
     if ( (job->script_name = strdup(strsep(&p, " \t\n"))) == NULL )
     {
-	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
+	lpjs_log("%s(): Error: malloc() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
     }
     ++items;
     
     if ( (job->compute_node = strdup(strsep(&p, " \t\n"))) == NULL )
     {
-	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
+	lpjs_log("%s(): Error: malloc() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
     }
     ++items;
     
     if ( (job->log_dir = strdup(strsep(&p, " \t\n"))) == NULL )
     {
-	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
+	lpjs_log("%s(): Error: malloc() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
     }
     ++items;
@@ -530,7 +530,7 @@ int     job_read_from_string(job_t *job, const char *string, char **end)
     // May contain whitespace, must be last
     if ( (job->push_command = strdup(strsep(&p, "\n"))) == NULL )
     {
-	lpjs_log("%s(): malloc() failed.\n", __FUNCTION__);
+	lpjs_log("%s(): Error: malloc() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
     }
     ++items;
@@ -588,13 +588,13 @@ int     job_read_from_file(job_t *job, const char *path)
     
     if ( bytes < 1 )
     {
-	lpjs_log("%s(): Read error: %s\n", __FUNCTION__, strerror(errno));
+	lpjs_log("%s(): Error: Read error: %s\n", __FUNCTION__, strerror(errno));
 	return -1;
     }
     
     if ( bytes == JOB_STR_MAX_LEN )
     {
-	lpjs_log("%s(): Buffer full reading specs file\n", __FUNCTION__);
+	lpjs_log("%s(): Error: Buffer full reading specs file\n", __FUNCTION__);
 	return -1;
     }
     

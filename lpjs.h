@@ -18,6 +18,14 @@ enum
 
 #define LPJS_SHARED_FS_MARKER_MAX   128
 
+/*
+ *  Nothing smaller than this:
+ *
+ *  #!/bin/sh
+ *  w
+ */
+#define LPJS_SCRIPT_MIN_SIZE    12
+
 #define LPJS_FIELD_MAX          1024
 #define LPJS_CMD_MAX            4096
 // Not too large: Auto vars may exceed stack size
