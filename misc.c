@@ -22,6 +22,7 @@
  */
 FILE        *Log_stream;
 node_list_t *Node_list;
+bool        Debug = true;   // FIXME: Control with --debug flag
 char        Pid_path[PATH_MAX + 1];
 
 /***************************************************************************
@@ -35,16 +36,16 @@ char        Pid_path[PATH_MAX + 1];
  *  2021-09-28  Jason Bacon Begin
  ***************************************************************************/
 
-// FIXME: Add debug levels argument
 int     lpjs_log(const char *format, ...)
 
 {
     int         status;
     va_list     ap;
     
+    // Code duplicated in lpjs_debug(), but not worth factoring out
     va_start(ap, format);
     
-    fprintf(Log_stream, "%s ", xt_str_localtime());
+    fprintf(Log_stream, "%s ", xt_str_localtime("%m-%d %H:%M:%S"));
     
     // FIXME: Add time stamp?
     status = vfprintf(Log_stream, format, ap);
@@ -57,6 +58,35 @@ int     lpjs_log(const char *format, ...)
     va_end(ap);
     
     return status;
+}
+
+
+int     lpjs_debug(const char *format, ...)
+
+{
+    int         status;
+    va_list     ap;
+    
+    if ( Debug )
+    {
+	// Code duplicated in lpjs_log), but not worth factoring out
+	va_start(ap, format);
+
+	fprintf(Log_stream, "%s ", xt_str_localtime("%m-%d %H:%M:%S"));
+	
+	// FIXME: Add time stamp?
+	status = vfprintf(Log_stream, format, ap);
+	
+	// Commit immediately so last message in the log is not
+	// misleading in the event of a crash
+	fflush(Log_stream);
+	fsync(fileno(Log_stream));
+	
+	va_end(ap);
+	return status;
+    }
+    else
+	return 0;
 }
 
 
@@ -181,7 +211,7 @@ int     xt_create_pid_file(const char *pid_path, FILE *log_stream)
 
 #define TIME_STR_MAX    32
 
-char    *xt_str_localtime(void)
+char    *xt_str_localtime(const char *format)
 
 {
     time_t      time_sec;
@@ -190,7 +220,7 @@ char    *xt_str_localtime(void)
     
     time(&time_sec);
     tm = localtime(&time_sec);
-    strftime(str, TIME_STR_MAX + 1, "%Y-%m-%d %H:%M:%S", tm);
+    strftime(str, TIME_STR_MAX + 1, format, tm);
     
     return str;
 }
