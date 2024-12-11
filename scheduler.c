@@ -447,6 +447,8 @@ job_t   *lpjs_remove_pending_job(job_list_t *pending_jobs, unsigned long job_id)
 		 LPJS_PENDING_DIR, job_id);
 	lpjs_log("Removing job %s...\n", pending_path);
 	execlp("rm", "rm", "-rf", pending_path, NULL);
+	lpjs_log("%s(): exec(rm -rf %s) failed.\n", __FUNCTION__, pending_path);
+	exit(EX_OSERR);
     }
     else
 	// WEXITED is implicitly set for waitpid(), but specify for readability
@@ -456,6 +458,7 @@ job_t   *lpjs_remove_pending_job(job_list_t *pending_jobs, unsigned long job_id)
 }
 
 
+// FIXME: merge this with above
 job_t   *lpjs_remove_running_job(job_list_t *running_jobs, unsigned long job_id)
 
 {
@@ -469,6 +472,8 @@ job_t   *lpjs_remove_running_job(job_list_t *running_jobs, unsigned long job_id)
 		 LPJS_RUNNING_DIR, job_id);
 	lpjs_log("Removing job %s...\n", running_path);
 	execlp("rm", "rm", "-rf", running_path, NULL);
+	lpjs_log("%s(): exec(rm -rf %s) failed.\n", __FUNCTION__, running_path);
+	exit(EX_OSERR);
     }
     else
 	// WEXITED is implicitly set for waitpid(), but specify for readability
