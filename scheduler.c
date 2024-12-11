@@ -122,7 +122,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	 */
 	if ( script_size < 12 )
 	{
-	    lpjs_log("%s(): Error reading script %s.\n",
+	    lpjs_log("%s(): Error: Script %s < 12 characters.\n",
 		    __FUNCTION__, script_path);
 	    return node_count;
 	}
@@ -141,20 +141,21 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	    
 	    compd_msg_fd = node_get_msg_fd(node);
 
-	    lpjs_log("Dispatching job %lu to %s on socket fd %d...\n",
-		    job_get_job_id(job), node_get_hostname(node), compd_msg_fd);
+	    lpjs_log("%s(): Dispatching job %lu to %s on socket fd %d...\n",
+		    __FUNCTION__, job_get_job_id(job),
+		    node_get_hostname(node), compd_msg_fd);
 	    
 	    outgoing_msg[0] = LPJS_COMPD_REQUEST_NEW_JOB;
 	    job_print_to_string(job, outgoing_msg + 1, LPJS_JOB_MSG_MAX + 1);
 
-	    lpjs_log("Job specs: %s\n", outgoing_msg + 1);
+	    lpjs_log("%s(): Job specs: %s\n", __FUNCTION__, outgoing_msg + 1);
 	    
 	    // FIXME: Check for truncation
 	    strlcat(outgoing_msg, script_buff, LPJS_JOB_MSG_MAX + 1);
 	    if ( lpjs_send_munge(compd_msg_fd, outgoing_msg,
 				 lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
 	    {
-		lpjs_log("%s(): Failed to send job to compd.\n", __FUNCTION__);
+		lpjs_log("%s(): Error: Failed to send job to compd.\n", __FUNCTION__);
 		free(matched_nodes);
 		return node_count;
 	    }
@@ -179,7 +180,7 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 					    lpjs_dispatchd_safe_close);
 	    if ( payload_bytes == LPJS_RECV_TIMEOUT )
 	    {
-		lpjs_log("%s(): Timed out awaiting dispatch status.\n",
+		lpjs_log("%s(): Error: Timed out awaiting dispatch status.\n",
 			 __FUNCTION__);
 		lpjs_log("%s(): Setting %s to down.\n", __FUNCTION__,
 			 node_get_hostname(node));
@@ -187,9 +188,10 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 	    }
 	    else if ( munge_payload[0] != LPJS_CHAPERONE_FORKED )
 	    {
-		lpjs_log("%s(): Software error: Should have received LPJS_CHAPERONE_FORKED.\n",
+		lpjs_log("%s(): Bug: Should have received LPJS_CHAPERONE_FORKED.\n",
 			 __FUNCTION__);
-		lpjs_log("Got %d instead.\n", munge_payload[0]);
+		lpjs_log("%s(): Got %d instead.\n",
+			__FUNCTION__, munge_payload[0]);
 		lpjs_log("%s(): Setting %s to down.\n", __FUNCTION__,
 			 node_get_hostname(node));
 		node_set_state(node, "down");
@@ -210,7 +212,8 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 		 *  to dispatchd, so we can free these resources ASAP.
 		 */
 
-		lpjs_log("chaperone fork verification received.\n");
+		lpjs_debug("%s(): Chaperone fork verification received.\n",
+			    __FUNCTION__);
 		job_set_state(job, JOB_STATE_DISPATCHED);
 		
 		// FIXME: This will need adjustment for MPI jobs at the least
@@ -337,7 +340,8 @@ int     lpjs_match_nodes(job_t *job, node_list_t *node_list,
 		total_usable,
 		total_required;
     
-    lpjs_log("Job %u requires %u procs, %lu MiB / proc.\n",
+    lpjs_log("%s(): Job %u requires %u procs, %lu MiB / proc.\n",
+	    __FUNCTION__,
 	    job_get_job_id(job), job_get_min_procs_per_node(job),
 	    job_get_pmem_per_proc(job));
     
@@ -349,7 +353,8 @@ int     lpjs_match_nodes(job_t *job, node_list_t *node_list,
     {
 	node = node_list_get_compute_nodes_ae(node_list, c);
 	if ( strcmp(node_get_state(node), "up") != 0 )
-	    lpjs_log("%s is unavailable.\n", node_get_hostname(node));
+	    lpjs_log("%s(): %s is unavailable.\n",
+		    __FUNCTION__, node_get_hostname(node));
 	else
 	{
 	    // lpjs_log("Checking %s...\n", node_get_hostname(node));
@@ -358,8 +363,8 @@ int     lpjs_match_nodes(job_t *job, node_list_t *node_list,
 	    
 	    if ( usable_procs > 0 )
 	    {
-		lpjs_log("Using %u procs on %s.\n", usable_procs,
-			 node_get_hostname(node));
+		lpjs_log("%s(): Using %u procs on %s.\n", __FUNCTION__,
+			usable_procs, node_get_hostname(node));
 		// FIXME: Set # procs to use on node
 		node_list_add_compute_node(matched_nodes, node);
 		total_usable += usable_procs;
@@ -370,15 +375,15 @@ int     lpjs_match_nodes(job_t *job, node_list_t *node_list,
     
     if ( total_usable == total_required )
     {
-	lpjs_log("Using nodes:\n");
+	lpjs_log("%s(): Using nodes:\n", __FUNCTION__);
 	for (c = 0; c < node_list_get_compute_node_count(matched_nodes); ++c)
 	{
 	    node = node_list_get_compute_nodes_ae(matched_nodes, c);
-	    lpjs_log("%s\n", node_get_hostname(node));
+	    lpjs_log("%s(): %s\n", __FUNCTION__, node_get_hostname(node));
 	}
     }
     else
-	lpjs_log("Insufficient resources available.\n");
+	lpjs_log("%s(): Insufficient resources available.\n", __FUNCTION__);
     
     return node_count;
 }
@@ -403,21 +408,21 @@ int     lpjs_get_usable_procs(job_t *job, node_t *node)
     required_procs = job_get_min_procs_per_node(job);
     available_mem = node_get_phys_MiB_available(node);
     available_procs = node_get_procs(node) - node_get_procs_used(node);
-    lpjs_log("%s: procs = %u  mem = %lu\n", node_get_hostname(node),
-	     available_procs, available_mem);
+    lpjs_log("%s(): %s: procs = %u  mem = %lu\n", __FUNCTION__,
+	     node_get_hostname(node), available_procs, available_mem);
     if ( available_procs >= required_procs )
     {
 	if ( (available_mem >= job_get_pmem_per_proc(job) * required_procs) )
 	    usable_procs = required_procs;
 	else
 	{
-	    lpjs_log("Not enough memory.\n");
+	    lpjs_log("%s(): Not enough memory available.\n", __FUNCTION__);
 	    usable_procs = 0;
 	}
     }
     else
     {
-	lpjs_log("Not enough procs available.\n");
+	lpjs_log("%s(): Not enough procs available.\n", __FUNCTION__);
 	usable_procs = 0;
     }
     return usable_procs;
@@ -445,14 +450,18 @@ job_t   *lpjs_remove_pending_job(job_list_t *pending_jobs, unsigned long job_id)
     {
 	snprintf(pending_path, PATH_MAX + 1, "%s/%lu",
 		 LPJS_PENDING_DIR, job_id);
-	lpjs_log("Removing job %s...\n", pending_path);
+	lpjs_log("%s(): Removing job %s...\n", __FUNCTION__, pending_path);
 	execlp("rm", "rm", "-rf", pending_path, NULL);
-	lpjs_log("%s(): exec(rm -rf %s) failed.\n", __FUNCTION__, pending_path);
+	lpjs_log("%s(): Error: exec(rm -rf %s) failed.\n", __FUNCTION__, pending_path);
 	exit(EX_OSERR);
     }
     else
+    {
 	// WEXITED is implicitly set for waitpid(), but specify for readability
 	waitpid(pid, &status, WEXITED);
+	if ( status != 0 )
+	    lpjs_log("%s(): rm failed, status = %d.\n", __FUNCTION__, status);
+    }
     
     return job_list_remove_job(pending_jobs, job_id);
 }
@@ -470,14 +479,18 @@ job_t   *lpjs_remove_running_job(job_list_t *running_jobs, unsigned long job_id)
     {
 	snprintf(running_path, PATH_MAX + 1, "%s/%lu",
 		 LPJS_RUNNING_DIR, job_id);
-	lpjs_log("Removing job %s...\n", running_path);
+	lpjs_log("%s(): Removing job %s...\n", __FUNCTION__, running_path);
 	execlp("rm", "rm", "-rf", running_path, NULL);
 	lpjs_log("%s(): exec(rm -rf %s) failed.\n", __FUNCTION__, running_path);
 	exit(EX_OSERR);
     }
     else
+    {
 	// WEXITED is implicitly set for waitpid(), but specify for readability
 	waitpid(pid, &status, WEXITED);
+	if ( status != 0 )
+	    lpjs_log("%s(): rm failed, status = %d.\n", __FUNCTION__, status);
+    }
     
     return job_list_remove_job(running_jobs, job_id);
 }

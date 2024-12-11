@@ -8,6 +8,9 @@ enum
     LPJS_LOG_LEVEL_DEBUG2
 };
 
+// For now.  Add --debug flag later.
+#define lpjs_debug  lpjs_log
+
 #include "misc-protos.h"
 
 #endif
