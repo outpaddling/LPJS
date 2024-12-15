@@ -720,8 +720,11 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		// for just this message.  Don't keep it open.
 		lpjs_send_munge(msg_fd, "Node authorized",
 				lpjs_dispatchd_safe_close);
-		lpjs_dispatchd_safe_close(msg_fd);
 		// lpjs_debug("%s(): Auth sent.\n", __FUNCTION__);
+		
+		// Causing MCD expected warnings.  Is this necessary to
+		// prevent fd leaks?
+		// lpjs_dispatchd_safe_close(msg_fd);
 		
 		/*
 		 *  No change in node status, don't try to dispatch jobs.
