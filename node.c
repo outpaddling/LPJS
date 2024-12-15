@@ -61,7 +61,7 @@ void    node_init(node_t *node)
     node->zfs = 0;
     node->os = "Unknown";
     node->arch = "Unknown";
-    node->state = "Unknown";
+    node->state = "Offline";
     node->msg_fd = NODE_MSG_FD_NOT_OPEN;
     node->last_ping = 0;
 }
@@ -255,7 +255,7 @@ ssize_t node_str_to_specs(node_t *node, const char *str)
 	exit(EX_UNAVAILABLE);
     }
     
-    node->state = "Unknown";
+    node->state = "Offline";
     node->os = "Unknown";
     node->arch = "Unknown";
 
