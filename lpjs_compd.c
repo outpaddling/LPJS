@@ -174,9 +174,9 @@ int     main (int argc, char *argv[])
 		{
 		    // Close this socket end first, or dispatchd gets
 		    // "address already in use" when trying to restart
-		    close(compd_msg_fd);
 		    lpjs_log("%s(): Dispatchd sent EOT.  Closing connection.\n",
 			    __FUNCTION__);
+		    close(compd_msg_fd);
 		    sleep(LPJS_RETRY_TIME);  // No point trying immediately after drop
     
 		    // Ignore HUP that follows EOT

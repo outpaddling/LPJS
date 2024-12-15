@@ -123,8 +123,8 @@ int     lpjs_print_response(int msg_fd, const char *caller_name)
     if ( bytes == LPJS_RECV_TIMEOUT )
     {
 	close(msg_fd);
-	lpjs_log("%s(): Error: Timed out after %dus\n",
-		 __FUNCTION__, LPJS_PRINT_RESPONSE_TIMEOUT);
+	lpjs_log("%s(): Error: fd = %d timed out after %dus\n",
+		 __FUNCTION__, msg_fd, LPJS_PRINT_RESPONSE_TIMEOUT);
 	return LPJS_RECV_TIMEOUT;
     }
     else if ( bytes == LPJS_RECV_FAILED )
@@ -132,14 +132,14 @@ int     lpjs_print_response(int msg_fd, const char *caller_name)
 	// This function should never be called by dispatchd, so
 	// do a normal close() vs lpjs_dispatchd_safe_close()
 	close(msg_fd);
-	lpjs_log("%s(): Error: Failed to read response from dispatchd: %s\n",
-		__FUNCTION__, strerror(errno));
+	lpjs_log("%s(): Error: Failed to read response (fd = %d) from dispatchd: %s\n",
+		__FUNCTION__, msg_fd, strerror(errno));
 	return EX_IOERR;
     }
     else if ( bytes < 0 )
     {
-	lpjs_log("%s(): Bug: Undefined return code from lpjs_recv(): %d\n",
-		 __FUNCTION__, bytes);
+	lpjs_log("%s(): Bug: Undefined return code from lpjs_recv(fd = %d): %d\n",
+		 __FUNCTION__, msg_fd, bytes);
 	// FIXME: What should we really do here?
 	return LPJS_RECV_FAILED;
     }
@@ -238,22 +238,22 @@ ssize_t lpjs_recv(int msg_fd, char *buff, size_t buff_len, int flags,
 	return 0;
     else if ( bytes_read == -1 )
     {
-	lpjs_log("%s(): Error: recv() returned -1: %s\n",
-		__FUNCTION__, strerror(errno));
+	lpjs_log("%s(): Error: recv(fd = %d) returned -1: %s\n",
+		__FUNCTION__, msg_fd, strerror(errno));
 	return LPJS_RECV_FAILED;
     }
     else if ( bytes_read != sizeof(uint32_t) )
     {
-	lpjs_log("%s(): Error: Read partial msg_len: %zd bytes.\n",
-		__FUNCTION__, bytes_read);
+	lpjs_log("%s(): Error: Read partial msg_len on fd = %d: %zd bytes.\n",
+		__FUNCTION__, msg_fd,bytes_read);
 	exit(EX_DATAERR);
     }
     msg_len = ntohl(msg_len);
     
     if ( msg_len > buff_len )
     {
-	lpjs_log("%s(): Bug: msg_len (%" PRIi32 ") > buff_len - 1 (%zu).\n",
-		 __FUNCTION__, msg_len, buff_len - 1);
+	lpjs_log("%s(): Bug: msg_len (%" PRIi32 ") > buff_len - 1 (%zu) on fd = %d.\n",
+		 __FUNCTION__, msg_len, buff_len - 1, msg_fd);
 	return 0;
     }
     
@@ -296,16 +296,16 @@ ssize_t lpjs_recv_munge(int msg_fd, char **payload, int flags, int timeout,
     
     if ( bytes_read == LPJS_RECV_FAILED )
     {
-	lpjs_log("%s(): Error: lpjs_recv() failed: %s",
-		__FUNCTION__, strerror(errno));
+	lpjs_log("%s(): Error: lpjs_recv(fd = %d) failed: %s",
+		__FUNCTION__, msg_fd, strerror(errno));
 	return LPJS_RECV_FAILED;
     }
     else if ( bytes_read == LPJS_RECV_TIMEOUT )
 	return LPJS_RECV_TIMEOUT;
     else if ( bytes_read < 0 )
     {
-	lpjs_log("%s(): Bug: Undefined return code from lpjs_recv(): %d\n",
-		 __FUNCTION__, bytes_read);
+	lpjs_log("%s(): Bug: Undefined return code from lpjs_recv(fd = %d): %d\n",
+		 __FUNCTION__, msg_fd, bytes_read);
 	// FIXME: What should we really do here?
 	return LPJS_RECV_FAILED;
     }
@@ -316,8 +316,8 @@ ssize_t lpjs_recv_munge(int msg_fd, char **payload, int flags, int timeout,
 	if ( munge_status != EMUNGE_SUCCESS )
 	{
 	    close_function(msg_fd);
-	    lpjs_log("%s(): Error: munge_decode() failed.  %zd bytes, Error = %s\n",
-		     __FUNCTION__, bytes_read, munge_strerror(munge_status));
+	    lpjs_log("%s(): Error: munge_decode(fd = %d) failed.  %zd bytes, Error = %s\n",
+		     __FUNCTION__, msg_fd, bytes_read, munge_strerror(munge_status));
 	    return -1;  // FIXME: Define return codes
 	}
 	
@@ -350,8 +350,8 @@ int     lpjs_send_munge(int msg_fd, const char *msg, int(*close_function)(int))
     
     if ( (munge_status = munge_encode(&cred, NULL, msg, strlen(msg))) != EMUNGE_SUCCESS )
     {
-	lpjs_log("%s(): Error: munge_encode() failed: %s.\n",
-		__FUNCTION__, munge_strerror(munge_status));
+	lpjs_log("%s(): Error: munge_encode(fd = %d) failed: %s.\n",
+		__FUNCTION__, msg_fd, munge_strerror(munge_status));
 	// May be close(), lpjs_dispatchd_safe_close(), or lpjs_no_close()
 	close_function(msg_fd);
 	return LPJS_MUNGE_FAILED;
@@ -374,17 +374,19 @@ int     lpjs_send_munge(int msg_fd, const char *msg, int(*close_function)(int))
     bytes = lpjs_recv(msg_fd, incoming_msg, LPJS_MSG_LEN_MAX, 0, 0);
     if ( bytes == LPJS_RECV_FAILED )
     {
-	lpjs_log("%s(): Error: lpjs_recv() failed.\n", __FUNCTION__);
+	lpjs_log("%s(): Error: lpjs_recv(fd = %d) failed.\n",
+		__FUNCTION__, msg_fd);
 	return LPJS_RECV_FAILED;
     }
     else if ( bytes == LPJS_RECV_TIMEOUT )
     {
-	lpjs_log("%s(): Error: lpjs_recv() timeout.\n", __FUNCTION__);
+	lpjs_log("%s(): Error: lpjs_recv(fd = %d) timeout.\n",
+		__FUNCTION__,msg_fd);
 	return LPJS_RECV_TIMEOUT;
     }
     if ( (bytes < 1) || (strcmp(incoming_msg, LPJS_MUNGE_CRED_VERIFIED) != 0) )
     {
-	lpjs_log("%s(): Error: Expected %s, got %zd bytes on fd %d.\n",
+	lpjs_log("%s(): Warning: Expected %s, got %zd bytes on fd = %d.\n",
 		__FUNCTION__, LPJS_MUNGE_CRED_VERIFIED, bytes, msg_fd);
 	return LPJS_RECV_FAILED;
     }
@@ -417,8 +419,9 @@ int     lpjs_dispatchd_safe_close(int msg_fd)
      *  will cause restart of dispatchd to fail with "address already in use"
      */
     
-    lpjs_log("%s(): Sending EOT.  Ignore the following MCD expected warning.\n",
-	    __FUNCTION__);
+    // FIXME: Why do we get the MCD expected warning after sending EOT?
+    lpjs_log("%s(): Sending EOT to fd = %d.  Ignore the following MCD expected warning.\n",
+	    __FUNCTION__, msg_fd);
     if ( lpjs_send_munge(msg_fd, LPJS_EOT_MSG,
 			 lpjs_no_close) == LPJS_MSG_SENT )
     {
@@ -427,7 +430,8 @@ int     lpjs_dispatchd_safe_close(int msg_fd)
 	 *  FIXME: No data should be read here.  The first read() should
 	 *  return EOF.  Add a check for this.
 	 */
-	lpjs_log("%s(): Waiting for client to hang up...\n", __FUNCTION__);
+	lpjs_log("%s(): Waiting for client fd = %d to hang up...\n",
+		__FUNCTION__,msg_fd);
 	while ( read(msg_fd, buff, 64) > 0 )
 	    sleep(1);
     }
