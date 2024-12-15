@@ -1,6 +1,9 @@
 
 Now
 ---
+Check munge uid of all messages to prevent spoof attacks
+    Must match the uid used during compd checkin
+
 When Mac goes down due to full disk access, resource remain allocated
     Same for timeouts?
 
