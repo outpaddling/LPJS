@@ -1,0 +1,14 @@
+
+All log messages should identify the function:
+    lpjs_log("%s(): message\n", __FUNCTION__, ...)
+
+Log messages identifying an error should contain "Error:", case-sensitive:
+    lpjs_log("%s(): Error: message\n", __FUNCTION__, ...)
+
+Log messages identifying a software bug should contain "Bug:", case-sensitive:
+    lpjs_log("%s(): Bug: message\n", __FUNCTION__, ...)
+
+Informational log messages that might be mistaken for an error
+should contain "Info:", case-sensitive:
+    lpjs_log("%s(): Info: message\n", __FUNCTION__, ...)
+
