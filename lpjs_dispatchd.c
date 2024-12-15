@@ -716,17 +716,14 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	    case    LPJS_DISPATCHD_REQUEST_JOB_STARTED:
 		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_JOB_STARTED:\n",
 			__FUNCTION__);
+		lpjs_send_munge(msg_fd, "Node authorized",
+				lpjs_wait_close);
+		// lpjs_debug("%s(): Auth sent.\n", __FUNCTION__);
+
 		// This is a temporary connection from the chaperone
 		// for just this message.  Don't keep it open.
-		lpjs_send_munge(msg_fd, "Node authorized",
-				lpjs_dispatchd_safe_close);
-		// lpjs_debug("%s(): Auth sent.\n", __FUNCTION__);
-		
-		// Causing MCD expected warnings.  Is this necessary to
-		// prevent fd leaks?
-		// lpjs_dispatchd_safe_close(msg_fd);
-		// New function: lpjs_dispatchd_wait_close(msg_fd);
 		// Don't sent EOT, but wait for other end to close
+		lpjs_wait_close(msg_fd);
 		
 		/*
 		 *  No change in node status, don't try to dispatch jobs.
@@ -741,7 +738,9 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	    case    LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:
 		// This is a temporary connection from the chaperone
 		// for just this message.  Don't keep it open.
-		lpjs_dispatchd_safe_close(msg_fd);
+		// Don't sent EOT, but wait for other end to close
+		lpjs_wait_close(msg_fd);
+
 		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_JOB_COMPLETE\n",
 			__FUNCTION__);
 		p = munge_payload + 1;

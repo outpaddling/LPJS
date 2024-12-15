@@ -398,6 +398,38 @@ int     lpjs_send_munge(int msg_fd, const char *msg, int(*close_function)(int))
 
 /***************************************************************************
  *  Description:
+ *      Wait for remote system to hang up.  This is used to avoid
+ *      "address already in use" errors that occur when a server
+ *      disconnects before the client does.
+ *  
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-12-15  Jason Bacon Begin
+ ***************************************************************************/
+
+int     lpjs_wait_close(int msg_fd)
+
+{
+    char    buff[64];
+    
+    /*
+     *  Wait until EOF is signaled due to the other end being closed.
+     *  FIXME: No data should be read here.  The first read() should
+     *  return EOF.  Add a check for this.
+     *  FIXME: Could dispatchd hang in this loop if read() blocks?
+     *         Use poll() or something else?
+     */
+    lpjs_log("%s(): Waiting for client fd = %d to hang up...\n",
+	    __FUNCTION__,msg_fd);
+    while ( read(msg_fd, buff, 64) > 0 )
+	usleep(250000);
+    
+    return 0;
+}
+
+
+/***************************************************************************
+ *  Description:
  *      Safely close a socket by ensuring first that the remote end
  *      is closed first.  This avoids
  *
@@ -411,8 +443,6 @@ int     lpjs_send_munge(int msg_fd, const char *msg, int(*close_function)(int))
 int     lpjs_dispatchd_safe_close(int msg_fd)
 
 {
-    char    buff[64];
-    
     /*
      *  Client must be looking for the EOT character at the end of
      *  a read, or this is useless.  If this fails, closing msg_fd
@@ -424,17 +454,7 @@ int     lpjs_dispatchd_safe_close(int msg_fd)
     if ( lpjs_send_munge(msg_fd, LPJS_EOT_MSG,
 			 lpjs_no_close) == LPJS_MSG_SENT )
     {
-	/*
-	 *  Wait until EOF is signaled due to the other end being closed.
-	 *  FIXME: No data should be read here.  The first read() should
-	 *  return EOF.  Add a check for this.
-	 *  FIXME: Could dispatchd hang in this loop if read() blocks?
-	 *         Use poll() or something else?
-	 */
-	lpjs_log("%s(): Waiting for client fd = %d to hang up...\n",
-		__FUNCTION__,msg_fd);
-	while ( read(msg_fd, buff, 64) > 0 )
-	    sleep(1);
+	lpjs_wait_close(msg_fd);
     }
     
     lpjs_debug("%s(): Closing %d.\n", __FUNCTION__, msg_fd);
