@@ -348,7 +348,7 @@ int     node_adjust_resources(node_t *node, job_t *job, node_resource_t directio
 {
     // + for allocating, - for releasing
     int     procs = direction * job_get_procs_per_job(job);
-    int     MiB = direction * job_get_pmem_per_proc(job) * job_get_procs_per_job(job);
+    long    MiB = direction * job_get_pmem_per_proc(job) * job_get_procs_per_job(job);
 
     lpjs_log("%s(): Allocating %d procs and %ld MiB on %s.\n",
 	     __FUNCTION__, procs, MiB, 
