@@ -428,6 +428,8 @@ int     lpjs_dispatchd_safe_close(int msg_fd)
 	 *  Wait until EOF is signaled due to the other end being closed.
 	 *  FIXME: No data should be read here.  The first read() should
 	 *  return EOF.  Add a check for this.
+	 *  FIXME: Could dispatchd hang in this loop if read() blocks?
+	 *         Use poll() or something else?
 	 */
 	lpjs_log("%s(): Waiting for client fd = %d to hang up...\n",
 		__FUNCTION__,msg_fd);

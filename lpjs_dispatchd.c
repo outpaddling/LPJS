@@ -725,6 +725,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		// Causing MCD expected warnings.  Is this necessary to
 		// prevent fd leaks?
 		// lpjs_dispatchd_safe_close(msg_fd);
+		// New function: lpjs_dispatchd_wait_close(msg_fd);
+		// Don't sent EOT, but wait for other end to close
 		
 		/*
 		 *  No change in node status, don't try to dispatch jobs.
