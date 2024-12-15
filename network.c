@@ -420,8 +420,7 @@ int     lpjs_dispatchd_safe_close(int msg_fd)
      */
     
     // FIXME: Why do we get the MCD expected warning after sending EOT?
-    lpjs_log("%s(): Sending EOT to fd = %d.  Ignore the following MCD expected warning.\n",
-	    __FUNCTION__, msg_fd);
+    lpjs_log("%s(): Sending EOT to fd = %d.\n", __FUNCTION__, msg_fd);
     if ( lpjs_send_munge(msg_fd, LPJS_EOT_MSG,
 			 lpjs_no_close) == LPJS_MSG_SENT )
     {
