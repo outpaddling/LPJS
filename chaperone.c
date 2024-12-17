@@ -21,6 +21,7 @@
 #include <fcntl.h>          // open()
 #include <sys/wait.h>       // FIXME: Replace wait() with active monitoring
 #include <signal.h>
+#include <sys/sysctl.h>
 
 #include <xtend/string.h>
 #include <xtend/file.h>
@@ -31,7 +32,7 @@
 #include "network.h"
 #include "misc.h"
 #include "lpjs.h"
-#include "chaperone-protos.h"
+#include "chaperone.h"
 
 // Must be global for job cancel signal handler
 pid_t   Pid;
@@ -99,11 +100,11 @@ int     main (int argc, char *argv[])
 	exit(EX_USAGE);
     }
     
-    temp = getenv("LPJS_PMEM_PER_CORE");
+    temp = getenv("LPJS_PMEM_PER_PROC");
     pmem_per_proc = strtoul(temp, &end, 10);
     if ( *end != '\0' )
     {
-	fprintf(stderr, "Invalid LPJS_PMEM_PER_CORE: %s\n", temp);
+	fprintf(stderr, "Invalid LPJS_PMEM_PER_PROC: %s\n", temp);
 	exit(EX_USAGE);
     }
     
@@ -137,6 +138,9 @@ int     main (int argc, char *argv[])
 	lpjs_log("%s(): Error: execl() failed: %s\n", __FUNCTION__, strerror(errno));
 	return EX_UNAVAILABLE;
     }
+    // No need for else since child calls execl() and exits if it fails
+    
+    enforce_resource_limits(Pid, pmem_per_proc);
     
     lpjs_job_start_notice_loop(node_list, hostname, job_id, Pid);
     
@@ -539,4 +543,35 @@ void    whack_family(pid_t pid)
 	kill(child_pid, SIGKILL);
     }
     pclose(fp);
+}
+
+
+void    enforce_resource_limits(pid_t pid, size_t mem_per_proc)
+
+{
+#if defined(__APPLE__)
+#elif defined(__DragonFly__)
+#elif defined(__FreeBSD__)
+    
+    // Use rctl
+    #include <sys/rctl.h>
+    int     enabled;
+    size_t  len = sizeof(int);
+    char    rule[LPJS_RCTL_RULE_MAX + 1];
+    
+    sysctlbyname("kern.racct.enable", &enabled, &len, NULL, 0);
+    if ( enabled == 1 )
+    {
+	// Limit RSS to mem_per_proc MiB
+	snprintf(rule, LPJS_RCTL_RULE_MAX + 1,
+		"process:%d:memoryuse:sigterm=%zu",
+		pid, mem_per_proc * 1024 * 1024);
+	rctl_add_rule(rule, LPJS_RCTL_RULE_MAX + 1, NULL, 0);
+    }
+
+#elif defined(__Linux__)
+    // Use cgroups?
+#elif defined(__NetBSD__)
+#elif defined(__OpenBSD__)
+#endif
 }

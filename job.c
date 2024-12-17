@@ -709,7 +709,7 @@ void    job_setenv(job_t *job)
 	    LPJS_MAX_INT_DIGITS + 1), 1);
     setenv("LPJS_MIN_PROCS_PER_NODE", xt_ltostrn(str, job->min_procs_per_node, 10,
 	    LPJS_MAX_INT_DIGITS + 1), 1);
-    setenv("LPJS_PMEM_PER_CORE", xt_ltostrn(str, job->pmem_per_proc, 10,
+    setenv("LPJS_PMEM_PER_PROC", xt_ltostrn(str, job->pmem_per_proc, 10,
 	    LPJS_MAX_INT_DIGITS + 1), 1);
     setenv("LPJS_USER_NAME", job->user_name, 1);
     setenv("LPJS_PRIMARY_GROUP_NAME", job->primary_group_name, 1);
