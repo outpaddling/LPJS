@@ -68,6 +68,7 @@ EOM
     /usr/local/libexec/lpjs/SMI/munge-enable
 fi
 
+# Enable the compd service
 if [ $(uname) = Darwin ]; then
     plist=/usr/local/share/lpjs/Launchd/org.pkgsrc.lpjs_compd.plist
     if [ -e $plist ]; then
@@ -89,4 +90,9 @@ else
     else
 	auto-enable-service lpjs_compd $0
     fi
+fi
+
+# Enable resource control
+if [ $(uname) = FreeBSD ]; then
+    auto-set-conf-var kern.racct.enable 1 /boot/loader.conf $0
 fi
