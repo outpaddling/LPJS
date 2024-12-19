@@ -559,15 +559,20 @@ void    enforce_resource_limits(pid_t pid, size_t mem_per_proc)
     size_t  len = sizeof(int);
     char    rule[LPJS_RCTL_RULE_MAX + 1];
     
-    sysctlbyname("kern.racct.enable", &enabled, &len, NULL, 0);
-    if ( enabled == 1 )
-    {
-	// Limit RSS to mem_per_proc MiB
-	snprintf(rule, LPJS_RCTL_RULE_MAX + 1,
-		"process:%d:memoryuse:sigterm=%zu",
-		pid, mem_per_proc * 1024 * 1024);
-	rctl_add_rule(rule, LPJS_RCTL_RULE_MAX + 1, NULL, 0);
-    }
+    if ( sysctlbyname("kern.racct.enable", &enabled, &len, NULL, 0) != 0 )
+	lpjs_log("%s(): sysctl kern.racct.enable failed.\n", __FUNCTION__);
+    else
+	if ( enabled == 1 )
+	{
+	    // Limit RSS to mem_per_proc MiB
+	    snprintf(rule, LPJS_RCTL_RULE_MAX + 1,
+		    "process:%d:memoryuse:sigterm=%zu",
+		    pid, mem_per_proc * 1024 * 1024);
+	    lpjs_log("%s(): Adding rctl rule: %s\n", __FUNCTION__, rule);
+	    rctl_add_rule(rule, LPJS_RCTL_RULE_MAX + 1, NULL, 0);
+	}
+	else
+	    lpjs_log("%s(): kern.racct.enable is not enabled.\n", __FUNCTION__);
 
 #elif defined(__Linux__)
     // Use cgroups?
