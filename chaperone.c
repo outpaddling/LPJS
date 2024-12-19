@@ -566,7 +566,7 @@ void    enforce_resource_limits(pid_t pid, size_t mem_per_proc)
 	{
 	    // Limit RSS to mem_per_proc MiB
 	    snprintf(rule, LPJS_RCTL_RULE_MAX + 1,
-		    "process:%d:memoryuse:sigterm=%zu",
+		    "process:%d:memoryuse:deny=%zu",
 		    pid, mem_per_proc * 1024 * 1024);
 	    lpjs_log("%s(): Adding rctl rule: %s\n", __FUNCTION__, rule);
 	    rctl_add_rule(rule, LPJS_RCTL_RULE_MAX + 1, NULL, 0);
