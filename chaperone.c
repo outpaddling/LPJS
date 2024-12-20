@@ -22,6 +22,7 @@
 #include <sys/wait.h>       // FIXME: Replace wait() with active monitoring
 #include <signal.h>
 #include <sys/sysctl.h>
+#include <sys/resource.h>   // setrlimit()
 
 #include <xtend/string.h>
 #include <xtend/file.h>
@@ -128,9 +129,22 @@ int     main (int argc, char *argv[])
     
     if ( (Pid = fork()) == 0 )
     {
+	struct rlimit   rss_limit;
+	
 	// Create new process group with the script's PID
+	// This helps track processes that are part of a job
 	setpgid(0, getpid());
 	
+	// Suggest resource limits.  RSS cannot be controlled at all
+	// on Linux, so this has no effect.  On BSD systems, RSS limits
+	// influence pager behavior, so that processes exceeding their
+	// RSS limit are preferentially paged out when memory is tight.
+	rss_limit.rlim_cur = pmem_per_proc * 1024 * 1024;
+	rss_limit.rlim_max = pmem_per_proc * 1024 * 1024;
+	setrlimit(RLIMIT_RSS, &rss_limit);
+	
+	enforce_resource_limits(getpid(), pmem_per_proc);
+    
 	// Child, run script
 	// FIXME: Set CPU and memory (virtual and physical) limits
 	fclose(Log_stream); // Not useful to child
@@ -139,8 +153,6 @@ int     main (int argc, char *argv[])
 	return EX_UNAVAILABLE;
     }
     // No need for else since child calls execl() and exits if it fails
-    
-    enforce_resource_limits(Pid, pmem_per_proc);
     
     lpjs_job_start_notice_loop(node_list, hostname, job_id, Pid);
     
@@ -554,6 +566,7 @@ void    enforce_resource_limits(pid_t pid, size_t mem_per_proc)
 #elif defined(__FreeBSD__)
     
     // Use rctl
+    // FIXME: This needs to be run as root
     #include <sys/rctl.h>
     int     enabled;
     size_t  len = sizeof(int);
