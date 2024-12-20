@@ -49,7 +49,7 @@ disconnect) is a can of worms we're going to kick down the road a bit.
 This will be fully supported in the future, but for now, we'll focus
 on reliable, dedicated hardware.
 
-Development will continue move slowly as we focus on improving code
+Development will continue to move slowly as we focus on improving code
 quality and robustness before adding new features.
 The user interface may undergo significant changes as testing reveals
 oversights in design.
