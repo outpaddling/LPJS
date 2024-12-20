@@ -745,7 +745,8 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start,
 	}
 	
 	/*
-	 *  Set LPJS_USER, LPJS_SUBMIT_HOST, etc. for use in scripts
+	 *  Set LPJS_USER, LPJS_SUBMIT_HOST, etc. for chaperone and
+	 *  job scripts
 	 */
 	job_setenv(job);
 	
