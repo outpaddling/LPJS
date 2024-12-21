@@ -187,15 +187,16 @@ int     main (int argc, char *argv[])
 		{
 		    // Terminates process if malloc() fails, no check required
 		    job_t   *job = job_new();
-		    char    *script_start;
+		    char    *script_buff;
 		    
 		    lpjs_log("%s(): LPJS_COMPD_REQUEST_NEW_JOB\n", __FUNCTION__);
 		    
 		    /*
-		     *  Parse job specs
+		     *  Message from dispatch contains the job specs
+		     *  followed by the job script text.
 		     */
 		    
-		    job_read_from_string(job, munge_payload + 1, &script_start);
+		    job_read_from_string(job, munge_payload + 1, &script_buff);
 		    job_print_full_specs(job, Log_stream);
 		    
 		    /*
@@ -204,7 +205,7 @@ int     main (int argc, char *argv[])
 		     *  whether the dispatch succeeds.
 		     */
 		    
-		    lpjs_run_chaperone(job, script_start, compd_msg_fd, node_list);
+		    lpjs_run_chaperone(job, script_buff, compd_msg_fd, node_list);
 		}
 		else if ( munge_payload[0] == LPJS_COMPD_REQUEST_CANCEL )
 		{
@@ -390,7 +391,7 @@ int     lpjs_compd_checkin_loop(node_list_t *node_list, node_t *node)
  *  2024-05-10  Jason Bacon Factored out from lpjs_run_script()
  ***************************************************************************/
 
-int     lpjs_working_dir_setup(job_t *job, const char *script_start,
+int     lpjs_working_dir_setup(job_t *job, const char *script_buff,
 				char *job_script_name, size_t maxlen)
 
 {
@@ -513,7 +514,7 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_start,
 		__FUNCTION__, job_script_name, strerror(errno));
 	// FIXME: Report job failure to dispatchd
     }
-    write(fd, script_start, strlen(script_start));
+    write(fd, script_buff, strlen(script_buff));
     close(fd);
     
     /*
@@ -631,7 +632,7 @@ int     lpjs_send_chaperone_status_loop(node_list_t *node_list,
  *  2024-03-10  Jason Bacon Begin
  ***************************************************************************/
 
-int     lpjs_run_chaperone(job_t *job, const char *script_start,
+int     lpjs_run_chaperone(job_t *job, const char *script_buff,
 			    int compd_msg_fd, node_list_t *node_list)
 
 {
@@ -727,7 +728,7 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start,
 	 */
 	job_setenv(job);
 	
-	if ( lpjs_working_dir_setup(job, script_start, job_script_name,
+	if ( lpjs_working_dir_setup(job, script_buff, job_script_name,
 				    PATH_MAX + 1) != LPJS_SUCCESS )
 	{
 	    // FIXME: Take node down and reschedule jobs elsewhere
