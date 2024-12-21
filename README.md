@@ -340,7 +340,7 @@ Our test environment currently includes six
 different operating systems on three different CPU architectures:
 
     ```
-    FreeBSD coral.acadix  bacon ~/Prog/Src/LPJS 1029: lpjs-nodes
+    FreeBSD coral.acadix  bacon ~/Prog/Src/LPJS 1029: lpjs nodes
     Hostname     State    Cores Used Physmem    Used OS      Arch
     coral        Up           4    0    7962       0 FreeBSD amd64
     herring      Up           4    0    1000       0 FreeBSD arm64
