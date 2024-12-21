@@ -231,7 +231,7 @@ non-dedicated machines over a wider area, such as desktop computers
 that may not even be on the same site.
 They usually do not have a dedicated network or access to a common file
 server.  Hence, they compete with non-grid usage of the organizational
-network, and are not suitable for parallel applications that generate
+network, and are not generally suitable for parallel applications that generate
 large amounts of network traffic, e.g. MPI (Message Passing Interface)
 programs.
 
@@ -247,7 +247,7 @@ on the cluster, so they don't have to be transferred to a workstation or
 laptop first.  Note, however, that immediately copying results to another
 location is generally a good idea, so that you have a backup in case
 of accidental deletion, disk failure, etc.  Also, running graphical
-applications over a network is never as performant as running on your
+applications over a network is never as easy or performant as running on your
 PC console.
 
 Using LPJS and similar systems, users can queue jobs to run as soon as
@@ -320,7 +320,7 @@ improving __quality__ in essential features rather than adding "cool" new
 features for emotional appeal.  Modularity is the key to maintainable
 software.  Hence, we will not add functionality that can be readily
 provided by independent tools.  E.g. file transfer for nodes that lack
-direct access to files can be provided by highly-evolved general tools
+direct access to files can be provided by highly-evolved, portable tools
 such as curl and rsync.  This follows the design philosophy of the C
 language, which does not provide syntactic features that can be readily
 provided by a library function.
@@ -328,8 +328,8 @@ provided by a library function.
 - Complete portability across the POSIX world: One of our primary goals
 is to foster research and
 development of HPC clusters using __any__ POSIX operating system on __any__
-hardware or cloud platform.  You can certainly run LPJS on RHEL/x86 if you
-like, but you can also
+hardware or virtual/cloud platform.
+You can certainly run LPJS on RHEL/x86 if you like, but you can also
 use Debian Linux, Dragonfly BSD, FreeBSD, Illumos, MacOS, NetBSD, OpenBSD,
 Ubuntu, or any of the other dozens of Unix-like systems available, on any
 hardware that they support.
@@ -353,7 +353,9 @@ different operating systems on three different CPU architectures:
     sunfish      Up           2    0     972       0 SunOS   x86_64
     ```
     
-    MS Windows machines can be utilized with some sort of POSIX compatibility
+    MS Windows is the only popular operating system that is not
+    POSIX-based, and as such is not supported by LPJS. However, Windows
+    machines can be utilized with some sort of POSIX compatibility
     layer, such as Cygwin or MSYS2.  These systems have limitations and
     performance issues, however, so a virtual machine running a lightweight BSD
     or Linux system under Windows may be preferable.  There are multiple free
@@ -365,8 +367,8 @@ different operating systems on three different CPU architectures:
 information that cannot be determined automatically, such as which computers
 on the network are authorized to act as compute nodes.  Compute
 node hardware specifications are automatically detected on all platforms.
-Most manual
-configuration parameters are simply overrides of reasonable defaults.
+Some manual configuration parameters are supported, but not required,
+to override defaults.
 
 - Unambiguous and intuitive user interface: Commands and options are
 spelled out in a way that is easy to remember and won't be confused with
@@ -468,27 +470,37 @@ You can, of course, deploy your computational software using any half-baked
 method you choose.  Common software-deployment follies in HPC and HTC
 include, but are not limited to, the following:
 
-1. "cave-man" installs, where software is manually downloaded, patched,
+1. "Cave-man" installs, where software is manually downloaded, patched,
    and built.  This includes writing ad hoc scripts that serve the same
    purpose as an established package manager, but do a very poor job
    in comparison.  This often involves installing libraries and other
    dependencies to separate locations, requiring the user to load numerous
    "environment modules" of the correct versions just to get one
-   application to run.
+   application to run.  In contrast, using software installed via
+   a package manager requires either 0 or 1 environment modules.
+   Software installed via the default package manager on a given system
+   (Debian packages on Debian or Ubuntu, FreeBSD ports on FreeBSD, etc.)
+   will just work for everyone.  If using an add-on package manager,
+   such as pkgsrc on Linux, loading a single environment module (or updating
+   PATH by other means) will provide access to all of the thousands of
+   packages in the collection.
 
-2. Containerizing software for no other reason than to work around a
-   bad design or build system.  Containers are awesome, but like all
+2. Containerizing software for no other reason than to work around
+   bad design or build systems.  Containers are fantastic tools for many
+   purposes, but like all
    technologies, often misused.  Containerization
    is often a strategy to avoid fixing
    the software and build system so that it will play nice with other
-   mainstream software.  The containers often contain ad hoc "cave-man"
+   mainstream software (e.g. within a package manager).
+   The containers often contain ad hoc "cave-man"
    installs,
    and the container serves only to bundle the various (often outdated)
    components and
    prevent poorly designed applications from conflicting with each other.
    This approach is extremely high-maintenance compared to maintaining a
    package for a package manager, where most dependencies are
-   well-maintained by other contributors.
+   well-maintained by other contributors, and we can trust that they
+   are properly installed.
 
 ## Quick Start
 
