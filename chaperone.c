@@ -158,6 +158,11 @@ int     main (int argc, char *argv[])
     
     // FIXME: Monitor resource use of child
     // Maybe ptrace(), though seemingly not well standardized
+    // Kludgy, but portable:
+    // rss=<nothing> disables the RSS header line
+    // while (status == 0 ) {
+    // fork, exec(ps child-pid -o rss=)
+    // sleep(1) }
     wait(&status);
     lpjs_log("%s(): Info: Process exited with status %d.\n", __FUNCTION__, status);
 

@@ -665,29 +665,6 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start,
 	 *  Permission problems, etc. should return other codes, which
 	 *  merely lead to job failure.
 	 */
-	
-	/*
-	 *  Send verification that the chaperone process started
-	 *  back to lpjs_dispatchd immediately, so it can resume
-	 *  listening for new events.  The work that follows
-	 *  (creating directories, redirecting, running the script,
-	 *  etc) can take a while on a busy compute node, and we
-	 *  don't want dispatchd stuck waiting.
-	 */
-	
-	lpjs_debug("%s(): Sending chaperone forked verification.\n",
-		__FUNCTION__);
-	snprintf(chaperone_response, LPJS_MSG_LEN_MAX + 1,
-		"%c", LPJS_CHAPERONE_FORKED);
-	if ( lpjs_send_munge(compd_msg_fd, chaperone_response, close)
-			     != LPJS_MSG_SENT )
-	{
-	    lpjs_log("%s(): Error: Failed to send chaperone forked verification.\n",
-		    __FUNCTION__);
-	    close(compd_msg_fd);
-	    exit(EX_UNAVAILABLE);
-	}
-	lpjs_debug("%s(): Verification sent.\n", __FUNCTION__);
 
 	// We don't want chaperone and its children to inherit
 	// the socket connection between dispatchd and compd.
@@ -812,13 +789,36 @@ int     lpjs_run_chaperone(job_t *job, const char *script_start,
 	lpjs_send_chaperone_status_loop(node_list, job_id, LPJS_CHAPERONE_EXEC_FAILED);
 	exit(EX_SOFTWARE);
     }
+    else
+    {
+	/*
+	 *  Send verification that the chaperone process started
+	 *  back to lpjs_dispatchd immediately, so it can resume
+	 *  listening for new events.  The work that follows
+	 *  (creating directories, redirecting, running the script,
+	 *  etc) can take a while on a busy compute node, and we
+	 *  don't want dispatchd stuck waiting.
+	 */
+	
+	lpjs_debug("%s(): Sending chaperone forked verification.\n",
+		__FUNCTION__);
+	snprintf(chaperone_response, LPJS_MSG_LEN_MAX + 1,
+		"%c", LPJS_CHAPERONE_FORKED);
+	if ( lpjs_send_munge(compd_msg_fd, chaperone_response, close)
+			     != LPJS_MSG_SENT )
+	{
+	    lpjs_log("%s(): Error: Failed to send chaperone forked verification.\n",
+		    __FUNCTION__);
+	    close(compd_msg_fd);
+	    exit(EX_UNAVAILABLE);
+	}
+	lpjs_debug("%s(): Verification sent.\n", __FUNCTION__);
+    }
     
     /*
-     *  No else clause to if ( fork() == 0 ):
      *  lpjs_compd does not wait for chaperone, but resumes listening
      *  for more jobs.
      */
-
     return EX_OK;
 }
 
