@@ -157,12 +157,23 @@ int     main (int argc, char *argv[])
     lpjs_job_start_notice_loop(node_list, hostname, job_id, Pid);
     
     // FIXME: Monitor resource use of child
-    // Maybe ptrace(), though seemingly not well standardized
-    // Kludgy, but portable:
-    // rss=<nothing> disables the RSS header line
-    // while (status == 0 ) {
-    // fork, exec(ps child-pid -o rss=)
-    // sleep(1) }
+    /*
+    while ( (status = xt_get_rss(pid, &rss)) == 0 )
+    {
+	if ( rss > pmem_per_proc )
+	{
+	    lpjs_log("%s(): Terminating job for memory use violation.\n",
+		    __FUNCTION__);
+	    // Termination of child should be enough
+	    // This chaperone process will detect the
+	    // exit using wait and report back to dispatchd
+	    kill(pid, SIGTERM);
+	    if ( ! dead )
+		kill(pid, SIGKILL);
+	}
+	sleep(1);
+    }
+    */
     wait(&status);
     lpjs_log("%s(): Info: Process exited with status %d.\n", __FUNCTION__, status);
 
@@ -599,4 +610,69 @@ void    enforce_resource_limits(pid_t pid, size_t mem_per_proc)
 #elif defined(__NetBSD__)
 #elif defined(__OpenBSD__)
 #endif
+}
+
+
+/***************************************************************************
+ *  Use auto-c2man to generate a man page from this comment
+ *
+ *  Library:
+ *      #include <xtend/proc.h>
+ *      -lxtend
+ *
+ *  Description:
+ *      Sample resource usage of an arbitrary process.
+ *  
+ *  Arguments:
+ *      pid     Process ID of the process to sample
+ *      rss     Resident memory use of pid returned to caller
+ *
+ *  Returns:
+ *      SUCCESS, NO_SUCH_PID
+ *
+ *  Examples:
+ *
+ *  See also:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2024-12-22  Jason Bacon Begin
+ ***************************************************************************/
+
+int     xt_get_rss(pid_t pid, size_t *rss)
+
+{
+    int     status;
+    char    cmd[LPJS_CMD_MAX + 1];
+    FILE    *fp;
+    
+    // Maybe ptrace(), though seemingly not well standardized
+    // FIXME: Find a way to detect processor oversubscription
+    
+    /*
+     *  Get RSS of the job process
+     */
+    
+    /*
+     *  This is kludgy, but portable.  Interface is separate from
+     *  implementation, so we can improve on this if/when opportunity
+     *  knocks without messing with anything else.
+     */
+    snprintf(cmd, LPJS_CMD_MAX + 1, "ps -p %d -o rss=", pid);
+    if ( (fp = popen(cmd, "r")) == NULL )
+    {
+	// FIXME: This should never happen, but figure out what
+	// to do if it does
+	lpjs_log("%s(): Bug: Cannot run %s.\n", __FUNCTION__, cmd);
+	status = 0; // Does not mean the job has terminated
+    }
+    else
+    {
+	if ( fscanf(fp, "%zu", rss) != 1 )
+	    status = -1;    // FIXME: Define return codes
+	else
+	    status = 0;
+	pclose(fp);
+    }
+    return status;
 }
