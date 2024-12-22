@@ -61,6 +61,8 @@ int     main (int argc, char *argv[])
 		home_dir[PATH_MAX + 1];
     extern FILE *Log_stream;
     struct stat st;
+    size_t      rss;
+    struct rusage   rusage;
 
     signal(SIGHUP, chaperone_cancel_handler);
     
@@ -156,25 +158,32 @@ int     main (int argc, char *argv[])
     
     lpjs_job_start_notice_loop(node_list, hostname, job_id, Pid);
     
-    // FIXME: Monitor resource use of child
     /*
-    while ( (status = xt_get_rss(pid, &rss)) == 0 )
+     *  Monitor resource use of child.  xt_get_rss() returns -1 when
+     *  pid no longer exists.
+     */
+    while ( xt_get_rss(Pid, &rss) == 0 )
     {
-	if ( rss > pmem_per_proc )
+	// pmem_per_proc is in MiB
+	if ( rss > pmem_per_proc * 1024 * 1024)
 	{
-	    lpjs_log("%s(): Terminating job for memory use violation.\n",
-		    __FUNCTION__);
+	    lpjs_log("%s(): Terminating job for memory use violation: %zu > %zu\n",
+		    __FUNCTION__, rss, pmem_per_proc);
 	    // Termination of child should be enough
 	    // This chaperone process will detect the
 	    // exit using wait and report back to dispatchd
-	    kill(pid, SIGTERM);
-	    if ( ! dead )
-		kill(pid, SIGKILL);
+	    kill(Pid, SIGTERM);
+	    // if ( ! dead )
+	    //    kill(pid, SIGKILL);
+	    break;
 	}
+	lpjs_debug("%s(): RSS = %zu\n", __FUNCTION__, rss);
 	sleep(1);
     }
-    */
-    wait(&status);
+    
+    // Get exit status of child process
+    // FIXME: Log resource usage
+    wait4(Pid, &status, WEXITED, &rusage);
     lpjs_log("%s(): Info: Process exited with status %d.\n", __FUNCTION__, status);
 
     lpjs_chaperone_completion_loop(node_list, hostname, job_id, status);
@@ -668,7 +677,9 @@ int     xt_get_rss(pid_t pid, size_t *rss)
     }
     else
     {
-	if ( fscanf(fp, "%zu", rss) != 1 )
+	// FIXME: fscanf() != 1 is not working as a check for failed ps
+	rss = 0;
+	if ( (fscanf(fp, "%zu", rss) != 1) || (rss == 0) )
 	    status = -1;    // FIXME: Define return codes
 	else
 	    status = 0;
