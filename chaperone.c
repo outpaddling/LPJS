@@ -679,7 +679,9 @@ int     xt_get_rss(pid_t pid, size_t *rss)
      *  implementation, so we can improve on this if/when opportunity
      *  knocks without messing with anything else.
      */
-    
+
+    // FIXME: Check sum of all child processes, not just the
+    // one spawned by chaperone
     snprintf(ps_output, PATH_MAX + 1, "%d-ps-stdout", pid);
     // mkfifo(ps_output, 0644);
     // lpjs_debug("%s %s\n", ps_output, xt_ltostrn(pid_str, pid, 10, LPJS_MAX_INT_DIGITS + 1));
