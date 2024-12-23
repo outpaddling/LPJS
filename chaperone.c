@@ -160,15 +160,20 @@ int     main (int argc, char *argv[])
     
     /*
      *  Monitor resource use of child.  xt_get_rss() returns -1 when
-     *  pid no longer exists.
+     *  pid no longer exists.  This is a fallback option for installations
+     *  that cannot enforce resource limits at the OS level.  E.g., FreeBSD
+     *  should use rctl if compd is running as root, and Linux should use
+     *  cgroups, if possible.  If those systems are not enabled, the
+     *  periodic sampling here should catch most resource violations
+     *  soon enough to prevent major problems.
      */
     while ( xt_get_rss(Pid, &rss) == 0 )
     {
-	// pmem_per_proc is in MiB
-	if ( rss > pmem_per_proc * 1024 * 1024)
+	// pmem_per_proc is in MiB, rss in KiB
+	if ( rss > pmem_per_proc * 1024)
 	{
-	    lpjs_log("%s(): Terminating job for memory use violation: %zu > %zu\n",
-		    __FUNCTION__, rss, pmem_per_proc);
+	    lpjs_log("%s(): Terminating job for resident memory violation: %zu KiB > %zu KiB\n",
+		    __FUNCTION__, rss, pmem_per_proc * 1024);
 	    // Termination of child should be enough
 	    // This chaperone process will detect the
 	    // exit using wait and report back to dispatchd
@@ -182,9 +187,9 @@ int     main (int argc, char *argv[])
     }
     
     // Get exit status of child process
-    // FIXME: Log resource usage
+    // FIXME: Record peak resource usage in job log
     wait4(Pid, &status, WEXITED, &rusage);
-    lpjs_log("%s(): Info: Process exited with status %d.\n", __FUNCTION__, status);
+    lpjs_log("%s(): Info: Job process exited with status %d.\n", __FUNCTION__, status);
 
     lpjs_chaperone_completion_loop(node_list, hostname, job_id, status);
     
@@ -291,7 +296,7 @@ int     main (int argc, char *argv[])
 	}
     }
 
-    lpjs_log("%s(): Info: Exiting with status %d...\n", __FUNCTION__, status);
+    lpjs_log("%s(): Info: Chaperone exiting with status %d...\n", __FUNCTION__, status);
     return status;
 }
 
@@ -625,6 +630,9 @@ void    enforce_resource_limits(pid_t pid, size_t mem_per_proc)
 /***************************************************************************
  *  Use auto-c2man to generate a man page from this comment
  *
+ *  Section:
+ *      3
+ *
  *  Library:
  *      #include <xtend/proc.h>
  *      -lxtend
@@ -651,9 +659,11 @@ void    enforce_resource_limits(pid_t pid, size_t mem_per_proc)
 int     xt_get_rss(pid_t pid, size_t *rss)
 
 {
-    int     status;
-    char    cmd[LPJS_CMD_MAX + 1];
+    int     status, items;
+    char    ps_output[PATH_MAX + 1],
+	    pid_str[LPJS_MAX_INT_DIGITS + 1];
     FILE    *fp;
+    extern FILE *Log_stream;
     
     // Maybe ptrace(), though seemingly not well standardized
     // FIXME: Find a way to detect processor oversubscription
@@ -663,27 +673,46 @@ int     xt_get_rss(pid_t pid, size_t *rss)
      */
     
     /*
+     *  There does not seem to be a standard API for gathering process
+     *  info, so we spawn a separate "ps" process and read stdout.
      *  This is kludgy, but portable.  Interface is separate from
      *  implementation, so we can improve on this if/when opportunity
      *  knocks without messing with anything else.
      */
-    snprintf(cmd, LPJS_CMD_MAX + 1, "ps -p %d -o rss=", pid);
-    if ( (fp = popen(cmd, "r")) == NULL )
+    
+    snprintf(ps_output, PATH_MAX + 1, "%d-ps-stdout", pid);
+    // mkfifo(ps_output, 0644);
+    // lpjs_debug("%s %s\n", ps_output, xt_ltostrn(pid_str, pid, 10, LPJS_MAX_INT_DIGITS + 1));
+    status = xt_spawnlp(P_WAIT, P_NOECHO, NULL, ps_output, NULL, "ps", "-p",
+	    xt_ltostrn(pid_str, pid, 10, LPJS_MAX_INT_DIGITS + 1),
+	    "-o", "rss=", NULL);
+    // lpjs_debug("xt_spawnlp() returned %d\n", status);
+    if ( status != 0 )
     {
-	// FIXME: This should never happen, but figure out what
-	// to do if it does
-	lpjs_log("%s(): Bug: Cannot run %s.\n", __FUNCTION__, cmd);
-	status = 0; // Does not mean the job has terminated
+	lpjs_log("%s(): ps failed.\n", __FUNCTION__);
     }
     else
     {
-	// FIXME: fscanf() != 1 is not working as a check for failed ps
-	rss = 0;
-	if ( (fscanf(fp, "%zu", rss) != 1) || (rss == 0) )
-	    status = -1;    // FIXME: Define return codes
+	// lpjs_debug("Opening %s...\n", ps_output);
+	if ( (fp = fopen(ps_output, "r")) == NULL )
+	{
+	    lpjs_log("%s(): Bug: Cannot open %s: %s\n", __FUNCTION__,
+		    ps_output, strerror(errno));
+	}
 	else
-	    status = 0;
-	pclose(fp);
+	{
+	    // FIXME: fscanf() != 1 is not working as a check for failed ps
+	    *rss = 0;
+	    // lpjs_debug("Reading %s...\n", ps_output);
+	    items = fscanf(fp, "%zu", rss);
+	    // lpjs_debug("%s(): fscanf() read %d items.\n", __FUNCTION__, items);
+	    if ( (items != 1) || (*rss == 0) )
+		status = -1;    // FIXME: Define return codes
+	    else
+		status = 0;
+	    fclose(fp);
+	}
     }
+    unlink(ps_output);
     return status;
 }
