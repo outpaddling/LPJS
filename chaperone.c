@@ -555,7 +555,13 @@ void    whack_family(pid_t pid)
     FILE    *fp;
     pid_t   child_pid;
     
-    // Get list of child processes in a kludgy, but portable way
+    /*
+     *  Get list of child processes in a kludgey, but portable way.
+     *  It would be nice if there were a standard API for identifying
+     *  members of a process group, but much of the functionality of
+     *  ps(1) is sadly not exposed under POSIX.
+     */
+    
     lpjs_log("%s(): Finding children of %d...\n", __FUNCTION__, pid);
     snprintf(cmd, LPJS_CMD_MAX + 1, "pgrep -P %u", pid);
     
@@ -681,7 +687,8 @@ int     xt_get_rss(pid_t pid, size_t *rss)
      */
 
     // FIXME: Check sum of all child processes, not just the
-    // one spawned by chaperone
+    // one spawned by chaperone.  Traverse the process tree like
+    // whack_family().
     snprintf(ps_output, PATH_MAX + 1, "%d-ps-stdout", pid);
     // mkfifo(ps_output, 0644);
     // lpjs_debug("%s %s\n", ps_output, xt_ltostrn(pid_str, pid, 10, LPJS_MAX_INT_DIGITS + 1));
