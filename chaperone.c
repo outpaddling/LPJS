@@ -114,11 +114,6 @@ int     main (int argc, char *argv[])
     // Get hostname of head node
     lpjs_load_config(node_list, LPJS_CONFIG_HEAD_ONLY, stderr);
     
-    // FIXME: Use fork() and exec() or posix_spawn(), and monitor
-    // the child process for resource use
-    // xt_str_argv_cat(cmd, argv, 1, LPJS_CMD_MAX + 1);
-    // status = system(cmd);
-    
     gethostname(hostname, sysconf(_SC_HOST_NAME_MAX));
     getcwd(wd, PATH_MAX + 1 - 20);
     lpjs_log("%s(): Running %s in %s on %s with %u procs and %lu MiB.\n",
@@ -145,10 +140,9 @@ int     main (int argc, char *argv[])
 	rss_limit.rlim_max = pmem_per_proc * 1024 * 1024;
 	setrlimit(RLIMIT_RSS, &rss_limit);
 	
-	enforce_resource_limits(getpid(), pmem_per_proc);
+	// Not finished: enforce_resource_limits(getpid(), pmem_per_proc);
     
 	// Child, run script
-	// FIXME: Set CPU and memory (virtual and physical) limits
 	fclose(Log_stream); // Not useful to child
 	execl(job_script_name, job_script_name, NULL);
 	lpjs_log("%s(): Error: execl() failed: %s\n", __FUNCTION__, strerror(errno));
@@ -182,12 +176,14 @@ int     main (int argc, char *argv[])
 	    //    kill(pid, SIGKILL);
 	    break;
 	}
-	lpjs_debug("%s(): RSS = %zu\n", __FUNCTION__, rss);
-	sleep(1);
+	lpjs_debug("%s(): Total job RSS = %zu\n", __FUNCTION__, rss);
+	sleep(3);   // FIXME: Make this tunable
     }
     
     // Get exit status of child process
     // FIXME: Record peak resource usage in job log
+    // FIXME: Check for allocations much larger than used
+    //        Blacklist script for greed until fixed
     wait4(Pid, &status, WEXITED, &rusage);
     lpjs_log("%s(): Info: Job process exited with status %d.\n", __FUNCTION__, status);
 
@@ -603,6 +599,8 @@ void    enforce_resource_limits(pid_t pid, size_t mem_per_proc)
     
     // Use rctl
     // FIXME: This needs to be run as root
+    // FIXME: Need to enforce limit for the entire process group,
+    //        not just the child of chaperone
     #include <sys/rctl.h>
     int     enabled;
     size_t  len = sizeof(int);
@@ -668,60 +666,92 @@ int     xt_get_rss(pid_t pid, size_t *rss)
     int     status, items;
     char    ps_output[PATH_MAX + 1],
 	    pid_str[LPJS_MAX_INT_DIGITS + 1];
-    FILE    *fp;
+    FILE    *group_fp, *rss_fp;
     extern FILE *Log_stream;
+    char    cmd[LPJS_CMD_MAX + 1],
+	    *end;
+    pid_t   child_pid;
+    size_t  proc_rss;
     
     // Maybe ptrace(), though seemingly not well standardized
     // FIXME: Find a way to detect processor oversubscription
     
     /*
-     *  Get RSS of the job process
+     *  Get RSS of the job process and all children
+     */
+     
+    /*
+     *  Get list of child processes in a kludgey, but portable way.
+     *  It would be nice if there were a standard API for identifying
+     *  members of a process group, but much of the functionality of
+     *  ps(1) is sadly not exposed under POSIX.
      */
     
-    /*
-     *  There does not seem to be a standard API for gathering process
-     *  info, so we spawn a separate "ps" process and read stdout.
-     *  This is kludgy, but portable.  Interface is separate from
-     *  implementation, so we can improve on this if/when opportunity
-     *  knocks without messing with anything else.
-     */
-
-    // FIXME: Check sum of all child processes, not just the
-    // one spawned by chaperone.  Traverse the process tree like
-    // whack_family().
-    snprintf(ps_output, PATH_MAX + 1, "%d-ps-stdout", pid);
-    // mkfifo(ps_output, 0644);
-    // lpjs_debug("%s %s\n", ps_output, xt_ltostrn(pid_str, pid, 10, LPJS_MAX_INT_DIGITS + 1));
-    status = xt_spawnlp(P_WAIT, P_NOECHO, NULL, ps_output, NULL, "ps", "-p",
-	    xt_ltostrn(pid_str, pid, 10, LPJS_MAX_INT_DIGITS + 1),
-	    "-o", "rss=", NULL);
-    // lpjs_debug("xt_spawnlp() returned %d\n", status);
-    if ( status != 0 )
+    // lpjs_debug("%s(): Finding children of %d...\n", __FUNCTION__, pid);
+    snprintf(cmd, LPJS_CMD_MAX + 1, "pgrep -P %u", pid);
+    
+    // Signal each child to terminate
+    if ( (group_fp = popen(cmd, "r")) == NULL )
     {
-	lpjs_log("%s(): ps failed.\n", __FUNCTION__);
+	lpjs_log("%s(): Error: Failed to run %s.\n", __FUNCTION__, cmd);
+	return -1;  // FIXME: Define return codes
     }
-    else
+    
+    *rss = 0;
+    while ( fgets(pid_str, LPJS_MAX_INT_DIGITS + 1, group_fp) != NULL )
     {
-	// lpjs_debug("Opening %s...\n", ps_output);
-	if ( (fp = fopen(ps_output, "r")) == NULL )
+	// FIXME: Check success
+	child_pid = strtoul(pid_str, &end, 10);
+	
+	// Depth-first recursive traversal of process tree
+	if ( child_pid != pid )
 	{
-	    lpjs_log("%s(): Bug: Cannot open %s: %s\n", __FUNCTION__,
-		    ps_output, strerror(errno));
+	    xt_get_rss(child_pid, &proc_rss);
+	    *rss += proc_rss;
 	}
+    
+	/*
+	 *  There does not seem to be a standard API for gathering process
+	 *  info, so we spawn a separate "ps" process and read stdout.
+	 *  This is kludgy, but portable.  Interface is separate from
+	 *  implementation, so we can improve on this if/when opportunity
+	 *  knocks without messing with anything else.
+	 */
+    
+	snprintf(ps_output, PATH_MAX + 1, "%d-ps-stdout", pid);
+	status = xt_spawnlp(P_WAIT, P_NOECHO, NULL, ps_output, NULL, "ps", "-p",
+		xt_ltostrn(pid_str, pid, 10, LPJS_MAX_INT_DIGITS + 1),
+		"-o", "rss=", NULL);
+	// lpjs_debug("xt_spawnlp() returned %d\n", status);
+	if ( status != 0 )
+	    lpjs_log("%s(): ps failed.\n", __FUNCTION__);
 	else
 	{
-	    // FIXME: fscanf() != 1 is not working as a check for failed ps
-	    *rss = 0;
-	    // lpjs_debug("Reading %s...\n", ps_output);
-	    items = fscanf(fp, "%zu", rss);
-	    // lpjs_debug("%s(): fscanf() read %d items.\n", __FUNCTION__, items);
-	    if ( (items != 1) || (*rss == 0) )
-		status = -1;    // FIXME: Define return codes
+	    // lpjs_debug("Opening %s...\n", ps_output);
+	    if ( (rss_fp = fopen(ps_output, "r")) == NULL )
+	    {
+		lpjs_log("%s(): Bug: Cannot open %s: %s\n", __FUNCTION__,
+			ps_output, strerror(errno));
+	    }
 	    else
-		status = 0;
-	    fclose(fp);
+	    {
+		// FIXME: fscanf() != 1 is not working as a check for failed ps
+		// lpjs_debug("Reading %s...\n", ps_output);
+		items = fscanf(rss_fp, "%zu", &proc_rss);
+		// lpjs_debug("%s(): fscanf() read %d items.\n", __FUNCTION__, items);
+		if ( (items != 1) || (proc_rss == 0) )
+		    status = -1;    // FIXME: Define return codes
+		else
+		{
+		    status = 0;
+		    *rss += proc_rss;
+		    lpjs_debug("+%zu (proc %d) = %zu.\n", proc_rss, pid, *rss);
+		}
+		fclose(rss_fp);
+	    }
 	}
+	unlink(ps_output);
     }
-    unlink(ps_output);
+    pclose(group_fp);
     return status;
 }
