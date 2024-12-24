@@ -558,10 +558,9 @@ void    whack_family(pid_t pid)
      *  ps(1) is sadly not exposed under POSIX.
      */
     
+    // Recursively signal each child to terminate first
     lpjs_log("%s(): Finding children of %d...\n", __FUNCTION__, pid);
     snprintf(cmd, LPJS_CMD_MAX + 1, "pgrep -P %u", pid);
-    
-    // Signal each child to terminate
     if ( (fp = popen(cmd, "r")) == NULL )
     {
 	lpjs_log("%s(): Error: Failed to run %s.\n", __FUNCTION__, cmd);
@@ -575,21 +574,20 @@ void    whack_family(pid_t pid)
 	// Depth-first recursive traversal of process tree
 	if ( child_pid != pid )
 	    whack_family(child_pid);
-	
-	// FIXME: Loop should probably end here, and terminate
-	// pid rather than child_pid below
-	
-	// Try SIGTERM first in case process catches it and cleans up
-	lpjs_log("%s(): Sending SIGTERM to child %d...\n",
-		__FUNCTION__, child_pid);
-	kill(child_pid, SIGTERM);
-	sleep(2);
-	// If SIGTERM worked, this will fail and have no effect
-	lpjs_log("%s(): Sending SIGKILL to child %d...\n",
-		__FUNCTION__, child_pid);
-	kill(child_pid, SIGKILL);
-    }
+	else
+	    lpjs_log("%s(): Bug: child_pid %d = pid %d\n",
+		    __FUNCTION__, child_pid, pid);
+    }        
     pclose(fp);
+
+    // Now that the children whacked, terminate this process
+    // Try SIGTERM first in case process catches it and cleans up
+    lpjs_log("%s(): Sending SIGTERM to PID %d...\n", __FUNCTION__, pid);
+    kill(pid, SIGTERM);
+    sleep(1);
+    // If SIGTERM worked, this will fail and have no effect
+    lpjs_log("%s(): Sending SIGKILL to PID %d...\n", __FUNCTION__, pid);
+    kill(pid, SIGKILL);
 }
 
 
