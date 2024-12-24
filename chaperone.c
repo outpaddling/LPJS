@@ -576,6 +576,9 @@ void    whack_family(pid_t pid)
 	if ( child_pid != pid )
 	    whack_family(child_pid);
 	
+	// FIXME: Loop should probably end here, and terminate
+	// pid rather than child_pid below
+	
 	// Try SIGTERM first in case process catches it and cleans up
 	lpjs_log("%s(): Sending SIGTERM to child %d...\n",
 		__FUNCTION__, child_pid);
@@ -702,56 +705,64 @@ int     xt_get_rss(pid_t pid, size_t *rss)
     {
 	// FIXME: Check success
 	child_pid = strtoul(pid_str, &end, 10);
+	lpjs_debug("%d is a child of %d\n", child_pid, pid);
 	
 	// Depth-first recursive traversal of process tree
 	if ( child_pid != pid )
 	{
 	    xt_get_rss(child_pid, &proc_rss);
-	    *rss += proc_rss;
+	    *rss += proc_rss;   // Add sum of child RSSs from recursion
 	}
-    
-	/*
-	 *  There does not seem to be a standard API for gathering process
-	 *  info, so we spawn a separate "ps" process and read stdout.
-	 *  This is kludgy, but portable.  Interface is separate from
-	 *  implementation, so we can improve on this if/when opportunity
-	 *  knocks without messing with anything else.
-	 */
-    
-	snprintf(ps_output, PATH_MAX + 1, "%d-ps-stdout", pid);
-	status = xt_spawnlp(P_WAIT, P_NOECHO, NULL, ps_output, NULL, "ps", "-p",
-		xt_ltostrn(pid_str, pid, 10, LPJS_MAX_INT_DIGITS + 1),
-		"-o", "rss=", NULL);
-	// lpjs_debug("xt_spawnlp() returned %d\n", status);
-	if ( status != 0 )
-	    lpjs_log("%s(): ps failed.\n", __FUNCTION__);
 	else
-	{
-	    // lpjs_debug("Opening %s...\n", ps_output);
-	    if ( (rss_fp = fopen(ps_output, "r")) == NULL )
-	    {
-		lpjs_log("%s(): Bug: Cannot open %s: %s\n", __FUNCTION__,
-			ps_output, strerror(errno));
-	    }
-	    else
-	    {
-		// FIXME: fscanf() != 1 is not working as a check for failed ps
-		// lpjs_debug("Reading %s...\n", ps_output);
-		items = fscanf(rss_fp, "%zu", &proc_rss);
-		// lpjs_debug("%s(): fscanf() read %d items.\n", __FUNCTION__, items);
-		if ( (items != 1) || (proc_rss == 0) )
-		    status = -1;    // FIXME: Define return codes
-		else
-		{
-		    status = 0;
-		    *rss += proc_rss;
-		    lpjs_debug("+%zu (proc %d) = %zu.\n", proc_rss, pid, *rss);
-		}
-		fclose(rss_fp);
-	    }
-	}
-	unlink(ps_output);
+	    lpjs_debug("%s(): Bug: child_pid %d = pid %d\n", child_pid, pid);
     }
     pclose(group_fp);
+
+    /*
+     *  Done counting children, now count this PID
+     */
+    
+    /*
+     *  There does not seem to be a standard API for gathering process
+     *  info, so we spawn a separate "ps" process and read stdout.
+     *  This is kludgy, but portable.  Interface is separate from
+     *  implementation, so we can improve on this if/when opportunity
+     *  knocks without messing with anything else.
+     */
+
+    snprintf(ps_output, PATH_MAX + 1, "%d-ps-stdout", pid);
+    status = xt_spawnlp(P_WAIT, P_NOECHO, NULL, ps_output, NULL, "ps", "-p",
+	    xt_ltostrn(pid_str, pid, 10, LPJS_MAX_INT_DIGITS + 1),
+	    "-o", "rss=", NULL);
+    // lpjs_debug("xt_spawnlp() returned %d\n", status);
+    if ( status != 0 )
+	lpjs_log("%s(): ps failed.\n", __FUNCTION__);
+    else
+    {
+	// lpjs_debug("Opening %s...\n", ps_output);
+	if ( (rss_fp = fopen(ps_output, "r")) == NULL )
+	{
+	    lpjs_log("%s(): Bug: Cannot open %s: %s\n", __FUNCTION__,
+		    ps_output, strerror(errno));
+	}
+	else
+	{
+	    // FIXME: fscanf() != 1 is not working as a check for failed ps
+	    // lpjs_debug("Reading %s...\n", ps_output);
+	    items = fscanf(rss_fp, "%zu", &proc_rss);
+	    // lpjs_debug("%s(): fscanf() read %d items.\n", __FUNCTION__, items);
+	    if ( (items != 1) || (proc_rss == 0) )
+		// No such process, time to terminate
+		status = -1;    // FIXME: Define return codes
+	    else
+	    {
+		status = 0;
+		*rss += proc_rss;
+		lpjs_debug("+%zu (proc %d) = %zu.\n", proc_rss, pid, *rss);
+	    }
+	    fclose(rss_fp);
+	}
+    }
+    unlink(ps_output);
     return status;
 }
