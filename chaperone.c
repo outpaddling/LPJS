@@ -168,12 +168,10 @@ int     main (int argc, char *argv[])
 	{
 	    lpjs_log("%s(): Terminating job for resident memory violation: %zu KiB > %zu KiB\n",
 		    __FUNCTION__, rss, pmem_per_proc * 1024);
-	    // Termination of child should be enough
+	    // Termination of child processes should be enough
 	    // This chaperone process will detect the
 	    // exit using wait and report back to dispatchd
-	    kill(Pid, SIGTERM);
-	    // if ( ! dead )
-	    //    kill(pid, SIGKILL);
+	    whack_family(Pid);
 	    break;
 	}
 	lpjs_debug("%s(): Total job RSS = %zu\n", __FUNCTION__, rss);
@@ -522,14 +520,6 @@ void    chaperone_cancel_handler(int s2)
      */
     
     whack_family(Pid);
-    
-    // Try SIGTERM first in case process catches it and cleans up
-    lpjs_log("%s(): Sending SIGTERM to %d...\n", __FUNCTION__, Pid);
-    kill(Pid, SIGTERM);
-    sleep(2);
-    // If SIGTERM worked, this will fail and have no effect
-    lpjs_log("%s(): Sending SIGKILL to %d...\n", __FUNCTION__, Pid);
-    kill(Pid, SIGKILL);
 }
 
 
@@ -705,7 +695,7 @@ int     xt_get_rss(pid_t pid, size_t *rss)
     {
 	// FIXME: Check success
 	child_pid = strtoul(pid_str, &end, 10);
-	lpjs_debug("%d is a child of %d\n", child_pid, pid);
+	// lpjs_debug("%d is a child of %d\n", child_pid, pid);
 	
 	// Depth-first recursive traversal of process tree
 	if ( child_pid != pid )
@@ -758,7 +748,7 @@ int     xt_get_rss(pid_t pid, size_t *rss)
 	    {
 		status = 0;
 		*rss += proc_rss;
-		lpjs_debug("+%zu (proc %d) = %zu.\n", proc_rss, pid, *rss);
+		// lpjs_debug("+%zu (proc %d) = %zu.\n", proc_rss, pid, *rss);
 	    }
 	    fclose(rss_fp);
 	}
