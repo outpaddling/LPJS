@@ -643,6 +643,7 @@ int     lpjs_run_chaperone(job_t *job, const char *script_buff,
 		err_file[PATH_MAX + 1];
     unsigned long   job_id = job_get_job_id(job);
     extern FILE *Log_stream;
+    pid_t       chaperone_pid;
     
     signal(SIGCHLD, sigchld_handler);
 
@@ -652,7 +653,7 @@ int     lpjs_run_chaperone(job_t *job, const char *script_buff,
      *  chaperone directly to lpjs_dispatchd.
      */
     
-    if ( fork() == 0 )
+    if ( (chaperone_pid = fork()) == 0 )
     {
 	/*
 	 *  Child: This is now the chaperone process.
@@ -804,7 +805,7 @@ int     lpjs_run_chaperone(job_t *job, const char *script_buff,
 	lpjs_debug("%s(): Sending chaperone forked verification.\n",
 		__FUNCTION__);
 	snprintf(chaperone_response, LPJS_MSG_LEN_MAX + 1,
-		"%c", LPJS_CHAPERONE_FORKED);
+		"%c%d", LPJS_CHAPERONE_FORKED, chaperone_pid);
 	if ( lpjs_send_munge(compd_msg_fd, chaperone_response, close)
 			     != LPJS_MSG_SENT )
 	{

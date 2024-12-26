@@ -209,6 +209,14 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 		lpjs_debug("%s(): Chaperone fork verification received.\n",
 			    __FUNCTION__);
 		job_set_state(job, JOB_STATE_DISPATCHED);
+		char *end;
+		pid_t chaperone_pid = strtol(munge_payload+1, &end, 10);
+		if ( *end != '\0' )
+		{
+		    lpjs_log("%s(): Bug: No PID found in chaperone fork verification message.\n",
+			    __FUNCTION__);
+		}
+		job_set_chaperone_pid(job, chaperone_pid);
 		
 		/*
 		 *  Reserve resources immediately to prevent a race
