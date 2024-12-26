@@ -172,10 +172,10 @@ int     main (int argc, char *argv[])
 	    // This chaperone process will detect the
 	    // exit using wait and report back to dispatchd
 	    whack_family(Pid);
-	    break;
+	    break;  // Exit loop and proceed to wait4()
 	}
 	lpjs_debug("%s(): Total job RSS = %zu\n", __FUNCTION__, rss);
-	sleep(3);   // FIXME: Make this tunable
+	sleep(5);   // FIXME: Make this tunable
     }
     
     // Get exit status of child process
