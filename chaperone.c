@@ -451,6 +451,7 @@ int     lpjs_chaperone_completion(int msg_fd, const char *hostname,
     return EX_OK;
 }
 
+
 /***************************************************************************
  *  Description:
  *      Connect to dispatchd and send job completion request.
@@ -507,7 +508,8 @@ int     lpjs_chaperone_completion_loop(node_list_t *node_list,
 void    chaperone_cancel_handler(int s2)
 
 {
-    lpjs_log("%s(): Canceling PID %d...\n", __FUNCTION__, Pid);
+    lpjs_log("%s(): Chaperone PID %d canceling job PID %d...\n",
+	    __FUNCTION__, getpid(), Pid);
     
     /*
      *  Terminate mafia-style: Don't just terminate the process, go

@@ -210,15 +210,12 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 			    __FUNCTION__);
 		job_set_state(job, JOB_STATE_DISPATCHED);
 		
-		// FIXME: This will need adjustment for MPI jobs at the least
+		/*
+		 *  Reserve resources immediately to prevent a race
+		 *  between chaperone checkin and new job submissions.
+		 *  FIXME: This will need adjustment for MPI jobs at the least
+		 */
 		node_adjust_resources(node, job, NODE_RESOURCE_ALLOCATE);
-		/* Replaces...
-		procs_used = node_get_procs_used(node);
-		node_set_procs_used(node, procs_used + job_get_procs_per_job(job));
-		phys_MiB_used = node_get_phys_MiB_used(node);
-		node_set_phys_MiB_used(node, phys_MiB_used +
-		    job_get_pmem_per_proc(job) * job_get_procs_per_job(job));
-		*/
 	    }
 	}
 	

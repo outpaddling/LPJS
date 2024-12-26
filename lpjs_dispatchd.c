@@ -586,21 +586,23 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		// node_list_send_status() sends EOT,
 		// so don't use safe_close here.
 		lpjs_debug("%s(): Closing %d.\n", __FUNCTION__, msg_fd);
-		close(msg_fd);
+		lpjs_wait_close(msg_fd);
 		break;
 	    
 	    case    LPJS_DISPATCHD_REQUEST_PAUSE:
 		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_PAUSE\n",
 			__FUNCTION__);
+		lpjs_wait_close(msg_fd);
+		
 		node_list_set_state(node_list, munge_payload + 1);
-		lpjs_dispatchd_safe_close(msg_fd);
 		break;
 		
 	    case    LPJS_DISPATCHD_REQUEST_RESUME:
 		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_RESUME\n",
 			__FUNCTION__);
+		lpjs_wait_close(msg_fd);
+		
 		node_list_set_state(node_list, munge_payload + 1);
-		lpjs_dispatchd_safe_close(msg_fd);
 		// New resources might be available
 		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
 		break;
@@ -608,6 +610,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	    case    LPJS_DISPATCHD_REQUEST_JOB_LIST:
 		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_JOB_STATUS\n",
 			__FUNCTION__);
+		
 		// FIXME: factor out to lpjs_send_job_list(), check
 		// all messages for success
 		if ( lpjs_send_munge(msg_fd, "Running\n\n",
@@ -624,7 +627,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    break;
 		}
 		job_list_send_params(msg_fd, pending_jobs);
-		// FIXME: Same as LPJS_DISPATCHD_REQUEST_NODE_LIST?
+		// Need to send EOT after job list
 		lpjs_dispatchd_safe_close(msg_fd);
 		break;
 	    
@@ -634,21 +637,22 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		lpjs_submit(msg_fd, munge_payload, node_list,
 			    pending_jobs, running_jobs,
 			    munge_uid, munge_gid);
+		lpjs_wait_close(msg_fd);
+		
 		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
-		// FIXME: Same as LPJS_DISPATCHD_REQUEST_NODE_LIST?
-		lpjs_dispatchd_safe_close(msg_fd);
 		break;
 	    
 	    case    LPJS_DISPATCHD_REQUEST_CANCEL:
 		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_CANCEL\n",
 			__FUNCTION__);
+		
 		lpjs_cancel(msg_fd, munge_payload + 1, node_list,
 			    pending_jobs, running_jobs,
 			    munge_uid, munge_gid);
+		lpjs_wait_close(msg_fd);
+		
 		// Resources might become available here
 		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
-		// FIXME: Same as LPJS_DISPATCHD_REQUEST_NODE_LIST?
-		lpjs_dispatchd_safe_close(msg_fd);
 		break;
 		
 	    case    LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS:
@@ -736,11 +740,6 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		break;
 		
 	    case    LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:
-		// This is a temporary connection from the chaperone
-		// for just this message.  Don't keep it open.
-		// Don't sent EOT, but wait for other end to close
-		lpjs_wait_close(msg_fd);
-
 		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_JOB_COMPLETE\n",
 			__FUNCTION__);
 		p = munge_payload + 1;
@@ -772,6 +771,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		 */
 		// lpjs_log_job();
 		
+		// FIXME: This is duplicated in lpjs_cancel()
 		if ( (job = lpjs_remove_running_job(running_jobs,
 						    job_id)) != NULL )
 		    job_free(&job);
@@ -780,6 +780,11 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 			    __FUNCTION__);
 		
 		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
+
+		// This is a temporary connection from the chaperone
+		// for just this message.  Don't keep it open.
+		// Don't sent EOT, but wait for other end to close
+		lpjs_wait_close(msg_fd);
 		break;
 		
 	    default:
@@ -951,6 +956,7 @@ int     lpjs_cancel(int msg_fd, const char *incoming_msg,
     char            *end;
     job_t           *job;
     size_t          index;
+    char            *hostname;
     
     lpjs_debug("%s(): Incoming = '%s'\n", __FUNCTION__, incoming_msg);
     job_id = strtoul(incoming_msg, &end, 10);
@@ -971,6 +977,11 @@ int     lpjs_cancel(int msg_fd, const char *incoming_msg,
 	    if ( job_get_state(job) == JOB_STATE_DISPATCHED )
 	    {
 		job_set_state(job, JOB_STATE_CANCELED);
+		// Resources are reserved as soon as chaperone is forked,
+		// before job state is changed to running
+		hostname = job_get_compute_node(job);
+		adjust_resources(node_list, pending_jobs, hostname,
+				 job_id, NODE_RESOURCE_RELEASE);
 		lpjs_log("%s(): Pending job %lu is dispatched.  Scheduled for removal after chaperone checkin.\n",
 			__FUNCTION__, job_id);
 	    }
@@ -982,14 +993,18 @@ int     lpjs_cancel(int msg_fd, const char *incoming_msg,
 	    }
 	}
 	else
-	    lpjs_log("%s(): Error: Got valid index for pending job, but no job object.  This is a bug.\n",
+	    lpjs_log("%s(): Bug: Got valid index for pending job, but no job object.\n",
 		    __FUNCTION__);
     }
-    else if ( (job = lpjs_remove_running_job(running_jobs, job_id)) != NULL )
+    // Do not remove the job here.  chaperone will send a completion report
+    // else if ( (job = lpjs_remove_running_job(running_jobs, job_id)) != NULL )
+    else if ( (index = job_list_find_job_id(running_jobs, job_id)) != JOB_LIST_NOT_FOUND )
     {
-	lpjs_log("%s(): Canceled running job %lu...\n", __FUNCTION__, job_id);
-	lpjs_kill_processes(node_list, job);
-	job_free(&job);
+	lpjs_log("%s(): Terminating processes for job %lu...\n", __FUNCTION__, job_id);
+	if ( (job = job_list_get_jobs_ae(pending_jobs, index)) != NULL )
+	    lpjs_kill_processes(node_list, job);
+	lpjs_log("%s(): Bug: Got valid index for running job, but no job object.\n",
+		__FUNCTION__);
     }
     else
 	lpjs_log("%s(): Error: No such active job ID: %lu.\n", __FUNCTION__, job_id);
@@ -1362,7 +1377,8 @@ int     lpjs_load_job_list(job_list_t *job_list, node_list_t *node_list,
 	    {
 		compute_node = node_list_find_hostname(node_list,
 						       job_get_compute_node(job));
-		node_adjust_resources(compute_node, job, NODE_RESOURCE_ALLOCATE);
+		node_adjust_resources(compute_node, job,
+				      NODE_RESOURCE_ALLOCATE);
 		/* Replaces...
 		node_set_procs_used(compute_node,
 				    node_get_procs_used(compute_node) +
