@@ -211,23 +211,43 @@ ssize_t lpjs_recv(int msg_fd, char *buff, size_t buff_len, int flags,
 {
     uint32_t    msg_len;
     ssize_t     bytes_read;
-    fd_set      read_fds;
-    struct timeval  timeout_tv = { timeout / 1000000, timeout % 1000000 };
-    
-    // FIXME: Use poll() instead?
-    // Use select() to implement timeout without using non-blocking fds
+    // struct timeval  timeout_tv = { timeout / 1000000, timeout % 1000000 };
+    struct pollfd   poll_fd;
+
+    // Use poll() to implement timeout
     if ( timeout != 0 )
     {
-	// FIXME: select() will return if a lower fd is ready
-	FD_ZERO(&read_fds);
-	FD_SET(msg_fd, &read_fds);
-	// lpjs_debug("%s: Entering select()...\n", __FUNCTION__);
-	if ( select(msg_fd + 1, &read_fds, NULL, NULL, &timeout_tv) == 0 )
+	poll_fd.fd = msg_fd;
+	// POLLERR and POLLHUP are actually always set.  Listing POLLHUP
+	// here just for documentation.
+	poll_fd.events = POLLIN | POLLHUP;
+
+	// Just poll the dedicated socket connection with dispatchd
+	// FIXME: timeout is microseconds, poll takes milliseconds
+	poll(&poll_fd, 1, timeout / 1000);
+
+	// dispatchd closed its end of the socket?
+	if (poll_fd.revents & POLLHUP)
 	{
-	    lpjs_log("%s(): Error: select() timed out after %dus.\n",
-		     __FUNCTION__, timeout);
-	    return LPJS_RECV_TIMEOUT;
+	    poll_fd.revents &= ~POLLHUP;
+	    
+	    // Close this end, or dispatchd gets "address already in use"
+	    // When trying to restart
+	    close(msg_fd);
+	    lpjs_log("%s(): Error: Lost connection to fd %d: HUP received.\n",
+		    __FUNCTION__, msg_fd);
+	    return LPJS_RECV_FAILED;
 	}
+	
+	if (poll_fd.revents & POLLERR)
+	{
+	    poll_fd.revents &= ~POLLERR;
+	    lpjs_log("%s(): Error: Problem polling dispatchd: %s\n",
+		    __FUNCTION__, strerror(errno));
+	    return LPJS_RECV_FAILED;
+	}
+	
+	// If we made it this far, it must be POLLIN
     }
 
     // lpjs_debug("Receiving message...\n");
@@ -246,6 +266,7 @@ ssize_t lpjs_recv(int msg_fd, char *buff, size_t buff_len, int flags,
     {
 	lpjs_log("%s(): Error: Read partial msg_len on fd = %d: %zd bytes.\n",
 		__FUNCTION__, msg_fd,bytes_read);
+	// FIXME: Recover from this
 	exit(EX_DATAERR);
     }
     msg_len = ntohl(msg_len);

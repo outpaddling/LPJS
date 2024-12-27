@@ -383,7 +383,6 @@ void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
 	     */
 	    
 	    // FIXME: Verify that lost connections are handled properly
-	    // FIXME: Use lpjs_recv_munge
 	    bytes = lpjs_recv_munge(fd, &munge_payload,
 				    0, 0, &uid, &gid,
 				    lpjs_dispatchd_safe_close);
@@ -391,7 +390,7 @@ void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
 	    {
 		lpjs_log("%s(): Lost connection to %s.  Closing %d...\n",
 			__FUNCTION__, node_get_hostname(node), fd);
-		lpjs_dispatchd_safe_close(fd);
+		lpjs_wait_close(fd);
 		node_set_msg_fd(node, NODE_MSG_FD_NOT_OPEN);
 		node_set_state(node, "down");
 	    }
@@ -570,8 +569,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	switch(munge_payload[0])
 	{
 	    case    LPJS_DISPATCHD_REQUEST_COMPD_CHECKIN:
-		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_COMPD_CHECKIN\n",
-			__FUNCTION__);
+		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_COMPD_CHECKIN fd = %d\n",
+			__FUNCTION__, msg_fd);
 		lpjs_process_compute_node_checkin(msg_fd, munge_payload,
 						  node_list, munge_uid, munge_gid);
 		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
@@ -579,8 +578,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		break;
 	    
 	    case    LPJS_DISPATCHD_REQUEST_NODE_LIST:
-		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_NODE_STATUS\n",
-			__FUNCTION__);
+		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_NODE_STATUS fd = %d\n",
+			__FUNCTION__, msg_fd);
 		node_list_send_status(msg_fd, node_list);
 		// lpjs_dispatchd_safe_close(msg_fd);
 		// node_list_send_status() sends EOT,
@@ -590,16 +589,16 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		break;
 	    
 	    case    LPJS_DISPATCHD_REQUEST_PAUSE:
-		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_PAUSE\n",
-			__FUNCTION__);
+		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_PAUSE fd = %d\n",
+			__FUNCTION__, msg_fd);
 		lpjs_wait_close(msg_fd);
 		
 		node_list_set_state(node_list, munge_payload + 1);
 		break;
 		
 	    case    LPJS_DISPATCHD_REQUEST_RESUME:
-		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_RESUME\n",
-			__FUNCTION__);
+		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_RESUME fd = %d\n",
+			__FUNCTION__, msg_fd);
 		lpjs_wait_close(msg_fd);
 		
 		node_list_set_state(node_list, munge_payload + 1);
@@ -608,8 +607,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		break;
 	    
 	    case    LPJS_DISPATCHD_REQUEST_JOB_LIST:
-		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_JOB_STATUS\n",
-			__FUNCTION__);
+		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_JOB_STATUS fd = %d\n",
+			__FUNCTION__, msg_fd);
 		
 		// FIXME: factor out to lpjs_send_job_list(), check
 		// all messages for success
@@ -632,8 +631,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		break;
 	    
 	    case    LPJS_DISPATCHD_REQUEST_SUBMIT:
-		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_SUBMIT\n",
-			__FUNCTION__);
+		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_SUBMIT fd = %d\n",
+			__FUNCTION__, msg_fd);
 		lpjs_submit(msg_fd, munge_payload, node_list,
 			    pending_jobs, running_jobs,
 			    munge_uid, munge_gid);
@@ -643,8 +642,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		break;
 	    
 	    case    LPJS_DISPATCHD_REQUEST_CANCEL:
-		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_CANCEL\n",
-			__FUNCTION__);
+		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_CANCEL fd = %d\n",
+			__FUNCTION__, msg_fd);
 		
 		lpjs_cancel(msg_fd, munge_payload + 1, node_list,
 			    pending_jobs, running_jobs,
@@ -660,8 +659,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		// for just this message.  Don't keep it open.
 		// FIXME: Seeing if this causes stalls
 		// lpjs_dispatchd_safe_close(msg_fd);
-		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS\n",
-			__FUNCTION__);
+		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS fd = %d\n",
+			__FUNCTION__, msg_fd);
 		// FIXME: %s is unsafe.  Send hostname first and use strsep().
 		sscanf(munge_payload+1, "%lu %d %s",
 		       &job_id, &chaperone_status, chaperone_hostname);
@@ -718,8 +717,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		break;
 
 	    case    LPJS_DISPATCHD_REQUEST_JOB_STARTED:
-		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_JOB_STARTED:\n",
-			__FUNCTION__);
+		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_JOB_STARTED fd = %d\n",
+			__FUNCTION__, msg_fd);
 		lpjs_send_munge(msg_fd, "Node authorized",
 				lpjs_wait_close);
 		// lpjs_debug("%s(): Auth sent.\n", __FUNCTION__);
@@ -740,8 +739,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		break;
 		
 	    case    LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:
-		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_JOB_COMPLETE\n",
-			__FUNCTION__);
+		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_JOB_COMPLETE fd = %d\n",
+			__FUNCTION__, msg_fd);
 		p = munge_payload + 1;
 		hostname = strsep(&p, " ");
 		lpjs_debug("%s(): hostname = %s ", __FUNCTION__, hostname);
