@@ -999,8 +999,8 @@ int     lpjs_cancel(int msg_fd, const char *incoming_msg,
     // else if ( (job = lpjs_remove_running_job(running_jobs, job_id)) != NULL )
     else if ( (index = job_list_find_job_id(running_jobs, job_id)) != JOB_LIST_NOT_FOUND )
     {
-	lpjs_log("%s(): Terminating processes for job %lu...\n", __FUNCTION__, job_id);
-	if ( (job = job_list_get_jobs_ae(pending_jobs, index)) != NULL )
+	lpjs_log("%s(): Terminating processes for running job %lu...\n", __FUNCTION__, job_id);
+	if ( (job = job_list_get_jobs_ae(running_jobs, index)) != NULL )
 	    lpjs_kill_processes(node_list, job);
 	lpjs_log("%s(): Bug: Got valid index for running job, but no job object.\n",
 		__FUNCTION__);

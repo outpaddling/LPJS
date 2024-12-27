@@ -576,7 +576,7 @@ void    whack_family(pid_t pid)
     // Try SIGTERM first in case process catches it and cleans up
     lpjs_log("%s(): Sending SIGTERM to PID %d...\n", __FUNCTION__, pid);
     kill(pid, SIGTERM);
-    sleep(1);
+    usleep(250000); // FIXME: Find a reasonable value
     // If SIGTERM worked, this will fail and have no effect
     lpjs_log("%s(): Sending SIGKILL to PID %d...\n", __FUNCTION__, pid);
     kill(pid, SIGKILL);
