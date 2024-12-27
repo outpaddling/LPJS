@@ -2,18 +2,18 @@
 
 ##########################################################################
 #   Title:
-#       lpjs-log
+#       lpjs-history
 #
 #   Section:
 #       8
 #
 #   Synopsis:
-#       lpjs log
+#       lpjs history
 #       
 #   Description:
-#       lpjs log is a convenience script for displaying all LPJS log
-#       files.  The location of the logs is dependent on the operating
-#       system and package manager used to install LPJS.  lpjs log
+#       lpjs history is a convenience script for displaying the LPJS job
+#       history.  The location of the history file is dependent on the
+#       operating system and package manager used to install LPJS.  lpjs history
 #       eliminates the need to know this location or to type lengthy
 #       pathnames.
 #       
@@ -33,7 +33,7 @@
 
 usage()
 {
-    printf "Usage: $0\n"
+    printf "Usage: $0 [--long]\n"
     exit 1
 }
 
@@ -56,21 +56,27 @@ pause()
 #   Main
 ##########################################################################
 
-if [ $# != 0 ]; then
+case $# in
+0)
+    ;;
+
+1)
+    if [ 0"$1" != 0--long ]; then
+	usage
+    fi
+    ;;
+*)
     usage
-fi
+esac
+
 log_dir=/usr/local/var/log/lpjs
 if [ ! -e $log_dir ]; then
     exit 0
 fi
 
-for file in $log_dir/*; do
-    # job-history is viewed by the separate lpjs history command
-    if [ "$file" != job-history ]; then
-	cat $file
-	printf "===\nEnd of $file.\n"
-	if [ $(ls $log_dir | wc -w) -gt 1 ]; then
-	    pause
-	fi
-    fi
-done
+# FIXME: Add a --long flag to output in human-readable format
+if [ 0"$1" = 0--long ]; then
+    awk '{ printf("job-id=%s exit-status=%s peak-pmem=%sKiB pmem-per-proc=%sKiB compute-node=%s user=%s script=%s\n", $1, $2, $3, $4, $5, $6, $7); }' $log_dir/job-history
+else
+    cat $log_dir/job-history
+fi

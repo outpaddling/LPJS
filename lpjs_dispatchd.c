@@ -359,10 +359,11 @@ void    lpjs_log_job(job_list_t *job_list, const char *hostname,
 	if ( (job = job_list_get_jobs_ae(job_list, index)) != NULL )
 	{
 	    // pmem_per_proc is MiB and peak_rss if KiB
-	    fprintf(Job_history_stream, "%lu %d %zu %zu %s %s %s\n",
+	    fprintf(Job_history_stream, "%lu %d %zu %zu %s %s %s/%s\n",
 		    job_id, exit_status, peak_rss,
 		    job_get_pmem_per_proc(job) * 1024,
-		    hostname, job_get_user_name(job), job_get_script_name(job));
+		    hostname, job_get_user_name(job),
+		    job_get_submit_dir(job), job_get_script_name(job));
 	    fflush(Job_history_stream);
 	}
     }
