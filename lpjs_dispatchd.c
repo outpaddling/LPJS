@@ -272,9 +272,16 @@ int     lpjs_process_events(node_list_t *node_list)
 	fd_set  read_fds;
 	int     nfds, highest_fd;
 	
+	// poll() is generally preferable to select(), because it checks
+	// only fds explicitly listed, while select() checks every fd from
+	// 0 to the highest.  However, in this case, every fd is examined
+	// individually after select() returns, so irrelevant I/O events,
+	// which are rare anyway, won't hurt anything.  select() is a
+	// little more convenient here.
+
 	// FIXME: Might this erase pending messages?
-	// Use poll() instead of select()?
 	FD_ZERO(&read_fds);
+	
 	FD_SET(listen_fd, &read_fds);
 	highest_fd = listen_fd;
 	

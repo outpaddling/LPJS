@@ -6,5 +6,5 @@ int lpjs_chaperone_completion_loop(node_list_t *node_list, const char *hostname,
 void chaperone_cancel_handler(int s2);
 void whack_family(pid_t pid);
 void enforce_resource_limits(pid_t pid, size_t mem_per_proc);
-int xt_get_rss(pid_t pid, size_t *rss);
+int xt_get_family_rss(pid_t pid, size_t *rss);
 

@@ -61,7 +61,7 @@ int     main (int argc, char *argv[])
 		home_dir[PATH_MAX + 1];
     extern FILE *Log_stream;
     struct stat st;
-    size_t      rss;
+    size_t      rss, high_rss;
     struct rusage   rusage;
 
     signal(SIGHUP, chaperone_cancel_handler);
@@ -136,11 +136,15 @@ int     main (int argc, char *argv[])
 	// on Linux, so this has no effect.  On BSD systems, RSS limits
 	// influence pager behavior, so that processes exceeding their
 	// RSS limit are preferentially paged out when memory is tight.
+	// This will only come into play between total RSS samplings
+	// for the job, which happen every few seconds. Might help
+	// a little on occasion, though.
 	rss_limit.rlim_cur = pmem_per_proc * 1024 * 1024;
 	rss_limit.rlim_max = pmem_per_proc * 1024 * 1024;
 	setrlimit(RLIMIT_RSS, &rss_limit);
 	
-	// Not finished: enforce_resource_limits(getpid(), pmem_per_proc);
+	// Not yet working: Need to enforce total for process group
+	// enforce_resource_limits(getpid(), pmem_per_proc);
     
 	// Child, run script
 	fclose(Log_stream); // Not useful to child
@@ -153,7 +157,7 @@ int     main (int argc, char *argv[])
     lpjs_job_start_notice_loop(node_list, hostname, job_id, Pid);
     
     /*
-     *  Monitor resource use of child.  xt_get_rss() returns -1 when
+     *  Monitor resource use of child.  xt_get_family_rss() returns -1 when
      *  pid no longer exists.  This is a fallback option for installations
      *  that cannot enforce resource limits at the OS level.  E.g., FreeBSD
      *  should use rctl if compd is running as root, and Linux should use
@@ -161,7 +165,9 @@ int     main (int argc, char *argv[])
      *  periodic sampling here should catch most resource violations
      *  soon enough to prevent major problems.
      */
-    while ( xt_get_rss(Pid, &rss) == 0 )
+    
+    high_rss = 0;
+    while ( xt_get_family_rss(Pid, &rss) == 0 )
     {
 	// pmem_per_proc is in MiB, rss in KiB
 	if ( rss > pmem_per_proc * 1024)
@@ -174,7 +180,11 @@ int     main (int argc, char *argv[])
 	    whack_family(Pid);
 	    break;  // Exit loop and proceed to wait4()
 	}
-	lpjs_debug("%s(): Total job RSS = %zu\n", __FUNCTION__, rss);
+	if ( rss > high_rss )
+	{
+	    high_rss = rss;
+	    lpjs_debug("%s(): High total job RSS = %zu\n", __FUNCTION__, rss);
+	}
 	sleep(5);   // FIXME: Make this tunable
     }
     
@@ -436,6 +446,8 @@ int     lpjs_chaperone_completion(int msg_fd, const char *hostname,
     char    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
     
     /* Send job completion message to dispatchd */
+    // FIXME: Send collected stats: rss, user time, sys time,
+    // elapsed time, etc.
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%s %s %d\n",
 	     LPJS_DISPATCHD_REQUEST_JOB_COMPLETE, hostname,
 	     job_id, status);
@@ -653,7 +665,7 @@ void    enforce_resource_limits(pid_t pid, size_t mem_per_proc)
  *  2024-12-22  Jason Bacon Begin
  ***************************************************************************/
 
-int     xt_get_rss(pid_t pid, size_t *rss)
+int     xt_get_family_rss(pid_t pid, size_t *rss)
 
 {
     int     status, items;
@@ -700,7 +712,7 @@ int     xt_get_rss(pid_t pid, size_t *rss)
 	// Depth-first recursive traversal of process tree
 	if ( child_pid != pid )
 	{
-	    xt_get_rss(child_pid, &proc_rss);
+	    xt_get_family_rss(child_pid, &proc_rss);
 	    *rss += proc_rss;   // Add sum of child RSSs from recursion
 	}
 	else
@@ -721,6 +733,8 @@ int     xt_get_rss(pid_t pid, size_t *rss)
      */
 
     snprintf(ps_output, PATH_MAX + 1, "%d-ps-stdout", pid);
+    // FIXME: Also collect other stats
+    // -o usertime= -o systime= -o %cpu= -o %mem=
     status = xt_spawnlp(P_WAIT, P_NOECHO, NULL, ps_output, NULL, "ps", "-p",
 	    xt_ltostrn(pid_str, pid, 10, LPJS_MAX_INT_DIGITS + 1),
 	    "-o", "rss=", NULL);
