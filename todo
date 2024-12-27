@@ -1,6 +1,12 @@
 
 Now
 ---
+Blacklist scripts that are canceled due to RSS violations
+until mem-per-proc is corrected
+
+Blacklist scripts that allocate much more than the peak RSS use
+until mem-per-proc is corrected
+
 Check munge uid of all messages to prevent spoof attacks
     Must match the uid used during compd checkin
 
