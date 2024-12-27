@@ -21,6 +21,7 @@
  *  lpjs_log(), so Log_stream must be always be initialized in main().
  */
 FILE        *Log_stream;
+FILE        *Job_history_stream;
 node_list_t *Node_list;
 bool        Debug = true;   // FIXME: Control with --debug flag
 char        Pid_path[PATH_MAX + 1];
@@ -116,7 +117,7 @@ int     lpjs_debug(const char *format, ...)
  *  2024-01-27  Jason Bacon Begin
  ***************************************************************************/
 
-FILE    *lpjs_log_output(const char *pathname)
+FILE    *lpjs_log_output(const char *pathname, const char *mode)
 
 {
     FILE    *fp;
@@ -141,7 +142,7 @@ FILE    *lpjs_log_output(const char *pathname)
     }
     free(log_dir);
 
-    fp = fopen(pathname, "w");
+    fp = fopen(pathname, mode);
     if ( fp == NULL )
     {
 	fprintf(stderr, "Cannot open %s: %s\n", pathname, strerror(errno));

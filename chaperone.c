@@ -61,7 +61,7 @@ int     main (int argc, char *argv[])
 		home_dir[PATH_MAX + 1];
     extern FILE *Log_stream;
     struct stat st;
-    size_t      rss, high_rss;
+    size_t      rss, peak_rss;
     struct rusage   rusage;
 
     signal(SIGHUP, chaperone_cancel_handler);
@@ -81,7 +81,7 @@ int     main (int argc, char *argv[])
 
     snprintf(log_file, PATH_MAX + 1, "%s/chaperone-%s.stderr",
 	     log_dir, job_id);
-    if ( (Log_stream = lpjs_log_output(log_file)) == NULL )
+    if ( (Log_stream = lpjs_log_output(log_file, "w")) == NULL )
     {
 	fprintf(stderr, "chaperone: Failed to create log file: %s.\n",
 		log_file);
@@ -166,7 +166,7 @@ int     main (int argc, char *argv[])
      *  soon enough to prevent major problems.
      */
     
-    high_rss = 0;
+    peak_rss = 0;
     while ( xt_get_family_rss(Pid, &rss) == 0 )
     {
 	// pmem_per_proc is in MiB, rss in KiB
@@ -180,9 +180,9 @@ int     main (int argc, char *argv[])
 	    whack_family(Pid);
 	    break;  // Exit loop and proceed to wait4()
 	}
-	if ( rss > high_rss )
+	if ( rss > peak_rss )
 	{
-	    high_rss = rss;
+	    peak_rss = rss;
 	    lpjs_debug("%s(): High total job RSS = %zu\n", __FUNCTION__, rss);
 	}
 	sleep(5);   // FIXME: Make this tunable
@@ -195,7 +195,7 @@ int     main (int argc, char *argv[])
     wait4(Pid, &status, WEXITED, &rusage);
     lpjs_log("%s(): Info: Job process exited with status %d.\n", __FUNCTION__, status);
 
-    lpjs_chaperone_completion_loop(node_list, hostname, job_id, status);
+    lpjs_chaperone_completion_loop(node_list, hostname, job_id, status, peak_rss);
     
     // Transfer working dir to submit host or according to user
     // settings, if not shared
@@ -440,7 +440,8 @@ int     lpjs_job_start_notice_loop(node_list_t *node_list,
  ***************************************************************************/
 
 int     lpjs_chaperone_completion(int msg_fd, const char *hostname,
-				  const char *job_id, int status)
+				  const char *job_id, int status,
+				  size_t peak_rss)
 
 {
     char    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
@@ -448,9 +449,9 @@ int     lpjs_chaperone_completion(int msg_fd, const char *hostname,
     /* Send job completion message to dispatchd */
     // FIXME: Send collected stats: rss, user time, sys time,
     // elapsed time, etc.
-    snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%s %s %d\n",
+    snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%s %s %d %zu\n",
 	     LPJS_DISPATCHD_REQUEST_JOB_COMPLETE, hostname,
-	     job_id, status);
+	     job_id, status, peak_rss);
     if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != LPJS_MSG_SENT )
     {
 	lpjs_log("%s(): Failed to send message to dispatchd: %s",
@@ -477,7 +478,8 @@ int     lpjs_chaperone_completion(int msg_fd, const char *hostname,
 
 int     lpjs_chaperone_completion_loop(node_list_t *node_list,
 				    const char *hostname,
-				    const char *job_id, int status)
+				    const char *job_id, int status,
+				    size_t peak_rss)
 
 {
     int     msg_fd;
@@ -497,7 +499,7 @@ int     lpjs_chaperone_completion_loop(node_list_t *node_list,
 	else
 	{
 	    status = lpjs_chaperone_completion(msg_fd, hostname, job_id,
-						status);
+						status, peak_rss);
 	    if ( status != EX_OK )
 	    {
 		lpjs_log("%s(): Error: Message send failed.\n",
@@ -734,7 +736,9 @@ int     xt_get_family_rss(pid_t pid, size_t *rss)
 
     snprintf(ps_output, PATH_MAX + 1, "%d-ps-stdout", pid);
     // FIXME: Also collect other stats
-    // -o usertime= -o systime= -o %cpu= -o %mem=
+    // -o usertime= -o systime=
+    // keywords are not portable, e.g. no usertime= or systime= on Linux
+    // time= is formatted differently on BSD and Linux
     status = xt_spawnlp(P_WAIT, P_NOECHO, NULL, ps_output, NULL, "ps", "-p",
 	    xt_ltostrn(pid_str, pid, 10, LPJS_MAX_INT_DIGITS + 1),
 	    "-o", "rss=", NULL);

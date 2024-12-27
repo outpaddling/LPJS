@@ -1,7 +1,7 @@
 /* misc.c */
 int lpjs_log(const char *format, ...);
 int lpjs_debug(const char *format, ...);
-FILE *lpjs_log_output(const char *pathname);
+FILE *lpjs_log_output(const char *pathname, const char *mode);
 int xt_create_pid_file(const char *pid_path, FILE *log_stream);
 char *xt_str_localtime(const char *format);
 const char *xt_basename(const char *restrict str);

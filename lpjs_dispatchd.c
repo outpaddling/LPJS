@@ -58,6 +58,7 @@ int     main(int argc,char *argv[])
     // Must be global for signal handler
     // FIXME: Maybe use ucontext to pass these to handler
     extern FILE         *Log_stream;
+    extern FILE         *Job_history_stream;
     extern node_list_t  *Node_list;
 
     Node_list = node_list;
@@ -72,7 +73,7 @@ int     main(int argc,char *argv[])
 	if ( strcmp(argv[arg],"--daemonize") == 0 )
 	{
 	    // Redirect lpjs_log() output from stderr to file
-	    if ( (Log_stream = lpjs_log_output(LPJS_DISPATCHD_LOG)) == NULL )
+	    if ( (Log_stream = lpjs_log_output(LPJS_DISPATCHD_LOG, "w")) == NULL )
 		return EX_CANTCREAT;
     
 	    /*
@@ -91,7 +92,7 @@ int     main(int argc,char *argv[])
 	     *  Used by some platforms for services.
 	     */
 
-	    if ( (Log_stream = lpjs_log_output(LPJS_DISPATCHD_LOG)) == NULL )
+	    if ( (Log_stream = lpjs_log_output(LPJS_DISPATCHD_LOG, "w")) == NULL )
 		return EX_CANTCREAT;
 	}
 	else if ( strcmp(argv[arg], "--user") == 0 )
@@ -134,6 +135,7 @@ int     main(int argc,char *argv[])
 	    return EX_USAGE;
 	}
     }
+    Job_history_stream = lpjs_log_output(LPJS_JOB_HISTORY, "a");
     
     // Make log file writable to daemon owner after root creates it
     chown(LPJS_LOG_DIR, daemon_uid, daemon_gid);
@@ -344,11 +346,26 @@ int     lpjs_process_events(node_list_t *node_list)
  *  2021-09-28  Jason Bacon Begin
  ***************************************************************************/
 
-void    lpjs_log_job(const char *incoming_msg)
+void    lpjs_log_job(job_list_t *job_list, const char *hostname,
+		    unsigned long job_id, int exit_status, size_t peak_rss)
 
 {
-    // FIXME: Add extensive info about the job
-    lpjs_log(incoming_msg);
+    extern FILE *Job_history_stream;
+    job_t       *job;
+    size_t      index;
+    
+    if ( (index = job_list_find_job_id(job_list, job_id)) != JOB_LIST_NOT_FOUND )
+    {
+	if ( (job = job_list_get_jobs_ae(job_list, index)) != NULL )
+	{
+	    // pmem_per_proc is MiB and peak_rss if KiB
+	    fprintf(Job_history_stream, "%lu %d %zu %zu %s %s %s\n",
+		    job_id, exit_status, peak_rss,
+		    job_get_pmem_per_proc(job) * 1024,
+		    hostname, job_get_user_name(job), job_get_script_name(job));
+	    fflush(Job_history_stream);
+	}
+    }
 }
 
 
@@ -506,6 +523,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    chaperone_status,
 		    exit_status;
     ssize_t         bytes;
+    size_t          peak_rss;
     char            *munge_payload,
 		    *p,
 		    *hostname,
@@ -758,26 +776,25 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 			    __FUNCTION__);
 		    break;
 		}
-		if ( (items = sscanf(p, "%lu %d", &job_id,
-				     &exit_status)) != 2 )
+		if ( (items = sscanf(p, "%lu %d %zu", &job_id,
+				     &exit_status, &peak_rss)) != 3 )
 		{
-		    lpjs_log("%s(): Error: Got %d items reading job_id, procs, mem, status.\n",
+		    lpjs_log("%s(): Error: Got %d items reading job_id, procs, mem, status, peak_rss.\n",
 			    items);
 		    break;
 		}
-		lpjs_debug("%s(): job_id = %lu  status = %d\n",
-		    __FUNCTION__, job_id, exit_status);
+		lpjs_debug("%s(): job_id = %lu  status = %d  peak-RSS = %zu\n",
+		    __FUNCTION__, job_id, exit_status, peak_rss);
 		
 		adjust_resources(node_list, running_jobs, hostname, job_id, NODE_RESOURCE_RELEASE);
 		
 		/*
-		 *  FIXME:
 		 *      Write a completed job record to accounting log
 		 *      Note the job completion in the main log
+		 *      Do this before removing from running_jobs
 		 */
-		// lpjs_log_job();
+		lpjs_log_job(running_jobs, hostname, job_id, exit_status, peak_rss);
 		
-		// FIXME: This is duplicated in lpjs_cancel()
 		if ( (job = lpjs_remove_running_job(running_jobs,
 						    job_id)) != NULL )
 		    job_free(&job);
@@ -1199,9 +1216,6 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
 	lpjs_log("%s(): Error: Failed to send response.\n", __FUNCTION__);
 	// FIXME: Should we continue?
     }
-    
-    // FIXME: Log job queue event to the job log
-    // lpjs_log_job()
     
     // Bump job num after successful spool
     if ( (fd = open(job_id_path, O_WRONLY|O_CREAT|O_TRUNC, 0644)) == -1 )

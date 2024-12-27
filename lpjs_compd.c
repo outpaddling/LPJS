@@ -60,7 +60,7 @@ int     main (int argc, char *argv[])
     }
     else if ( (argc == 2) && (strcmp(argv[1],"--daemonize") == 0 ) )
     {
-	if ( (Log_stream = lpjs_log_output(LPJS_COMPD_LOG)) == NULL )
+	if ( (Log_stream = lpjs_log_output(LPJS_COMPD_LOG, "w")) == NULL )
 	    return EX_CANTCREAT;
 
 	/*
@@ -74,7 +74,7 @@ int     main (int argc, char *argv[])
     else if ( (argc == 2) && (strcmp(argv[1],"--log-output") == 0 ) )
     {
 	// FIXME: Log_stream should use close on exec (fork chaperone)
-	if ( (Log_stream = lpjs_log_output(LPJS_COMPD_LOG)) == NULL )
+	if ( (Log_stream = lpjs_log_output(LPJS_COMPD_LOG, "w")) == NULL )
 	    return EX_CANTCREAT;
     }
     else
