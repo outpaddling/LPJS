@@ -66,7 +66,7 @@ fi
 
 for file in $log_dir/*; do
     # job-history is viewed by the separate lpjs history command
-    if [ "$file" != job-history ]; then
+    if [ "$file" != $log_dir/job-history ]; then
 	cat $file
 	printf "===\nEnd of $file.\n"
 	if [ $(ls $log_dir | wc -w) -gt 1 ]; then
