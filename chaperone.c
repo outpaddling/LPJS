@@ -43,7 +43,7 @@ int     main (int argc, char *argv[])
 {
     int         status,
 		push_status;
-    unsigned    procs;
+    unsigned    procs_per_job;
     unsigned long   pmem_per_proc;
     // Terminates process if malloc() fails, no check required
     node_list_t *node_list = node_list_new();
@@ -96,7 +96,7 @@ int     main (int argc, char *argv[])
     setenv("LPJS_HOME_DIR", home_dir, 1);
     
     temp = getenv("LPJS_PROCS_PER_JOB");
-    procs = strtoul(temp, &end, 10);
+    procs_per_job = strtoul(temp, &end, 10);
     if ( *end != '\0' )
     {
 	fprintf(stderr, "Invalid LPJS_PROCS_PER_JOB: %s\n", temp);
@@ -117,7 +117,7 @@ int     main (int argc, char *argv[])
     gethostname(hostname, sysconf(_SC_HOST_NAME_MAX));
     getcwd(wd, PATH_MAX + 1 - 20);
     lpjs_log("%s(): Running %s in %s on %s with %u procs and %lu MiB.\n",
-	    __FUNCTION__, job_script_name, wd, hostname, procs, pmem_per_proc);
+	    __FUNCTION__, job_script_name, wd, hostname, procs_per_job, pmem_per_proc);
     
     if ( stat(shared_fs_marker, &st) != 0 )
     {
@@ -139,8 +139,8 @@ int     main (int argc, char *argv[])
 	// This will only come into play between total RSS samplings
 	// for the job, which happen every few seconds. Might help
 	// a little on occasion, though.
-	rss_limit.rlim_cur = pmem_per_proc * 1024 * 1024;
-	rss_limit.rlim_max = pmem_per_proc * 1024 * 1024;
+	rss_limit.rlim_cur = procs_per_job * pmem_per_proc * 1024 * 1024;
+	rss_limit.rlim_max = procs_per_job * pmem_per_proc * 1024 * 1024;
 	setrlimit(RLIMIT_RSS, &rss_limit);
 	
 	// Not yet working: Need to enforce total for process group
@@ -170,10 +170,10 @@ int     main (int argc, char *argv[])
     while ( xt_get_family_rss(Pid, &rss) == 0 )
     {
 	// pmem_per_proc is in MiB, rss in KiB
-	if ( rss > pmem_per_proc * 1024)
+	if ( rss > procs_per_job * pmem_per_proc * 1024)
 	{
 	    lpjs_log("%s(): Terminating job for resident memory violation: %zu KiB > %zu KiB\n",
-		    __FUNCTION__, rss, pmem_per_proc * 1024);
+		    __FUNCTION__, rss, procs_per_job * pmem_per_proc * 1024);
 	    // Termination of child processes should be enough
 	    // This chaperone process will detect the
 	    // exit using wait and report back to dispatchd
