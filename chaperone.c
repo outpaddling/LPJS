@@ -139,8 +139,8 @@ int     main (int argc, char *argv[])
 	// This will only come into play between total RSS samplings
 	// for the job, which happen every few seconds. Might help
 	// a little on occasion, though.
-	rss_limit.rlim_cur = procs_per_job * pmem_per_proc * 1024 * 1024;
-	rss_limit.rlim_max = procs_per_job * pmem_per_proc * 1024 * 1024;
+	rss_limit.rlim_cur = procs_per_job * pmem_per_proc * KIB_PER_MIB * BYTES_PER_KIB;
+	rss_limit.rlim_max = procs_per_job * pmem_per_proc * KIB_PER_MIB * BYTES_PER_KIB;
 	setrlimit(RLIMIT_RSS, &rss_limit);
 	
 	// Not yet working: Need to enforce total for process group
@@ -170,10 +170,10 @@ int     main (int argc, char *argv[])
     while ( xt_get_family_rss(Pid, &rss) == 0 )
     {
 	// pmem_per_proc is in MiB, rss in KiB
-	if ( rss > procs_per_job * pmem_per_proc * 1024)
+	if ( rss > procs_per_job * pmem_per_proc * KIB_PER_MIB)
 	{
 	    lpjs_log("%s(): Terminating job for resident memory violation: %zu KiB > %zu KiB\n",
-		    __FUNCTION__, rss, procs_per_job * pmem_per_proc * 1024);
+		    __FUNCTION__, rss, procs_per_job * pmem_per_proc * KIB_PER_MIB);
 	    // Termination of child processes should be enough
 	    // This chaperone process will detect the
 	    // exit using wait and report back to dispatchd
@@ -621,7 +621,7 @@ void    enforce_resource_limits(pid_t pid, size_t mem_per_proc)
 	    // Limit RSS to mem_per_proc MiB
 	    snprintf(rule, LPJS_RCTL_RULE_MAX + 1,
 		    "process:%d:memoryuse:deny=%zu",
-		    pid, mem_per_proc * 1024 * 1024);
+		    pid, mem_per_proc * KIB_PER_MIB * BYTES_PER_KIB);
 	    lpjs_log("%s(): Adding rctl rule: %s\n", __FUNCTION__, rule);
 	    if ( rctl_add_rule(rule, LPJS_RCTL_RULE_MAX + 1, NULL, 0) != 0 )
 		lpjs_log("%s(): rctl_add_rule() failed: %s\n",
