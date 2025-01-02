@@ -8,3 +8,5 @@ int lpjs_send_munge(int msg_fd, const char *msg, int (*close_function)(int));
 int lpjs_wait_close(int msg_fd);
 int lpjs_dispatchd_safe_close(int msg_fd);
 int lpjs_no_close(int fd);
+int lpjs_dispatchd_connect_loop(node_list_t *node_list);
+

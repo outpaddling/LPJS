@@ -835,7 +835,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
  *  2024-01-22  Jason Bacon Factor out from lpjs_process_events()
  ***************************************************************************/
 
-void    lpjs_process_compute_node_checkin(int msg_fd, const char *incoming_msg,
+void    lpjs_process_compute_node_checkin(int msg_fd,
+					  char *munge_payload,
 					  node_list_t *node_list,
 					  uid_t munge_uid, gid_t munge_gid)
 
@@ -843,6 +844,7 @@ void    lpjs_process_compute_node_checkin(int msg_fd, const char *incoming_msg,
     // Terminates process if malloc() fails, no check required
     node_t      *new_node = node_new();
     extern FILE *Log_stream;
+    char        *p, *compd_version;
     
     // FIXME: Check for duplicate checkins.  We should not get
     // a checkin request while one is already open
@@ -851,6 +853,24 @@ void    lpjs_process_compute_node_checkin(int msg_fd, const char *incoming_msg,
     
     lpjs_log("%s(): Checkin from munge_uid %d, munge_gid %d\n",
 	    __FUNCTION__, munge_uid, munge_gid);
+
+    /*
+     *  Validate version of connecting client.
+     *  Payload format = "%c%s %s", command, lpjs-version, content
+     *  FIXME: Just doing this for compd checkins as a test.
+     *  Add to other connections as needed.
+     */
+    p = munge_payload + 1;
+    compd_version = strsep(&p, " ");
+    lpjs_debug("compd_version = %s  dispatchd_version = %s\n",
+		compd_version, VERSION);
+    if ( strcmp(compd_version, VERSION) != 0 )
+    {
+	lpjs_log("%s(): Warning: Checkin request from node with wrong LPJS version: %s\n",
+		__FUNCTION__, compd_version);
+	lpjs_dispatchd_safe_close(msg_fd);
+	return; // FIXME: Return status?
+    }
     
     // FIXME: Record username of compd checkin.  If not root, then only
     // that user can submit jobs to the node.
@@ -863,7 +883,7 @@ void    lpjs_process_compute_node_checkin(int msg_fd, const char *incoming_msg,
     // node_recv_specs(new_node, msg_fd);
     
     // +1 to skip command code
-    node_str_to_specs(new_node, incoming_msg + 1);
+    node_str_to_specs(new_node, p);
     
     // Keep in sync with node_list_send_status()
     node_print_status_header(Log_stream);
@@ -898,6 +918,8 @@ void    lpjs_process_compute_node_checkin(int msg_fd, const char *incoming_msg,
 	node_list_update_compute(node_list, new_node);
     }
 }
+
+
 
 
 /***************************************************************************

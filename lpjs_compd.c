@@ -252,8 +252,8 @@ int     lpjs_compd_checkin(int compd_msg_fd, node_t *node)
     /* Need to send \0, so xt_dprintf() doesn't work here */
     node_detect_specs(node);
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1,
-	    "%c%s", LPJS_DISPATCHD_REQUEST_COMPD_CHECKIN,
-	    node_specs_to_str(node, specs, NODE_SPECS_LEN + 1));
+	    "%c%s %s", LPJS_DISPATCHD_REQUEST_COMPD_CHECKIN,
+	    VERSION, node_specs_to_str(node, specs, NODE_SPECS_LEN + 1));
     lpjs_log("%s(): Sending node specs:\n", __FUNCTION__);
     node_print_specs_header(Log_stream);
     fprintf(Log_stream, "%s\n", outgoing_msg + 1);
@@ -288,54 +288,6 @@ int     lpjs_compd_checkin(int compd_msg_fd, node_t *node)
     free(munge_payload);
     
     return EX_OK;
-}
-
-
-/***************************************************************************
- *  Use auto-c2man to generate a man page from this comment
- *
- *  Name:
- *      -
- *
- *  Library:
- *      #include <>
- *      -l
- *
- *  Description:
- *  
- *  Arguments:
- *
- *  Returns:
- *
- *  Examples:
- *
- *  Files:
- *
- *  Environment
- *
- *  See also:
- *
- *  History: 
- *  Date        Name        Modification
- *  2024-12-05  Jason Bacon Begin
- ***************************************************************************/
-
-int     lpjs_dispatchd_connect_loop(node_list_t *node_list)
-
-{
-    int     compd_msg_fd;
-    
-    // Retry socket connection indefinitely
-    while ( (compd_msg_fd = lpjs_connect_to_dispatchd(node_list)) == -1 )
-    {
-	lpjs_log("%s(): Error: Failed to connect to dispatchd: %s\n",
-		__FUNCTION__, strerror(errno));
-	lpjs_log("%s(): Retry in %d seconds...\n",
-		__FUNCTION__, LPJS_RETRY_TIME);
-	sleep(LPJS_RETRY_TIME);
-    }
-    
-    return compd_msg_fd;
 }
 
 
