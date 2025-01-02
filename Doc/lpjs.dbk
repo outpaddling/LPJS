@@ -96,7 +96,7 @@
         <para>
         The head node requires a configuration file, which in its simplest
         form merely lists the complete host names (FQDNs) of the head node
-        and each compute node, e.g.
+        and each compute node, one node per line, e.g.
         </para>
         
         <screen>
@@ -114,6 +114,22 @@ compute compute002.mydomain
         or provided by <glossterm>DNS</glossterm>
         (<glossterm>domain name service</glossterm>).
         </para>
+        
+        <para>
+        Hardware specs for compute nodes are automatically determined by
+        lpjs_compd and reported to lpjs_dispatchd.  They may be overridden
+        in the config file in order to reserve memory or processors for
+        non-LPJS use, e.g.:
+        </para>
+        
+        <screen>
+head    myhead.mydomain
+compute compute001.mydomain
+# compute-002 actually have 16GiB RAM and 8 processors, but
+# we limit LPJS to half of each
+compute compute002.mydomain pmem=8GiB procs=4
+...
+        </screen>
         
         <para>
         Each compute node requires the same type of configuration file, but

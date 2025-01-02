@@ -38,7 +38,7 @@ int     lpjs_load_config(node_list_t *node_list, int flags, FILE *error_stream)
     size_t  len;
     
     snprintf(config_file, PATH_MAX + 1, "%s/etc/lpjs/config", PREFIX);
-    // lpjs_log("%s(): Loading config file %s...\n", __FUNCTION__, config_file);
+    lpjs_debug("%s(): Loading config file %s...\n", __FUNCTION__, config_file);
     if ( (config_fp = fopen(config_file, "r")) == NULL )
     {
 	fprintf(error_stream, "Cannot open %s.\n", config_file);
@@ -71,7 +71,6 @@ int     lpjs_load_config(node_list_t *node_list, int flags, FILE *error_stream)
 	     *  Only dispatch daemon needs to query compute nodes for specs
 	     *  Most other programs just need the head node hostname
 	     */
-	    // puts("Reading compute nodes...");
 	    if ( delim != EOF )
 	    {
 		if ( flags == LPJS_CONFIG_ALL )
@@ -127,20 +126,45 @@ int     lpjs_load_compute_config(node_list_t *node_list, FILE *input_stream,
 			      const char *conf_file)
 
 {
-    int     delim;
-    char    field[LPJS_FIELD_MAX + 1];
-    size_t  len;
+    int     delim, procs;
+    char    field[LPJS_FIELD_MAX + 1],
+	    hostname[LPJS_FIELD_MAX + 1],
+	    *end;
+    size_t  len, pmem;
     node_t  *node;
     
-    while ( ((delim = xt_dsv_read_field(input_stream, field, LPJS_FIELD_MAX + 1,
-				     ",", &len)) != '\n') &&
-	    (delim != EOF) )
+    pmem = procs = 0;
+    while ( ((delim = xt_dsv_read_field(input_stream, field,
+					LPJS_FIELD_MAX + 1,
+					" \t", &len)) != EOF) )
     {
 	xt_strtrim(field, " ");
-	// Terminates process if malloc() fails, no check required
-	node = node_new();
-	node_set_hostname(node, strdup(field));
-	node_list_add_compute_node(node_list, node);
+	lpjs_debug("%s(): field = %s, delim = %d\n", __FUNCTION__, field, delim);
+	if ( memcmp(field, "pmem=", 5) ==0 )
+	{
+	    pmem = lpjs_parse_phys_MiB(field + 5);
+	    if ( pmem == 0 )
+	    {
+		lpjs_log("%s(): pmem specifier '%s':\n", __FUNCTION__, field);
+		lpjs_log("%s(): Requires a decimal number followed by MB, MiB, GB, or GiB.\n", __FUNCTION__);
+		exit(EX_DATAERR);
+	    }
+	    lpjs_debug("%s(): pmem override = %zu\n", __FUNCTION__, pmem);
+	}
+	else if ( memcmp(field, "procs=", 6) == 0 )
+	{
+	    procs = strtoul(field + 6, &end, 10);
+	    if ( *end != '\0' )
+	    {
+		lpjs_log("%s(): Invalid proc count: %s\n", __FUNCTION__, field);
+		exit(EX_DATAERR);
+	    }
+	    lpjs_debug("%s(): procs override = %zu\n", __FUNCTION__, pmem);
+	}
+	else
+	    strlcpy(hostname, field, LPJS_FIELD_MAX + 1);
+	if ( delim == '\n' )
+	    break;
     }
     if ( delim == EOF )
     {
@@ -149,13 +173,14 @@ int     lpjs_load_compute_config(node_list_t *node_list, FILE *input_stream,
 	exit(EX_DATAERR);
     }
     
-    // Add last node read by while condition
-    xt_strtrim(field, " ");
     // Terminates process if malloc() fails, no check required
     node = node_new();
-    node_set_hostname(node, strdup(field));
+    if ( pmem != 0 )
+	node_set_phys_MiB(node, pmem);
+    if ( procs != 0 )
+	node_set_procs(node, procs);
+    node_set_hostname(node, strdup(hostname));
     node_list_add_compute_node(node_list, node);
-    
+
     return 0;   // NL_OK?
 }
-

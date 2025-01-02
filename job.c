@@ -341,20 +341,8 @@ int     job_parse_script(job_t *job, const char *script_name)
 		}
 		else if ( strcmp(var, "pmem-per-proc") == 0 )
 		{
-		    job->pmem_per_proc = strtoul(val, &end, 10);
-		    
-		    // Convert to MiB
-		    // Careful with the integer arithmetic, to avoid overflows
-		    // and 0 results
-		    if ( strcmp(end, "MB") == 0 )
-			job->pmem_per_proc = job->pmem_per_proc * LPJS_MB / LPJS_MiB;
-		    else if ( strcmp(end, "MiB") == 0 )
-			;
-		    else if ( strcmp(end, "GB") == 0 )
-			job->pmem_per_proc = job->pmem_per_proc * LPJS_GB / LPJS_MiB;
-		    else if ( strcmp(end, "GiB") == 0 )
-			job->pmem_per_proc = job->pmem_per_proc * LPJS_GiB / LPJS_MiB;
-		    else
+		    job->pmem_per_proc = lpjs_parse_phys_MiB(val);
+		    if ( job->pmem_per_proc == 0 )
 		    {
 			fprintf(stderr, "Error: #lpjs pmem-per-proc '%s':\n", val);
 			fprintf(stderr, "Requires a decimal number followed by MB, MiB, GB, or GiB.\n");

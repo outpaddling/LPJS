@@ -353,3 +353,56 @@ void    lpjs_job_log_dir(const char *log_parent, unsigned long job_id,
 	    log_parent, job_id);
 }
 
+
+/***************************************************************************
+ *  Use auto-c2man to generate a man page from this comment
+ *
+ *  Name:
+ *      -
+ *
+ *  Library:
+ *      #include <>
+ *      -l
+ *
+ *  Description:
+ *  
+ *  Arguments:
+ *
+ *  Returns:
+ *
+ *  Examples:
+ *
+ *  Files:
+ *
+ *  Environment
+ *
+ *  See also:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2025-01-02  Jason Bacon Begin
+ ***************************************************************************/
+
+size_t  lpjs_parse_phys_MiB(char *str)
+
+{
+    size_t  mem;
+    char    *end;
+    
+    mem = strtoul(str, &end, 10);
+    
+    // Convert to MiB
+    // Careful with the integer arithmetic, to avoid overflows and 0 results
+    if ( strcmp(end, "MB") == 0 )
+	mem = mem * LPJS_MB / LPJS_MiB;
+    else if ( strcmp(end, "MiB") == 0 )
+	;
+    else if ( strcmp(end, "GB") == 0 )
+	mem = mem * LPJS_GB / LPJS_MiB;
+    else if ( strcmp(end, "GiB") == 0 )
+	mem = mem * LPJS_GiB / LPJS_MiB;
+    else
+	mem = 0;   // Invalid input
+    
+    return mem;
+}

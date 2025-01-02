@@ -99,8 +99,12 @@ void    node_list_update_compute(node_list_t *node_list, node_t *node)
 	{
 	    // lpjs_debug("Updating compute node %zu %s\n", c, NODE_HOSTNAME(node_list->compute_nodes[c]));
 	    node_set_state(node_list->compute_nodes[c], "up");
-	    node_set_procs(node_list->compute_nodes[c], node_get_procs(node));
-	    node_set_phys_MiB(node_list->compute_nodes[c], node_get_phys_MiB(node));
+	    // procs and phys_MiB may have been set in config file
+	    // Don't overwrite them with auto-detected specs
+	    if ( node_get_procs(node_list->compute_nodes[c]) == 0 )
+		node_set_procs(node_list->compute_nodes[c], node_get_procs(node));
+	    if ( node_get_phys_MiB(node_list->compute_nodes[c]) == 0 )
+		node_set_phys_MiB(node_list->compute_nodes[c], node_get_phys_MiB(node));
 	    node_set_zfs(node_list->compute_nodes[c], node_get_zfs(node));
 	    node_set_os(node_list->compute_nodes[c], strdup(node_get_os(node)));
 	    node_set_arch(node_list->compute_nodes[c], strdup(node_get_arch(node)));
