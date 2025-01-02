@@ -1,6 +1,8 @@
 
 Now
 ---
+Distinguish wrong version vs no auth to compd
+
 Blacklist scripts that are canceled due to RSS violations
 until mem-per-proc is corrected
 
