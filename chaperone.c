@@ -352,7 +352,7 @@ int     lpjs_job_start_notice(int msg_fd,
 	lpjs_log("%s(): Error: Failed to receive auth message.\n", __FUNCTION__);
 	exit(EX_IOERR); // FIXME: Should we retry?
     }
-    else if ( strcmp(munge_payload, "Node authorized") != 0 )
+    else if ( strcmp(munge_payload, LPJS_NODE_AUTHORIZED_MSG) != 0 )
     {
 	lpjs_log("%s(): Error: This node is not authorized to connect.\n"
 		 "It must be added to the etc/lpjs/config on the head node.\n",

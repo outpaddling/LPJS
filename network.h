@@ -76,10 +76,13 @@ typedef enum
  *  LPJS and SLURM compute nodes must be mutually exclusive.  A node
  *  cannot be used by both.
  */
-#define LPJS_IP_TCP_PORT        (short)6818 // Need short for htons()
-#define LPJS_RETRY_TIME         5
-
-#define LPJS_MUNGE_CRED_VERIFIED     "MCD"
+#define LPJS_IP_TCP_PORT                (short)6818 // Need short for htons()
+#define LPJS_RETRY_TIME                 5
+#define LPJS_WRONG_VERSION_RETRY_TIME   60
+#define LPJS_MUNGE_CRED_VERIFIED_MSG    "MCD"
+#define LPJS_WRONG_VERSION_MSG          "Wrong LPJS version"
+#define LPJS_NODE_AUTHORIZED_MSG        "Node authorized"
+#define LPJS_NODE_NOT_AUTHORIZED_MSG    "Node not authorized"
 
 #ifndef _SYS_POLL_H_
 #include <sys/poll.h>

@@ -259,9 +259,12 @@ int     lpjs_compd_checkin(int compd_msg_fd, node_t *node)
     fprintf(Log_stream, "%s\n", outgoing_msg + 1);
     if ( lpjs_send_munge(compd_msg_fd, outgoing_msg, close) != LPJS_MSG_SENT )
     {
-	lpjs_log("%s(): Error: Failed to send checkin message to dispatchd: %s",
-		__FUNCTION__, strerror(errno));
 	close(compd_msg_fd);
+	lpjs_log("%s(): Error: Failed to send checkin message to dispatchd: %s\n",
+		__FUNCTION__, strerror(errno));
+	lpjs_log("%s(): Sleeping %d seconds...\n",
+		 __FUNCTION__, LPJS_RETRY_TIME);
+	sleep(LPJS_RETRY_TIME);
 	return EX_IOERR;
     }
     lpjs_log("%s(): Sent checkin request.\n", __FUNCTION__);
@@ -270,14 +273,28 @@ int     lpjs_compd_checkin(int compd_msg_fd, node_t *node)
     bytes = lpjs_recv_munge(compd_msg_fd, &munge_payload, 0, 0, &uid, &gid, close);
     if ( bytes < 1 )
     {
-	lpjs_log("%s(): Error: Failed to receve auth message.\n",
+	lpjs_log("%s(): Error: Unable to read response.\nExiting.\n",
 		__FUNCTION__);
 	exit(EX_IOERR); // FIXME: Should we retry?
     }
-    else if ( strcmp(munge_payload, "Node authorized") != 0 )
+    else if ( strcmp(munge_payload, LPJS_WRONG_VERSION_MSG) == 0 )
+    {
+	close(compd_msg_fd);
+	lpjs_log("%s(): Error: This node is running an incompatible LPJS version.\n",
+		 __FUNCTION__);
+	// Sleep a long time, since the only fix is an upgrade on one
+	// end or the other.
+	lpjs_log("%s(): Sleeping %d seconds...\n",
+		 __FUNCTION__, LPJS_WRONG_VERSION_RETRY_TIME);
+	sleep(LPJS_WRONG_VERSION_RETRY_TIME);
+	return EX_IOERR;
+    }
+    // FIXME: Assuming LPJS_NODE_NOT_AUTHORIZED_MSG here
+    else if ( strcmp(munge_payload, LPJS_NODE_AUTHORIZED_MSG) != 0 )
     {
 	lpjs_log("%s(): Error: This node is not authorized to connect.\n"
 		 "It must be added to the etc/lpjs/config on the head node.\n",
+		 "Exiting.\n",
 		 __FUNCTION__);
 	exit(EX_NOPERM);
     }
@@ -319,10 +336,6 @@ int     lpjs_compd_checkin_loop(node_list_t *node_list, node_t *node)
 	// In case failure is due to disconnect
 	close(compd_msg_fd);
 	compd_msg_fd = lpjs_dispatchd_connect_loop(node_list);
-	
-	lpjs_log("%s(): Error: compd checkin failed.  Retry in %d seconds...\n",
-		 __FUNCTION__, LPJS_RETRY_TIME);
-	sleep(LPJS_RETRY_TIME);
     }
     
     lpjs_log("%s(): Checkin successful.\n", __FUNCTION__);

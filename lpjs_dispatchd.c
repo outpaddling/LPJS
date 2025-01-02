@@ -748,7 +748,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	    case    LPJS_DISPATCHD_REQUEST_JOB_STARTED:
 		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_JOB_STARTED fd = %d\n",
 			__FUNCTION__, msg_fd);
-		lpjs_send_munge(msg_fd, "Node authorized",
+		lpjs_send_munge(msg_fd, LPJS_NODE_AUTHORIZED_MSG,
 				lpjs_wait_close);
 		// lpjs_debug("%s(): Auth sent.\n", __FUNCTION__);
 
@@ -859,6 +859,8 @@ void    lpjs_process_compute_node_checkin(int msg_fd,
      *  Payload format = "%c%s %s", command, lpjs-version, content
      *  FIXME: Just doing this for compd checkins as a test.
      *  Add to other connections as needed.
+     *  FIXME: Be less strict about version matching after development
+     *  slows and communication protocols are more stable.
      */
     p = munge_payload + 1;
     compd_version = strsep(&p, " ");
@@ -866,6 +868,7 @@ void    lpjs_process_compute_node_checkin(int msg_fd,
 		compd_version, VERSION);
     if ( strcmp(compd_version, VERSION) != 0 )
     {
+	lpjs_send_munge(msg_fd, LPJS_WRONG_VERSION_MSG, lpjs_dispatchd_safe_close);
 	lpjs_log("%s(): Warning: Checkin request from node with wrong LPJS version: %s\n",
 		__FUNCTION__, compd_version);
 	lpjs_dispatchd_safe_close(msg_fd);
@@ -904,13 +907,14 @@ void    lpjs_process_compute_node_checkin(int msg_fd,
     }
     if ( ! valid_node )
     {
+	lpjs_send_munge(msg_fd, LPJS_NODE_NOT_AUTHORIZED_MSG, lpjs_dispatchd_safe_close);
 	lpjs_log("%s(): Warning: Unauthorized checkin request from host %s.\n",
 		__FUNCTION__, node_get_hostname(new_node));
 	lpjs_dispatchd_safe_close(msg_fd);
     }
     else
     {
-	lpjs_send_munge(msg_fd, "Node authorized", lpjs_dispatchd_safe_close);
+	lpjs_send_munge(msg_fd, LPJS_NODE_AUTHORIZED_MSG, lpjs_dispatchd_safe_close);
 	node_set_msg_fd(new_node, msg_fd);
 	
 	// Nodes were added to node_list by lpjs_load_config()

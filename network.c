@@ -391,7 +391,7 @@ ssize_t lpjs_recv_munge(int msg_fd, char **payload, int flags, int timeout,
 	}
 	
 	// Acknolwedge successful receipt of message
-	lpjs_send(msg_fd, 0, LPJS_MUNGE_CRED_VERIFIED);
+	lpjs_send(msg_fd, 0, LPJS_MUNGE_CRED_VERIFIED_MSG);
 	return payload_len;
     }
 }
@@ -453,10 +453,10 @@ int     lpjs_send_munge(int msg_fd, const char *msg, int(*close_function)(int))
 		__FUNCTION__,msg_fd);
 	return LPJS_RECV_TIMEOUT;
     }
-    if ( (bytes < 1) || (strcmp(incoming_msg, LPJS_MUNGE_CRED_VERIFIED) != 0) )
+    if ( (bytes < 1) || (strcmp(incoming_msg, LPJS_MUNGE_CRED_VERIFIED_MSG) != 0) )
     {
 	lpjs_log("%s(): Warning: Expected %s, got %zd bytes on fd = %d.\n",
-		__FUNCTION__, LPJS_MUNGE_CRED_VERIFIED, bytes, msg_fd);
+		__FUNCTION__, LPJS_MUNGE_CRED_VERIFIED_MSG, bytes, msg_fd);
 	return LPJS_RECV_FAILED;
     }
     // lpjs_debug("%s(): Done.\n", __FUNCTION__);
