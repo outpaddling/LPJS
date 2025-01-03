@@ -19,12 +19,14 @@
  *  Avoid globals like the plague, but make an exception here so
  *  signal handlers can log messages.  All commands might use
  *  lpjs_log(), so Log_stream must be always be initialized in main().
+ *  Default linkage on Apple clang14 causes extern variables to be
+ *  undefined, unless they are initialized.
  */
-FILE        *Log_stream;
-FILE        *Job_history_stream;
-node_list_t *Node_list;
+FILE        *Log_stream = NULL;
+FILE        *Job_history_stream = NULL;
+node_list_t *Node_list = NULL;
 bool        Debug = true;   // FIXME: Control with --debug flag
-char        Pid_path[PATH_MAX + 1];
+char        Pid_path[PATH_MAX + 1] = "";
 
 /***************************************************************************
  *  Description:
