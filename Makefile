@@ -241,7 +241,12 @@ install: all
 	done
 	chmod a+rx ${DESTDIR}${LIBEXECDIR}/* ${DESTDIR}${LIBEXECDIR}/*/*
 	${INSTALL} -m 0644 ${LIB} ${DESTDIR}${PREFIX}/lib
-	${INSTALL} -m 0644 config.sample ${DESTDIR}${PREFIX}/etc/lpjs
+	# ${INSTALL} -m 0644 config.sample ${DESTDIR}${PREFIX}/etc/lpjs
+	# Generate 1-node cluster config file
+	${PRINTF} "head `hostname`\ncompute `hostname`\n" \
+	    > ${DESTDIR}${PREFIX}/etc/lpjs/config.sample
+	${PRINTF} "# To limit resource use:\n# compute `hostname` pmem=2GiB procs=2\n" \
+	    >> ${DESTDIR}${PREFIX}/etc/lpjs/config.sample
 	for f in Man/*.1; do \
 	    ${SED} -e "s|%%PREFIX%%|`realpath ${PREFIX}`|g" $${f} > \
 		${DESTDIR}${MANDIR}/man1/`basename $${f}`; \
