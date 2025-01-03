@@ -222,7 +222,7 @@ fi
 while true
 do
     clear
-    /home/bacon/Pkgsrc/pkg/libexec/lpjs/banner
+    /usr/local/libexec/lpjs/banner
     cat << EOM
 
 1.. Start munged (required by both dispatchd and compd)
