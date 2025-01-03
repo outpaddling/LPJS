@@ -1,0 +1,34 @@
+#!/bin/sh -e
+
+hostname=$(hostname)
+printf "hostname: $hostname\n"
+
+hosts_ip=$(awk -v hostname=$(hostname) '$2 == hostname { print $1 }' /etc/hosts)
+printf "\nIP from /etc/hosts: $hosts_ip\n"
+
+printf "\nChecking active IPs...\n"
+if [ $(uname) = Linux ]; then
+    ips=""
+else
+    ips=$(ifconfig | awk '$1 == "inet" { print $2 }')
+fi
+hosts_ok=no
+for ip in $ips; do
+    printf "$ip:\n"
+    if [ $ip = $hosts_ip ]; then
+	hosts_ok=yes
+	printf "/etc/hosts matches $ip.\n"
+	break
+    fi
+    
+    # Check reverse DNS
+    host $ip
+    if host $ip | fgrep $hostname; then
+	printf "Reverse DNS matches $ip.\n"
+	break
+    fi
+done
+if [ $hosts_ok = no ]; then
+    printf "Neither DNS nor /etc/hosts matches any active IP address.\n"
+    exit 1
+fi

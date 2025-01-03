@@ -78,6 +78,8 @@ fi
 CONF_FILE=/usr/local/etc/lpjs/config
 : ${EDITOR:=vi}
 
+# FIXME: Verify that IP in /etc/hosts is correct
+# FIXME: Can't edit /etc/hosts from non-privileged install
 while ! host $(hostname) && ! fgrep -w $(hostname) /etc/hosts; do
     cat << EOM
 

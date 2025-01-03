@@ -1,6 +1,8 @@
 
 Now
 ---
+Add hostname resolution check to all admin scripts
+
 Blacklist scripts that are canceled due to RSS violations
 until mem-per-proc is corrected
 
