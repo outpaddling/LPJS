@@ -180,6 +180,8 @@ EOM
 		;;
 	    esac
 	done
+	# Required for munge to start
+	chmod a+x $HOME
 	start_daemon munged $@
     fi
 }
@@ -218,11 +220,12 @@ if [ $# != 0 ]; then
 fi
 
 : ${EDITOR:=vi}
+config_file=/usr/local/etc/lpjs/config
 
 while true
 do
     clear
-    /usr/local/libexec/lpjs/banner
+    /Users/bacon/Pkgsrc/pkg/libexec/lpjs/banner
     cat << EOM
 
 1.. Start munged (required by both dispatchd and compd)
@@ -245,14 +248,33 @@ EOM
 	;;
     
     02)
+	printf "head $(hostname)\n" > $config_file
+	printf "Enter the names of authorized compute nodes, one per line.\n"
+	printf "Just press Enter after last compute node has been entered.\n"
+	compute_node='x'
+	while [ -n "$compute_node" ]; do
+	    printf "Complete hostname of compute node? "
+	    read compute_node
+	    if [ -n "$compute_node" ]; then
+		printf "compute $compute_node\n" >> $config_file
+	    fi
+	done
+	# $EDITOR $config_file
 	start_daemon lpjs_dispatchd
 	;;
     
     03)
+	printf "Hostname of headnode? "
+	read head_node
+	printf "head $head_node\n" > $config_file
+	# $EDITOR $config_file
 	start_daemon lpjs_compd
 	;;
 
     04)
+	printf "head $(hostname)\n" > $config_file
+	printf "compute $(hostname)\n" >> $config_file
+	# $EDITOR $config_file
 	munge_start background
 	start_daemon lpjs_dispatchd background
 	start_daemon lpjs_compd background

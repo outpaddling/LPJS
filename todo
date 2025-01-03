@@ -1,8 +1,6 @@
 
 Now
 ---
-Distinguish wrong version vs no auth to compd
-
 Blacklist scripts that are canceled due to RSS violations
 until mem-per-proc is corrected
 
@@ -39,8 +37,6 @@ Job dependencies
 
 Support real numbers for pmem, useful when using GB or GiB
 
-Log job stats in a separate accounting log
-
 MPI support
 
 Resource limits via rctl, cgroups, etc?
@@ -49,8 +45,6 @@ Submission parameter:
     vmem per proc
 
 Add #lpjs concurrent-job-limit
-
-Report peak resource use compared to specified
 
 Optional submission parameters
     has_command, where command is any program in the standard PATH on node
