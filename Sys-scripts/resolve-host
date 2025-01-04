@@ -8,7 +8,8 @@ printf "\nIP from /etc/hosts: $hosts_ip\n"
 
 printf "\nChecking active IPs...\n"
 if [ $(uname) = Linux ]; then
-    ips=""
+    ips=$(ip address | awk '$1 == "inet" { print $2 }')
+    ips=$(echo $ips | cut -d / -f 1)
 else
     ips=$(ifconfig | awk '$1 == "inet" { print $2 }')
 fi
