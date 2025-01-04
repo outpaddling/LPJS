@@ -1170,9 +1170,14 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
     
     lpjs_log("%s(): Spooling %s...\n", __FUNCTION__, job_get_script_name(job));
     
+    lpjs_debug("%s(): Checking %s/next-job...\n", __FUNCTION__, LPJS_SPOOL_DIR);
     snprintf(job_id_path, PATH_MAX + 1, "%s/next-job", LPJS_SPOOL_DIR);
     if ( (fd = open(job_id_path, O_RDONLY)) == -1 )
+    {
+	lpjs_log("%s(): Cannot open %s/next-job: %s\n", __FUNCTION__,
+		strerror(errno));
 	next_job_id = 1;
+    }
     else
     {
 	bytes = read(fd, job_id_buff, LPJS_MAX_INT_DIGITS + 1);
