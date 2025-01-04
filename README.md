@@ -38,9 +38,10 @@ systems running identical versions of numerous software applications.
 
 ## Status
 
-LPJS is basically functional for simple shared-memory multiprocessing
-jobs and job arrays.  Error handling still needs a lot of work, but
-correct batch scripts running on reliable hardware should generally
+LPJS is working reliably on our FreeBSD clusters for simple shared-memory
+multiprocessing jobs and job arrays.
+Proper handling of network communication errors still needs a lot of work,
+but correct batch scripts running on reliable hardware should generally
 work fine at this stage.
 
 Support for unreliable
