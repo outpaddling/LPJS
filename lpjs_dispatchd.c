@@ -1175,7 +1175,7 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
     if ( (fd = open(job_id_path, O_RDONLY)) == -1 )
     {
 	lpjs_log("%s(): Cannot open %s/next-job: %s\n", __FUNCTION__,
-		strerror(errno));
+		LPJS_SPOOL_DIR, strerror(errno));
 	next_job_id = 1;
     }
     else
