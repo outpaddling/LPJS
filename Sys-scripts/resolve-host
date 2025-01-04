@@ -14,8 +14,7 @@ else
 fi
 hosts_ok=no
 for ip in $ips; do
-    printf "$ip:\n"
-    if [ $ip = $hosts_ip ]; then
+    if [ $ip = "$hosts_ip" ]; then
 	hosts_ok=yes
 	printf "/etc/hosts matches $ip.\n"
 	break
@@ -23,12 +22,13 @@ for ip in $ips; do
     
     # Check reverse DNS
     host $ip
-    if host $ip | fgrep $hostname; then
-	printf "Reverse DNS matches $ip.\n"
+    if host $hostname | fgrep $ip; then
+	printf "DNS matches $ip.\n"
+	hosts_ok=yes
 	break
     fi
 done
-if [ $hosts_ok = no ]; then
+if [ $hosts_ok != yes ]; then
     printf "Neither DNS nor /etc/hosts matches any active IP address.\n"
     exit 1
 fi
