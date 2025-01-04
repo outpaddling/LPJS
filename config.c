@@ -38,7 +38,6 @@ int     lpjs_load_config(node_list_t *node_list, int flags, FILE *error_stream)
     size_t  len;
     
     snprintf(config_file, PATH_MAX + 1, "%s/etc/lpjs/config", PREFIX);
-    lpjs_debug("%s(): Loading config file %s...\n", __FUNCTION__, config_file);
     if ( (config_fp = fopen(config_file, "r")) == NULL )
     {
 	fprintf(error_stream, "Cannot open %s.\n", config_file);
