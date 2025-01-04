@@ -1,7 +1,8 @@
 
 Now
 ---
-Add hostname resolution check to all admin scripts
+Reserve some RAM for the OS and other apps on 1-node clusters
+    Requires platform-specific RAM detection
 
 Blacklist scripts that are canceled due to RSS violations
 until mem-per-proc is corrected
@@ -35,6 +36,8 @@ manually code file transfers
 
 Later
 -----
+Add hostname resolution check to all admin scripts
+
 Job dependencies
 
 Support real numbers for pmem, useful when using GB or GiB
