@@ -248,6 +248,7 @@ EOM
 	;;
     
     02)
+	# FIXME: Check routability with lpjs/resolve-host
 	printf "head $(hostname)\n" > $config_file
 	printf "Enter the names of authorized compute nodes, one per line.\n"
 	printf "Just press Enter after last compute node has been entered.\n"
@@ -272,7 +273,12 @@ EOM
 	;;
 
     04)
-	printf "head $(hostname)\n" > $config_file
+	# Use localhost for head node in case hostname is not routable
+	# and there's nothing the user can do about it.  This may be
+	# the case for institutionally managed computers.
+	# lpjs_compd reports it's hostname on checkin, so that must
+	# be used for the compute node for authorization.
+	printf "head localhost\n" > $config_file
 	printf "compute $(hostname)\n" >> $config_file
 	# $EDITOR $config_file
 	munge_start background
