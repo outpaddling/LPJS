@@ -1185,7 +1185,8 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
 	sscanf(job_id_buff, "%lu", &next_job_id);
 	close(fd);
     }
-    
+    lpjs_debug("%s(): Selected job ID %lu\n", __FUNCTION__, next_job_id);
+
     job_set_job_id(job, next_job_id);
     job_set_array_index(job, job_array_index);
     
@@ -1215,6 +1216,7 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
 	return LPJS_WRITE_FAILED;
     }
     close(fd);
+    lpjs_debug("%s(): Copied script to %s.\n", __FUNCTION__, script_path);
     
     /*
      *  Write basic job specs to a file for the dispatcher
@@ -1236,6 +1238,7 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
 	return LPJS_WRITE_FAILED;
     }
     fclose(fp);
+    lpjs_debug("%s(): Wrote job specs to %s.\n", __FUNCTION__, specs_path);
     
     // Back to submit command for terminal output
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX, "Spooled job %lu to %s.\n",
@@ -1246,6 +1249,7 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
 	lpjs_log("%s(): Error: Failed to send response.\n", __FUNCTION__);
 	// FIXME: Should we continue?
     }
+    lpjs_debug("%s(): Send message %s back to user.\n", __FUNCTION__, outgoing_msg);
     
     // Bump job num after successful spool
     if ( (fd = open(job_id_path, O_WRONLY|O_CREAT|O_TRUNC, 0644)) == -1 )
