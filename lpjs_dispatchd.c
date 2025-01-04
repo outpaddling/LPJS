@@ -163,7 +163,17 @@ int     main(int argc,char *argv[])
     chown(LPJS_PENDING_DIR, daemon_uid, daemon_gid);
     chown(LPJS_RUNNING_DIR, daemon_uid, daemon_gid);
     chown(LPJS_SPOOL_DIR "/next-job", daemon_uid, daemon_gid);
-
+    
+    // Just in case somebody borked perms
+    chmod(PREFIX "/var", 0755);
+    chmod(LPJS_PENDING_DIR, 0755);
+    chmod(LPJS_RUNNING_DIR, 0755);
+    chmod(LPJS_SPOOL_DIR, 0755);
+    chmod(LPJS_SPOOL_DIR "/next-job", 0755);
+    chmod(LPJS_COMPD_LOG, 0755);
+    chmod(LPJS_DISPATCHD_LOG, 0755);
+    chmod(LPJS_JOB_HISTORY, 0755);
+    
 /*
  *  systemd needs a pid file for forking daemons.  BSD systems don't
  *  require this for rc scripts, so we don't bother with it.  PIDs
