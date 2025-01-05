@@ -186,9 +186,9 @@ if [ -e /usr/local/etc/rc.d/munged ]; then
     auto-enable-service munged $0
 elif [ $(uname) = Darwin ]; then
     # On macOS, we must install the plist file ourselves
-    plist=/usr/local/share/munge/Launchd/org.pkgsrc.munged.plist
+    plist=/usr/local/share/munge/Launchd/org.pkgsrc.munge.plist
     if [ -e $plist ]; then
-	auto-enable-service -s $plist org.pkgsrc.munged lpjs-admin
+	auto-enable-service -s $plist org.pkgsrc.munge lpjs-admin
     fi
 elif [ $(uname) = Linux ]; then
     # On Linux, systemctl creates a link to the service file

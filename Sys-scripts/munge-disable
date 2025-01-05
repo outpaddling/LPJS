@@ -56,16 +56,13 @@ fi
 
 # FIXME: Make sure pkgsrc service is called "munged"?
 if [ -e /usr/local/etc/rc.d/munged ]; then
-    # Dragonfly, FreeBSD
+    # Dragonfly, FreeBSD (service script is munged, not munge)
     auto-disable-service munged
 elif [ $(uname) = Darwin ]; then
-    # On macOS, we must install the plist file ourselves
-    plist=/usr/local/share/munge/Launchd/org.pkgsrc.munged.plist
-    if [ -e $plist ]; then
-	auto-disable-service -s $plist org.pkgsrc.munged
-    fi
+    auto-disable-service munge
 elif [ $(uname) = Linux ]; then
     # On Linux, systemctl creates a link to the service file
+    # FIXME: Check other directories, not just pkgsrc
     script=/usr/local/lib/systemd/system/munge.service
     if [ -e $script ]; then
 	auto-disable-service -s $script munge

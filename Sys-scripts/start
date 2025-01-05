@@ -67,8 +67,8 @@ fi
 
 if [ $(uname) = Darwin ]; then
     printf "Restarting munge...\n"
-    launchctl bootout system /Library/LaunchDaemons/org.pkgsrc.munged.plist
-    launchctl bootstrap system /Library/LaunchDaemons/org.pkgsrc.munged.plist
+    launchctl bootout system /Library/LaunchDaemons/org.pkgsrc.munge.plist
+    launchctl bootstrap system /Library/LaunchDaemons/org.pkgsrc.munge.plist
     
     if [ -e /Library/LaunchDaemons/org.pkgsrc.lpjs_dispatchd.plist ]; then
 	printf "Starting lpjs_dispatchd...\n"
