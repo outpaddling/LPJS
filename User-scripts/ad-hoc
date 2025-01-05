@@ -220,7 +220,7 @@ if [ $# != 0 ]; then
 fi
 
 : ${EDITOR:=vi}
-config_file=/usr/local/etc/lpjs/config
+CONF_FILE=/usr/local/etc/lpjs/config
 
 while true
 do
@@ -249,7 +249,7 @@ EOM
     
     02)
 	# FIXME: Check routability with lpjs/resolve-host
-	printf "head $(hostname)\n" > $config_file
+	printf "head $(hostname)\n" > $CONF_FILE
 	printf "Enter the names of authorized compute nodes, one per line.\n"
 	printf "Just press Enter after last compute node has been entered.\n"
 	compute_node='x'
@@ -257,18 +257,18 @@ EOM
 	    printf "Complete hostname of compute node? "
 	    read compute_node
 	    if [ -n "$compute_node" ]; then
-		printf "compute $compute_node\n" >> $config_file
+		printf "compute $compute_node\n" >> $CONF_FILE
 	    fi
 	done
-	# $EDITOR $config_file
+	# $EDITOR $CONF_FILE
 	start_daemon lpjs_dispatchd
 	;;
     
     03)
 	printf "Hostname of headnode? "
 	read head_node
-	printf "head $head_node\n" > $config_file
-	# $EDITOR $config_file
+	printf "head $head_node\n" > $CONF_FILE
+	# $EDITOR $CONF_FILE
 	start_daemon lpjs_compd
 	;;
 
@@ -287,9 +287,11 @@ EOM
 	# the case for institutionally managed computers.
 	# lpjs_compd reports it's hostname on checkin, so that must
 	# be used for the compute node for authorization.
-	printf "head localhost\n" > $config_file
-	printf "compute $(hostname) pmem=${pmem}MiB\n" >> $config_file
-	# $EDITOR $config_file
+	cat << EOM > $CONF_FILE
+head    localhost
+compute $(hostname) pmem=${pmem}MiB
+EOM
+	# $EDITOR $CONF_FILE
 	munge_start background
 	start_daemon lpjs_dispatchd background
 	start_daemon lpjs_compd background

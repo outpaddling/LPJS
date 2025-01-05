@@ -130,9 +130,19 @@ EOM
     read resp
     case 0$resp in
     01)
+	# Reserve 1 GiB or half of physical memory, whichever is less,
+	# for OS and other apps.  Convert to MiB.
+	pmem=$(auto-physmem)
+	pmem=$(($pmem / 1024 / 1024))
+	if [ $pmem -lt 2048 ]; then
+	    pmem=$(($pmem / 2))
+	else
+	    pmem=$((pmem - 1024))
+	fi
+
 	cat << EOM > $CONF_FILE
-head    $(hostname)
-compute $(hostname)
+head    localhost
+compute $(hostname) pmem=${pmem}MiB
 EOM
 	chmod 644 $CONF_FILE
 	chown lpjs:lpjs $CONF_FILE
