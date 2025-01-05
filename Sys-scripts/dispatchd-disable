@@ -34,3 +34,4 @@
 
 # Don't disable munge, let that be done separately
 auto-disable-service lpjs_dispatchd
+rm -i /usr/local/var/log/lpjs/dispatchd

@@ -151,9 +151,6 @@ EOM
 	    printf "Enter password for $user_name@$host_name:\n"
 	    ssh -p $tcp_port $user_name@$host_name rm -f /tmp/$user_name.key
 	    set -e
-	    if chown ${munge_user}:$munge_group $munge_key && chmod 600 $munge_key; then
-		valid=yes
-	    fi
 	    ;;
 	
 	03)
@@ -161,9 +158,6 @@ EOM
 	    printf "Ensure that it it not readable to ordinary users at any time.\n"
 	    pause
 	    valid=yes
-	    if chown ${munge_user}:$munge_group $munge_key && chmod 600 $munge_key; then
-		valid=yes
-	    fi
 	    ;;
 	
 	*)
@@ -173,6 +167,10 @@ EOM
 	esac
 	pause
     done
+fi
+
+if chown ${munge_user}:$munge_group $munge_key && chmod 600 $munge_key; then
+    valid=yes
 fi
 
 printf "Permissions should be -rw-------\n"

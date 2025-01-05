@@ -12,10 +12,7 @@ Check munge uid of all messages to prevent spoof attacks
 
 When Mac goes down due to full disk access, resource remain allocated
     Same for timeouts?
-
-dispatchd-disable
-    rm -f /Library/LaunchDaemons/org.pkgsrc.lpjs_dispatchd.plist
-    rm -i prefix/var/log/lpjs/dispatchd
+    Still an issue?
 
 dispatchd hangs while compute node is shutting down
     Make sure all socket reads have a timeout
