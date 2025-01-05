@@ -442,16 +442,17 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_buff,
 	return EX_NOPERM;
     }
     
+    // Oddly, chdir() indicates success, but getcwd() fails on macOS
+    // due to lpjs_compd not having full disk access permission
     if ( getcwd(temp_wd, PATH_MAX + 1 - 20) == NULL )
     {
 	lpjs_log("%s(): Error: getcwd() failed: errno = %s\n",
 		__FUNCTION__, strerror(errno));
-	// Odd that chdir() indicates success, but getcwd() fails
 	#ifdef __APPLE__
 	lpjs_log("You may need to grant lpjs_compd full disk access in\n"
 		 "System Preferences -> Privacy and Security.  This access\n"
 		 "will be revoked when LPJS is updated.  If you find\n"
-		 "that you might repeatedly reset it, please report the\n"
+		 "that you have to repeatedly reset it, please report the\n"
 		 "problem to Apple via the developer feedback assistant.\n"
 		 "They need to hear from multiple people before they will\n"
 		 "take the issue seriously.\n");
