@@ -273,13 +273,22 @@ EOM
 	;;
 
     04)
+	# Reserve 1 GiB or half of physical memory, whichever is less,
+	# for OS and other apps.  Convert to MiB.
+	pmem=$(auto-physmem)
+	pmem=$(($pmem / 1024 / 1024))
+	if [ $pmem -lt 2048 ]; then
+	    pmem=$(($pmem / 2))
+	else
+	    pmem=$((pmem - 1024))
+	fi
 	# Use localhost for head node in case hostname is not routable
 	# and there's nothing the user can do about it.  This may be
 	# the case for institutionally managed computers.
 	# lpjs_compd reports it's hostname on checkin, so that must
 	# be used for the compute node for authorization.
 	printf "head localhost\n" > $config_file
-	printf "compute $(hostname)\n" >> $config_file
+	printf "compute $(hostname) pmem=$pmem\n" >> $config_file
 	# $EDITOR $config_file
 	munge_start background
 	start_daemon lpjs_dispatchd background

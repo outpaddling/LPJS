@@ -1,9 +1,6 @@
 
 Now
 ---
-Reserve some RAM for the OS and other apps on 1-node clusters
-    Requires platform-specific RAM detection
-
 Blacklist scripts that are canceled due to RSS violations
 until mem-per-proc is corrected
 
