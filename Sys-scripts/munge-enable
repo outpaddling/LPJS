@@ -15,69 +15,19 @@ pause()
 
 
 ##########################################################################
-#   Title:
-#       lpjs-munge-enable
-#
-#   Section:
-#       8
-#
-#   Synopsis:
-#       lpjs munge-enable
-#       
-#   Description:
-#       lpjs munge-enable is a convenience script for enabling the
-#       munge authentication service.  This process is dependent on
-#       the operating system and the package manager used to install
-#       munge.  lpjs munge-enable eliminates the need to deal with
-#       these differences or to type in lengthy pathnames.
-#
-#       lpjs munge-enable is not generally run directly by the user,
-#       but is used by lpjs-compd-enable(8) and lpjs-dispatchd-enable(8).
+#   Function description:
 #       
 #   Arguments:
-#       None
 #       
 #   Returns:
-#       0 upon success, non-zero error codes otherwise
-#
-#   See also:
-#       lpjs-admin(8), lpjs-compd-enable(8), lpjs-dispatchd-enable(8)
 #       
 #   History:
 #   Date        Name        Modification
-#   2023-05-28  J Bacon     Begin
+#   2025-01-05  System AdministratorBegin
 ##########################################################################
 
-# Prevent user from running a Trojan as root in the case their account
-# was compromised
-absolute="$(which $0)"
-# Don't count on -e being set at this point
-if ! auto-file-secure "$absolute"; then
-    exit 1
-fi
-
-if ! auto-root-check $0; then
-    printf "Root "
-    # exec quotes '$absolute --flag', causing usage error
-    # Assigning to cmd works around the problem
-    cmd="$absolute $@"
-    exec su -m root -c "$cmd"
-fi
-
-munge_etc=/usr/local/etc/munge
-munge_key=$munge_etc/munge.key
-if [ $(uname) = Linux ]; then
-    munge_user=$(stat -c '%U' $munge_etc)
-    munge_group=$(stat -c '%G' $munge_etc)
-else
-    munge_user=$(stat -f '%Su' $munge_etc)
-    munge_group=$(stat -f '%Sg' $munge_etc)
-fi
-
-if [ -e $munge_key ]; then
-    printf "$munge_key already exists.  Update it if necessary.\n"
-    pause
-else
+install_munge_key()
+{
     valid=no
     while [ $valid != yes ]; do
 	cat << EOM
@@ -167,6 +117,78 @@ EOM
 	esac
 	pause
     done
+}
+
+
+##########################################################################
+#   Title:
+#       lpjs-munge-enable
+#
+#   Section:
+#       8
+#
+#   Synopsis:
+#       lpjs munge-enable
+#       
+#   Description:
+#       lpjs munge-enable is a convenience script for enabling the
+#       munge authentication service.  This process is dependent on
+#       the operating system and the package manager used to install
+#       munge.  lpjs munge-enable eliminates the need to deal with
+#       these differences or to type in lengthy pathnames.
+#
+#       lpjs munge-enable is not generally run directly by the user,
+#       but is used by lpjs-compd-enable(8) and lpjs-dispatchd-enable(8).
+#       
+#   Arguments:
+#       None
+#       
+#   Returns:
+#       0 upon success, non-zero error codes otherwise
+#
+#   See also:
+#       lpjs-admin(8), lpjs-compd-enable(8), lpjs-dispatchd-enable(8)
+#       
+#   History:
+#   Date        Name        Modification
+#   2023-05-28  J Bacon     Begin
+##########################################################################
+
+# Prevent user from running a Trojan as root in the case their account
+# was compromised
+absolute="$(which $0)"
+# Don't count on -e being set at this point
+if ! auto-file-secure "$absolute"; then
+    exit 1
+fi
+
+if ! auto-root-check $0; then
+    printf "Root "
+    # exec quotes '$absolute --flag', causing usage error
+    # Assigning to cmd works around the problem
+    cmd="$absolute $@"
+    exec su -m root -c "$cmd"
+fi
+
+munge_etc=/usr/local/etc/munge
+munge_key=$munge_etc/munge.key
+if [ $(uname) = Linux ]; then
+    munge_user=$(stat -c '%U' $munge_etc)
+    munge_group=$(stat -c '%G' $munge_etc)
+else
+    munge_user=$(stat -f '%Su' $munge_etc)
+    munge_group=$(stat -f '%Sg' $munge_etc)
+fi
+
+if [ -e $munge_key ]; then
+    printf "$munge_key already exists.  Update replace it? y/[n] "
+    read replace_munge
+    if [ 0"$replace_munge" = 0y ]; then
+	install_munge_key
+    fi
+    pause
+else
+    install_munge_key
 fi
 
 if chown ${munge_user}:$munge_group $munge_key && chmod 600 $munge_key; then

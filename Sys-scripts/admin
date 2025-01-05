@@ -203,6 +203,11 @@ EOM
 	;;
 
     05)
+	printf "Change head node? y/[n] "
+	read change_head
+	if [ 0"$change_head" = 0y ]; then
+	    $EDITOR $CONF_FILE
+	fi
 	printf '\nRunning "lpjs compd-enable"...\n\n'
 	/usr/local/libexec/lpjs/SMI/compd-enable
 	pause
