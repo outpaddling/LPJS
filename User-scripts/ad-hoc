@@ -288,7 +288,7 @@ EOM
 	# lpjs_compd reports it's hostname on checkin, so that must
 	# be used for the compute node for authorization.
 	printf "head localhost\n" > $config_file
-	printf "compute $(hostname) pmem=$pmem\n" >> $config_file
+	printf "compute $(hostname) pmem=${pmem}MiB\n" >> $config_file
 	# $EDITOR $config_file
 	munge_start background
 	start_daemon lpjs_dispatchd background
