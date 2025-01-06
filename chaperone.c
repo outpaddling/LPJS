@@ -148,7 +148,9 @@ int     main (int argc, char *argv[])
 	// RSS limit are preferentially paged out when memory is tight.
 	// This will only come into play between total RSS samplings
 	// for the job, which happen every few seconds. Might help
-	// a little on occasion, though.
+	// a little on occasion, though.  Also, this is limiting individual
+	// processes to the total for the job (which may run multiple
+	// processes in a pipeline), so it's only sometimes useful.
 	rss_limit.rlim_cur = procs_per_job * pmem_per_proc * KIB_PER_MIB * BYTES_PER_KIB;
 	rss_limit.rlim_max = procs_per_job * pmem_per_proc * KIB_PER_MIB * BYTES_PER_KIB;
 	setrlimit(RLIMIT_RSS, &rss_limit);
