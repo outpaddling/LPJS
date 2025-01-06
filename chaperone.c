@@ -195,7 +195,7 @@ int     main (int argc, char *argv[])
 	if ( rss > peak_rss )
 	{
 	    peak_rss = rss;
-	    lpjs_debug("%s(): Peak total job RSS = %zu\n", __FUNCTION__, rss);
+	    lpjs_debug("%s(): Peak total job RSS = %zu KiB\n", __FUNCTION__, rss);
 	}
 	sleep(5);   // FIXME: Make this tunable
     }
