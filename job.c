@@ -57,8 +57,6 @@ job_t   *job_new(void)
 void    job_init(job_t *job)
 
 {
-    char    cmd[LPJS_CMD_MAX + 1];
-    
     // FIXME: Check strdup() failure
     job->job_id = 0;
     job->array_index = 0;
@@ -77,9 +75,7 @@ void    job_init(job_t *job)
     job->compute_node = "TBD";  // For lpjs jobs output
     job->log_dir = NULL;
     // Default: No idea what input files are, but we need something
-    snprintf(cmd, LPJS_CMD_MAX + 1, "rsync -av %%h:%%d/Inputs->%lu .",
-	    job->array_index);
-    if ( (job->pull_command = strdup(cmd)) == NULL )
+    if ( (job->pull_command = strdup("rsync -av %h:%d/Inputs->%i .")) == NULL )
     {
 	lpjs_log("%s(): Error: strdup() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
@@ -320,7 +316,12 @@ int     job_parse_script(job_t *job, const char *script_name)
 		// FIXME: Use mallocing read function
 		while ( (c < LPJS_CMD_MAX) &&
 				((ch = getc(fp)) != '\n') && (ch != EOF) )
-		    job->pull_command[c++] = ch;
+		{
+		    if ( (ch != '"') || (c != 0) )
+			job->pull_command[c++] = ch;
+		}
+		if ( job->pull_command[c - 1] == '"' )
+		    --c;
 		job->pull_command[c] = '\0';
 	    }
 	    else if ( strcmp(var, "push-command") == 0 )
@@ -329,10 +330,16 @@ int     job_parse_script(job_t *job, const char *script_name)
 		
 		job->push_command = malloc(LPJS_CMD_MAX + 1);
 		c = 0;
-		// FIXME: Use mallocing read function
+		// Strip leading and trailing '"'
+		// FIXME: Use mallocing read function?
 		while ( (c < LPJS_CMD_MAX) &&
 				((ch = getc(fp)) != '\n') && (ch != EOF) )
-		    job->push_command[c++] = ch;
+		{
+		    if ( (ch != '"') || (c != 0) )
+			job->push_command[c++] = ch;
+		}
+		if ( job->push_command[c - 1] == '"' )
+		    --c;
 		job->push_command[c] = '\0';
 	    }
 	    else

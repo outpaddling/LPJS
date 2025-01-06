@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <sysexits.h>
 #include <errno.h>
+#include <ctype.h>          // isdigit()
 #include <fcntl.h>          // open()
 #include <sys/wait.h>       // FIXME: Replace wait() with active monitoring
 #include <signal.h>
@@ -123,10 +124,15 @@ int     main (int argc, char *argv[])
 			     PATH_MAX + 1);
     if ( stat(shared_fs_marker, &st) != 0 )
     {
+	lpjs_log("%s(): %s not found, attempting to pull input files.\n",
+		__FUNCTION__, shared_fs_marker);
 	pull_status = run_pull_command(wd);
 	lpjs_log("%s(): pull command exit status = %d\n", __FUNCTION__,
 		pull_status);
     }
+    else
+	lpjs_log("%s(): %s found, no need to pull input files.\n",
+		__FUNCTION__, shared_fs_marker);
     
     if ( (Pid = fork()) == 0 )
     {
@@ -205,10 +211,15 @@ int     main (int argc, char *argv[])
     // settings, if not shared
     if ( stat(shared_fs_marker, &st) != 0 )
     {
+	lpjs_log("%s(): %s not found, attempting to push output files.\n",
+		__FUNCTION__, shared_fs_marker);
 	push_status = run_push_command(wd);
 	lpjs_log("%s(): push command exit status = %d\n", __FUNCTION__,
 		push_status);
     }
+    else
+	lpjs_log("%s(): %s found, no need to push output files.\n",
+		__FUNCTION__, shared_fs_marker);
 
     lpjs_log("%s(): Info: Chaperone exiting with status %d...\n", __FUNCTION__, status);
     return status;
@@ -734,7 +745,14 @@ int     run_push_command(const char *wd)
     char    *sp,
 	    cmd[LPJS_CMD_MAX + 1];
     int     push_status;
+    struct stat st;
+    bool    temp_dir;
     extern FILE *Log_stream;
+    
+    if ( stat("lpjs-remove-me", &st) == 0 )
+	temp_dir = true;
+    else
+	temp_dir = false;
     
     chdir("..");    // Can't remove dir while in use
     
@@ -757,23 +775,14 @@ int     run_push_command(const char *wd)
     push_status = system(cmd);
     
     // Remove temporary working dir if successfully transferred
-    if ( push_status == 0 )
+    // FIXME: Check for lpjs-remove-me
+    if ( (push_status == 0) && temp_dir )
     {
 	lpjs_log("%s(): Removing temporary working dir...\n", __FUNCTION__);
 	// FIXME: Use xt_spawnlp()
+	// xt_spawnlp(P_WAIT, P_NOECHO, NULL, NULL, NULL, "rm", "-rf", wd, NULL);
 	snprintf(cmd, LPJS_CMD_MAX + 1, "rm -rf %s", wd);
 	system(cmd);    // Log is closed, no point checking status
-    }
-    else
-    {
-	// Mark this directory
-	// FIXME: Check time stamps on markers and remove them if expired
-	char    marker[PATH_MAX + 1];
-	int     fd;
-	
-	snprintf(marker, PATH_MAX + 1, "%s/lpjs-remove-me", wd);
-	if ( (fd = open(marker, O_WRONLY|O_CREAT, 0644)) != -1 )
-	    close(fd);
     }
     
     return push_status;
@@ -793,8 +802,11 @@ int     run_push_command(const char *wd)
 int     parse_transfer_cmd(const char *sp, char *cmd, const char *wd)
 
 {
-    size_t  c;
-    char    *submit_node, *submit_dir;
+    size_t          c, format_len;
+    unsigned long   int_index;
+    char            *submit_node, *submit_dir, *array_index,
+		    format[64], expanded_index[64], *end;
+    extern FILE     *Log_stream;
     
     c = 0;
     while ( (*sp != '\0') && (c < LPJS_CMD_MAX) )
@@ -802,7 +814,46 @@ int     parse_transfer_cmd(const char *sp, char *cmd, const char *wd)
 	if ( *sp == '%' )
 	{
 	    ++sp;
-	    switch(*sp)
+	    // Possible padded integer index, e.g. %02i
+	    if ( isdigit(*sp) )
+	    {
+		format[0] = '%';
+		for (format_len = 1; isdigit(*sp) && format_len < 64; )
+		    format[format_len++] = *sp++;
+		if ( *sp != 'i' )
+		{
+		    // False alarm, just copy the text
+		    format[format_len] = '\0';
+		    lpjs_log("%s(): Info: Treating unrecognized placeholder %s%c as literal text\n",
+			    __FUNCTION__, format, *sp);
+		    cmd[c] = '\0';
+		    strlcpy(cmd + c, format, LPJS_CMD_MAX + 1 - c);
+		    c += strlen(format);
+		}
+		else
+		{
+		    array_index = getenv("LPJS_ARRAY_INDEX");
+		    int_index = strtol(array_index, &end, 10);
+		    format[format_len] = '\0';
+		    strlcat(format, "lu", 64); // FIXME: Check success
+		    format_len += 2;
+		    if ( c + format_len + strlen(array_index) > LPJS_CMD_MAX )
+		    {
+			lpjs_log("%s(): Error: LPJS_PUSH_COMMAND longer than %u, aborting.\n",
+				__FUNCTION__, LPJS_CMD_MAX);
+			return EX_DATAERR;
+		    }
+		    if ( *end != '\0' )
+			lpjs_log("%s(): Bug: LPJS_ARRAY_INDEX %s is not an int.\n",
+				__FUNCTION__, array_index);
+		    snprintf(expanded_index, 64, format, int_index);
+		    cmd[c] = '\0';
+		    strlcat(cmd + c, expanded_index, LPJS_CMD_MAX + 1 - c);
+		    c += strlen(expanded_index);
+		    ++sp;
+		}
+	    }
+	    else switch(*sp)
 	    {
 		case    'w':
 		    if ( c + strlen(wd) > LPJS_CMD_MAX )
@@ -811,7 +862,7 @@ int     parse_transfer_cmd(const char *sp, char *cmd, const char *wd)
 				__FUNCTION__, LPJS_CMD_MAX);
 			return EX_DATAERR;
 		    }
-		    strlcpy(cmd + c, wd, LPJS_CMD_MAX + 1);
+		    strlcpy(cmd + c, wd, LPJS_CMD_MAX + 1 - c);
 		    c += strlen(wd);
 		    ++sp;
 		    break;
@@ -824,7 +875,7 @@ int     parse_transfer_cmd(const char *sp, char *cmd, const char *wd)
 				__FUNCTION__, LPJS_CMD_MAX);
 			return EX_DATAERR;
 		    }
-		    strlcpy(cmd + c, submit_node, LPJS_CMD_MAX + 1);
+		    strlcpy(cmd + c, submit_node, LPJS_CMD_MAX + 1 - c);
 		    c += strlen(submit_node);
 		    ++sp;
 		    break;
@@ -837,15 +888,28 @@ int     parse_transfer_cmd(const char *sp, char *cmd, const char *wd)
 				__FUNCTION__, LPJS_CMD_MAX);
 			return EX_DATAERR;
 		    }
-		    strlcpy(cmd + c, submit_dir, LPJS_CMD_MAX + 1);
+		    strlcpy(cmd + c, submit_dir, LPJS_CMD_MAX + 1 - c);
 		    c += strlen(submit_dir);
 		    ++sp;
 		    break;
 		    
+		case    'i':
+		    array_index = getenv("LPJS_ARRAY_INDEX");
+		    if ( c + strlen(array_index) > LPJS_CMD_MAX )
+		    {
+			lpjs_log("%s(): Error: LPJS_PUSH_COMMAND longer than %u, aborting.\n",
+				__FUNCTION__, LPJS_CMD_MAX);
+			return EX_DATAERR;
+		    }
+		    strlcpy(cmd + c, array_index, LPJS_CMD_MAX + 1 - c);
+		    c += strlen(array_index);
+		    ++sp;
+		    break;
+		    
 		default:
-		    lpjs_log("%s(): Error: Invalid placeholder in LPJS_PUSH_COMMAND: %%%c\n",
+		    lpjs_log("%s(): Info: Treating unrecognized placeholder %%%c as literal text\n",
 			    __FUNCTION__, *sp);
-		    return EX_DATAERR;
+		    cmd[c++] = '%';
 	    }
 	}
 	else

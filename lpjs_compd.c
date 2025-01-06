@@ -365,10 +365,12 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_buff,
 	    log_dir[PATH_MAX + 1],
 	    shared_fs_marker[LPJS_SHARED_FS_MARKER_MAX + 1],
 	    shared_fs_marker_path[PATH_MAX + 1],
-	    *working_dir;
+	    *working_dir,
+	    marker[PATH_MAX + 1];
     int     fd;
     // FIXME: Break out new functions for this
     struct stat st;
+	    
     extern FILE *Log_stream;
     
     /*
@@ -424,6 +426,11 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_buff,
 	    }
 	    
 	    mkdir(temp_wd, 0700);
+	    // Mark this directory
+	    // FIXME: Check time stamps on markers and remove them if expired
+	    snprintf(marker, PATH_MAX + 1, "%s/lpjs-remove-me", temp_wd);
+	    if ( (fd = open(marker, O_WRONLY|O_CREAT, 0644)) != -1 )
+		close(fd);
 	    working_dir = temp_wd;
 	}
     }
