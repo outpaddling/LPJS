@@ -29,9 +29,6 @@ Improve launchd interfacing so munged is properly stopped
 
 Later
 -----
-Add #lpjs input-files and #lpjs output-files as an alternative to
-manually code file transfers
-
 Add hostname resolution check to all admin scripts
 
 Job dependencies

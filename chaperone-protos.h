@@ -7,4 +7,7 @@ void chaperone_cancel_handler(int s2);
 void whack_family(pid_t pid);
 void enforce_resource_limits(pid_t pid, size_t mem_per_proc);
 int xt_get_family_rss(pid_t pid, size_t *rss);
+int run_pull_command(const char *wd);
+int run_push_command(const char *wd);
+int parse_transfer_cmd(const char *sp, char *cmd, const char *wd);
 

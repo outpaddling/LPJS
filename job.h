@@ -6,15 +6,16 @@
 // Numeric fields must be grouped together before string fields
 // for job_read_from_string()
 // Numeric: job_id, array_index, job_count, procs_per_job, min_procs_per_node,
-//          pmem_per_proc, chaperone_pid, job_pid
+//          pmem_per_proc, chaperone_pid, job_pid, state
 // String:  user_name, primary_group_name, submit_node, submit_dir,
-//          script_name, run_host, push_command
+//          script_name, compute_node, log_dir, pull_command, push_command
 #define JOB_BASIC_NUMS_FORMAT   "%9lu %4lu %4u %3u %3u %5zu"
 #define JOB_SPEC_NUMS_FORMAT    JOB_BASIC_NUMS_FORMAT " %u %u %u"
+#define JOB_SPEC_STRINGS_FORMAT " %s %s %s %s %s %s %s\n%s\n%s\n"
 #define JOB_SPEC_NUMERIC_FIELDS 9
 // Complete job specs
-#define JOB_SPEC_FORMAT         JOB_SPEC_NUMS_FORMAT " %s %s %s %s %s %s %s %s\n"
-#define JOB_SPEC_STRING_FIELDS  8
+#define JOB_SPEC_FORMAT         JOB_SPEC_NUMS_FORMAT JOB_SPEC_STRINGS_FORMAT
+#define JOB_SPEC_STRING_FIELDS  9
 // For lpjs jobs output
 #define JOB_BASIC_PARAMS_HEADER \
     "    JobID  IDX  J/S P/J P/N MiB/P User Script Compute-node\n"
@@ -34,7 +35,13 @@ typedef enum
 
 typedef struct job  job_t;
 
+#ifndef _STDIO_H_
 #include <stdio.h>
+#endif
+
+#ifndef _UNISTD_H_
+#include <unistd.h>
+#endif
 
 #include "job-rvs.h"
 #include "job-accessors.h"

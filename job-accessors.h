@@ -9,10 +9,6 @@
  *  as needed before adding to your code.
  */
 
-#ifndef _UNISTD_H_
-#include <unistd.h>
-#endif
-
 /* temp-job-accessors.c */
 unsigned long job_get_job_id(job_t *job_ptr);
 unsigned long job_get_array_index(job_t *job_ptr);
@@ -37,5 +33,7 @@ char *job_get_compute_node(job_t *job_ptr);
 char job_get_compute_node_ae(job_t *job_ptr, size_t c);
 char *job_get_log_dir(job_t *job_ptr);
 char job_get_log_dir_ae(job_t *job_ptr, size_t c);
+char *job_get_pull_command(job_t *job_ptr);
+char job_get_pull_command_ae(job_t *job_ptr, size_t c);
 char *job_get_push_command(job_t *job_ptr);
 char job_get_push_command_ae(job_t *job_ptr, size_t c);

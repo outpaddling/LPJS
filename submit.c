@@ -113,6 +113,7 @@ int     main (int argc, char *argv[])
     // Terminates process if malloc() fails, no check required
     job = job_new();
     job_parse_script(job, script_name);
+    lpjs_log("pull_command = %s\n", job_get_pull_command(job));
     lpjs_log("push_command = %s\n", job_get_push_command(job));
     
     script_name = job_get_script_name(job);

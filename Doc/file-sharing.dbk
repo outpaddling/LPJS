@@ -126,5 +126,13 @@ if [ ! -e $marker ]; then
     rm -f $infile
 fi
     </programlisting>
+    
+    <para>
+    push-command run from WD/..
+    </para>
+    
+    <para>
+    pull-command run from WD
+    </para>
 </chapter>
 

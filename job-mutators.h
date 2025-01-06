@@ -19,7 +19,7 @@ int job_set_array_index(job_t *job_ptr, unsigned long new_array_index);
 int job_set_job_count(job_t *job_ptr, unsigned new_job_count);
 int job_set_procs_per_job(job_t *job_ptr, unsigned new_procs_per_job);
 int job_set_min_procs_per_node(job_t *job_ptr, unsigned new_min_procs_per_node);
-int job_set_mem_per_proc(job_t *job_ptr, size_t new_mem_per_proc);
+int job_set_pmem_per_proc(job_t *job_ptr, size_t new_pmem_per_proc);
 int job_set_chaperone_pid(job_t *job_ptr, pid_t new_chaperone_pid);
 int job_set_job_pid(job_t *job_ptr, pid_t new_job_pid);
 int job_set_state(job_t *job_ptr, job_state_t new_state);
@@ -44,6 +44,9 @@ int job_set_compute_node_cpy(job_t *job_ptr, char *new_compute_node, size_t arra
 int job_set_log_dir(job_t *job_ptr, char *new_log_dir);
 int job_set_log_dir_ae(job_t *job_ptr, size_t c, char new_log_dir_element);
 int job_set_log_dir_cpy(job_t *job_ptr, char *new_log_dir, size_t array_size);
+int job_set_pull_command(job_t *job_ptr, char *new_pull_command);
+int job_set_pull_command_ae(job_t *job_ptr, size_t c, char new_pull_command_element);
+int job_set_pull_command_cpy(job_t *job_ptr, char *new_pull_command, size_t array_size);
 int job_set_push_command(job_t *job_ptr, char *new_push_command);
 int job_set_push_command_ae(job_t *job_ptr, size_t c, char new_push_command_element);
 int job_set_push_command_cpy(job_t *job_ptr, char *new_push_command, size_t array_size);

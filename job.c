@@ -57,8 +57,11 @@ job_t   *job_new(void)
 void    job_init(job_t *job)
 
 {
+    char    cmd[LPJS_CMD_MAX + 1];
+    
     // FIXME: Check strdup() failure
     job->job_id = 0;
+    job->array_index = 0;
     job->job_count = 0;
     job->procs_per_job = 0;
     job->min_procs_per_node = 0;
@@ -73,7 +76,16 @@ void    job_init(job_t *job)
     job->script_name = NULL;
     job->compute_node = "TBD";  // For lpjs jobs output
     job->log_dir = NULL;
-    // Default: Send contents of temp working dir to working dir on submit host
+    // Default: No idea what input files are, but we need something
+    snprintf(cmd, LPJS_CMD_MAX + 1, "rsync -av %%h:%%d/Inputs->%lu .",
+	    job->array_index);
+    if ( (job->pull_command = strdup(cmd)) == NULL )
+    {
+	lpjs_log("%s(): Error: strdup() failed.\n", __FUNCTION__);
+	exit(EX_UNAVAILABLE);
+    }
+    // Default: Send entire contents of temp working dir to working
+    // dir on submit host
     if ( (job->push_command = strdup("rsync -av %w/ %h:%d")) == NULL )
     {
 	lpjs_log("%s(): Error: strdup() failed.\n", __FUNCTION__);
@@ -93,24 +105,44 @@ job_t   *job_dup(job_t *job)
     new_job->procs_per_job = job->procs_per_job;
     new_job->min_procs_per_node = job->min_procs_per_node;
     new_job->pmem_per_proc = job->pmem_per_proc;
-    
+
     // FIXME: Check malloc success
     if ( job->user_name != NULL )
 	new_job->user_name = strdup(job->user_name);
+    else
+	new_job->user_name = NULL;
     if ( job->primary_group_name != NULL )
 	new_job->primary_group_name = strdup(job->primary_group_name);
+    else
+	new_job->primary_group_name = NULL;
     if ( job->submit_node != NULL )
 	new_job->submit_node = strdup(job->submit_node);
+    else
+	new_job->submit_node = NULL;
     if ( job->submit_dir != NULL )
 	new_job->submit_dir = strdup(job->submit_dir);
+    else
+	new_job->submit_dir = NULL;
     if ( job->script_name != NULL )
 	new_job->script_name = strdup(job->script_name);
+    else
+	new_job->script_name = NULL;
     if ( job->compute_node != NULL )
 	new_job->compute_node = strdup(job->compute_node);
+    else
+	new_job->compute_node = NULL;
     if ( job->log_dir != NULL )
 	new_job->log_dir = strdup(job->log_dir);
+    else
+	new_job->log_dir = NULL;
+    if ( job->pull_command != NULL )
+	new_job->pull_command = strdup(job->pull_command);
+    else
+	new_job->pull_command = NULL;
     if ( job->push_command != NULL )
 	new_job->push_command = strdup(job->push_command);
+    else
+	new_job->push_command = NULL;
     
     return new_job;
 }
@@ -135,7 +167,7 @@ int     job_print_full_specs(job_t *job, FILE *stream)
 	    job->user_name, job->primary_group_name,
 	    job->submit_node, job->submit_dir,
 	    job->script_name, job->compute_node,
-	    job->log_dir, job->push_command);
+	    job->log_dir, job->pull_command, job->push_command);
 }
 
 
@@ -159,7 +191,7 @@ int     job_print_to_string(job_t *job, char *str, size_t buff_size)
 		    job->user_name, job->primary_group_name,
 		    job->submit_node, job->submit_dir,
 		    job->script_name, job->compute_node,
-		    job->log_dir, job->push_command);
+		    job->log_dir, job->pull_command, job->push_command);
 }
 
 
@@ -279,7 +311,19 @@ int     job_parse_script(job_t *job, const char *script_name)
 	    var_delim = xt_dsv_read_field(fp, var, JOB_FIELD_MAX_LEN + 1, " \t", &field_len);
 	    
 	    // Process directives where the value main contain whitespace first
-	    if ( strcmp(var, "push-command") == 0 )
+	    if ( strcmp(var, "pull-command") == 0 )
+	    {
+		int     c, ch;
+		
+		job->pull_command = malloc(LPJS_CMD_MAX + 1);
+		c = 0;
+		// FIXME: Use mallocing read function
+		while ( (c < LPJS_CMD_MAX) &&
+				((ch = getc(fp)) != '\n') && (ch != EOF) )
+		    job->pull_command[c++] = ch;
+		job->pull_command[c] = '\0';
+	    }
+	    else if ( strcmp(var, "push-command") == 0 )
 	    {
 		int     c, ch;
 		
@@ -515,7 +559,15 @@ int     job_read_from_string(job_t *job, const char *string, char **end)
     }
     ++items;
     
-    // May contain whitespace, must be last
+    // Pull and push may contain whitespace and are terminated
+    // by NL, must be last
+    if ( (job->pull_command = strdup(strsep(&p, "\n"))) == NULL )
+    {
+	lpjs_log("%s(): Error: malloc() failed.\n", __FUNCTION__);
+	exit(EX_UNAVAILABLE);
+    }
+    ++items;
+    
     if ( (job->push_command = strdup(strsep(&p, "\n"))) == NULL )
     {
 	lpjs_log("%s(): Error: malloc() failed.\n", __FUNCTION__);
@@ -613,6 +665,7 @@ void    job_free(job_t **job)
     if ( (*job)->compute_node != NULL )
 	free((*job)->compute_node);
     free((*job)->log_dir);
+    free((*job)->pull_command);
     free((*job)->push_command);
     free(*job);
 }
@@ -706,6 +759,7 @@ void    job_setenv(job_t *job)
     setenv("LPJS_SCRIPT_NAME", job->script_name, 1);
     setenv("LPJS_COMPUTE_NODE", job->compute_node, 1);
     setenv("LPJS_JOB_LOG_DIR", job->log_dir, 1);
+    setenv("LPJS_PULL_COMMAND", job->pull_command, 1);
     setenv("LPJS_PUSH_COMMAND", job->push_command, 1);
 }
 

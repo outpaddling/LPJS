@@ -42,6 +42,7 @@ int     main (int argc, char *argv[])
 
 {
     int         status,
+		pull_status,
 		push_status;
     unsigned    procs_per_job;
     unsigned long   pmem_per_proc;
@@ -56,13 +57,12 @@ int     main (int argc, char *argv[])
 		wd[PATH_MAX + 1 - 20],
 		hostname[sysconf(_SC_HOST_NAME_MAX) + 1],
 		shared_fs_marker[PATH_MAX + 1],
-		cmd[LPJS_CMD_MAX + 1],
 		new_path[LPJS_PATH_ENV_MAX + 1],
 		home_dir[PATH_MAX + 1];
-    extern FILE *Log_stream;
     struct stat st;
     size_t      rss, peak_rss;
     struct rusage   rusage;
+    extern FILE *Log_stream;
 
     signal(SIGHUP, chaperone_cancel_handler);
     
@@ -119,9 +119,13 @@ int     main (int argc, char *argv[])
     lpjs_log("%s(): Running %s in %s on %s with %u procs and %lu MiB.\n",
 	    __FUNCTION__, job_script_name, wd, hostname, procs_per_job, pmem_per_proc);
     
+    lpjs_get_marker_filename(shared_fs_marker, getenv("LPJS_SUBMIT_HOST"),
+			     PATH_MAX + 1);
     if ( stat(shared_fs_marker, &st) != 0 )
     {
-	// FIXME: Implement input file transfer here
+	pull_status = run_pull_command(wd);
+	lpjs_log("%s(): pull command exit status = %d\n", __FUNCTION__,
+		pull_status);
     }
     
     if ( (Pid = fork()) == 0 )
@@ -199,105 +203,11 @@ int     main (int argc, char *argv[])
     
     // Transfer working dir to submit host or according to user
     // settings, if not shared
-    lpjs_get_marker_filename(shared_fs_marker, getenv("LPJS_SUBMIT_HOST"),
-			     PATH_MAX + 1);
     if ( stat(shared_fs_marker, &st) != 0 )
     {
-	char    *sp, *submit_node, *submit_dir;
-	size_t  c;
-	
-	chdir("..");    // Can't remove dir while in use
-	
-	if ( (sp = getenv("LPJS_PUSH_COMMAND")) == NULL )
-	{
-	    lpjs_log("%s(): Bug: No LPJS_PUSH_COMMAND in env.\n", __FUNCTION__);
-	    exit(EX_SOFTWARE);
-	}
-	else
-	    lpjs_log("%s(): LPJS_PUSH_COMMAND = %s\n", __FUNCTION__, sp);
-	c =0;
-	while ( (*sp != '\0') && (c < LPJS_CMD_MAX) )
-	{
-	    if ( *sp == '%' )
-	    {
-		++sp;
-		switch(*sp)
-		{
-		    case    'w':
-			if ( c + strlen(wd) > LPJS_CMD_MAX )
-			{
-			    lpjs_log("%s(): Error: LPJS_PUSH_COMMAND longer than %u, aborting.\n",
-				    __FUNCTION__, LPJS_CMD_MAX);
-			    return EX_DATAERR;
-			}
-			strlcpy(cmd + c, wd, LPJS_CMD_MAX + 1);
-			c += strlen(wd);
-			++sp;
-			break;
-			
-		    case    'h':
-			submit_node = getenv("LPJS_SUBMIT_HOST");
-			if ( c + strlen(submit_node) > LPJS_CMD_MAX )
-			{
-			    lpjs_log("%s(): Error: LPJS_PUSH_COMMAND longer than %u, aborting.\n",
-				    __FUNCTION__, LPJS_CMD_MAX);
-			    return EX_DATAERR;
-			}
-			strlcpy(cmd + c, submit_node, LPJS_CMD_MAX + 1);
-			c += strlen(submit_node);
-			++sp;
-			break;
-			
-		    case    'd':
-			submit_dir = getenv("LPJS_SUBMIT_DIRECTORY");
-			if ( c + strlen(submit_dir) > LPJS_CMD_MAX )
-			{
-			    lpjs_log("%s(): Error: LPJS_PUSH_COMMAND longer than %u, aborting.\n",
-				    __FUNCTION__, LPJS_CMD_MAX);
-			    return EX_DATAERR;
-			}
-			strlcpy(cmd + c, submit_dir, LPJS_CMD_MAX + 1);
-			c += strlen(submit_dir);
-			++sp;
-			break;
-			
-		    default:
-			lpjs_log("%s(): Error: Invalid placeholder in LPJS_PUSH_COMMAND: %%%c\n",
-				__FUNCTION__, *sp);
-			return EX_DATAERR;
-		}
-	    }
-	    else
-		cmd[c++] = *sp++;
-	}
-	*sp = '\0';
-	lpjs_log("%s(): Transferring temporary working dir: %s\n",
-		__FUNCTION__, wd);
-	lpjs_log("%s(): push command = %s\n", __FUNCTION__, cmd);
-	
-	// No more lpjs_log() beyond here.  Log file already transferred.
-	// Close log before pushing temp dir to ensure that it's complete
-	fclose(Log_stream);
-	push_status = system(cmd);
-	
-	// Remove temporary working dir if successfully transferred
-	if ( push_status == 0 )
-	{
-	    lpjs_log("%s(): Removing temporary working dir...\n", __FUNCTION__);
-	    snprintf(cmd, LPJS_CMD_MAX + 1, "rm -rf %s", wd);
-	    system(cmd);    // Log is closed, no point checking status
-	}
-	else
-	{
-	    // Mark this directory
-	    // FIXME: Check time stamps on markers and remove them if expired
-	    char    marker[PATH_MAX + 1];
-	    int     fd;
-	    
-	    snprintf(marker, PATH_MAX + 1, "%s/lpjs-remove-me", wd);
-	    if ( (fd = open(marker, O_WRONLY|O_CREAT, 0644)) != -1 )
-		close(fd);
-	}
+	push_status = run_push_command(wd);
+	lpjs_log("%s(): push command exit status = %d\n", __FUNCTION__,
+		push_status);
     }
 
     lpjs_log("%s(): Info: Chaperone exiting with status %d...\n", __FUNCTION__, status);
@@ -773,4 +683,175 @@ int     xt_get_family_rss(pid_t pid, size_t *rss)
     }
     unlink(ps_output);
     return status;
+}
+
+
+/***************************************************************************
+ *  Description:
+ *  
+ *  History: 
+ *  Date        Name        Modification
+ *  2025-01-06  Jason Bacon Begin
+ ***************************************************************************/
+
+int     run_pull_command(const char *wd)
+
+{
+    char    *sp,
+	    cmd[LPJS_CMD_MAX + 1];
+    int     pull_status;
+    
+    if ( (sp = getenv("LPJS_PULL_COMMAND")) == NULL )
+    {
+	lpjs_log("%s(): Bug: No LPJS_PULL_COMMAND in env.\n", __FUNCTION__);
+	exit(EX_SOFTWARE);
+    }
+    else
+	lpjs_log("%s(): LPJS_PULL_COMMAND = %s\n", __FUNCTION__, sp);
+    
+    parse_transfer_cmd(sp, cmd, wd);
+    lpjs_log("%s(): Pulling input files to WD %s...\n",
+	    __FUNCTION__, wd);
+    lpjs_log("%s(): Pull command = %s\n", __FUNCTION__, cmd);
+    
+    pull_status = system(cmd);
+    
+    return pull_status;
+}
+
+
+/***************************************************************************
+ *  Description:
+ *  
+ *  History: 
+ *  Date        Name        Modification
+ *  2025-01-06  Jason Bacon Begin
+ ***************************************************************************/
+
+int     run_push_command(const char *wd)
+
+{
+    char    *sp,
+	    cmd[LPJS_CMD_MAX + 1];
+    int     push_status;
+    extern FILE *Log_stream;
+    
+    chdir("..");    // Can't remove dir while in use
+    
+    if ( (sp = getenv("LPJS_PUSH_COMMAND")) == NULL )
+    {
+	lpjs_log("%s(): Bug: No LPJS_PUSH_COMMAND in env.\n", __FUNCTION__);
+	exit(EX_SOFTWARE);
+    }
+    else
+	lpjs_log("%s(): LPJS_PUSH_COMMAND = %s\n", __FUNCTION__, sp);
+    
+    parse_transfer_cmd(sp, cmd, wd);
+    lpjs_log("%s(): Pushing output files from WD: %s\n",
+	    __FUNCTION__, wd);
+    lpjs_log("%s(): push command = %s\n", __FUNCTION__, cmd);
+    
+    // No more lpjs_log() beyond here.  Log file already transferred.
+    // Close log before pushing temp dir to ensure that it's complete
+    fclose(Log_stream);
+    push_status = system(cmd);
+    
+    // Remove temporary working dir if successfully transferred
+    if ( push_status == 0 )
+    {
+	lpjs_log("%s(): Removing temporary working dir...\n", __FUNCTION__);
+	// FIXME: Use xt_spawnlp()
+	snprintf(cmd, LPJS_CMD_MAX + 1, "rm -rf %s", wd);
+	system(cmd);    // Log is closed, no point checking status
+    }
+    else
+    {
+	// Mark this directory
+	// FIXME: Check time stamps on markers and remove them if expired
+	char    marker[PATH_MAX + 1];
+	int     fd;
+	
+	snprintf(marker, PATH_MAX + 1, "%s/lpjs-remove-me", wd);
+	if ( (fd = open(marker, O_WRONLY|O_CREAT, 0644)) != -1 )
+	    close(fd);
+    }
+    
+    return push_status;
+}
+
+
+/***************************************************************************
+ *  Description:
+ *      Build push or pull command from spec containing placeholders
+ *      such as %d for working directory, etc.
+ *  
+ *  History: 
+ *  Date        Name        Modification
+ *  2025-01-06  Jason Bacon Begin
+ ***************************************************************************/
+
+int     parse_transfer_cmd(const char *sp, char *cmd, const char *wd)
+
+{
+    size_t  c;
+    char    *submit_node, *submit_dir;
+    
+    c = 0;
+    while ( (*sp != '\0') && (c < LPJS_CMD_MAX) )
+    {
+	if ( *sp == '%' )
+	{
+	    ++sp;
+	    switch(*sp)
+	    {
+		case    'w':
+		    if ( c + strlen(wd) > LPJS_CMD_MAX )
+		    {
+			lpjs_log("%s(): Error: LPJS_PUSH_COMMAND longer than %u, aborting.\n",
+				__FUNCTION__, LPJS_CMD_MAX);
+			return EX_DATAERR;
+		    }
+		    strlcpy(cmd + c, wd, LPJS_CMD_MAX + 1);
+		    c += strlen(wd);
+		    ++sp;
+		    break;
+		    
+		case    'h':
+		    submit_node = getenv("LPJS_SUBMIT_HOST");
+		    if ( c + strlen(submit_node) > LPJS_CMD_MAX )
+		    {
+			lpjs_log("%s(): Error: LPJS_PUSH_COMMAND longer than %u, aborting.\n",
+				__FUNCTION__, LPJS_CMD_MAX);
+			return EX_DATAERR;
+		    }
+		    strlcpy(cmd + c, submit_node, LPJS_CMD_MAX + 1);
+		    c += strlen(submit_node);
+		    ++sp;
+		    break;
+		    
+		case    'd':
+		    submit_dir = getenv("LPJS_SUBMIT_DIRECTORY");
+		    if ( c + strlen(submit_dir) > LPJS_CMD_MAX )
+		    {
+			lpjs_log("%s(): Error: LPJS_PUSH_COMMAND longer than %u, aborting.\n",
+				__FUNCTION__, LPJS_CMD_MAX);
+			return EX_DATAERR;
+		    }
+		    strlcpy(cmd + c, submit_dir, LPJS_CMD_MAX + 1);
+		    c += strlen(submit_dir);
+		    ++sp;
+		    break;
+		    
+		default:
+		    lpjs_log("%s(): Error: Invalid placeholder in LPJS_PUSH_COMMAND: %%%c\n",
+			    __FUNCTION__, *sp);
+		    return EX_DATAERR;
+	    }
+	}
+	else
+	    cmd[c++] = *sp++;
+    }
+    cmd[c] = '\0';
+    
+    return 0;   //FIXME: Define return codes
 }
