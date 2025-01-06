@@ -36,6 +36,21 @@ systems and provides one of the largest package collections among existing
 package managers.  Hence, pkgsrc enables the use of multiple operating
 systems running identical versions of numerous software applications.
 
+## Design philospohy
+
+HPC and HTC are inherently somewhat complicated.  Nevertheless, most
+software used in the industry makes it harder than it needs to be.
+LPJS is meant to be as user-friendly as possible.  To that end,
+we strive for the following goals above all else:
+
+1.  Wherever feasible, solve problems automatically without
+    asking anything of the end-user.
+2.  Where it is not feasible to handle a problem automatically:
+
+    1.  Describe the problem clearly on the terminal or in the logs
+    2.  Suggest a solution or diagnostic test, so end-users
+	can reach a solution with minimal wasted effort
+
 ## Status
 
 LPJS is working reliably on our FreeBSD clusters for simple shared-memory
