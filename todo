@@ -1,6 +1,8 @@
 
 Now
 ---
+Add lpjs.1 man page, referencing all other man pages
+
 Blacklist scripts that are canceled due to RSS violations
 until mem-per-proc is corrected
 
