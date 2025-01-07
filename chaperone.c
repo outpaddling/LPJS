@@ -120,23 +120,13 @@ int     main (int argc, char *argv[])
     lpjs_log("%s(): Running %s in %s on %s with %u procs and %lu MiB.\n",
 	    __FUNCTION__, job_script_name, wd, hostname, procs_per_job, pmem_per_proc);
     
-    lpjs_get_marker_filename(shared_fs_marker, getenv("LPJS_SUBMIT_HOST"),
-			     PATH_MAX + 1);
-    if ( stat(shared_fs_marker, &st) != 0 )
-    {
-	lpjs_log("%s(): %s not found, attempting to pull input files.\n",
-		__FUNCTION__, shared_fs_marker);
-	pull_status = run_pull_command(wd);
-	lpjs_log("%s(): pull command exit status = %d\n", __FUNCTION__,
-		pull_status);
-    }
-    else
-	lpjs_log("%s(): %s found, no need to pull input files.\n",
-		__FUNCTION__, shared_fs_marker);
-    
     if ( (Pid = fork()) == 0 )
     {
 	struct rlimit   rss_limit;
+	
+	// Send job start notice as early as possible, so dispatchd
+	// can switch job to running state
+	lpjs_job_start_notice_loop(node_list, hostname, job_id, Pid);
 	
 	// Create new process group with the script's PID
 	// This helps track processes that are part of a job
@@ -155,6 +145,21 @@ int     main (int argc, char *argv[])
 	rss_limit.rlim_max = procs_per_job * pmem_per_proc * KIB_PER_MIB * BYTES_PER_KIB;
 	setrlimit(RLIMIT_RSS, &rss_limit);
 	
+	// Pull input files before execing script
+	lpjs_get_marker_filename(shared_fs_marker, getenv("LPJS_SUBMIT_HOST"),
+				 PATH_MAX + 1);
+	if ( stat(shared_fs_marker, &st) != 0 )
+	{
+	    lpjs_log("%s(): %s not found, attempting to pull input files.\n",
+		    __FUNCTION__, shared_fs_marker);
+	    pull_status = run_pull_command(wd);
+	    lpjs_log("%s(): pull command exit status = %d\n", __FUNCTION__,
+		    pull_status);
+	}
+	else
+	    lpjs_log("%s(): %s found, no need to pull input files.\n",
+		    __FUNCTION__, shared_fs_marker);
+    
 	// Not yet working: Need to enforce total for process group
 	// enforce_resource_limits(getpid(), pmem_per_proc);
     
@@ -165,8 +170,6 @@ int     main (int argc, char *argv[])
 	return EX_UNAVAILABLE;
     }
     // No need for else since child calls execl() and exits if it fails
-    
-    lpjs_job_start_notice_loop(node_list, hostname, job_id, Pid);
     
     /*
      *  Monitor resource use of child.  xt_get_family_rss() returns -1 when

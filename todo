@@ -26,8 +26,6 @@ Reset job state and node resources for jobs that fail to start due to os err
 
 Improve launchd interfacing so munged is properly stopped
 
-chaperone: Shut down rsync transfers on cancel signal
-
 
 Later
 -----
