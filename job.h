@@ -25,6 +25,9 @@
 #define JOB_FIELD_MAX_LEN       1024
 #define JOB_STR_MAX_LEN         2048    // Fixme: MAX_PATH + x?
 
+#define JOB_NO_PULL_CMD         "not-set"
+#define JOB_NO_PUSH_CMD         "not-set"
+
 typedef enum
 {
     JOB_STATE_PENDING = 0,

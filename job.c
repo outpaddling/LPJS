@@ -75,14 +75,14 @@ void    job_init(job_t *job)
     job->compute_node = "TBD";  // For lpjs jobs output
     job->log_dir = NULL;
     // Default: No idea what input files are, but we need something
-    if ( (job->pull_command = strdup("rsync -av %h:%d/Inputs->%i .")) == NULL )
+    if ( (job->pull_command = strdup(JOB_NO_PULL_CMD)) == NULL )
     {
 	lpjs_log("%s(): Error: strdup() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
     }
     // Default: Send entire contents of temp working dir to working
     // dir on submit host
-    if ( (job->push_command = strdup("rsync -av %w/ %h:%d")) == NULL )
+    if ( (job->push_command = strdup(JOB_NO_PUSH_CMD)) == NULL )
     {
 	lpjs_log("%s(): Error: strdup() failed.\n", __FUNCTION__);
 	exit(EX_UNAVAILABLE);
@@ -131,14 +131,18 @@ job_t   *job_dup(job_t *job)
 	new_job->log_dir = strdup(job->log_dir);
     else
 	new_job->log_dir = NULL;
-    if ( job->pull_command != NULL )
-	new_job->pull_command = strdup(job->pull_command);
-    else
+    
+    // These are initialized to JOB_NO_*_CMD and should never be
+    // NULL, but in case somebody changes that...
+    if ( job->pull_command == NULL )
 	new_job->pull_command = NULL;
-    if ( job->push_command != NULL )
-	new_job->push_command = strdup(job->push_command);
     else
+	new_job->pull_command = strdup(job->pull_command);
+
+    if ( job->push_command == NULL )
 	new_job->push_command = NULL;
+    else
+	new_job->push_command = strdup(job->push_command);
     
     return new_job;
 }
@@ -662,19 +666,28 @@ int     job_read_from_file(job_t *job, const char *path)
 void    job_free(job_t **job)
 
 {
-    // FIXME: _init() sets many to NULL.  _free() should not be
-    // called before populating the object, but just in case...
-    free((*job)->user_name);
-    free((*job)->primary_group_name);
-    free((*job)->submit_node);
-    free((*job)->submit_dir);
-    free((*job)->script_name);
-    if ( (*job)->compute_node != NULL )
-	free((*job)->compute_node);
-    free((*job)->log_dir);
-    free((*job)->pull_command);
-    free((*job)->push_command);
-    free(*job);
+    if (*job != NULL)
+    {
+	if ((*job)->user_name != NULL)
+	    free((*job)->user_name);
+	if ((*job)->primary_group_name != NULL)
+	    free((*job)->primary_group_name);
+	if ((*job)->submit_node != NULL)
+	    free((*job)->submit_node);
+	if ((*job)->submit_dir != NULL)
+	    free((*job)->submit_dir);
+	if ((*job)->script_name != NULL)
+	    free((*job)->script_name);
+	if ( (*job)->compute_node != NULL )
+	    free((*job)->compute_node);
+	if ((*job)->log_dir != NULL)
+	    free((*job)->log_dir);
+	if ((*job)->pull_command != NULL)
+	    free((*job)->pull_command);
+	if ((*job)->push_command != NULL)
+	    free((*job)->push_command);
+	free(*job);
+    }
 }
 
 
@@ -759,6 +772,7 @@ void    job_setenv(job_t *job)
 	    LPJS_MAX_INT_DIGITS + 1), 1);
     setenv("LPJS_PMEM_PER_PROC", xt_ltostrn(str, job->pmem_per_proc, 10,
 	    LPJS_MAX_INT_DIGITS + 1), 1);
+    // Don't need chaperone_pid, job_pid, state
     setenv("LPJS_USER_NAME", job->user_name, 1);
     setenv("LPJS_PRIMARY_GROUP_NAME", job->primary_group_name, 1);
     setenv("LPJS_SUBMIT_HOST", job->submit_node, 1);

@@ -120,6 +120,10 @@ int     main (int argc, char *argv[])
     lpjs_log("%s(): Running %s in %s on %s with %u procs and %lu MiB.\n",
 	    __FUNCTION__, job_script_name, wd, hostname, procs_per_job, pmem_per_proc);
     
+    // Set for both child, which pulls, and parent, which pushes
+    lpjs_get_marker_filename(shared_fs_marker, getenv("LPJS_SUBMIT_HOST"),
+			     PATH_MAX + 1);
+
     if ( (Pid = fork()) == 0 )
     {
 	struct rlimit   rss_limit;
@@ -146,8 +150,6 @@ int     main (int argc, char *argv[])
 	setrlimit(RLIMIT_RSS, &rss_limit);
 	
 	// Pull input files before execing script
-	lpjs_get_marker_filename(shared_fs_marker, getenv("LPJS_SUBMIT_HOST"),
-				 PATH_MAX + 1);
 	if ( stat(shared_fs_marker, &st) != 0 )
 	{
 	    lpjs_log("%s(): %s not found, attempting to pull input files.\n",
@@ -221,6 +223,19 @@ int     main (int argc, char *argv[])
 	push_status = run_push_command(wd);
 	lpjs_log("%s(): push command exit status = %d\n", __FUNCTION__,
 		push_status);
+
+	// Remove temporary working dir if successfully transferred
+	if ( (push_status == 0) && (stat("lpjs-remove-me", &st) == 0) )
+	{
+	    char    cmd[LPJS_CMD_MAX + 1];
+	    
+	    lpjs_log("%s(): Removing temporary working dir...\n", __FUNCTION__);
+	    chdir("..");    // Can't remove a directory in use
+	    // FIXME: Use xt_spawnlp()
+	    // xt_spawnlp(P_WAIT, P_NOECHO, NULL, NULL, NULL, "rm", "-rf", wd, NULL);
+	    snprintf(cmd, LPJS_CMD_MAX + 1, "rm -rf %s", wd);
+	    system(cmd);    // Log is closed, no point checking status
+	}
     }
     else
 	lpjs_log("%s(): %s found, no need to push output files.\n",
@@ -715,7 +730,6 @@ int     run_pull_command(const char *wd)
 {
     char    *sp,
 	    cmd[LPJS_CMD_MAX + 1];
-    int     pull_status;
     
     if ( (sp = getenv("LPJS_PULL_COMMAND")) == NULL )
     {
@@ -725,14 +739,15 @@ int     run_pull_command(const char *wd)
     else
 	lpjs_log("%s(): LPJS_PULL_COMMAND = %s\n", __FUNCTION__, sp);
     
+    if ( strcmp(sp, JOB_NO_PULL_CMD) == 0 )
+	return 1;
+    
     parse_transfer_cmd(sp, cmd, wd);
     lpjs_log("%s(): Pulling input files to WD %s...\n",
 	    __FUNCTION__, wd);
     lpjs_log("%s(): Pull command = %s\n", __FUNCTION__, cmd);
     
-    pull_status = system(cmd);
-    
-    return pull_status;
+    return system(cmd);
 }
 
 
@@ -747,19 +762,8 @@ int     run_pull_command(const char *wd)
 int     run_push_command(const char *wd)
 
 {
-    char    *sp,
-	    cmd[LPJS_CMD_MAX + 1];
-    int     push_status;
-    struct stat st;
-    bool    temp_dir;
+    char        *sp, cmd[LPJS_CMD_MAX + 1];
     extern FILE *Log_stream;
-    
-    if ( stat("lpjs-remove-me", &st) == 0 )
-	temp_dir = true;
-    else
-	temp_dir = false;
-    
-    chdir("..");    // Can't remove dir while in use
     
     if ( (sp = getenv("LPJS_PUSH_COMMAND")) == NULL )
     {
@@ -769,6 +773,9 @@ int     run_push_command(const char *wd)
     else
 	lpjs_log("%s(): LPJS_PUSH_COMMAND = %s\n", __FUNCTION__, sp);
     
+    if ( strcmp(sp, JOB_NO_PUSH_CMD) == 0 )
+	return 1;
+    
     parse_transfer_cmd(sp, cmd, wd);
     lpjs_log("%s(): Pushing output files from WD: %s\n",
 	    __FUNCTION__, wd);
@@ -777,20 +784,7 @@ int     run_push_command(const char *wd)
     // No more lpjs_log() beyond here.  Log file already transferred.
     // Close log before pushing temp dir to ensure that it's complete
     fclose(Log_stream);
-    push_status = system(cmd);
-    
-    // Remove temporary working dir if successfully transferred
-    // FIXME: Check for lpjs-remove-me
-    if ( (push_status == 0) && temp_dir )
-    {
-	lpjs_log("%s(): Removing temporary working dir...\n", __FUNCTION__);
-	// FIXME: Use xt_spawnlp()
-	// xt_spawnlp(P_WAIT, P_NOECHO, NULL, NULL, NULL, "rm", "-rf", wd, NULL);
-	snprintf(cmd, LPJS_CMD_MAX + 1, "rm -rf %s", wd);
-	system(cmd);    // Log is closed, no point checking status
-    }
-    
-    return push_status;
+    return system(cmd);
 }
 
 
