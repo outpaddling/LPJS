@@ -885,7 +885,7 @@ int     parse_transfer_cmd(const char *sp, char *cmd, const char *wd)
 		    ++sp;
 		    break;
 		    
-		case    'd':
+		case    's':
 		    submit_dir = getenv("LPJS_SUBMIT_DIRECTORY");
 		    if ( c + strlen(submit_dir) > LPJS_CMD_MAX )
 		    {
