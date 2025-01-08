@@ -150,9 +150,9 @@ int     lpjs_load_compute_config(node_list_t *node_list, FILE *input_stream,
 	    }
 	    lpjs_debug("%s(): pmem override = %zu\n", __FUNCTION__, pmem);
 	}
-	else if ( memcmp(field, "processors=", 6) == 0 )
+	else if ( memcmp(field, "processors=", 11) == 0 )
 	{
-	    processors = strtoul(field + 6, &end, 10);
+	    processors = strtoul(field + 11, &end, 10);
 	    if ( *end != '\0' )
 	    {
 		lpjs_log("%s(): Invalid proc count: %s\n", __FUNCTION__, field);
