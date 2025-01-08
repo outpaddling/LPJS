@@ -5,8 +5,8 @@
 // for strings, just like gets(), etc.
 // Numeric fields must be grouped together before string fields
 // for job_read_from_string()
-// Numeric: job_id, array_index, job_count, procs_per_job, min_procs_per_node,
-//          pmem_per_proc, chaperone_pid, job_pid, state
+// Numeric: job_id, array_index, job_count, processors_per_job, threads_per_process,
+//          phys_mib_per_processor, chaperone_pid, job_pid, state
 // String:  user_name, primary_group_name, submit_node, submit_dir,
 //          script_name, compute_node, log_dir, pull_command, push_command
 #define JOB_BASIC_NUMS_FORMAT   "%9lu %4lu %4u %3u %3u %5zu"

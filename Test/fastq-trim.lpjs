@@ -5,8 +5,8 @@
 ##########################################################################
 
 #lpjs jobs 5
-#lpjs procs-per-job 3
-#lpjs min-procs-per-node all
+#lpjs processors-per-job 3
+#lpjs threads-per-process all
 #lpjs mem-per-proc 50MiB
 #lpjs push-command rsync -av this host:there
 

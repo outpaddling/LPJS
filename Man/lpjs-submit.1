@@ -47,15 +47,15 @@ The number of jobs to queue.  The script will be run this many times,
 with as many as possible running simultaneously.
 
 .TP
-\fBprocs-per-job\fR
+\fBprocessors-per-job\fR
 The number of processors to allocate for each job.  This is 1 for
 serial programs and >1 where each job runs a parallel program.
 
 .TP
-\fBmin-procs-per-node\fR
+\fBmin-processors-per-node\fR
 The number of processors that must be on the same node.  For shared
 memory parallel programs, such as OpenMP and pthreads, this must equal
-procs-per-job.  It can be specified as "procs-per-job", rather than
+processors-per-job.  It can be specified as "processors-per-job", rather than
 a hard-coded number, so that you need not keep the two in sync with
 future changes.
 
@@ -131,13 +131,13 @@ The 1-base array index of each job in a job array submission.
 The number of jobs in the job array submission.
 .TP
 \fBLPJS_PROCS_PER_JOB\fR
-The value set in the script by "#lpjs procs-per-job".
+The value set in the script by "#lpjs processors-per-job".
 .TP
 \fBLPJS_MIN_PROCS_PER_NODE\fR
-The value set in the script by "#lpjs min-procs-per-node".
+The value set in the script by "#lpjs min-processors-per-node".
 .TP
-\fBLPJS_PMEM_PER_PROC\fR
-The value set in the script by "#lpjs mem-per-proc".
+\fBLPJS_PHYS_MIB_PER_PROCESSOR\fR
+The value set in the script by "#lpjs pmem-per-proc".
 .TP
 \fBLPJS_USER_NAME\fR
 The username of the user running the job.
@@ -177,7 +177,7 @@ submit node.  Below is output from a job that runs
 LPJS_JOB_COUNT=1
 LPJS_COMPUTE_NODE=TBD
 LPJS_PUSH_COMMAND=rsync -av %w/ %h:%d
-LPJS_PMEM_PER_PROC=9
+LPJS_PHYS_MIB_PER_PROCESSOR=9
 LPJS_MIN_PROCS_PER_NODE=1
 LPJS_PRIMARY_GROUP_NAME=bacon
 LPJS_SUBMIT_HOST=moray.acadix.biz

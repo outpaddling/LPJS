@@ -90,31 +90,31 @@ char  node_get_hostname_ae(node_t *node_ptr, size_t c)
  *      
  *
  *  Description:
- *      Accessor for procs member in a node_t structure.
- *      Use this function to get procs in a node_t object
+ *      Accessor for processors member in a node_t structure.
+ *      Use this function to get processors in a node_t object
  *      from non-member functions.
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
  *
  *  Returns:
- *      Value of the structure member procs.
+ *      Value of the structure member processors.
  *
  *  Examples:
  *      node_t          node;
- *      unsigned        procs;
+ *      unsigned        processors;
  *
- *      procs = node_get_procs(&node);
+ *      processors = node_get_processors(&node);
  *
  *  History: 
  *  Date        Name        Modification
  *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
-unsigned    node_get_procs(node_t *node_ptr)
+unsigned    node_get_processors(node_t *node_ptr)
 
 {
-    return node_ptr->procs;
+    return node_ptr->processors;
 }
 
 
@@ -124,31 +124,31 @@ unsigned    node_get_procs(node_t *node_ptr)
  *      
  *
  *  Description:
- *      Accessor for procs_used member in a node_t structure.
- *      Use this function to get procs_used in a node_t object
+ *      Accessor for processors_used member in a node_t structure.
+ *      Use this function to get processors_used in a node_t object
  *      from non-member functions.
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
  *
  *  Returns:
- *      Value of the structure member procs_used.
+ *      Value of the structure member processors_used.
  *
  *  Examples:
  *      node_t          node;
- *      unsigned        procs_used;
+ *      unsigned        processors_used;
  *
- *      procs_used = node_get_procs_used(&node);
+ *      processors_used = node_get_processors_used(&node);
  *
  *  History: 
  *  Date        Name        Modification
  *  2024-02-01  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
-unsigned    node_get_procs_used(node_t *node_ptr)
+unsigned    node_get_processors_used(node_t *node_ptr)
 
 {
-    return node_ptr->procs_used;
+    return node_ptr->processors_used;
 }
 
 

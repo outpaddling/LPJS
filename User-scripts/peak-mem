@@ -11,13 +11,13 @@
 #       This can be used to optimize the memory requirements of subsequent
 #       runs, specified in the jobs script as
 #
-#       #lpjs pmem-per-proc
+#       #lpjs pmem-per-processor
 #
 #       Note that for shared-memory multicore jobs (pthreads, OpenMP, etc),
-#       the pmem-per-proc specification should use the
+#       the pmem-per-processor specification should use the
 #       value reported, divided by the number of processors used
-#       to determine the best value for pmem-per-proc.  The value of
-#       pmem-per-proc should be set slightly higher than this dividend.
+#       to determine the best value for pmem-per-processor.  The value of
+#       pmem-per-processor should be set slightly higher than this dividend.
 #       How much higher depends on how variable the memory use is.
 #       For well-behaved programs, 10% should suffice.
 #
@@ -25,7 +25,7 @@
 #       allocated, and scripts that allocate far more memory than they
 #       actually use (which may prevent other jobs from running, and is
 #       thus is inconsiderate to other cluster/grid users),
-#       are disabled by LPJS until pmem-per-proc is corrected to a
+#       are disabled by LPJS until pmem-per-processor is corrected to a
 #       reasonable value.
 #       
 #   Arguments:
@@ -35,9 +35,9 @@
 #       # lpjs peak-mem Logs/17-hisat2-align/
 #       01-07 08:47:42 main(): Peak total job RSS = 5242804 KiB
 #
-#       # grep procs-per-job 17-hisat2-align.lpjs 
-#       lpjs procs-per-job 4
-#       lpjs min-procs-per-node procs-per-job
+#       # grep processors-per-job 17-hisat2-align.lpjs 
+#       lpjs processors-per-job 4
+#       lpjs min-processors-per-node processors-per-job
 #
 #       Using the Unix "bc" command to divide the above peak memory
 #       by 4 processors, then divide by 1024 to convert from KiB to MiB,
@@ -47,7 +47,7 @@
 #       (5242804 / 4 / 1024) * 1.1
 #       1407.97958984375000000000
 #
-#       #lpjs pmem-per-proc 1408MiB
+#       #lpjs pmem-per-processor 1408MiB
 #
 #   See also:
 #       lpjs create-script(1)

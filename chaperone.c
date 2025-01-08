@@ -45,8 +45,8 @@ int     main (int argc, char *argv[])
     int         status,
 		pull_status,
 		push_status;
-    unsigned    procs_per_job;
-    unsigned long   pmem_per_proc;
+    unsigned    threads_per_process;
+    unsigned long   phys_mib_per_processor;
     // Terminates process if malloc() fails, no check required
     node_list_t *node_list = node_list_new();
     char        *job_script_name,
@@ -96,19 +96,21 @@ int     main (int argc, char *argv[])
     xt_get_home_dir(home_dir, PATH_MAX + 1);
     setenv("LPJS_HOME_DIR", home_dir, 1);
     
-    temp = getenv("LPJS_PROCS_PER_JOB");
-    procs_per_job = strtoul(temp, &end, 10);
+    temp = getenv("LPJS_THREADS_PER_PROCESS");
+    threads_per_process = strtoul(temp, &end, 10);
     if ( *end != '\0' )
     {
-	fprintf(stderr, "Invalid LPJS_PROCS_PER_JOB: %s\n", temp);
+	lpjs_log("%s(): Bug: Invalid LPJS_THREADS_PER_PROCESS: %s\n",
+		__FUNCTION__, temp);
 	exit(EX_USAGE);
     }
     
-    temp = getenv("LPJS_PMEM_PER_PROC");
-    pmem_per_proc = strtoul(temp, &end, 10);
+    temp = getenv("LPJS_PHYS_MIB_PER_PROCESSOR");
+    phys_mib_per_processor = strtoul(temp, &end, 10);
     if ( *end != '\0' )
     {
-	fprintf(stderr, "Invalid LPJS_PMEM_PER_PROC: %s\n", temp);
+	lpjs_log("%s(): Bug: Invalid LPJS_PHYS_MIB_PER_PROCESSOR: %s\n",
+		__FUNCTION__, temp);
 	exit(EX_USAGE);
     }
     
@@ -117,8 +119,9 @@ int     main (int argc, char *argv[])
     
     gethostname(hostname, sysconf(_SC_HOST_NAME_MAX));
     getcwd(wd, PATH_MAX + 1 - 20);
-    lpjs_log("%s(): Running %s in %s on %s with %u procs and %lu MiB.\n",
-	    __FUNCTION__, job_script_name, wd, hostname, procs_per_job, pmem_per_proc);
+    lpjs_log("%s(): Running %s in %s on %s with %u threads and %lu MiB/proc.\n",
+	    __FUNCTION__, job_script_name, wd, hostname, threads_per_process,
+	    phys_mib_per_processor);
     
     // Set for both child, which pulls, and parent, which pushes
     lpjs_get_marker_filename(shared_fs_marker, getenv("LPJS_SUBMIT_HOST"),
@@ -145,8 +148,10 @@ int     main (int argc, char *argv[])
 	// a little on occasion, though.  Also, this is limiting individual
 	// processes to the total for the job (which may run multiple
 	// processes in a pipeline), so it's only sometimes useful.
-	rss_limit.rlim_cur = procs_per_job * pmem_per_proc * KIB_PER_MIB * BYTES_PER_KIB;
-	rss_limit.rlim_max = procs_per_job * pmem_per_proc * KIB_PER_MIB * BYTES_PER_KIB;
+	rss_limit.rlim_cur = phys_mib_per_processor * threads_per_process *
+			     KIB_PER_MIB * BYTES_PER_KIB;
+	rss_limit.rlim_max = phys_mib_per_processor * threads_per_process *
+			     KIB_PER_MIB * BYTES_PER_KIB;
 	setrlimit(RLIMIT_RSS, &rss_limit);
 	
 	// Pull input files before execing script
@@ -163,7 +168,7 @@ int     main (int argc, char *argv[])
 		    __FUNCTION__, shared_fs_marker);
     
 	// Not yet working: Need to enforce total for process group
-	// enforce_resource_limits(getpid(), pmem_per_proc);
+	// enforce_resource_limits(getpid(), phys_mib_per_processor);
     
 	// Child, run script
 	fclose(Log_stream); // Not useful to child
@@ -186,11 +191,12 @@ int     main (int argc, char *argv[])
     peak_rss = 0;
     while ( xt_get_family_rss(Pid, &rss) == 0 )
     {
-	// pmem_per_proc is in MiB, rss in KiB
-	if ( rss > procs_per_job * pmem_per_proc * KIB_PER_MIB)
+	// phys_mib_per_processor is in MiB, rss in KiB
+	if ( rss > phys_mib_per_processor * threads_per_process * KIB_PER_MIB)
 	{
 	    lpjs_log("%s(): Terminating job for resident memory violation: %zu KiB > %zu KiB\n",
-		    __FUNCTION__, rss, procs_per_job * pmem_per_proc * KIB_PER_MIB);
+		    __FUNCTION__, rss, phys_mib_per_processor *
+		    threads_per_process * KIB_PER_MIB);
 	    // Termination of child processes should be enough
 	    // This chaperone process will detect the
 	    // exit using wait and report back to dispatchd
@@ -395,7 +401,7 @@ int     lpjs_chaperone_completion(int msg_fd, const char *hostname,
 	     job_id, status, peak_rss);
     if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != LPJS_MSG_SENT )
     {
-	lpjs_log("%s(): Failed to send message to dispatchd: %s",
+	lpjs_log("%s(): Error: Failed to send message to dispatchd: %s",
 		__FUNCTION__, strerror(errno));
 	return EX_IOERR;
     }
@@ -685,7 +691,7 @@ int     xt_get_family_rss(pid_t pid, size_t *rss)
 	    "-o", "rss=", NULL);
     // lpjs_debug("xt_spawnlp() returned %d\n", status);
     if ( status != 0 )
-	lpjs_log("%s(): ps failed.\n", __FUNCTION__);
+	lpjs_log("%s(): Info: ps failed.\n", __FUNCTION__);
     else
     {
 	// lpjs_debug("Opening %s...\n", ps_output);

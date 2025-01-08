@@ -99,10 +99,10 @@ void    node_list_update_compute(node_list_t *node_list, node_t *node)
 	{
 	    // lpjs_debug("Updating compute node %zu %s\n", c, NODE_HOSTNAME(node_list->compute_nodes[c]));
 	    node_set_state(node_list->compute_nodes[c], "up");
-	    // procs and phys_MiB may have been set in config file
+	    // processors and phys_MiB may have been set in config file
 	    // Don't overwrite them with auto-detected specs
-	    if ( node_get_procs(node_list->compute_nodes[c]) == 0 )
-		node_set_procs(node_list->compute_nodes[c], node_get_procs(node));
+	    if ( node_get_processors(node_list->compute_nodes[c]) == 0 )
+		node_set_processors(node_list->compute_nodes[c], node_get_processors(node));
 	    if ( node_get_phys_MiB(node_list->compute_nodes[c]) == 0 )
 		node_set_phys_MiB(node_list->compute_nodes[c], node_get_phys_MiB(node));
 	    node_set_zfs(node_list->compute_nodes[c], node_get_zfs(node));
@@ -129,9 +129,9 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
 
 {
     unsigned        c,
-		    procs_up,
-		    procs_up_used,
-		    procs_down;
+		    processors_up,
+		    processors_up_used,
+		    processors_down;
     unsigned long   mem_up,
 		    mem_up_used,
 		    mem_down;
@@ -145,7 +145,7 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
 	    "Procs", "Used", "PhysMiB", "Used", "OS", "Arch");
     strlcat(outgoing_msg, temp, LPJS_MSG_LEN_MAX + 1);
     
-    procs_up = procs_up_used = procs_down = 0;
+    processors_up = processors_up_used = processors_down = 0;
     mem_up = mem_up_used = mem_down = 0;
     
     for (c = 0; c < node_list->compute_node_count; ++c)
@@ -154,14 +154,14 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
 	strlcat(outgoing_msg, temp, LPJS_MSG_LEN_MAX + 1);
 	if ( strcmp(node_get_state(node_list->compute_nodes[c]), "up") == 0 )
 	{
-	    procs_up += node_get_procs(node_list->compute_nodes[c]);
-	    procs_up_used += node_get_procs_used(node_list->compute_nodes[c]);
+	    processors_up += node_get_processors(node_list->compute_nodes[c]);
+	    processors_up_used += node_get_processors_used(node_list->compute_nodes[c]);
 	    mem_up += node_get_phys_MiB(node_list->compute_nodes[c]);
 	    mem_up_used += node_get_phys_MiB_used(node_list->compute_nodes[c]);
 	}
 	else
 	{
-	    procs_down += node_get_procs(node_list->compute_nodes[c]);
+	    processors_down += node_get_processors(node_list->compute_nodes[c]);
 	    mem_down += node_get_phys_MiB(node_list->compute_nodes[c]);
 	}
     }
@@ -169,12 +169,12 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
     // lpjs_debug("Sending summary...\n");
     snprintf(temp, LPJS_MSG_LEN_MAX + 1,
 	    "\n" NODE_STATUS_FORMAT, "Total", "up",
-	    procs_up, procs_up_used, mem_up, mem_up_used, "-", "-");
+	    processors_up, processors_up_used, mem_up, mem_up_used, "-", "-");
     strlcat(outgoing_msg, temp, LPJS_MSG_LEN_MAX + 1);
     
     snprintf(temp, LPJS_MSG_LEN_MAX,
 	    NODE_STATUS_FORMAT, "Total", "down",
-	    procs_down, 0, mem_down, (size_t)0, "-", "-");
+	    processors_down, 0, mem_down, (size_t)0, "-", "-");
     strlcat(outgoing_msg, temp, LPJS_MSG_LEN_MAX + 1);
 
     // Only dispatchd calls this function, so wait for client to close first

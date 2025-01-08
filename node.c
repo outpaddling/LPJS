@@ -56,8 +56,8 @@ void    node_init(node_t *node)
     node->hostname = NULL;
     node->phys_MiB = 0;
     node->phys_MiB_used = 0;
-    node->procs = 0;
-    node->procs_used = 0;
+    node->processors = 0;
+    node->processors_used = 0;
     node->zfs = 0;
     node->os = "unknown";
     node->arch = "unknown";
@@ -97,8 +97,8 @@ void    node_detect_specs(node_t *node)
     node->hostname = strdup(temp_hostname);
     
     // May include SMT/Hyperthreading.  Disable in BIOS for Linux or using
-    // sysctl on FreeBSD if you don't want to oversubscribe physical procs.
-    node->procs = sysconf(_SC_NPROCESSORS_ONLN);
+    // sysctl on FreeBSD if you don't want to oversubscribe physical processors.
+    node->processors = sysconf(_SC_NPROCESSORS_ONLN);
     node->phys_MiB = sysconf(_SC_PAGESIZE) * sysconf(_SC_PHYS_PAGES)
 		     / 1024 / 1024;
     /*
@@ -162,7 +162,7 @@ void    node_print_status(node_t *node, FILE *stream)
 
 {
     fprintf(stream, NODE_STATUS_FORMAT, node->hostname, node->state,
-	   node->procs, node->procs_used,
+	   node->processors, node->processors_used,
 	   node->phys_MiB, node->phys_MiB_used, node->os, node->arch);
 }
 
@@ -172,7 +172,7 @@ void    node_status_to_str(node_t *node, char *str, size_t array_size)
 {
     snprintf(str, array_size,
 		NODE_STATUS_FORMAT, node->hostname, node->state,        
-		node->procs, node->procs_used,                                 
+		node->processors, node->processors_used,                                 
 		node->phys_MiB, node->phys_MiB_used, node->os, node->arch);
 }
 
@@ -208,7 +208,7 @@ int     node_print_specs_header(FILE *stream)
 {
     return fprintf(stream,
 		  "%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
-		  "Hostname", "state", "procs",
+		  "Hostname", "state", "processors",
 		  "phys_MiB", "zfs", "os", "arch");
 }
 
@@ -218,7 +218,7 @@ char    *node_specs_to_str(node_t *node, char *str, size_t buff_len)
 {
     if ( snprintf(str, buff_len,
 		  "%s\t%s\t%u\t%lu\t%u\t%s\t%s",
-		  node->hostname, node->state, node->procs,
+		  node->hostname, node->state, node->processors,
 		  node->phys_MiB, node->zfs, node->os, node->arch) < 0 )
     {
 	lpjs_log("%s(): Error: snprintf() failed\n", __FUNCTION__);
@@ -277,10 +277,10 @@ ssize_t node_str_to_specs(node_t *node, const char *str)
 
     if ( (field = strsep(&stringp, "\t")) == NULL )
     {
-	lpjs_log("%s(): Bug: Failed to extract procs from specs.\n", __FUNCTION__);
+	lpjs_log("%s(): Bug: Failed to extract processors from specs.\n", __FUNCTION__);
 	return -1;
     }
-    node->procs = strtoul(field, &end, 10);
+    node->processors = strtoul(field, &end, 10);
     if ( *end != '\0' )
     {
 	lpjs_log("%s(): Bug: Procs field is not a valid number.\n", __FUNCTION__);
@@ -347,13 +347,13 @@ int     node_adjust_resources(node_t *node, job_t *job, node_resource_t directio
 
 {
     // + for allocating, - for releasing
-    int     procs = direction * job_get_procs_per_job(job);
-    long    MiB = direction * job_get_pmem_per_proc(job) * job_get_procs_per_job(job);
+    int     processors = direction * job_get_processors_per_job(job);
+    long    MiB = direction * job_get_phys_mib_per_processor(job) * job_get_processors_per_job(job);
 
-    lpjs_log("%s(): Allocating %d procs and %ld MiB on %s.\n",
-	     __FUNCTION__, procs, MiB, 
+    lpjs_log("%s(): Allocating %d processors and %ld MiB on %s.\n",
+	     __FUNCTION__, processors, MiB, 
 	     node_get_hostname(node));
-    node->procs_used += procs;
+    node->processors_used += processors;
     node->phys_MiB_used += MiB;
     
     return 0;   // FIXME: Define return codes

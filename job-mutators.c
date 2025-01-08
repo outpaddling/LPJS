@@ -176,17 +176,17 @@ int     job_set_job_count(job_t *job_ptr, unsigned new_job_count)
  *      
  *
  *  Description:
- *      Mutator for procs_per_job member in a job_t structure.
- *      Use this function to set procs_per_job in a job_t object
+ *      Mutator for processors_per_job member in a job_t structure.
+ *      Use this function to set processors_per_job in a job_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
- *      procs_per_job is a pointer, data previously pointed to should
+ *      processors_per_job is a pointer, data previously pointed to should
  *      be freed before calling this function to avoid memory
  *      leaks.
  *
  *  Arguments:
  *      job_ptr         Pointer to the structure to set
- *      new_procs_per_job The new value for procs_per_job
+ *      new_processors_per_job The new value for processors_per_job
  *
  *  Returns:
  *      JOB_DATA_OK if the new value is acceptable and assigned
@@ -194,9 +194,9 @@ int     job_set_job_count(job_t *job_ptr, unsigned new_job_count)
  *
  *  Examples:
  *      job_t           job;
- *      unsigned        new_procs_per_job;
+ *      unsigned        new_processors_per_job;
  *
- *      if ( job_set_procs_per_job(&job, new_procs_per_job)
+ *      if ( job_set_processors_per_job(&job, new_processors_per_job)
  *              == JOB_DATA_OK )
  *      {
  *      }
@@ -209,14 +209,14 @@ int     job_set_job_count(job_t *job_ptr, unsigned new_job_count)
  *  2025-01-06  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-int     job_set_procs_per_job(job_t *job_ptr, unsigned new_procs_per_job)
+int     job_set_processors_per_job(job_t *job_ptr, unsigned new_processors_per_job)
 
 {
     if ( false )
 	return JOB_DATA_OUT_OF_RANGE;
     else
     {
-	job_ptr->procs_per_job = new_procs_per_job;
+	job_ptr->processors_per_job = new_processors_per_job;
 	return JOB_DATA_OK;
     }
 }
@@ -228,17 +228,17 @@ int     job_set_procs_per_job(job_t *job_ptr, unsigned new_procs_per_job)
  *      
  *
  *  Description:
- *      Mutator for min_procs_per_node member in a job_t structure.
- *      Use this function to set min_procs_per_node in a job_t object
+ *      Mutator for threads_per_process member in a job_t structure.
+ *      Use this function to set threads_per_process in a job_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
- *      min_procs_per_node is a pointer, data previously pointed to should
+ *      threads_per_process is a pointer, data previously pointed to should
  *      be freed before calling this function to avoid memory
  *      leaks.
  *
  *  Arguments:
  *      job_ptr         Pointer to the structure to set
- *      new_min_procs_per_node The new value for min_procs_per_node
+ *      new_threads_per_process The new value for threads_per_process
  *
  *  Returns:
  *      JOB_DATA_OK if the new value is acceptable and assigned
@@ -246,9 +246,9 @@ int     job_set_procs_per_job(job_t *job_ptr, unsigned new_procs_per_job)
  *
  *  Examples:
  *      job_t           job;
- *      unsigned        new_min_procs_per_node;
+ *      unsigned        new_threads_per_process;
  *
- *      if ( job_set_min_procs_per_node(&job, new_min_procs_per_node)
+ *      if ( job_set_threads_per_process(&job, new_threads_per_process)
  *              == JOB_DATA_OK )
  *      {
  *      }
@@ -261,14 +261,14 @@ int     job_set_procs_per_job(job_t *job_ptr, unsigned new_procs_per_job)
  *  2025-01-06  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-int     job_set_min_procs_per_node(job_t *job_ptr, unsigned new_min_procs_per_node)
+int     job_set_threads_per_process(job_t *job_ptr, unsigned new_threads_per_process)
 
 {
     if ( false )
 	return JOB_DATA_OUT_OF_RANGE;
     else
     {
-	job_ptr->min_procs_per_node = new_min_procs_per_node;
+	job_ptr->threads_per_process = new_threads_per_process;
 	return JOB_DATA_OK;
     }
 }
@@ -280,17 +280,17 @@ int     job_set_min_procs_per_node(job_t *job_ptr, unsigned new_min_procs_per_no
  *      
  *
  *  Description:
- *      Mutator for pmem_per_proc member in a job_t structure.
- *      Use this function to set pmem_per_proc in a job_t object
+ *      Mutator for phys_mib_per_processor member in a job_t structure.
+ *      Use this function to set phys_mib_per_processor in a job_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
- *      pmem_per_proc is a pointer, data previously pointed to should
+ *      phys_mib_per_processor is a pointer, data previously pointed to should
  *      be freed before calling this function to avoid memory
  *      leaks.
  *
  *  Arguments:
  *      job_ptr         Pointer to the structure to set
- *      new_pmem_per_proc The new value for pmem_per_proc
+ *      new_phys_mib_per_processor The new value for phys_mib_per_processor
  *
  *  Returns:
  *      JOB_DATA_OK if the new value is acceptable and assigned
@@ -298,9 +298,9 @@ int     job_set_min_procs_per_node(job_t *job_ptr, unsigned new_min_procs_per_no
  *
  *  Examples:
  *      job_t           job;
- *      size_t          new_pmem_per_proc;
+ *      size_t          new_phys_mib_per_processor;
  *
- *      if ( job_set_pmem_per_proc(&job, new_pmem_per_proc)
+ *      if ( job_set_phys_mib_per_processor(&job, new_phys_mib_per_processor)
  *              == JOB_DATA_OK )
  *      {
  *      }
@@ -313,14 +313,14 @@ int     job_set_min_procs_per_node(job_t *job_ptr, unsigned new_min_procs_per_no
  *  2025-01-06  gen-get-set Auto-generated from job-private.h
  ***************************************************************************/
 
-int     job_set_pmem_per_proc(job_t *job_ptr, size_t new_pmem_per_proc)
+int     job_set_phys_mib_per_processor(job_t *job_ptr, size_t new_phys_mib_per_processor)
 
 {
     if ( false )
 	return JOB_DATA_OUT_OF_RANGE;
     else
     {
-	job_ptr->pmem_per_proc = new_pmem_per_proc;
+	job_ptr->phys_mib_per_processor = new_phys_mib_per_processor;
 	return JOB_DATA_OK;
     }
 }

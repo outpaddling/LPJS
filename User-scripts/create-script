@@ -50,7 +50,7 @@ usage()
 #   2024-02-07  Jason Bacon Begin
 ##########################################################################
 
-get_min_procs_per_node()
+get_threads_per_process()
 
 {
     valid_selection=no
@@ -58,12 +58,12 @@ get_min_procs_per_node()
 	cat << EOM
 
 For shared-memory parallel programs (pthreads, OpenMP, etc.),
-procs-per-node must be the same as procs-per-job, since all
+processors-per-node must be the same as processors-per-job, since all
 of the threads or processes must run on the same node.
 
 For distributed parallel programs (e.g. MPI), processes do not
-need to be on the same node, so procs-per-node may be less than
-procs-per-job.
+need to be on the same node, so processors-per-node may be less than
+processors-per-job.
 
 1.. Shared memory parallel program (OpenMP, pthreads, etc.)
 2.. Distributed parallel program   (MPI, etc.)
@@ -72,12 +72,12 @@ EOM
 	read parallel_type
 	case 0"$parallel_type" in
 	01)
-	    min_procs_per_node=$procs_per_job
+	    threads_per_process=$processors_per_job
 	    valid_selection=yes
 	    ;;
 	
 	02)
-	    min_procs_per_node=1
+	    threads_per_process=1
 	    valid_selection=yes
 	    ;;
 	
@@ -155,30 +155,30 @@ done
 case 0"$submission_type" in
 01)
     jobs=1
-    procs_per_job=1
-    min_procs_per_node=1
+    processors_per_job=1
+    threads_per_process=1
     ;;
 
 02)
     printf 'Number of jobs? '
     read jobs
-    procs_per_job=1
-    min_procs_per_node=1
+    processors_per_job=1
+    threads_per_process=1
     ;;
 
 03)
     jobs=1
     printf 'Processors per job? '
-    read procs_per_job
-    get_min_procs_per_node
+    read processors_per_job
+    get_threads_per_process
     ;;
 
 04)
     printf 'Number of jobs? '
     read jobs
     printf 'Processors per job? '
-    read procs_per_job
-    get_min_procs_per_node
+    read processors_per_job
+    get_threads_per_process
     ;;
 
 *)
@@ -228,9 +228,9 @@ cat << EOM >> $script
 # #!/usr/bin/env bash
 
 #lpjs jobs $jobs
-#lpjs procs-per-job $procs_per_job
-#lpjs min-procs-per-node $min_procs_per_node
-#lpjs pmem-per-proc $mem_per_proc
+#lpjs processors-per-job $processors_per_job
+#lpjs min-processors-per-node $threads_per_process
+#lpjs pmem-per-processor $mem_per_proc
 
 $command
 EOM

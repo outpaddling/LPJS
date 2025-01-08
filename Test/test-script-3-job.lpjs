@@ -1,8 +1,8 @@
 #!/bin/sh
 
 #lpjs jobs 10
-#lpjs procs-per-job 2
-#lpjs min-procs-per-node all
+#lpjs processors-per-job 2
+#lpjs threads-per-process all
 #lpjs mem-per-proc 1GiB
 
 # FreeBSD ports are installed under /usr/local

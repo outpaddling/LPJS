@@ -61,9 +61,9 @@ void    job_init(job_t *job)
     job->job_id = 0;
     job->array_index = 0;
     job->job_count = 0;
-    job->procs_per_job = 0;
-    job->min_procs_per_node = 0;
-    job->pmem_per_proc = 0;
+    job->processors_per_job = 0;
+    job->threads_per_process = 0;
+    job->phys_mib_per_processor = 0;
     job->chaperone_pid = 0;
     job->job_pid = 0;
     job->state = JOB_STATE_PENDING;
@@ -98,9 +98,9 @@ job_t   *job_dup(job_t *job)
     
     new_job->job_id = job->job_id;
     new_job->job_count = job->job_count;
-    new_job->procs_per_job = job->procs_per_job;
-    new_job->min_procs_per_node = job->min_procs_per_node;
-    new_job->pmem_per_proc = job->pmem_per_proc;
+    new_job->processors_per_job = job->processors_per_job;
+    new_job->threads_per_process = job->threads_per_process;
+    new_job->phys_mib_per_processor = job->phys_mib_per_processor;
 
     // FIXME: Check malloc success
     if ( job->user_name != NULL )
@@ -161,8 +161,8 @@ int     job_print_full_specs(job_t *job, FILE *stream)
 
 {
     return fprintf(stream, JOB_SPEC_FORMAT, job->job_id, job->array_index,
-	    job->job_count, job->procs_per_job,
-	    job->min_procs_per_node, job->pmem_per_proc,
+	    job->job_count, job->processors_per_job,
+	    job->threads_per_process, job->phys_mib_per_processor,
 	    job->chaperone_pid, job->job_pid, job->state,
 	    job->user_name, job->primary_group_name,
 	    job->submit_node, job->submit_dir,
@@ -185,8 +185,8 @@ int     job_print_to_string(job_t *job, char *str, size_t buff_size)
 {
     return snprintf(str, buff_size, JOB_SPEC_FORMAT,
 		    job->job_id, job->array_index,
-		    job->job_count, job->procs_per_job,
-		    job->min_procs_per_node, job->pmem_per_proc,
+		    job->job_count, job->processors_per_job,
+		    job->threads_per_process, job->phys_mib_per_processor,
 		    job->chaperone_pid, job->job_pid, job->state,
 		    job->user_name, job->primary_group_name,
 		    job->submit_node, job->submit_dir,
@@ -211,8 +211,8 @@ void    job_send_basic_params(job_t *job, int msg_fd)
     
     snprintf(msg, LPJS_MSG_LEN_MAX + 1, JOB_BASIC_PARAMS_FORMAT,
 	    job->job_id, job->array_index,
-	    job->job_count, job->procs_per_job,
-	    job->min_procs_per_node, job->pmem_per_proc,
+	    job->job_count, job->processors_per_job,
+	    job->threads_per_process, job->phys_mib_per_processor,
 	    job->user_name,
 	    job->script_name,
 	    job->compute_node);
@@ -366,40 +366,40 @@ int     job_parse_script(job_t *job, const char *script_name)
 			exit(EX_DATAERR);
 		    }
 		}
-		else if ( strcmp(var, "procs-per-job") == 0 )
+		else if ( strcmp(var, "processors-per-job") == 0 )
 		{
-		    job->procs_per_job = strtoul(val, &end, 10);
+		    job->processors_per_job = strtoul(val, &end, 10);
 		    if ( *end != '\0' )
 		    {
-			fprintf(stderr, "Error: #lpjs procs-per-job '%s' is not a decimal integer.\n", val);
+			fprintf(stderr, "Error: #lpjs processors-per-job '%s' is not a decimal integer.\n", val);
 			exit(EX_DATAERR);
 		    }
 		}
-		else if ( strcmp(var, "min-procs-per-node") == 0 )
+		else if ( strcmp(var, "threads-per-process") == 0 )
 		{
-		    if ( strcmp(val, "procs-per-job") == 0 )
-			job->min_procs_per_node = job->procs_per_job;
+		    if ( strcmp(val, "processors-per-job") == 0 )
+			job->threads_per_process = job->processors_per_job;
 		    else
 		    {
-			job->min_procs_per_node = strtoul(val, &end, 10);
+			job->threads_per_process = strtoul(val, &end, 10);
 			if ( *end != '\0' )
 			{
-			    fprintf(stderr, "Error: #lpjs min-procs-per-node '%s' is not a decimal integer.\n", val);
+			    fprintf(stderr, "Error: #lpjs threads-per-process '%s' is not a decimal integer.\n", val);
 			    exit(EX_DATAERR);
 			}
-			if ( job->min_procs_per_node > job->procs_per_job )
+			if ( job->threads_per_process > job->processors_per_job )
 			{
-			    fprintf(stderr, "Error: #lpjs min-procs-per-node cannot be greater then procs-per-job.\n");
+			    fprintf(stderr, "Error: #lpjs threads-per-process cannot be greater then processors-per-job.\n");
 			    exit(EX_DATAERR);
 			}
 		    }
 		}
-		else if ( strcmp(var, "pmem-per-proc") == 0 )
+		else if ( strcmp(var, "pmem-per-processor") == 0 )
 		{
-		    job->pmem_per_proc = lpjs_parse_phys_MiB(val);
-		    if ( job->pmem_per_proc == 0 )
+		    job->phys_mib_per_processor = lpjs_parse_phys_MiB(val);
+		    if ( job->phys_mib_per_processor == 0 )
 		    {
-			fprintf(stderr, "Error: #lpjs pmem-per-proc '%s':\n", val);
+			fprintf(stderr, "Error: #lpjs pmem-per-processor '%s':\n", val);
 			fprintf(stderr, "Requires a decimal number followed by MB, MiB, GB, or GiB.\n");
 			exit(EX_DATAERR);
 		    }
@@ -440,16 +440,16 @@ int     job_parse_script(job_t *job, const char *script_name)
     }
     
     // FIXME: Error out if not all required parameters present
-    // jobs, procs-per-job, pmem-per-proc
+    // jobs, processors-per-job, pmem-per-processor
     
-    if ( job->min_procs_per_node == 0 )
-	fprintf(stderr, "%u job, %u procs per job, all procs per node, %zu MiB\n",
-		job->job_count, job->procs_per_job,
-		job->pmem_per_proc);
+    if ( job->threads_per_process == 0 )
+	fprintf(stderr, "%u job, %u processors per job, all processors per node, %zu MiB\n",
+		job->job_count, job->processors_per_job,
+		job->phys_mib_per_processor);
     else
-	fprintf(stderr, "%u job, %u procs per job, %u procs per node, %zu MiB\n",
-		job->job_count, job->procs_per_job,
-		job->min_procs_per_node, job->pmem_per_proc);
+	fprintf(stderr, "%u job, %u processors per job, %u processors per node, %zu MiB\n",
+		job->job_count, job->processors_per_job,
+		job->threads_per_process, job->phys_mib_per_processor);
     return 0;
 }
 
@@ -491,8 +491,8 @@ int     job_read_from_string(job_t *job, const char *string, char **end)
     
     items = sscanf(string, JOB_SPEC_NUMS_FORMAT,
 	    &job->job_id, &job->array_index,
-	    &job->job_count, &job->procs_per_job,
-	    &job->min_procs_per_node, &job->pmem_per_proc,
+	    &job->job_count, &job->processors_per_job,
+	    &job->threads_per_process, &job->phys_mib_per_processor,
 	    &job->chaperone_pid, &job->job_pid, &job->state);
     
     // Skips past numeric fields
@@ -766,11 +766,11 @@ void    job_setenv(job_t *job)
 	    LPJS_MAX_INT_DIGITS + 1), 1);
     setenv("LPJS_JOB_COUNT", xt_ltostrn(str, job->job_count, 10,
 	    LPJS_MAX_INT_DIGITS + 1), 1);
-    setenv("LPJS_PROCS_PER_JOB", xt_ltostrn(str, job->procs_per_job, 10,
+    setenv("LPJS_PROCESSORS_PER_JOB", xt_ltostrn(str, job->processors_per_job, 10,
 	    LPJS_MAX_INT_DIGITS + 1), 1);
-    setenv("LPJS_MIN_PROCS_PER_NODE", xt_ltostrn(str, job->min_procs_per_node, 10,
+    setenv("LPJS_THREADS_PER_PROCESS", xt_ltostrn(str, job->threads_per_process, 10,
 	    LPJS_MAX_INT_DIGITS + 1), 1);
-    setenv("LPJS_PMEM_PER_PROC", xt_ltostrn(str, job->pmem_per_proc, 10,
+    setenv("LPJS_PHYS_MIB_PER_PROCESSOR", xt_ltostrn(str, job->phys_mib_per_processor, 10,
 	    LPJS_MAX_INT_DIGITS + 1), 1);
     // Don't need chaperone_pid, job_pid, state
     setenv("LPJS_USER_NAME", job->user_name, 1);

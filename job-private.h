@@ -22,9 +22,9 @@ struct job
     unsigned long   job_id;
     unsigned long   array_index;
     unsigned        job_count;
-    unsigned        procs_per_job;
-    unsigned        min_procs_per_node;
-    size_t          pmem_per_proc;       // FIXME: Change to phys_MiB
+    unsigned        processors_per_job;
+    unsigned        threads_per_process;
+    size_t          phys_mib_per_processor;
     pid_t           chaperone_pid;
     pid_t           job_pid;
     job_state_t     state;

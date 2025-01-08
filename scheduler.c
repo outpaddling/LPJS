@@ -22,9 +22,9 @@
  *      Select nodes to run a pending job
  *
  *      Default to packing jobs as densely as possible, i.e. use up
- *      available procs on already busy nodes before allocating procs on
+ *      available processors on already busy nodes before allocating processors on
  *      idle nodes.  This will allow faster deployment of shared memory
- *      parallel jobs, which need many procs on the same node.
+ *      parallel jobs, which need many processors on the same node.
  *  
  *  Returns:
  *
@@ -335,17 +335,17 @@ int     lpjs_match_nodes(job_t *job, node_list_t *node_list,
     node_t      *node;
     unsigned    node_count,
 		c,
-		usable_procs,   // Procs with enough mem
+		usable_processors,   // Procs with enough mem
 		total_usable,
 		total_required;
     
-    lpjs_log("%s(): Job %u requires %u procs, %lu MiB / proc.\n",
+    lpjs_log("%s(): Job %u requires %u processors, %lu MiB / proc.\n",
 	    __FUNCTION__,
-	    job_get_job_id(job), job_get_min_procs_per_node(job),
-	    job_get_pmem_per_proc(job));
+	    job_get_job_id(job), job_get_threads_per_process(job),
+	    job_get_phys_mib_per_processor(job));
     
     total_usable = 0;
-    total_required = job_get_procs_per_job(job);
+    total_required = job_get_processors_per_job(job);
     for (c = node_count = 0;
 	 (c < node_list_get_compute_node_count(node_list)) &&
 	 (total_usable < total_required); ++c)
@@ -357,16 +357,16 @@ int     lpjs_match_nodes(job_t *job, node_list_t *node_list,
 	else
 	{
 	    // lpjs_log("Checking %s...\n", node_get_hostname(node));
-	    usable_procs = lpjs_get_usable_procs(job, node);
-	    usable_procs = XT_MIN(usable_procs, total_required - total_usable);
+	    usable_processors = lpjs_get_usable_processors(job, node);
+	    usable_processors = XT_MIN(usable_processors, total_required - total_usable);
 	    
-	    if ( usable_procs > 0 )
+	    if ( usable_processors > 0 )
 	    {
-		lpjs_log("%s(): Using %u procs on %s.\n", __FUNCTION__,
-			usable_procs, node_get_hostname(node));
-		// FIXME: Set # procs to use on node
+		lpjs_log("%s(): Using %u processors on %s.\n", __FUNCTION__,
+			usable_processors, node_get_hostname(node));
+		// FIXME: Set # processors to use on node
 		node_list_add_compute_node(matched_nodes, node);
-		total_usable += usable_procs;
+		total_usable += usable_processors;
 		++node_count;
 	    }
 	}
@@ -396,35 +396,35 @@ int     lpjs_match_nodes(job_t *job, node_list_t *node_list,
  *  2024-02-23  Jason Bacon Begin
  ***************************************************************************/
 
-int     lpjs_get_usable_procs(job_t *job, node_t *node)
+int     lpjs_get_usable_processors(job_t *job, node_t *node)
 
 {
-    int         required_procs,
-		available_procs,    // Total free
-		usable_procs;       // Total free with enough mem
+    int         required_processors,
+		available_processors,    // Total free
+		usable_processors;       // Total free with enough mem
     size_t      available_mem;
     
-    required_procs = job_get_min_procs_per_node(job);
+    required_processors = job_get_threads_per_process(job);
     available_mem = node_get_phys_MiB_available(node);
-    available_procs = node_get_procs(node) - node_get_procs_used(node);
-    lpjs_log("%s(): %s: procs = %u  mem = %lu\n", __FUNCTION__,
-	     node_get_hostname(node), available_procs, available_mem);
-    if ( available_procs >= required_procs )
+    available_processors = node_get_processors(node) - node_get_processors_used(node);
+    lpjs_log("%s(): %s: processors = %u  mem = %lu\n", __FUNCTION__,
+	     node_get_hostname(node), available_processors, available_mem);
+    if ( available_processors >= required_processors )
     {
-	if ( (available_mem >= job_get_pmem_per_proc(job) * required_procs) )
-	    usable_procs = required_procs;
+	if ( (available_mem >= job_get_phys_mib_per_processor(job) * required_processors) )
+	    usable_processors = required_processors;
 	else
 	{
 	    lpjs_log("%s(): Not enough memory available.\n", __FUNCTION__);
-	    usable_procs = 0;
+	    usable_processors = 0;
 	}
     }
     else
     {
-	lpjs_log("%s(): Not enough procs available.\n", __FUNCTION__);
-	usable_procs = 0;
+	lpjs_log("%s(): Not enough processors available.\n", __FUNCTION__);
+	usable_processors = 0;
     }
-    return usable_procs;
+    return usable_processors;
 }
 
 

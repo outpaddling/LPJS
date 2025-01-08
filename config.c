@@ -125,14 +125,14 @@ int     lpjs_load_compute_config(node_list_t *node_list, FILE *input_stream,
 			      const char *conf_file)
 
 {
-    int     delim, procs;
+    int     delim, processors;
     char    field[LPJS_FIELD_MAX + 1],
 	    hostname[LPJS_FIELD_MAX + 1],
 	    *end;
     size_t  len, pmem;
     node_t  *node;
     
-    pmem = procs = 0;
+    pmem = processors = 0;
     while ( ((delim = xt_dsv_read_field(input_stream, field,
 					LPJS_FIELD_MAX + 1,
 					" \t", &len)) != EOF) )
@@ -150,15 +150,15 @@ int     lpjs_load_compute_config(node_list_t *node_list, FILE *input_stream,
 	    }
 	    lpjs_debug("%s(): pmem override = %zu\n", __FUNCTION__, pmem);
 	}
-	else if ( memcmp(field, "procs=", 6) == 0 )
+	else if ( memcmp(field, "processors=", 6) == 0 )
 	{
-	    procs = strtoul(field + 6, &end, 10);
+	    processors = strtoul(field + 6, &end, 10);
 	    if ( *end != '\0' )
 	    {
 		lpjs_log("%s(): Invalid proc count: %s\n", __FUNCTION__, field);
 		exit(EX_DATAERR);
 	    }
-	    lpjs_debug("%s(): procs override = %zu\n", __FUNCTION__, pmem);
+	    lpjs_debug("%s(): processors override = %zu\n", __FUNCTION__, pmem);
 	}
 	else
 	    strlcpy(hostname, field, LPJS_FIELD_MAX + 1);
@@ -176,8 +176,8 @@ int     lpjs_load_compute_config(node_list_t *node_list, FILE *input_stream,
     node = node_new();
     if ( pmem != 0 )
 	node_set_phys_MiB(node, pmem);
-    if ( procs != 0 )
-	node_set_procs(node, procs);
+    if ( processors != 0 )
+	node_set_processors(node, processors);
     node_set_hostname(node, strdup(hostname));
     node_list_add_compute_node(node_list, node);
 

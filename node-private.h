@@ -12,8 +12,8 @@ extern "C" {
 struct node
 {
     char            *hostname;
-    unsigned        procs;
-    unsigned        procs_used;
+    unsigned        processors;
+    unsigned        processors_used;
     // size_t will suffice even if head node is 32-bit (2^32-1 MiB)
     size_t          phys_MiB;
     size_t          phys_MiB_used;

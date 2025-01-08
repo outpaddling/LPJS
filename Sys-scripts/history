@@ -76,7 +76,7 @@ fi
 
 # FIXME: Add a --long flag to output in human-readable format
 if [ 0"$1" = 0--long ]; then
-    awk '{ printf("job-id=%s exit-status=%s peak-pmem=%sKiB pmem-per-proc=%sKiB compute-node=%s user=%s script=%s\n", $1, $2, $3, $4, $5, $6, $7); }' $log_dir/job-history
+    awk '{ printf("job-id=%s exit-status=%s peak-pmem=%sKiB pmem-per-processor=%sKiB compute-node=%s user=%s script=%s\n", $1, $2, $3, $4, $5, $6, $7); }' $log_dir/job-history
 else
     cat $log_dir/job-history
 fi

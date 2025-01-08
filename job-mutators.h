@@ -17,9 +17,9 @@
 int job_set_job_id(job_t *job_ptr, unsigned long new_job_id);
 int job_set_array_index(job_t *job_ptr, unsigned long new_array_index);
 int job_set_job_count(job_t *job_ptr, unsigned new_job_count);
-int job_set_procs_per_job(job_t *job_ptr, unsigned new_procs_per_job);
-int job_set_min_procs_per_node(job_t *job_ptr, unsigned new_min_procs_per_node);
-int job_set_pmem_per_proc(job_t *job_ptr, size_t new_pmem_per_proc);
+int job_set_processors_per_job(job_t *job_ptr, unsigned new_processors_per_job);
+int job_set_threads_per_process(job_t *job_ptr, unsigned new_threads_per_process);
+int job_set_phys_mib_per_processor(job_t *job_ptr, size_t new_phys_mib_per_processor);
 int job_set_chaperone_pid(job_t *job_ptr, pid_t new_chaperone_pid);
 int job_set_job_pid(job_t *job_ptr, pid_t new_job_pid);
 int job_set_state(job_t *job_ptr, job_state_t new_state);

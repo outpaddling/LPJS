@@ -368,13 +368,13 @@ void    lpjs_log_job(job_list_t *job_list, const char *hostname,
     {
 	if ( (job = job_list_get_jobs_ae(job_list, index)) != NULL )
 	{
-	    // pmem_per_proc is MiB and peak_rss if KiB
+	    // phys_mib_per_processor is MiB and peak_rss if KiB
 	    fprintf(Job_history_stream, "%s %lu %d %zu %zu %d %d %s %s %s/%s\n",
 		    xt_str_localtime("%m-%d %H:%M:%S"),
 		    job_id, exit_status, peak_rss,
-		    job_get_pmem_per_proc(job) * 1024,
-		    job_get_procs_per_job(job),
-		    job_get_min_procs_per_node(job),
+		    job_get_phys_mib_per_processor(job) * 1024,
+		    job_get_processors_per_job(job),
+		    job_get_threads_per_process(job),
 		    hostname, job_get_user_name(job),
 		    job_get_submit_dir(job), job_get_script_name(job));
 	    fflush(Job_history_stream);
@@ -793,7 +793,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		if ( (items = sscanf(p, "%lu %d %zu", &job_id,
 				     &exit_status, &peak_rss)) != 3 )
 		{
-		    lpjs_log("%s(): Error: Got %d items reading job_id, procs, mem, status, peak_rss.\n",
+		    lpjs_log("%s(): Error: Got %d items reading job_id, processors, mem, status, peak_rss.\n",
 			    items);
 		    break;
 		}
@@ -1448,13 +1448,13 @@ int     lpjs_load_job_list(job_list_t *job_list, node_list_t *node_list,
 		node_adjust_resources(compute_node, job,
 				      NODE_RESOURCE_ALLOCATE);
 		/* Replaces...
-		node_set_procs_used(compute_node,
-				    node_get_procs_used(compute_node) +
-				    job_get_procs_per_job(job));
+		node_set_processors_used(compute_node,
+				    node_get_processors_used(compute_node) +
+				    job_get_processors_per_job(job));
 		node_set_phys_MiB_used(compute_node,
 				       node_get_phys_MiB_used(compute_node) +
-				       job_get_procs_per_job(job) *
-				       job_get_pmem_per_proc(job));
+				       job_get_processors_per_job(job) *
+				       job_get_phys_mib_per_processor(job));
 		*/
 	    }
 	}

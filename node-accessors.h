@@ -12,8 +12,8 @@
 /* temp-node-accessors.c */
 char *node_get_hostname(node_t *node_ptr);
 char node_get_hostname_ae(node_t *node_ptr, size_t c);
-unsigned node_get_procs(node_t *node_ptr);
-unsigned node_get_procs_used(node_t *node_ptr);
+unsigned node_get_processors(node_t *node_ptr);
+unsigned node_get_processors_used(node_t *node_ptr);
 unsigned long node_get_phys_MiB(node_t *node_ptr);
 unsigned long node_get_phys_MiB_used(node_t *node_ptr);
 int node_get_zfs(node_t *node_ptr);

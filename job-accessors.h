@@ -13,9 +13,9 @@
 unsigned long job_get_job_id(job_t *job_ptr);
 unsigned long job_get_array_index(job_t *job_ptr);
 unsigned job_get_job_count(job_t *job_ptr);
-unsigned job_get_procs_per_job(job_t *job_ptr);
-unsigned job_get_min_procs_per_node(job_t *job_ptr);
-size_t job_get_pmem_per_proc(job_t *job_ptr);
+unsigned job_get_processors_per_job(job_t *job_ptr);
+unsigned job_get_threads_per_process(job_t *job_ptr);
+size_t job_get_phys_mib_per_processor(job_t *job_ptr);
 pid_t job_get_chaperone_pid(job_t *job_ptr);
 pid_t job_get_job_pid(job_t *job_ptr);
 job_state_t job_get_state(job_t *job_ptr);

@@ -127,7 +127,7 @@ head    myhead.mydomain
 compute compute001.mydomain
 # compute-002 actually have 16GiB RAM and 8 processors, but
 # we limit LPJS to half of each
-compute compute002.mydomain pmem=8GiB procs=4
+compute compute002.mydomain pmem=8GiB processors=4
 ...
         </screen>
         
