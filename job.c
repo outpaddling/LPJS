@@ -74,19 +74,9 @@ void    job_init(job_t *job)
     job->script_name = NULL;
     job->compute_node = "TBD";  // For lpjs jobs output
     job->log_dir = NULL;
-    // Default: No idea what input files are, but we need something
-    if ( (job->pull_command = strdup(JOB_NO_PULL_CMD)) == NULL )
-    {
-	lpjs_log("%s(): Error: strdup() failed.\n", __FUNCTION__);
-	exit(EX_UNAVAILABLE);
-    }
-    // Default: Send entire contents of temp working dir to working
-    // dir on submit host
-    if ( (job->push_command = strdup(JOB_NO_PUSH_CMD)) == NULL )
-    {
-	lpjs_log("%s(): Error: strdup() failed.\n", __FUNCTION__);
-	exit(EX_UNAVAILABLE);
-    }
+    job->path = JOB_NO_PATH;
+    job->pull_command = JOB_NO_PULL_CMD;
+    job->push_command = JOB_NO_PUSH_CMD;
 }
 
 
@@ -131,6 +121,10 @@ job_t   *job_dup(job_t *job)
 	new_job->log_dir = strdup(job->log_dir);
     else
 	new_job->log_dir = NULL;
+    if ( job->path != NULL )
+	new_job->path = strdup(job->path);
+    else
+	new_job->path = NULL;
     
     // These are initialized to JOB_NO_*_CMD and should never be
     // NULL, but in case somebody changes that...
@@ -167,7 +161,7 @@ int     job_print_full_specs(job_t *job, FILE *stream)
 	    job->user_name, job->primary_group_name,
 	    job->submit_node, job->submit_dir,
 	    job->script_name, job->compute_node,
-	    job->log_dir, job->pull_command, job->push_command);
+	    job->log_dir, job->path, job->pull_command, job->push_command);
 }
 
 
@@ -191,7 +185,8 @@ int     job_print_to_string(job_t *job, char *str, size_t buff_size)
 		    job->user_name, job->primary_group_name,
 		    job->submit_node, job->submit_dir,
 		    job->script_name, job->compute_node,
-		    job->log_dir, job->pull_command, job->push_command);
+		    job->log_dir, job->path,
+		    job->pull_command, job->push_command);
 }
 
 
@@ -413,6 +408,15 @@ int     job_parse_script(job_t *job, const char *script_name)
 			exit(EX_UNAVAILABLE);
 		    }
 		}
+		else if ( strcmp(var, "path") == 0 )
+		{
+		    // FIXME: Handle strdup() failure
+		    if ( (job->path = strdup(val)) == NULL )
+		    {
+			fprintf(stderr, "%s: malloc() failed.\n", __FUNCTION__);
+			exit(EX_UNAVAILABLE);
+		    }
+		}
 		else
 		{
 		    fprintf(stderr, "Unrecognized #lpjs variable: '%s'\n", var);
@@ -570,6 +574,13 @@ int     job_read_from_string(job_t *job, const char *string, char **end)
     }
     ++items;
     
+    if ( (job->path = strdup(strsep(&p, " \t\n"))) == NULL )
+    {
+	lpjs_log("%s(): Error: malloc() failed.\n", __FUNCTION__);
+	exit(EX_UNAVAILABLE);
+    }
+    ++items;
+    
     // Pull and push may contain whitespace and are terminated
     // by NL, must be last
     if ( (job->pull_command = strdup(strsep(&p, "\n"))) == NULL )
@@ -682,6 +693,8 @@ void    job_free(job_t **job)
 	    free((*job)->compute_node);
 	if ((*job)->log_dir != NULL)
 	    free((*job)->log_dir);
+	if ((*job)->path != NULL)
+	    free((*job)->path);
 	if ((*job)->pull_command != NULL)
 	    free((*job)->pull_command);
 	if ((*job)->push_command != NULL)
@@ -780,6 +793,7 @@ void    job_setenv(job_t *job)
     setenv("LPJS_SCRIPT_NAME", job->script_name, 1);
     setenv("LPJS_COMPUTE_NODE", job->compute_node, 1);
     setenv("LPJS_JOB_LOG_DIR", job->log_dir, 1);
+    setenv("LPJS_PATH", job->path, 1);
     setenv("LPJS_PULL_COMMAND", job->pull_command, 1);
     setenv("LPJS_PUSH_COMMAND", job->push_command, 1);
 }

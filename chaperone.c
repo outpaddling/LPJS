@@ -89,9 +89,11 @@ int     main (int argc, char *argv[])
 	return EX_CANTCREAT;
     }
     
+    // Add localbase and prefix of the package manager that built LPJS
+    // to ensure the chaperone can find dependencies
     snprintf(new_path, LPJS_PATH_ENV_MAX + 1, "%s/bin:%s/bin:%s", LOCALBASE, PREFIX, getenv("PATH"));
     setenv("PATH", new_path, 1);
-    // lpjs_debug("PATH = %s\n", new_path);
+    lpjs_log("%s(): Default PATH = %s\n", __FUNCTION__, new_path);
     
     xt_get_home_dir(home_dir, PATH_MAX + 1);
     setenv("LPJS_HOME_DIR", home_dir, 1);
@@ -153,6 +155,15 @@ int     main (int argc, char *argv[])
 	rss_limit.rlim_max = phys_mib_per_processor * threads_per_process *
 			     KIB_PER_MIB * BYTES_PER_KIB;
 	setrlimit(RLIMIT_RSS, &rss_limit);
+	
+	// User-provided PATH
+	temp = getenv("LPJS_PATH");
+	if ( strcmp(temp, JOB_NO_PATH) != 0 )
+	{
+	    setenv("PATH", temp, 1);
+	    lpjs_log("%s(): Overriding default PATH with user-provided %s\n",
+		    __FUNCTION__, temp);
+	}
 	
 	// Pull input files before execing script
 	if ( stat(shared_fs_marker, &st) != 0 )
