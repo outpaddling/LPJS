@@ -78,7 +78,7 @@ typedef enum
  */
 #define LPJS_IP_TCP_PORT                (short)6818 // Need short for htons()
 #define LPJS_RETRY_TIME                 5
-#define LPJS_WRONG_VERSION_RETRY_TIME   60
+#define LPJS_WRONG_VERSION_RETRY_TIME   10  // Use 60 when stable
 #define LPJS_MUNGE_CRED_VERIFIED_MSG    "MCD"
 #define LPJS_WRONG_VERSION_MSG          "Wrong LPJS version"
 #define LPJS_NODE_AUTHORIZED_MSG        "Node authorized"
