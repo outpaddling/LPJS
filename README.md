@@ -172,7 +172,7 @@ Total                down        80    0  458455       0 -         -
 ### macOS Limitations
 
 Compute nodes running macOS and accessing file servers are currently
-problematic, due to macOS security features.  MacOS requires the user
+problematic, due to macOS security features.  MacOS requires the desktop user
 to grant each application permission to access certain directories, including
 those on a remote file server, via a popup window on the desktop.
 There is no command-line alternative for granting permissions, as providing
@@ -182,9 +182,10 @@ The LPJS compute node daemon, lpjs_compd, needs write access to file
 servers in order to create files and directories for running jobs.
 Its descendants, including your job scripts, also need this write access.
 
-Each time lpjs_compd is updated, it will lose its authorization to access
-the file server, until the desktop user authorizes it again via the
-macOS graphical interface.
+Each time lpjs_compd is updated, macOS revokes previous full disk access
+authorizations, until the desktop user authorizes it again via the
+macOS graphical interface.  There does not appear to be way around this
+behavior.
 
 This issue has been reported via the Apple Developer platform:
 
@@ -192,11 +193,14 @@ This issue has been reported via the Apple Developer platform:
 
 Contact Apple if you would like to see it addressed.
 
-There are two possible workarounds to this issue:
+There are two possible workarounds:
 
-1. Do not use a file server from macOS compute nodes.  This complicates
-jobs scripts, as they will need to automatically download input files
-and upload results.
+1. Don't use a file server from macOS compute nodes.  This complicates
+jobs scripts, however, as they will need to automatically download input
+files and upload results. At minimum, the job script must define
+`#lpjs pull-command` and `#lpjs push-command`.  File transfers are
+tricky and difficult to debug, so we don't recommend using this approach
+unless you really have to.
 
 2. Use a virtual machine to run jobs on macOS compute nodes under another
 operating system, such as BSD or Linux.  There
