@@ -192,6 +192,7 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
      *  transmission, so the client can close first and avoid a wait
      *  state for the socket.
      */
+    
     if ( lpjs_send_munge(msg_fd, LPJS_EOT_MSG, lpjs_dispatchd_safe_close)
 			 != LPJS_MSG_SENT )
 	lpjs_log("%s(): Error: Failed to send EOT.\n", __FUNCTION__);
@@ -293,7 +294,8 @@ node_t  *node_list_find_hostname(node_list_t *node_list, const char *hostname)
  *  2024-05-10  Jason Bacon Begin
  ***************************************************************************/
 
-int     node_list_set_state(node_list_t *node_list, char *arg_string)
+int     node_list_set_state(node_list_t *node_list, char *arg_string,
+			    uid_t munge_uid, int msg_fd)
 
 {
     char    *p,
@@ -301,7 +303,18 @@ int     node_list_set_state(node_list_t *node_list, char *arg_string)
 	    *node_name;
     node_t  *node;
     
-    puts(arg_string);
+    if ( (munge_uid != 0) && (munge_uid != getuid()) )
+    {
+	if ( lpjs_send_munge(msg_fd, "Only root or the user running lpjs_dispatchd can change node states.\n"
+			     LPJS_EOT_MSG,
+			     lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
+	{
+	    lpjs_log("%s(): Error: Failed to send node status.\n", __FUNCTION__);
+	    lpjs_dispatchd_safe_close(msg_fd);
+	    // return 1
+	}
+	return 1;
+    }
     
     p = arg_string;
     state = strsep(&p, " ");
@@ -318,7 +331,7 @@ int     node_list_set_state(node_list_t *node_list, char *arg_string)
     // nodes.c ensures that "all" is the only argument
     if ( strcmp(node_name, "all") == 0 )
     {
-	printf("Setting all nodes to %s...\n", state);
+	lpjs_debug("Setting all nodes to %s...\n", state);
 	for (size_t c = 0; c < node_list->compute_node_count; ++c)
 	    node_set_state(node_list->compute_nodes[c], state);
     }
@@ -331,12 +344,19 @@ int     node_list_set_state(node_list_t *node_list, char *arg_string)
 		lpjs_log("%s(): Error: Node %s not found.\n", __FUNCTION__, node_name);
 	    else
 	    {
-		printf("Setting node %s to %s...\n", node_name, state);
+		lpjs_debug("Setting node %s to %s...\n", node_name, state);
+		// FIXME: Save state and restore upon dispatchd restart
 		node_set_state(node, state);
 	    }
 	    node_name = strsep(&p, " ");
 	}
     }
+    
+    if ( lpjs_send_munge(msg_fd, LPJS_EOT_MSG, lpjs_dispatchd_safe_close)
+			 != LPJS_MSG_SENT )
+	lpjs_log("%s(): Error: Failed to send EOT.\n", __FUNCTION__);
+    else
+	lpjs_log("%s(): EOT sent.\n", __FUNCTION__);
     
     return 0;   // FIXME: Define return codes
 }

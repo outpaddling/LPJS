@@ -237,7 +237,8 @@ int     main (int argc, char *argv[])
     {
 	lpjs_log("%s(): %s not found, attempting to push output files.\n",
 		__FUNCTION__, shared_fs_marker);
-	push_status = run_push_command(wd);
+	push_status = run_push_command(wd, log_dir);
+	
 	lpjs_log("%s(): push command exit status = %d\n", __FUNCTION__,
 		push_status);
 
@@ -776,15 +777,32 @@ int     run_pull_command(const char *wd)
  *  2025-01-06  Jason Bacon Begin
  ***************************************************************************/
 
-int     run_push_command(const char *wd)
+int     run_push_command(const char *wd, const char *log_dir)
 
 {
-    char        *sp, cmd[LPJS_CMD_MAX + 1];
+    int         status;
+    char        *sp, *submit_host, *submit_dir, cmd[LPJS_CMD_MAX + 1];
     extern FILE *Log_stream;
     
     if ( (sp = getenv("LPJS_PUSH_COMMAND")) == NULL )
     {
 	lpjs_log("%s(): Bug: No LPJS_PUSH_COMMAND in env.\n", __FUNCTION__);
+	exit(EX_SOFTWARE);
+    }
+    else
+	lpjs_log("%s(): LPJS_PUSH_COMMAND = %s\n", __FUNCTION__, sp);
+    
+    if ( (submit_host = getenv("LPJS_SUBMIT_HOST")) == NULL )
+    {
+	lpjs_log("%s(): Bug: No LPJS_SUBMIT_HOST in env.\n", __FUNCTION__);
+	exit(EX_SOFTWARE);
+    }
+    else
+	lpjs_log("%s(): LPJS_PUSH_COMMAND = %s\n", __FUNCTION__, sp);
+    
+    if ( (submit_dir = getenv("LPJS_SUBMIT_DIRECTORY")) == NULL )
+    {
+	lpjs_log("%s(): Bug: No LPJS_SUBMIT_DIRECTORY in env.\n", __FUNCTION__);
 	exit(EX_SOFTWARE);
     }
     else
@@ -801,7 +819,15 @@ int     run_push_command(const char *wd)
     // No more lpjs_log() beyond here.  Log file already transferred.
     // Close log before pushing temp dir to ensure that it's complete
     fclose(Log_stream);
-    return system(cmd);
+    
+    status = system(cmd);
+    
+    // Try to send back log dir, regardless of push_cmd
+    snprintf(cmd, LPJS_CMD_MAX + 1, "rsync -av %s/%s %s:%s",
+	     wd, log_dir, submit_host, submit_dir);
+    system(cmd);
+
+    return status;
 }
 
 

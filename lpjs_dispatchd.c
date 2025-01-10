@@ -623,24 +623,23 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		// lpjs_dispatchd_safe_close(msg_fd);
 		// node_list_send_status() sends EOT,
 		// so don't use safe_close here.
-		lpjs_debug("%s(): Closing %d.\n", __FUNCTION__, msg_fd);
+		// lpjs_debug("%s(): Closing %d.\n", __FUNCTION__, msg_fd);
 		lpjs_wait_close(msg_fd);
 		break;
 	    
 	    case    LPJS_DISPATCHD_REQUEST_PAUSE:
 		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_PAUSE fd = %d\n",
 			__FUNCTION__, msg_fd);
+		node_list_set_state(node_list, munge_payload + 1, munge_uid, msg_fd);
 		lpjs_wait_close(msg_fd);
-		
-		node_list_set_state(node_list, munge_payload + 1);
 		break;
 		
 	    case    LPJS_DISPATCHD_REQUEST_RESUME:
 		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_RESUME fd = %d\n",
 			__FUNCTION__, msg_fd);
+		node_list_set_state(node_list, munge_payload + 1, munge_uid, msg_fd);
 		lpjs_wait_close(msg_fd);
-		
-		node_list_set_state(node_list, munge_payload + 1);
+
 		// New resources might be available
 		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
 		break;

@@ -180,6 +180,12 @@ Each time lpjs_compd is updated, it will lose its authorization to access
 the file server, until the desktop user authorizes it again via the
 macOS graphical interface.
 
+This issue has been reported via the Apple Developer platform:
+
+[https://feedbackassistant.apple.com/feedback/13784826](https://feedbackassistant.apple.com/feedback/13784826)
+
+Contact Apple if you would like to see it addressed.
+
 There are two possible workarounds to this issue:
 
 1. Do not use a file server from macOS compute nodes.  This complicates
