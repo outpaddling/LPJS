@@ -72,6 +72,8 @@ int     main (int argc, char *argv[])
     script_size = lpjs_load_script(script_name, script_text,
 				   LPJS_SCRIPT_SIZE_MAX + 1);
     
+    // FIXME: Compare shebang line to extension and warn about mismatches
+    
     if ( script_size > LPJS_PAYLOAD_MAX )
     {
 	fprintf(stderr, "Error: Script size cannot exceed LPJS_PAYLOAD_MAX = %u\n",
@@ -79,15 +81,12 @@ int     main (int argc, char *argv[])
 	return EX_DATAERR;
     }
     
-    // FIXME: Determine a real minimum script size
     if ( script_size < LPJS_SCRIPT_MIN_SIZE )
     {
 	lpjs_log("%s(): Error: Script %s < %d chars.\n",
 		__FUNCTION__, script_name, LPJS_SCRIPT_MIN_SIZE);
 	return EX_DATAERR;
     }
-    
-    // FIXME: Warn about misleading shell extensions, e.g. .sh for bash
     
     /*
      *  Create marker file in working directory on submit host.
@@ -113,12 +112,8 @@ int     main (int argc, char *argv[])
     // Terminates process if malloc() fails, no check required
     job = job_new();
     job_parse_script(job, script_name);
-    lpjs_log("pull_command = %s\n", job_get_pull_command(job));
-    lpjs_log("push_command = %s\n", job_get_push_command(job));
     
     script_name = job_get_script_name(job);
-    // submit_dir = job_get_submit_dir(job);
-    // printf("Absolute path = %s/%s\n", submit_dir, script_name);
 
     if ( (msg_fd = lpjs_connect_to_dispatchd(node_list)) == -1 )
     {
@@ -126,15 +121,10 @@ int     main (int argc, char *argv[])
 	return EX_IOERR;
     }
     
-    // FIXME: Send script as part of the payload
-    // We can't assume dispatchd has direct access to scripts
-    // submitted from other nodes.
-    
     job_print_to_string(job, job_string, LPJS_PAYLOAD_MAX + 1);
 
     snprintf(outgoing_msg, LPJS_JOB_MSG_MAX + 3, "%c%s\n%s",
 	    LPJS_DISPATCHD_REQUEST_SUBMIT, job_string, script_text);
-    // lpjs_log("Sending payload: %s\n", outgoing_msg);
 
     // FIXME: Exiting here causes dispatchd to crash
 
