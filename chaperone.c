@@ -781,7 +781,12 @@ int     run_push_command(const char *wd, const char *log_dir)
 
 {
     int         status;
-    char        *sp, *submit_host, *submit_dir, cmd[LPJS_CMD_MAX + 1];
+    char        *sp,
+		*submit_host,
+		*submit_dir,
+		*p,
+		cmd[LPJS_CMD_MAX + 1],
+		log_dir_top[PATH_MAX + 1];
     extern FILE *Log_stream;
     
     if ( (sp = getenv("LPJS_PUSH_COMMAND")) == NULL )
@@ -816,16 +821,21 @@ int     run_push_command(const char *wd, const char *log_dir)
 	    __FUNCTION__, wd);
     lpjs_log("%s(): push command = %s\n", __FUNCTION__, cmd);
     
-    // No more lpjs_log() beyond here.  Log file already transferred.
-    // Close log before pushing temp dir to ensure that it's complete
-    fclose(Log_stream);
-    
     status = system(cmd);
     
     // Try to send back log dir, regardless of push_cmd
-    snprintf(cmd, LPJS_CMD_MAX + 1, "rsync -av %s/%s %s:%s",
-	     wd, log_dir, submit_host, submit_dir);
+    strlcpy(log_dir_top, log_dir, PATH_MAX + 1);
+    // Give top-level directory to rsync for proper dir structure
+    if ( (p = strchr(log_dir_top, '/')) != 0 )
+	*p = '\0';
+    snprintf(cmd, LPJS_CMD_MAX + 1, "rsync -av %s %s:%s",
+	     log_dir_top, submit_host, submit_dir);
+    lpjs_log("%s(): Pushing log dir: %s\n", __FUNCTION__, cmd);
     system(cmd);
+    
+    // No more lpjs_log() beyond here.  Log file already transferred.
+    // Close log before pushing temp dir to ensure that it's complete
+    fclose(Log_stream);
 
     return status;
 }
