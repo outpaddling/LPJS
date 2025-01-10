@@ -213,6 +213,14 @@ You can install Qemu via pkgsrc and run this script, all without admin
 rights on your Mac.  This may be a good way to utilize institutionally
 managed Mac hardware as part of a cluster or grid.
 
+Running a 1-node instant cluster on macOS should work just fine, with
+no need for push and pull commands, as long
+as your jobs don't try to access any folders protected by full disk
+access checks.  Protected folders include each user's Documents folder, all
+folders shared by remote computers, and possibly others.  If you place all your
+LPJS job scripts and data under an unprotected folder, such as ~/Data,
+using LPJS should be easy.
+
 ## Security
 
 LPJS, like other job schedulers and resource managers, is a tool that
