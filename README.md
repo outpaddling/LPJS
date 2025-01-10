@@ -36,7 +36,7 @@ systems and provides one of the largest package collections among existing
 package managers.  Hence, pkgsrc enables the use of multiple operating
 systems running identical versions of numerous software applications.
 
-## Design philospohy
+## Design philosophy
 
 HPC and HTC are inherently somewhat complicated.  Nevertheless, most
 software used in the industry makes it harder than it needs to be.
@@ -53,8 +53,14 @@ we strive for the following goals above all else:
 
 ## Status
 
-LPJS is working reliably on our FreeBSD clusters for simple shared-memory
-multiprocessing jobs and job arrays.
+LPJS is working reliably on our bare-metal FreeBSD + Mac clusters for simple
+shared-memory multiprocessing jobs and job arrays.  Support for other
+platforms will be thoroughly tested after ironing out the remaining issues
+with these two.  Testing extensive changes on numerous platforms has proven
+to be too squirrely.  There may also be issues with VirtualBox and Qemu
+networking, which would confound diagnosis on our Linux and other BSD
+installations.
+
 Proper handling of network communication errors still needs a lot of work,
 but correct batch scripts running on reliable hardware should generally
 work fine at this stage.
