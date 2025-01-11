@@ -1,6 +1,9 @@
 
 Now
 ---
+dispatchd hangs if pull-command doesn't work
+    abalone native rsync doesn't support --mkpath
+
 cancel doesn't always clean up, maybe related to file transfer nodes
 
 Update RCUG
