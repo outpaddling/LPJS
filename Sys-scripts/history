@@ -74,9 +74,8 @@ if [ ! -e $log_dir ]; then
     exit 0
 fi
 
-# FIXME: Add a --long flag to output in human-readable format
 if [ 0"$1" = 0--long ]; then
-    awk '{ printf("job-id=%s exit-status=%s peak-pmem=%sKiB pmem-per-processor=%sKiB compute-node=%s user=%s script=%s\n", $1, $2, $3, $4, $5, $6, $7); }' $log_dir/job-history
+    mawk '{ printf("date=%s time=%s job-id=%s exit-status=%s peak-pmem=%uMiB pmem-per-processor=%dMiB processors-per-job=%s threads-per-process=%s compute-node=%s user=%s script=%s\n", $1, $2, $3, $4, $5 / 1024, $6 / 1024, $7, $8, $9, $10, $11); }' $log_dir/job-history
 else
     cat $log_dir/job-history
 fi
