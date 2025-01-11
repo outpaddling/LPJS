@@ -1064,9 +1064,18 @@ int     lpjs_cancel(int msg_fd, const char *incoming_msg,
     {
 	lpjs_log("%s(): Terminating processes for running job %lu...\n", __FUNCTION__, job_id);
 	if ( (job = job_list_get_jobs_ae(running_jobs, index)) != NULL )
+	{
 	    lpjs_kill_processes(node_list, job);
-	lpjs_log("%s(): Bug: Got valid index for running job, but no job object.\n",
-		__FUNCTION__);
+	    // FIXME: lpjs_remove_running_job(running_jobs, job_id)
+	    // should be called in response to a job termination
+	    // under LPJS_DISPATCHD_REQUEST_JOB_COMPLETE, but if the
+	    // chaperone is dead, this event won't happen.  Make sure
+	    // canceled jobs are cleaned up if a node goes down,
+	    // chaperone is killed, etc.
+	}
+	else
+	    lpjs_log("%s(): Bug: Got valid index for running job, but no job object.\n",
+		    __FUNCTION__);
     }
     else
 	lpjs_log("%s(): Error: No such active job ID: %lu.\n", __FUNCTION__, job_id);
@@ -1323,8 +1332,7 @@ int     lpjs_update_job(node_list_t *node_list, char *payload,
     
     job_list_index = job_list_find_job_id(pending_jobs, job_id);
     if ( job_list_index == JOB_LIST_NOT_FOUND )
-	lpjs_log("%s(): Error: Job id not found.  This is a software bug.\n",
-		__FUNCTION__);
+	lpjs_log("%s(): Bug: Job id not found.\n", __FUNCTION__);
     else
     {
 	// FIXME: Check success of all steps below

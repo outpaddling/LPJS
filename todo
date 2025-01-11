@@ -1,6 +1,8 @@
 
 Now
 ---
+cancel doesn't always clean up, maybe related to file transfer nodes
+
 Update RCUG
 
 Add lpjs.1 man page, referencing all other man pages
