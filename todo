@@ -6,6 +6,11 @@ dispatchd hangs if pull-command doesn't work
 
 cancel doesn't always clean up, maybe related to file transfer nodes
 
+Deal with running jobs when no completion report is or will be sent
+    lpjs_compd: Report back if chaperone process is dead
+    Detect down compute nodes and remove running jobs
+	This is hard to distinguish from network issues
+
 Update RCUG
 
 Add lpjs.1 man page, referencing all other man pages
