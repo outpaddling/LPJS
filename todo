@@ -1,6 +1,8 @@
 
 Now
 ---
+Create home dir tag for #lpjs path
+
 dispatchd hangs if pull-command doesn't work
     abalone native rsync doesn't support --mkpath
 
