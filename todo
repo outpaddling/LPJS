@@ -1,6 +1,8 @@
 
 Now
 ---
+lpjs jobs: Sort by job id
+
 dispatchd hangs if pull-command doesn't work
     abalone native rsync doesn't support --mkpath
 
