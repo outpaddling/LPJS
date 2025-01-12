@@ -46,6 +46,8 @@ Improve launchd interfacing so munged is properly stopped
 
 Later
 -----
+Tolerate memory violations if there are no pending jobs
+
 Add hostname resolution check to all admin scripts
 
 Job dependencies
@@ -67,14 +69,6 @@ Optional submission parameters
     Limit jobs to specific set of nodes, e.g. on high-speed network
 	has_feature, specified in config file
 	By hostname
-
-Terminate jobs that exceed their resource allocation
-    * Only if there are jobs waiting in the queue
-	Otherwise, accumulated run time is wasted
-    Virtual memory limit checks
-	Document that this is enforced by ulimit() and unbreakable
-    Real memory limit checks
-	Document that this is enforced by periodic sampling
 
 Convert sbatch scripts to lpjs and vice versa
     #lpjs <-> #SBATCH
