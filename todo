@@ -1,8 +1,6 @@
 
 Now
 ---
-Create home dir tag for #lpjs path
-
 dispatchd hangs if pull-command doesn't work
     abalone native rsync doesn't support --mkpath
 
@@ -16,6 +14,7 @@ Deal with running jobs when no completion report is or will be sent
 Update RCUG
 
 Add lpjs.1 man page, referencing all other man pages
+    Need work on auto-man2man and subcommands.sh
 
 Blacklist scripts that are canceled due to RSS violations
 until mem-per-proc is corrected

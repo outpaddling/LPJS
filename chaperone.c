@@ -59,7 +59,8 @@ int     main (int argc, char *argv[])
 		hostname[sysconf(_SC_HOST_NAME_MAX) + 1],
 		shared_fs_marker[PATH_MAX + 1],
 		new_path[LPJS_PATH_ENV_MAX + 1],
-		home_dir[PATH_MAX + 1];
+		home_dir[PATH_MAX + 1],
+		expanded_path[PATH_SPEC_MAX + 1];
     struct stat st;
     size_t      rss, peak_rss;
     struct rusage   rusage;
@@ -91,7 +92,8 @@ int     main (int argc, char *argv[])
     
     // Add localbase and prefix of the package manager that built LPJS
     // to ensure the chaperone can find dependencies
-    snprintf(new_path, LPJS_PATH_ENV_MAX + 1, "%s/bin:%s/bin:%s", LOCALBASE, PREFIX, getenv("PATH"));
+    snprintf(new_path, LPJS_PATH_ENV_MAX + 1, "%s/bin:%s/bin:%s",
+	    LOCALBASE, PREFIX, getenv("PATH"));
     setenv("PATH", new_path, 1);
     lpjs_log("%s(): Default PATH = %s\n", __FUNCTION__, new_path);
     
@@ -160,9 +162,10 @@ int     main (int argc, char *argv[])
 	temp = getenv("LPJS_PATH");
 	if ( strcmp(temp, JOB_NO_PATH) != 0 )
 	{
-	    setenv("PATH", temp, 1);
+	    xt_strshellcpy(expanded_path, temp, PATH_SPEC_MAX + 1);
+	    setenv("PATH", expanded_path, 1);
 	    lpjs_log("%s(): Overriding default PATH with user-provided %s\n",
-		    __FUNCTION__, temp);
+		    __FUNCTION__, expanded_path);
 	}
 	
 	// Pull input files before execing script
