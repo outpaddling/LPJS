@@ -1,6 +1,8 @@
 
 Now
 ---
+Remove temp dirs with lpjs-remove-me
+
 lpjs jobs: Sort by job id
 
 dispatchd hangs if pull-command doesn't work
