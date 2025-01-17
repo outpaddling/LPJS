@@ -8,7 +8,9 @@ lpjs jobs: Sort by job id
 dispatchd hangs if pull-command doesn't work
     abalone native rsync doesn't support --mkpath
 
-cancel doesn't always clean up, maybe related to file transfer nodes
+Fix cancel to work when chaperone is dead
+    Make sure cancel never dies as long as node is up
+	Should retry indefinitely
 
 Deal with running jobs when no completion report is or will be sent
     lpjs_compd: Report back if chaperone process is dead
