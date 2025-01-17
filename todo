@@ -5,6 +5,15 @@ Remove temp dirs with lpjs-remove-me
 
 lpjs jobs: Sort by job id
 
+If dispatchd detects a broken connection with compd:
+    dispatchd should cancel all jobs on that node
+    * compd should always detect broken sockets at the same time
+      and respond as described below
+
+If compd detects a broken connection with dispatchd:
+    compd should terminate all jobs on the node
+	unless it was notified about a dispatchd restart
+
 dispatchd hangs if pull-command doesn't work
     abalone native rsync doesn't support --mkpath
 
