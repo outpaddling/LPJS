@@ -65,7 +65,7 @@ elif [ $(uname) = Linux ]; then
     # FIXME: Check other directories, not just pkgsrc
     script=/usr/local/lib/systemd/system/munge.service
     if [ -e $script ]; then
-	auto-disable-service -s $script munge
+	auto-disable-service munge
     fi
 elif [ $(uname) = NetBSD ]; then
     # On NetBSD, pkgsrc installs/deinstalls the RC files, but they are
