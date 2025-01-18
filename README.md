@@ -307,7 +307,8 @@ they are working properly.  This avoids wasting resources and shows common
 courtesy to other cluster/grid users.
 
 Most existing batch systems are extremely complex, including
-our long-time favorite, SLURM, which stands for "Simple Linux Utility
+our long-time favorite, SLURM, which was originally an acronym
+for "Simple Linux Utility
 for Resource Management", but is no longer simple by any stretch of the
 imagination.  The 'S' in SLURM has become somewhat of an irony as it has
 evolved into the premier batch system for massive and complex HPC clusters.
