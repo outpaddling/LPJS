@@ -588,8 +588,6 @@ The Makefile is designed to be friendly to package managers, such as
 
 End users should install using a package manager, to ensure that
 dependencies are properly managed.
-Note that pkgsrc can be used by anyone, on virtually any POSIX operating
-system, with or without administrator privileges..
 
 I maintain a FreeBSD port and a pkgsrc package, which is sufficient to install
 cleanly on virtually any POSIX platform.  If you would like to see a
@@ -598,8 +596,7 @@ yourself.  LPJS is easy to package and
 hence a good vehicle to learn how to create packages.
 
 Note that pkgsrc can be used by anyone, on virtually any POSIX operating
-system, with or without administrator privileges, though LPJS will require
-admin privileges for other reasons.
+system, with or without administrator privileges.
 
 For an overview of popular package managers, see the
 [Repology website](https://repology.org/).
