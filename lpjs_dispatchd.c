@@ -647,6 +647,10 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 	    case    LPJS_DISPATCHD_REQUEST_JOB_LIST:
 		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_JOB_STATUS fd = %d\n",
 			__FUNCTION__, msg_fd);
+	     
+		// FIXME: Keep list sorted at all times instead of
+		// just for "lpjs jobs" output?
+		job_list_sort(running_jobs);
 		
 		// FIXME: factor out to lpjs_send_job_list(), check
 		// all messages for success

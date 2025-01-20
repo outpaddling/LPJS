@@ -3,8 +3,6 @@ Now
 ---
 Remove temp dirs with lpjs-remove-me
 
-lpjs jobs: Sort by job id
-
 If dispatchd detects a broken connection with compd:
     dispatchd should cancel all jobs on that node
     * compd should always detect broken sockets at the same time
