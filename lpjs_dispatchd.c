@@ -782,7 +782,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		
 		// Job compute node and PIDs are in text form following
 		// the one byte LPJS_DISPATCHD_REQUEST_JOB_STARTED
-		lpjs_update_job(node_list, munge_payload + 1, pending_jobs, running_jobs);
+		lpjs_update_job(node_list, munge_payload + 1,
+				pending_jobs, running_jobs);
 		break;
 		
 	    case    LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:
@@ -824,6 +825,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    lpjs_log("%s(): Error: remove_running_job returned NULL.  This is a bug.\n",
 			    __FUNCTION__);
 		
+		// FIXME: Don't dispatch pending jobs that have been canceled
 		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
 
 		// This is a temporary connection from the chaperone
@@ -1336,8 +1338,8 @@ int     lpjs_update_job(node_list_t *node_list, char *payload,
     p = payload;
     compute_node = strsep(&p, " ");
     sscanf(p, "%lu %u %u", &job_id, &chaperone_pid, &job_pid);
-    lpjs_log("%s(): job_id = %lu  chaperone_pid = %u  job_pid = %u\n",
-	    __FUNCTION__, job_id, chaperone_pid, job_pid);
+    lpjs_log("%s(): compute_node = %s job_id = %lu  chaperone_pid = %u  job_pid = %u\n",
+	    __FUNCTION__, compute_node, job_id, chaperone_pid, job_pid);
     
     job_list_index = job_list_find_job_id(pending_jobs, job_id);
     if ( job_list_index == JOB_LIST_NOT_FOUND )

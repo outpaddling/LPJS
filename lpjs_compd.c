@@ -213,7 +213,8 @@ int     main (int argc, char *argv[])
 		    char    *end;
 		    
 		    lpjs_log("%s(): LPJS_COMPD_REQUEST_CANCEL\n", __FUNCTION__);
-		    lpjs_debug("%s(): Payload = %s\n", munge_payload + 1, __FUNCTION__);
+		    lpjs_debug("%s(): Payload = %s\n", __FUNCTION__,
+			    munge_payload + 1);
 		    
 		    chaperone_pid = strtoul(munge_payload + 1, &end, 10);
 		    if ( *end != '\0' )
@@ -775,8 +776,8 @@ int     lpjs_run_chaperone(job_t *job, const char *script_buff,
 	 *  don't want dispatchd stuck waiting.
 	 */
 	
-	lpjs_debug("%s(): Sending chaperone forked verification.\n",
-		__FUNCTION__);
+	lpjs_debug("%s(): Sending chaperone forked verification, pid = %d.\n",
+		__FUNCTION__, chaperone_pid);
 	snprintf(chaperone_response, LPJS_MSG_LEN_MAX + 1,
 		"%c%d", LPJS_CHAPERONE_FORKED, chaperone_pid);
 	if ( lpjs_send_munge(compd_msg_fd, chaperone_response, close)

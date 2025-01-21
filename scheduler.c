@@ -216,6 +216,8 @@ int     lpjs_dispatch_next_job(node_list_t *node_list,
 		    lpjs_log("%s(): Bug: No PID found in chaperone fork verification message.\n",
 			    __FUNCTION__);
 		}
+		lpjs_log("%s(): Job %lu chaperone_pid = %d\n", __FUNCTION__,
+			job_get_job_id(job), chaperone_pid);
 		job_set_chaperone_pid(job, chaperone_pid);
 		
 		/*

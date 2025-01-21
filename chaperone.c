@@ -65,9 +65,9 @@ int     main (int argc, char *argv[])
     size_t      rss, peak_rss;
     struct rusage   rusage;
     extern FILE *Log_stream;
-
-    signal(SIGHUP, chaperone_cancel_handler);
     
+    signal(SIGHUP, chaperone_cancel_handler);
+
     if ( argc != 2 )
     {
 	fprintf(stderr, "Usage: %s job-script.lpjs\n", argv[0]);
@@ -135,10 +135,6 @@ int     main (int argc, char *argv[])
     {
 	struct rlimit   rss_limit;
 	
-	// Send job start notice as early as possible, so dispatchd
-	// can switch job to running state
-	lpjs_job_start_notice_loop(node_list, hostname, job_id, Pid);
-	
 	// Create new process group with the script's PID
 	// This helps track processes that are part of a job
 	setpgid(0, getpid());
@@ -191,6 +187,11 @@ int     main (int argc, char *argv[])
 	return EX_UNAVAILABLE;
     }
     // No need for else since child calls execl() and exits if it fails
+    
+    // Send job start notice as early as possible, so dispatchd
+    // can switch job to running state
+    // Must be run by parent!!
+    lpjs_job_start_notice_loop(node_list, hostname, job_id, Pid);
     
     /*
      *  Monitor resource use of child.  xt_get_family_rss() returns -1 when
@@ -292,6 +293,7 @@ int     lpjs_job_start_notice(int msg_fd,
     
     /* Send a message to the server */
     /* Need to send \0, so xt_dprintf() doesn't work here */
+    // FIXME: chaperone pid is redundant to compd fork verification
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1,
 	    "%c%s %s %u %d", LPJS_DISPATCHD_REQUEST_JOB_STARTED,
 	    hostname, job_id, getpid(), job_pid);
