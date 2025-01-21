@@ -1,6 +1,8 @@
 
 Now
 ---
+On albacore, chaperone is terminating on SIGHUP instead of running the handler
+
 Remove temp dirs with lpjs-remove-me
 
 If dispatchd detects a broken connection with compd:
