@@ -541,7 +541,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
     char            *munge_payload,
 		    *p,
 		    *hostname,
-		    chaperone_hostname[LPJS_HOSTNAME_MAX + 1];
+		    chaperone_hostname[LPJS_HOSTNAME_MAX + 1],
+		    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
     socklen_t       address_len = sizeof (struct sockaddr_in);
     uid_t           munge_uid;
     gid_t           munge_gid;
@@ -654,14 +655,18 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		
 		// FIXME: factor out to lpjs_send_job_list(), check
 		// all messages for success
-		if ( lpjs_send_munge(msg_fd, "Running\n\n",
+		snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%zu running:\n\n",
+				job_list_get_count(running_jobs));
+		if ( lpjs_send_munge(msg_fd, outgoing_msg,
 				lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
 		{
 		    lpjs_log("%s(): Error: Failed to send \"Running\".\n", __FUNCTION__);
 		    break;
 		}
 		job_list_send_params(msg_fd, running_jobs);
-		if ( lpjs_send_munge(msg_fd, "\nPending\n\n",
+		snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "\n%zu pending:\n\n",
+				job_list_get_count(pending_jobs));
+		if ( lpjs_send_munge(msg_fd, outgoing_msg,
 				lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
 		{
 		    lpjs_log("%s(): Failed to send \"Pending\".\n", __FUNCTION__);
