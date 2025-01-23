@@ -56,7 +56,7 @@ int     main(int argc,char *argv[])
     }
 
     lpjs_print_response(msg_fd, "lpjs-jobs");
-    puts("\nLegend: P = processor  J = job  T = thread  S = submission\n");
+    puts("\nJ/S = jobs/submission  P/J = processors/job\nT/P = threads/process  MiB/P = mibibytes/processor\n");
     close (msg_fd);
 
     return EX_OK;
