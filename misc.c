@@ -332,7 +332,7 @@ char *lpjs_get_marker_filename(char shared_fs_marker[], const char *hostname,
 {
     // FIXME: Check for errors
     snprintf(shared_fs_marker, array_size + 1,
-	     "lpjs-%s-shared-fs-marker", hostname);
+	     ".lpjs-%s-shared-fs-marker", hostname);
     
     return shared_fs_marker;
 }
