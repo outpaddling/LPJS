@@ -75,7 +75,11 @@ Submission parameter:
 Add #lpjs concurrent-job-limit
 
 Optional submission parameters
-    has_command, where command is any program in the standard PATH on node
+    #lpjs access submit-dir|path
+    submit-dir means node has access to the submit directory
+    path means node has access to a file or directory
+    #lpjs command command
+    Command is any program in the standard PATH on node
 	PATH may differ across compute nodes, as they may run different OSs
     Limit jobs to specific set of nodes, e.g. on high-speed network
 	has_feature, specified in config file
