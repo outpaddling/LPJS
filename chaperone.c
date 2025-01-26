@@ -38,6 +38,7 @@
 
 // Must be global for job cancel signal handler
 pid_t   Pid;
+bool    Terminated = false;
 
 int     main (int argc, char *argv[])
 
@@ -67,6 +68,7 @@ int     main (int argc, char *argv[])
     extern FILE *Log_stream;
     
     signal(SIGHUP, chaperone_cancel_handler);
+    signal(SIGTERM, chaperone_lost_connection_handler);
 
     if ( argc != 2 )
     {
@@ -233,7 +235,8 @@ int     main (int argc, char *argv[])
     wait4(Pid, &status, WEXITED, &rusage);
     lpjs_log("%s(): Info: Job process exited with status %d.\n", __FUNCTION__, status);
 
-    lpjs_chaperone_completion_loop(node_list, hostname, job_id, status, peak_rss);
+    if ( ! Terminated )
+	lpjs_chaperone_completion_loop(node_list, hostname, job_id, status, peak_rss);
     
     // Transfer working dir to submit host or according to user
     // settings, if not shared
@@ -487,6 +490,8 @@ void    chaperone_cancel_handler(int s2)
     lpjs_log("%s(): Chaperone PID %d canceling job PID %d...\n",
 	    __FUNCTION__, getpid(), Pid);
     
+    Terminated = false;
+    
     /*
      *  Terminate mafia-style: Don't just terminate the process, go
      *  after his family as well.  Although chaperone
@@ -501,6 +506,26 @@ void    chaperone_cancel_handler(int s2)
 }
 
 
+void    chaperone_lost_connection_handler(int s2)
+
+{
+    lpjs_log("%s(): Chaperone PID %d canceling job PID %d...\n",
+	    __FUNCTION__, getpid(), Pid);
+ 
+    Terminated = true;
+    
+    /*
+     *  Terminate mafia-style: Don't just terminate the process, go
+     *  after his family as well.  Although chaperone
+     *  creates a process group for the LPJS script, killpg() will
+     *  not work if programs run by the script create process groups
+     *  as well.  So we need to traverse the process tree, depth-first,
+     *  kill children before their parents to ensure that all descendent
+     *  processes are discovered.
+     */
+    
+    whack_family(Pid);
+}
 
 
 /***************************************************************************

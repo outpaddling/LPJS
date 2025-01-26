@@ -11,6 +11,8 @@ If dispatchd detects a broken connection with compd:
 If compd detects a broken connection with dispatchd:
     compd should terminate all jobs on the node
 	unless it was notified about a dispatchd restart
+	send a different signal to chaperone processes, telling them
+	not to try to report job completion to dispatchd
 
 dispatchd hangs if pull-command doesn't work
     abalone native rsync doesn't support --mkpath
