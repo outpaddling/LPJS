@@ -716,50 +716,47 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 			 chaperone_hostname);
 		
 		// Errors that occur before exec()ing script
-		if ( chaperone_status == LPJS_CHAPERONE_SCRIPT_FAILED )
+		switch(chaperone_status)
 		{
-		    lpjs_log("%s(): Error: Job script failed to start: %d\n",
-			    __FUNCTION__, chaperone_status);
-		    // Don't try to restart a script that failed
-		    // Either the user needs to fix it, or something
-		    // is not installed properly
-		    adjust_resources(node_list, pending_jobs, hostname, job_id, NODE_RESOURCE_RELEASE);
-		    lpjs_remove_pending_job(pending_jobs, job_id);
-		}
-		else if ( (chaperone_status == LPJS_CHAPERONE_OSERR) ||
-			  (chaperone_status == LPJS_CHAPERONE_EXEC_FAILED) )
-		{
-		    lpjs_log("%s(): Error: OS error or failed exec() detected on %s.\n",
-			    __FUNCTION__, chaperone_hostname);
-		    
-		    lpjs_log("%s(): Releasing resourcesfor job %lu...\n",
-			     __FUNCTION__, job_id);
-		    adjust_resources(node_list, pending_jobs, hostname,
-				     job_id, NODE_RESOURCE_RELEASE);
+		    case    LPJS_CHAPERONE_OK:
+			lpjs_log("%s(): Chaperone status OK.\n",__FUNCTION__);
+			// FIXME: Anything to do here?
+			break;
 
-		    // FIXME: Node should not come back up from here when daemons
-		    // are restarted.  It should require "lpjs nodes up nodename"
-		    // node_set_state(node, "malfunction");
-		    lpjs_log("%s(): Setting %s state to down...\n",
-			     __FUNCTION__, chaperone_hostname);
-		    node = node_list_find_hostname(node_list, chaperone_hostname);
-		    if ( node == NULL )
-			lpjs_log("%s(): Bug: No such node in list.\n",
-				 __FUNCTION__);
-		    else
-			node_set_state(node, "down");
-		    lpjs_debug("%s(): Done.\n");
-		    // FIXME: Make sure job state is reset, but don't remove
-		}
-		else if ( chaperone_status == LPJS_CHAPERONE_OK )
-		{
-		    lpjs_log("%s(): Chaperone status OK.\n",__FUNCTION__);
-		    // FIXME: Anything to do here?
-		}
-		else
-		{
-		    lpjs_log("%s(): Error: Unknown chaperone_status for job %lu: %d\n",
-			     __FUNCTION__, job_id, chaperone_status);
+		    case    LPJS_CHAPERONE_SCRIPT_FAILED:
+			lpjs_log("%s(): Error: Job script failed to start: %d\n",
+				__FUNCTION__, chaperone_status);
+			// Don't try to restart a script that failed
+			// Either the user needs to fix it, or something
+			// is not installed properly
+			adjust_resources(node_list, pending_jobs, hostname, job_id, NODE_RESOURCE_RELEASE);
+			lpjs_remove_pending_job(pending_jobs, job_id);
+			break;
+		    
+		    default:    // LPJS_CHAPERONE_OSERR and the rest...
+			lpjs_log("%s(): Error %d detected on %s.\n"
+				"See chaperone_status_t in network.h.\n",
+				__FUNCTION__, chaperone_status, chaperone_hostname);
+			
+			lpjs_log("%s(): Releasing resourcesfor job %lu...\n",
+				 __FUNCTION__, job_id);
+			adjust_resources(node_list, pending_jobs, hostname,
+					 job_id, NODE_RESOURCE_RELEASE);
+    
+			// FIXME: Node should not come back up from here when daemons
+			// are restarted.  It should require "lpjs nodes up nodename"
+			// node_set_state(node, "malfunction");
+			lpjs_log("%s(): Setting %s state to down...\n",
+				 __FUNCTION__, chaperone_hostname);
+			node = node_list_find_hostname(node_list, chaperone_hostname);
+			if ( node == NULL )
+			    lpjs_log("%s(): Bug: No such node in list.\n",
+				     __FUNCTION__);
+			else
+			    node_set_state(node, "down");
+			lpjs_debug("%s(): Done.\n");
+			// FIXME: Make sure job state is reset, but don't remove
+			break;
 		}
 		break;
 
