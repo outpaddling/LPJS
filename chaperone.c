@@ -209,7 +209,10 @@ int     main (int argc, char *argv[])
     while ( xt_get_family_rss(Pid, &rss) == 0 )
     {
 	// phys_mib_per_processor is in MiB, rss in KiB
-	if ( rss > phys_mib_per_processor * threads_per_process * KIB_PER_MIB)
+	// RSS varies across platforms and even runs on the same platform
+	// Give 20% grace to cover normal irregularities
+	if ( rss > phys_mib_per_processor * threads_per_process
+		    * KIB_PER_MIB * 1.2)
 	{
 	    lpjs_log("%s(): Terminating job for resident memory violation: %zu KiB > %zu KiB\n",
 		    __FUNCTION__, rss, phys_mib_per_processor *
