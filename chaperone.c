@@ -211,6 +211,7 @@ int     main (int argc, char *argv[])
 	// phys_mib_per_processor is in MiB, rss in KiB
 	// RSS varies across platforms and even runs on the same platform
 	// Give 20% grace to cover normal irregularities
+	// FIXME: Only terminate if other users' jobs are pending
 	if ( rss > phys_mib_per_processor * threads_per_process
 		    * KIB_PER_MIB * 1.2)
 	{
