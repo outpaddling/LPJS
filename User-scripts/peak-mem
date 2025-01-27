@@ -2,24 +2,14 @@
 
 ##########################################################################
 #   Synopsis:
-#       lpjs peak-mem log-dir
+#       lpjs peak-mem script.lpjs
 #       
 #   Description:
 #       .B lpjs peak-mem
-#       parses the chaperone logs under the given log directory, extracting
-#       the periodic peak memory reports, and outputs the highest.
-#       This can be used to optimize the memory requirements of subsequent
-#       runs, specified in the jobs script as
-#
-#       #lpjs pmem-per-processor
-#
-#       Note that for shared-memory multicore jobs (pthreads, OpenMP, etc),
-#       the pmem-per-processor specification should use the
-#       value reported, divided by the number of processors used
-#       to determine the best value for pmem-per-processor.  The value of
-#       pmem-per-processor should be set slightly higher than this dividend.
-#       How much higher depends on how variable the memory use is.
-#       For well-behaved programs, 10% should suffice.
+#       parses the chaperone logs for the given script, extracting
+#       the periodic peak memory reports, and reports the highest real
+#       memory use in total, and per processor.  It then recommends a
+#       pmem-per-proc requirement for subsequent runs of the script.
 #
 #       Scripts that LPJS terminates for using more memory than they
 #       allocated, and scripts that allocate far more memory than they
@@ -29,25 +19,18 @@
 #       reasonable value.
 #       
 #   Arguments:
-#       log-dir     The main log directory for the job submission
+#       script.lpjs     An LPJS job script that has been previously completed
 #       
 #   Examples:
-#       # lpjs peak-mem Logs/17-hisat2-align/
-#       01-07 08:47:42 main(): Peak total job RSS = 5242804 KiB
-#
-#       # grep processors-per-job 17-hisat2-align.lpjs 
-#       lpjs processors-per-job 4
-#       lpjs min-processors-per-node processors-per-job
-#
-#       Using the Unix "bc" command to divide the above peak memory
-#       by 4 processors, then divide by 1024 to convert from KiB to MiB,
-#       and finally add 10%:
-#
-#       # bc
-#       (5242804 / 4 / 1024) * 1.1
-#       1407.97958984375000000000
-#
-#       #lpjs pmem-per-processor 1408MiB
+#       shell-prompt: lpjs peak-mem 04-trim.lpjs 
+#       
+#       Peak mem = 113108 KiB = 110 MiB
+#       Processors / job = 2
+#       Peak mem / processor = 55
+#       
+#       Use the following for peak memory + 20%:
+#       
+#       #lpjs pmem-per-processor 66MiB
 #
 #   See also:
 #       lpjs create-script(1)
@@ -59,8 +42,8 @@
 
 usage()
 {
-    printf "Usage: $0 log-directory\n"
-    printf "Example: $0 Logs/17-hisat2-align\n"
+    printf "Usage: $0 script.lpjs\n" >> /dev/stderr
+    printf "Example: $0 17-hisat2-align.lpjs\n" >> /dev/stderr
     exit 1
 }
 
@@ -72,6 +55,25 @@ usage()
 if [ $# != 1 ]; then
     usage
 fi
-log_dir=$1
+if ! echo $1 | grep -q '.lpjs$'; then
+    usage
+fi
 
-tail $log_dir/Job-*/chap* | fgrep 'Peak total' | sort -nk 9 | tail -n 1
+script=$1
+ppj=$(awk '$1 == "#lpjs" && $2 == "processors-per-job" { print $3 }' $script)
+log_dir=$(awk '$1 == "#lpjs" && $2 == "log-dir" { print $3 }' $script)
+if [ -z "$log_dir" ]; then
+    log_dir=LPJS-logs/${script%.lpjs}
+fi
+if [ ! -e $log_dir ]; then
+    printf "$log_dir does not exist.  Has $script been run?\n" >> /dev/stderr
+    exit 1
+fi
+kib=$(tail $log_dir/Job-*/chap* | fgrep 'Peak total' | sort -nk 9 | tail -n 1 \
+    | awk '{ print $(NF - 1) }')
+mib=$(($kib / 1024))
+printf "\nPeak mem = %s KiB = %s MiB\n" $kib $mib
+printf "Processors / job = %s\n" $ppj
+printf "Peak mem / processor = %s\n" $(($mib / $ppj))
+printf "\nUse the following for peak memory + 20%%:\n\n"
+printf "#lpjs pmem-per-processor %s\n\n" $((mib / $ppj * 6 / 5))MiB
