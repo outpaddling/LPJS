@@ -9,7 +9,7 @@
 #       parses the chaperone logs for the given script, extracting
 #       the periodic peak memory reports, and reports the highest real
 #       memory use in total, and per processor.  It then recommends a
-#       pmem-per-proc requirement for subsequent runs of the script.
+#       pmem-per-processor requirement for subsequent runs of the script.
 #
 #       Scripts that LPJS terminates for using more memory than they
 #       allocated, and scripts that allocate far more memory than they
@@ -49,6 +49,20 @@ usage()
 
 
 ##########################################################################
+#   Function description:
+#       Pause until user presses return
+##########################################################################
+
+pause()
+{
+    local junk
+    
+    printf "Press return to continue..."
+    read junk
+}
+
+
+##########################################################################
 #   Main
 ##########################################################################
 
@@ -71,9 +85,22 @@ if [ ! -e $log_dir ]; then
 fi
 kib=$(tail $log_dir/Job-*/chap* | fgrep 'Peak total' | sort -nk 9 | tail -n 1 \
     | awk '{ print $(NF - 1) }')
+if [ -z "$kib" ]; then
+    printf "No peak memory data found in log.  Did the job fail?\n" >> /dev/stderr
+    exit 1
+fi
 mib=$(($kib / 1024))
 printf "\nPeak mem = %s KiB = %s MiB\n" $kib $mib
 printf "Processors / job = %s\n" $ppj
 printf "Peak mem / processor = %s\n" $(($mib / $ppj))
 printf "\nUse the following for peak memory + 20%%:\n\n"
 printf "#lpjs pmem-per-processor %s\n\n" $((mib / $ppj * 6 / 5))MiB
+
+printf "Edit $script? [y]/n "
+read edit
+if [ 0"$edit" != 0n ]; then
+    printf "Copy the #lpjs pmem-per-processor line to your clipboard.\n"
+    pause
+    : ${EDITOR:=vi}
+    $EDITOR $script
+fi
