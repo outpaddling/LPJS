@@ -7,3 +7,4 @@ int lpjs_send_chaperone_status_loop(node_list_t *node_list, unsigned long job_id
 int lpjs_run_chaperone(job_t *job, const char *script_buff, int msg_fd, node_list_t *node_list);
 void lpjs_chown(job_t *job, const char *path);
 void sigchld_handler(int s2);
+int lpjs_remove_old_temp_dirs(void);

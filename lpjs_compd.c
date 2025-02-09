@@ -429,7 +429,7 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_buff,
 	    mkdir(temp_wd, 0700);
 	    // Mark this directory
 	    // FIXME: Check time stamps on markers and remove them if expired
-	    snprintf(marker, PATH_MAX + 1, "%s/lpjs-remove-me", temp_wd);
+	    snprintf(marker, PATH_MAX + 1, "%s/lpjs-temp-dir", temp_wd);
 	    if ( (fd = open(marker, O_WRONLY|O_CREAT, 0644)) != -1 )
 		close(fd);
 	    working_dir = temp_wd;
@@ -440,6 +440,10 @@ int     lpjs_working_dir_setup(job_t *job, const char *script_buff,
     // chdir() to $HOME beforehand fixes the issue
     xt_get_home_dir(start_wd, PATH_MAX + 1 - 20);
     chdir(start_wd);
+    
+    // FIXME: Remove old temp dirs before creating new ones
+    lpjs_remove_old_temp_dirs();
+    
     lpjs_log("%s(): Changing from %s to %s...\n",
 	    __FUNCTION__, start_wd, working_dir);
     if ( chdir(working_dir) != 0 )
@@ -845,4 +849,40 @@ void    sigchld_handler(int s2)
     int     status;
     
     wait(&status);
+}
+
+
+/***************************************************************************
+ *  Use auto-c2man to generate a man page from this comment
+ *
+ *  Name:
+ *      -
+ *
+ *  Library:
+ *      #include <>
+ *      -l
+ *
+ *  Description:
+ *  
+ *  Arguments:
+ *
+ *  Returns:
+ *
+ *  Examples:
+ *
+ *  Files:
+ *
+ *  Environment
+ *
+ *  See also:
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2025-02-09  Jason Bacon Begin
+ ***************************************************************************/
+
+int     lpjs_remove_old_temp_dirs()
+
+{
+    return 0;   // FIXME: Define return codes
 }

@@ -45,7 +45,8 @@ int     main (int argc, char *argv[])
 {
     int         status,
 		pull_status,
-		push_status;
+		push_status,
+		fd;
     unsigned    threads_per_process;
     unsigned long   phys_mib_per_processor;
     // Terminates process if malloc() fails, no check required
@@ -254,16 +255,25 @@ int     main (int argc, char *argv[])
 		push_status);
 
 	// Remove temporary working dir if successfully transferred
-	if ( (push_status == 0) && (stat("lpjs-remove-me", &st) == 0) )
+	if ( stat("lpjs-temp-dir", &st) == 0 )
 	{
-	    char    cmd[LPJS_CMD_MAX + 1];
-	    
-	    lpjs_log("%s(): Removing temporary working dir...\n", __FUNCTION__);
-	    chdir("..");    // Can't remove a directory in use
-	    // FIXME: Use xt_spawnlp()
-	    // xt_spawnlp(P_WAIT, P_NOECHO, NULL, NULL, NULL, "rm", "-rf", wd, NULL);
-	    snprintf(cmd, LPJS_CMD_MAX + 1, "rm -rf %s", wd);
-	    system(cmd);    // Log is closed, no point checking status
+	    if ( push_status == 0 )
+	    {
+		char    cmd[LPJS_CMD_MAX + 1];
+		
+		lpjs_log("%s(): Removing temporary working dir...\n", __FUNCTION__);
+		chdir("..");    // Can't remove a directory in use
+		// FIXME: Use xt_spawnlp()
+		// xt_spawnlp(P_WAIT, P_NOECHO, NULL, NULL, NULL, "rm", "-rf", wd, NULL);
+		snprintf(cmd, LPJS_CMD_MAX + 1, "rm -rf %s", wd);
+		system(cmd);    // Log is closed, no point checking status
+	    }
+	    else
+	    {
+		// Mark dir for removal before next job
+		if ( (fd = open("lpjs-remove-me", O_WRONLY|O_CREAT, 0644)) != -1 )
+		    close(fd);
+	    }
 	}
     }
     else
