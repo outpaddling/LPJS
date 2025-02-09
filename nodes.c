@@ -42,6 +42,7 @@ int     main (int argc, char *argv[])
 	default:
 	    if ( (strcmp(argv[1], "paused") == 0) ||
 		 (strcmp(argv[1], "updating") == 0) ||
+		 (strcmp(argv[1], "updated") == 0) ||
 		 (strcmp(argv[1], "up") == 0) )
 		lpjs_set_node_state(argc, argv, outgoing_msg, LPJS_MSG_LEN_MAX + 1);
 	    else
@@ -111,11 +112,12 @@ int     lpjs_set_node_state(int argc, char *argv[],
     // lpjs nodes pause all | nodename [nodename ...]
     if ( argc < 3 )
 	usage(argv);
-    // paused and updating are basically the same.  The latter is to
+    // paused and updating/updated are basically the same.  The latter is to
     // facilitate integration with SPCM, so it can easily identify
     // nodes that were paused specifically for updates.
     if ( (strcmp(argv[1], "paused") == 0) ||
-	 (strcmp(argv[1], "updating") == 0) )
+	 (strcmp(argv[1], "updating") == 0) ||
+	 (strcmp(argv[1], "updated") == 0) )
 	snprintf(msg, msg_max, "%c%s", LPJS_DISPATCHD_REQUEST_PAUSE, argv[1]);
     else
 	snprintf(msg, msg_max, "%c%s", LPJS_DISPATCHD_REQUEST_RESUME, argv[1]);

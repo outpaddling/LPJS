@@ -324,8 +324,15 @@ int     node_list_set_state(node_list_t *node_list, char *arg_string,
 	state = "paused";
     else if ( strcmp(state, "updating") == 0 )
 	state = "updating";
-    else
+    else if ( strcmp(state, "updated") == 0 )
+	state = "updated";
+    else if ( strcmp(state, "up") == 0 )
 	state = "up";
+    else
+    {
+	lpjs_log("%s(): Got bad state: %s\n", __FUNCTION__, state);
+	return 1;
+    }
     
     node_name = strsep(&p, " ");
     // nodes.c ensures that "all" is the only argument
