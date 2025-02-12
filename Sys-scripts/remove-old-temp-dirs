@@ -1,0 +1,8 @@
+#!/bin/sh -e
+
+cd
+for dir in LPJS-job-*; do
+    if [ -e $dir/lpjs-remove-me ]; then
+	rm -rf $dir
+    fi
+done

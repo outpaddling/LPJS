@@ -884,5 +884,8 @@ void    sigchld_handler(int s2)
 int     lpjs_remove_old_temp_dirs()
 
 {
-    return 0;   // FIXME: Define return codes
+    // FIXME: Replace script with readdir() loop and better logging?
+    lpjs_log("%s(): Removing old temp directories, if any...\n", __FUNCTION__);
+    return xt_spawnlp(P_WAIT, P_ECHO, NULL, NULL, NULL,
+		PREFIX "/libexec/lpjs/SMI/remove-old-temp-dirs", NULL);
 }

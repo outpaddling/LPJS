@@ -20,7 +20,7 @@
 #include <errno.h>
 #include <ctype.h>          // isdigit()
 #include <fcntl.h>          // open()
-#include <sys/wait.h>       // FIXME: Replace wait() with active monitoring
+#include <sys/wait.h>
 #include <signal.h>
 #include <sys/sysctl.h>
 #include <sys/resource.h>   // setrlimit()
@@ -234,7 +234,6 @@ int     main (int argc, char *argv[])
     }
     
     // Get exit status of child process
-    // FIXME: Record peak resource usage in job log
     // FIXME: Check for allocations much larger than used
     //        Blacklist script for greed until fixed
     wait4(Pid, &status, WEXITED, &rusage);
@@ -428,8 +427,6 @@ int     lpjs_chaperone_completion(int msg_fd, const char *hostname,
     char    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
     
     /* Send job completion message to dispatchd */
-    // FIXME: Send collected stats: rss, user time, sys time,
-    // elapsed time, etc.
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%s %s %d %zu\n",
 	     LPJS_DISPATCHD_REQUEST_JOB_COMPLETE, hostname,
 	     job_id, status, peak_rss);
