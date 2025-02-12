@@ -39,7 +39,8 @@ infile=Results/01-fetch/Raw-renamed/WT-0$LPJS_ARRAY_INDEX.fastq.gz
 # Marker file is created by "lpjs submit" so we can detect shared filesystems.
 # If this file does not exist on the compute nodes, then the compute nodes
 # must pull (download) the input files.
-marker=lpjs-$LPJS_SUBMIT_HOST-shared-fs-marker
+# FIXME: Use pull-command instead
+marker=.lpjs-$LPJS_SUBMIT_HOST-shared-fs-marker
 if [ ! -e $marker ]; then
     printf "$marker does not exist.  Using rsync to transfer files.\n"
     set -x

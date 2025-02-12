@@ -39,7 +39,8 @@ printf "Done.\n"
 # on $LPJS_SUBMIT_HOST.  If that directory is shared with this compute node
 # (via NFS or similar systems), then this script will see it, and won't
 # need to push the files there using scp.
-marker=lpjs-$LPJS_SUBMIT_HOST-shared-fs-marker
+# FIXME: Use push-command instead
+marker=.lpjs-$LPJS_SUBMIT_HOST-shared-fs-marker
 if [ ! -e $marker ]; then
     # Note that this relies on all compute nodes seeing LPJS_SUBMIT_HOST
     # by the same hostname (FQDN).  If some compute nodes are outside a

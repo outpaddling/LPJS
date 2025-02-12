@@ -63,7 +63,7 @@
     <para>
     The <command>lpjs submit</command> command creates a marker file
     in the working directory on the submit host, named
-    "lpjs-submit-host-name-shared-fs-marker" (replace "submit-host-name"
+    ".lpjs-submit-host-name-shared-fs-marker" (replace "submit-host-name"
     with the FQDN of your submit node).  If this file is not accessible
     to the compute node, then LPJS will take the necessary steps
     to create the temporary working directory and transfer it back
@@ -91,7 +91,7 @@
 # Marker file is created by "lpjs submit" so we can detect shared filesystems.
 # If this file does not exist on the compute nodes, then the compute nodes
 # must pull (download) the input files.
-marker=lpjs-$LPJS_SUBMIT_HOST-shared-fs-marker
+marker=.lpjs-$LPJS_SUBMIT_HOST-shared-fs-marker
 if [ ! -e $marker ]; then
     printf "$marker does not exist.  Using rsync to transfer files.\n"
     set -x
