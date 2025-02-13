@@ -171,21 +171,25 @@ Total                down        80    0  458455       0 -         -
 
 ### macOS Limitations
 
-Compute nodes running macOS and accessing file servers are currently
-problematic, due to macOS security features.  MacOS requires the desktop user
+Apple's ARM-based computers, known as "Apple Silicon", are extremely
+fast, power-efficient, and quiet, making them ideal hardware for
+small-scale HPC in the office.
+
+However, compute nodes running macOS and accessing file servers are currently
+problematic, due to a macOS security feature called *full disk access*.
+MacOS requires the desktop user
 to grant each application permission to access certain directories, including
-those on a remote file server, via a popup window on the desktop.
+those on remote file servers, via a popup window on the desktop.
 There is no command-line alternative for granting permissions, as providing
 one would essentially allow malware to grant itself permissions.
 
-The LPJS compute node daemon, lpjs_compd, needs write access to file
+The LPJS compute node daemon, lpjs_compd, needs access to HPC file
 servers in order to create files and directories for running jobs.
-Its descendants, including your job scripts, also need this write access.
-
 Each time lpjs_compd is updated, macOS revokes previous full disk access
 authorizations, until the desktop user authorizes it again via the
 macOS graphical interface.  There does not appear to be way around this
-behavior.
+behavior, other than completely disabling the SIP (System Integrity
+Protections).
 
 This issue has been reported via the Apple Developer platform:
 
@@ -206,20 +210,17 @@ unless you really have to.
 operating system, such as BSD or Linux.  There
 are several free desktop virtual machine monitors available, such as
 UTM, VirtualBox and VMWARE, as well as lightweight hypervisors such as Qemu
-and xhyve.  The [qemu-freebsd-guest.sh script](https://github.com/outpaddling/LPJS/blob/main/Utils/qemu-freebsd-guest.sh)
-in this repository provides
-an example for creating and running a virtual machine on an ARM-based Mac.
-You can install Qemu via pkgsrc and run this script, all without admin
-rights on your Mac.  This may be a good way to utilize institutionally
-managed Mac hardware as part of a cluster or grid.
+and xhyve.  We've had good luck with VirtualBox, which is free and mostly
+open source, and as of version 7.1.0, supports both Intel and ARM guests
+on macOS hosts.
 
-Running a 1-node instant cluster on macOS should work just fine, with
+Also, running a 1-node instant cluster on macOS should work just fine, with
 no need for push and pull commands, as long
 as your jobs don't try to access any folders protected by full disk
 access checks.  Protected folders include each user's Documents folder, all
 folders shared by remote computers, and possibly others.  If you place all your
 LPJS job scripts and data under an unprotected folder, such as ~/Data,
-using LPJS should be easy.
+LPJS should not encounter any problems.
 
 ## Security
 
