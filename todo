@@ -16,7 +16,7 @@ dispatchd hangs if pull-command doesn't work
     abalone native rsync doesn't support --mkpath
 
 Fix cancel to work when chaperone is dead
-    Make sure cancel never dies as long as node is up
+    Make sure chaperone never dies as long as node is up
 	Should retry indefinitely
 
 Deal with running jobs when no completion report is or will be sent
