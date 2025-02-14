@@ -1,6 +1,9 @@
 
 Now
 ---
+Node specs don't change on reconnect of compd
+    Must restart dispatchd
+
 If dispatchd detects a broken connection with compd:
     dispatchd should cancel all jobs on that node
     * compd should always detect broken sockets at the same time
