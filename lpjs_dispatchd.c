@@ -711,7 +711,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		// FIXME: %s is unsafe.  Send hostname first and use strsep().
 		sscanf(munge_payload+1, "%lu %d %s",
 		       &job_id, &chaperone_status, chaperone_hostname);
-		lpjs_debug("%s(): job_id = %lu status = %d  hostname = %s\n",
+		lpjs_debug("%s(): job_id = %lu status = %d  chaperone_hostname = %s\n",
 			 __FUNCTION__, job_id, chaperone_status,
 			 chaperone_hostname);
 		
@@ -729,7 +729,9 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 			// Don't try to restart a script that failed
 			// Either the user needs to fix it, or something
 			// is not installed properly
-			adjust_resources(node_list, pending_jobs, hostname, job_id, NODE_RESOURCE_RELEASE);
+			adjust_resources(node_list, pending_jobs,
+					 chaperone_hostname,
+					 job_id, NODE_RESOURCE_RELEASE);
 			lpjs_remove_pending_job(pending_jobs, job_id);
 			break;
 		    
@@ -740,7 +742,8 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 			
 			lpjs_log("%s(): Releasing resourcesfor job %lu...\n",
 				 __FUNCTION__, job_id);
-			adjust_resources(node_list, pending_jobs, hostname,
+			adjust_resources(node_list, pending_jobs,
+					 chaperone_hostname,
 					 job_id, NODE_RESOURCE_RELEASE);
     
 			// FIXME: Node should not come back up from here when daemons

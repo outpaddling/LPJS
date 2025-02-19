@@ -582,6 +582,8 @@ int     lpjs_send_chaperone_status_loop(node_list_t *node_list,
 	{
 	    send_status = lpjs_send_chaperone_status(msg_fd, job_id,
 						     chaperone_status);
+	    lpjs_debug("%s(): msg_fd = %d  send_status = %d\n", 
+		     __FUNCTION__, msg_fd, send_status);
 	    if ( send_status != EX_OK )
 	    {
 		lpjs_log("%s(): Error: Message send failed.  Retry in %d seconds...\n",
@@ -590,8 +592,6 @@ int     lpjs_send_chaperone_status_loop(node_list_t *node_list,
 	    }
 	    close(msg_fd);
 	}
-	lpjs_debug("%s(): msg_fd = %d  send_status = %d\n", 
-		 __FUNCTION__, msg_fd, send_status);
     }   while ( (msg_fd == -1) || (send_status != EX_OK) );
     
     lpjs_debug("%s(): Chaperone status %d sent.\n", __FUNCTION__, chaperone_status);

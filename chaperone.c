@@ -827,7 +827,7 @@ int     run_push_command(const char *wd, const char *log_dir)
 		*submit_dir,
 		*p,
 		cmd[LPJS_CMD_MAX + 1],
-		log_dir_top[PATH_MAX + 1];
+		log_dir_top[PATH_MAX + 1 - 20];
     extern FILE *Log_stream;
     
     if ( (sp = getenv("LPJS_PUSH_COMMAND")) == NULL )
@@ -865,7 +865,7 @@ int     run_push_command(const char *wd, const char *log_dir)
     status = system(cmd);
     
     // Try to send back log dir, regardless of push_cmd
-    strlcpy(log_dir_top, log_dir, PATH_MAX + 1);
+    strlcpy(log_dir_top, log_dir, PATH_MAX + 1 - 20);
     // Give top-level directory to rsync for proper dir structure
     if ( (p = strchr(log_dir_top, '/')) != 0 )
 	*p = '\0';
