@@ -540,8 +540,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
     size_t          peak_rss;
     char            *munge_payload,
 		    *p,
-		    *hostname,
-		    chaperone_hostname[LPJS_HOSTNAME_MAX + 1],
+		    *compute_node,
 		    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
     socklen_t       address_len = sizeof (struct sockaddr_in);
     uid_t           munge_uid;
@@ -708,12 +707,12 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		// lpjs_dispatchd_safe_close(msg_fd);
 		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS fd = %d\n",
 			__FUNCTION__, msg_fd);
-		// FIXME: %s is unsafe.  Send hostname first and use strsep().
-		sscanf(munge_payload+1, "%lu %d %s",
-		       &job_id, &chaperone_status, chaperone_hostname);
-		lpjs_debug("%s(): job_id = %lu status = %d  chaperone_hostname = %s\n",
+		p = munge_payload + 1;
+		compute_node = strsep(&p, " ");
+		sscanf(p, "%lu %d", &job_id, &chaperone_status);
+		lpjs_debug("%s(): job_id = %lu status = %d  compute_node = %s\n",
 			 __FUNCTION__, job_id, chaperone_status,
-			 chaperone_hostname);
+			 compute_node);
 		
 		// Errors that occur before exec()ing script
 		switch(chaperone_status)
@@ -730,7 +729,7 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 			// Either the user needs to fix it, or something
 			// is not installed properly
 			adjust_resources(node_list, pending_jobs,
-					 chaperone_hostname,
+					 compute_node,
 					 job_id, NODE_RESOURCE_RELEASE);
 			lpjs_remove_pending_job(pending_jobs, job_id);
 			break;
@@ -738,20 +737,20 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		    default:    // LPJS_CHAPERONE_OSERR and the rest...
 			lpjs_log("%s(): Error %d detected on %s.\n"
 				"See chaperone_status_t in network.h.\n",
-				__FUNCTION__, chaperone_status, chaperone_hostname);
+				__FUNCTION__, chaperone_status, compute_node);
 			
 			lpjs_log("%s(): Releasing resourcesfor job %lu...\n",
 				 __FUNCTION__, job_id);
 			adjust_resources(node_list, pending_jobs,
-					 chaperone_hostname,
+					 compute_node,
 					 job_id, NODE_RESOURCE_RELEASE);
     
 			// FIXME: Node should not come back up from here when daemons
 			// are restarted.  It should require "lpjs nodes up nodename"
 			// node_set_state(node, "malfunction");
 			lpjs_log("%s(): Setting %s state to down...\n",
-				 __FUNCTION__, chaperone_hostname);
-			node = node_list_find_hostname(node_list, chaperone_hostname);
+				 __FUNCTION__, compute_node);
+			node = node_list_find_hostname(node_list, compute_node);
 			if ( node == NULL )
 			    lpjs_log("%s(): Bug: No such node in list.\n",
 				     __FUNCTION__);
@@ -790,9 +789,9 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_JOB_COMPLETE fd = %d\n",
 			__FUNCTION__, msg_fd);
 		p = munge_payload + 1;
-		hostname = strsep(&p, " ");
-		lpjs_debug("%s(): hostname = %s ", __FUNCTION__, hostname);
-		node = node_list_find_hostname(node_list, hostname);
+		compute_node = strsep(&p, " ");
+		lpjs_debug("%s(): compute_node = %s ", __FUNCTION__, compute_node);
+		node = node_list_find_hostname(node_list, compute_node);
 		if ( node == NULL )
 		{
 		    lpjs_log("%s(): Error: Invalid hostname in job completion report.\n",
@@ -809,14 +808,14 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
 		lpjs_debug("%s(): job_id = %lu  status = %d  peak-RSS = %zu\n",
 		    __FUNCTION__, job_id, exit_status, peak_rss);
 		
-		adjust_resources(node_list, running_jobs, hostname, job_id, NODE_RESOURCE_RELEASE);
+		adjust_resources(node_list, running_jobs, compute_node, job_id, NODE_RESOURCE_RELEASE);
 		
 		/*
 		 *      Write a completed job record to accounting log
 		 *      Note the job completion in the main log
 		 *      Do this before removing from running_jobs
 		 */
-		lpjs_log_job(running_jobs, hostname, job_id, exit_status, peak_rss);
+		lpjs_log_job(running_jobs, compute_node, job_id, exit_status, peak_rss);
 		
 		if ( (job = lpjs_remove_running_job(running_jobs,
 						    job_id)) != NULL )
