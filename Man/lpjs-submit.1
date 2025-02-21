@@ -52,7 +52,7 @@ The number of processors to allocate for each job.  This is 1 for
 serial programs and >1 where each job runs a parallel program.
 
 .TP
-\fBmin-processors-per-node\fR
+\fBthreads-per-process\fR
 The number of processors that must be on the same node.  For shared
 memory parallel programs, such as OpenMP and pthreads, this must equal
 processors-per-job.  It can be specified as "processors-per-job", rather than
@@ -60,24 +60,75 @@ a hard-coded number, so that you need not keep the two in sync with
 future changes.
 
 .TP
-\fBmem-per-proc\fR
+\fBpmem-per-processor\fR
 The amount of physical memory to allocate per processor.  Must be
 followed by MiB, MB, GiB, or GB.
 
 .SH OPTIONAL JOB PARAMETERS
 
 .TP
+\fBpull-command\fR
+Command used by chaperone(8) to transfer files to the temporary
+working directory before the job begins. Files normally are pulled
+from the submit node, but the command can be any valid Unix file
+transfer command.  The following special symbols within the command
+are replaced by the data shown:
+
+.nf
+.na
+%w      Full path of the working directory on the compute node
+%h      Name of the submit host
+%s      Full path of the submit directory on the submit host
+%[#]i   Job array index, optionally zero-left-padded to # digits
+.ad
+.fi
+
+Example:
+
+.nf
+.na
+#lpjs pull-command rsync --mkpath %h:%s/Raw/\*-sample%2i-* Raw
+.ad
+.fi
+
+
 \fBpush-command\fR
-Command used by chaperone(8) to transfer the temporary working directory
-after the job completes.  This defaults to "rsync -av %w/ %h:%d",
-which transfers the contents back to the directory from which the
-jobs was submitted on the submit node.
+Command used by chaperone(8) to transfer files from the temporary working
+directory after the job completes.  Files normally are pushed to
+the submit node, but the command can be any valid Unix file
+transfer command.  The following special symbols within the command
+are replaced by the data shown:
+
+.nf
+.na
+%w      Full path of the working directory on the compute node
+%h      Name of the submit host
+%s      Full path of the submit directory on the submit host
+%[#]i   Job array index, optionally zero-left-padded to # digits
+.ad
+.fi
+
+Example:
+
+.nf
+.na
+#lpjs push-command rsync --mkpath Results/\*-sample%2i-* %h:%s/Raw/
+.ad
+.fi
 
 .TP
 \fBlog-dir\fR
 The parent directory for storing job logs (standard output and
 standard error from the script and chaperone) on the submit node.
 The default is LPJS-logs/script-name.
+
+.TP
+\fBpath\fR
+The value of PATH to use when running the script.  This is set before
+the job starts, so that it impacts pull-command as well.  Some systems
+such as macOS and RHEL ship with older versions of rsync.  Setting PATH
+may be necessary to use a newer rsync installed via a 3rd party package
+manager such as pkgsrc, which supports options like --mkpath.
 
 .SH PORTABILITY
 
@@ -114,15 +165,8 @@ using "#!/usr/bin/env".
 LPJS sets the following environment variables for use by batch scripts:
 
 .TP
-\fBPATH\fR
-Prepended with LOCALBASE/bin and PREFIX/bin, as these may be different
-on different compute nodes.  Where LPJS was installed via a package
-manager, this provides access to all other software installed by
-the same package manager.
-.TP
-\fBLPJS_HOME_DIR\fR
-The home directory of the user on the compute node.  May be
-different on different nodes.
+\fBLPJS_JOB_ID\fR
+The job ID of the job under which the process is running.
 .TP
 \fBLPJS_ARRAY_INDEX\fR
 The 1-base array index of each job in a job array submission.
@@ -130,14 +174,15 @@ The 1-base array index of each job in a job array submission.
 \fBLPJS_JOB_COUNT\fR
 The number of jobs in the job array submission.
 .TP
-\fBLPJS_PROCS_PER_JOB\fR
+\fBLPJS_PROCESSORS_PER_JOB\fR
 The value set in the script by "#lpjs processors-per-job".
 .TP
-\fBLPJS_MIN_PROCS_PER_NODE\fR
-The value set in the script by "#lpjs min-processors-per-node".
+\fBLPJS_THREADS_PER_PROCESS\fR
+The value set in the script by "#lpjs threads-per-process".
 .TP
 \fBLPJS_PHYS_MIB_PER_PROCESSOR\fR
-The value set in the script by "#lpjs pmem-per-proc".
+The value set in the script by "#lpjs pmem-per-proc", expressed
+in mebibytes, regardless of the units used in pmem-per-proc.
 .TP
 \fBLPJS_USER_NAME\fR
 The username of the user running the job.
@@ -163,14 +208,23 @@ The compute node running the job (same as $(hostname) or `hostname`).
 The path of the directory containing job terminal output, relative
 to LPJS_SUBMIT_DIRECTORY.  Defaults to LPJS-logs/script-name.
 .TP
+\fBPATH\fR
+Either the user's default PATH or the PATH provided by
+"$lpjs path", 
+prepended with LOCALBASE/bin and PREFIX/bin, as these may be different
+on different compute nodes.  Where LPJS was installed via a package
+manager, this provides access to all other software installed by
+the same package manager with no additional effort from the user.
+E.g., pkgsrc installs by default under /usr/pkg on most systems, but
+under /opt/pkg on macOS, since /usr is read-only.
+.TP
+\fBLPJS_PULL_COMMAND\fR
+The command set by "#lpjs pull-command".
+.TP
 \fBLPJS_PUSH_COMMAND\fR
-The command used to transfer the temporary current working directory
-from compute nodes that do not have direct access to the submit
-directory on the submit node.  Defaults to "rsync -av %w/ %h:%d",
-where %w is the temporary working directory on the compute node,
-%h is the submit host, and %d is the submit directory on the
-submit node.  Below is output from a job that runs
-"printenv | grep LPJS_" in the batch script:
+The command set by "#lpjs push-command".
+
+.SH EXAMPLE PRINTENV OUTPUT
 
 .nf
 .na
