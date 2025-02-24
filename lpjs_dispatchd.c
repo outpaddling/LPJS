@@ -177,7 +177,9 @@ int     main(int argc,char *argv[])
 /*
  *  systemd needs a pid file for forking daemons.  BSD systems don't
  *  require this for rc scripts, so we don't bother with it.  PIDs
- *  are found dynamically there.
+ *  are found dynamically there, which has the added benefit of
+ *  terminating stray processes from previous starts that didn't clean up
+ *  because they crashed or were terminated with SIGKILL.
  */
 
 #ifdef __linux__
