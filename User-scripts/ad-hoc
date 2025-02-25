@@ -261,12 +261,12 @@ if [ $# != 0 ]; then
 fi
 
 : ${EDITOR:=vi}
-CONF_FILE=/Users/bacon/Dreckly/pkg/etc/lpjs/config
+CONF_FILE=/usr/local/etc/lpjs/config
 
 while true
 do
     clear
-    /Users/bacon/Pkgsrc/pkg/libexec/lpjs/banner
+    /usr/local/libexec/lpjs/banner
     cat << EOM
 
 1.. Set up a zero-configuration one-node cluster and start all daemons
