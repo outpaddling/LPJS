@@ -87,7 +87,6 @@ EOM
 	else
 	    $daemon
 	fi
-	pause
     else
 	printf "Logged messages can be viewed using \"lpjs log\"\n"
 	printf "or the \"View log(s)\" menu option.\n"
@@ -98,7 +97,6 @@ EOM
 	fi
 	echo $?
 	pgrep -lf $daemon
-	pause
     fi
 }
 
@@ -207,7 +205,50 @@ munge_stop()
     printf "After stop:\n"
     sleep 1
     pgrep -lf munged
-    pause
+}
+
+
+##########################################################################
+#   Function description:
+#       
+#   Arguments:
+#       
+#   Returns:
+#       
+#   History:
+#   Date        Name        Modification
+#   2025-02-25  Jason Bacon Begin
+##########################################################################
+
+stop_all()
+{
+    stop_daemon lpjs_compd
+    stop_daemon lpjs_dispatchd
+    munge_stop
+    return 0
+}
+
+
+##########################################################################
+#   Function description:
+#       
+#   Arguments:
+#       
+#   Returns:
+#       
+#   History:
+#   Date        Name        Modification
+#   2025-02-25  Jason Bacon Begin
+##########################################################################
+
+restart_all()
+{
+    stop_daemon lpjs_compd
+    stop_daemon lpjs_dispatchd
+    munge_stop
+    munge_start background
+    start_daemon lpjs_dispatchd background
+    start_daemon lpjs_compd background
 }
 
 
@@ -220,7 +261,7 @@ if [ $# != 0 ]; then
 fi
 
 : ${EDITOR:=vi}
-CONF_FILE=/usr/local/etc/lpjs/config
+CONF_FILE=/Users/bacon/Dreckly/pkg/etc/lpjs/config
 
 while true
 do
@@ -228,51 +269,25 @@ do
     /Users/bacon/Pkgsrc/pkg/libexec/lpjs/banner
     cat << EOM
 
-1.. Start munged (required by both dispatchd and compd)
-2.. Start dispatchd (make this the head node)
-3.. Start compd (make this a compute node)
-4.. Start all daemons in the background (1-node instant cluster)
-5.. Stop background munged
-6.. Stop background dispatchd
-7.. Stop background compd
-8.. Stop all background daemons
-9.. View log(s)
+1.. Set up a zero-configuration one-node cluster and start all daemons
+2.. Generate a new config file
+3.. Edit the config file
+4.. Start lpjs_dispatchd (make this the head node)
+5.. Stop lpjs_dispatchd
+6.. Start lpjs_compd (make this a compute node)
+7.. Stop lpjs_compd
+8.. Start munged (required by both dispatchd and compd)
+9.. Stop munged
+10. Stop all daemons
+11. Restart all daemons
+12. View log(s)
 Q.. Quit
 
 EOM
 
     read -p 'Selection? ' resp
-    case 0$resp in
-    01)
-	munge_start
-	;;
-    
-    02)
-	# FIXME: Check routability with lpjs/resolve-host
-	printf "head $(hostname)\n" > $CONF_FILE
-	printf "Enter the names of authorized compute nodes, one per line.\n"
-	printf "Just press Enter after last compute node has been entered.\n"
-	compute_node='x'
-	while [ -n "$compute_node" ]; do
-	    printf "Complete hostname of compute node? "
-	    read compute_node
-	    if [ -n "$compute_node" ]; then
-		printf "compute $compute_node\n" >> $CONF_FILE
-	    fi
-	done
-	# $EDITOR $CONF_FILE
-	start_daemon lpjs_dispatchd
-	;;
-    
-    03)
-	printf "Hostname of headnode? "
-	read head_node
-	printf "head $head_node\n" > $CONF_FILE
-	# $EDITOR $CONF_FILE
-	start_daemon lpjs_compd
-	;;
-
-    04)
+    case $resp in
+    1)
 	# Reserve 1 GiB or half of physical memory, whichever is less,
 	# for OS and other apps.  Convert to MiB.
 	pmem=$(auto-physmem)
@@ -290,39 +305,138 @@ EOM
 	cat << EOM > $CONF_FILE
 head    localhost
 compute $(hostname) pmem=${pmem}MiB
+# Example to limit processors used by LPJS jobs
+# compute $(hostname) pmem=${pmem}MiB processors=4
 EOM
 	# $EDITOR $CONF_FILE
+	stop_daemon lpjs_dispatchd
+	stop_daemon lpjs_compd
+	munge_stop
 	munge_start background
 	start_daemon lpjs_dispatchd background
 	start_daemon lpjs_compd background
+	pause
 	;;
     
-    05)
+    2)
+	if [ -e $CONF_FILE ]; then
+	    printf "Overwrite existing $CONF_FILE? y/[n] "
+	    read overwrite
+	    if [ 0"$overwrite" = 0y ]; then
+		printf "head $(hostname)\n" > $CONF_FILE
+		printf "# compute $(hostname)\n" >> $CONF_FILE
+		$EDITOR $CONF_FILE
+	    fi
+	fi
+	;;
+    
+    3)
+	$EDITOR $CONF_FILE
+	printf "Restart daemons? [y]/n "
+	read restart
+	if [ 0"$restart" != 0n ]; then
+	    restart_all
+	    pause
+	fi
+	;;
+    
+    4)
+	# FIXME: Check routability with lpjs/resolve-host
+	printf "head $(hostname)\n" > $CONF_FILE
+	cat << EOM
+
+Enter the names of authorized compute nodes, one per line.
+
+Generally, the head node should not also be a compute node,
+as heavy workloads could impact lpjs_dispatchd.  The exception
+to this rule is a one-node cluster, option 1 in this menu.
+
+Just press Enter after last compute node has been entered.
+
+EOM
+	compute_node='x'
+	start_compd=no
+	while [ -n "$compute_node" ]; do
+	    printf "Complete hostname of compute node? "
+	    read compute_node
+	    if [ -n "$compute_node" ]; then
+		printf "compute $compute_node\n" >> $CONF_FILE
+		if [ $compute_node = $(hostname) ]; then
+		    start_compd=yes
+		fi
+	    fi
+	done
+	stop_all
 	munge_stop
+	munge_start background
+	stop_daemon lpjs_dispatchd
+	start_daemon lpjs_dispatchd background
+	if [ $start_compd = yes ]; then
+	    stop_daemon lpjs_compd
+	    start_daemon lpjs_compd background
+	fi
+	pause
 	;;
     
-    06)
+    5)
 	stop_daemon lpjs_dispatchd
 	pause
 	;;
     
-    07)
+    6)
+	printf "Hostname of headnode? "
+	read head_node
+	if [ -n "$head_node" ]; then
+	    printf "head $head_node\n" > $CONF_FILE
+	    printf "compute $(hostname)\n" >> $CONF_FILE
+	    cat << EOM
+
+Make sure $head_node has $(hostname) listed as a compute node
+in etc/lpjs/config.
+
+Add it and restart lpjs_dispatchd on the head node if needed.
+
+EOM
+	    pause
+	    munge_stop
+	    munge_start background
+	    stop_daemon lpjs_compd
+	    start_daemon lpjs_compd background
+	    pause
+	fi
+	;;
+
+    7)
 	stop_daemon lpjs_compd
 	pause
 	;;
     
-    08)
-	stop_daemon lpjs_compd
-	stop_daemon lpjs_dispatchd
-	munge_stop
+    8)
+	munge_start background
+	pause
 	;;
     
-    09)
+    9)
+	munge_stop
+	pause
+	;;
+    
+    10)
+	stop_all
+	pause
+	;;
+    
+    11)
+	restart_all
+	pause
+	;;
+	
+    12)
 	lpjs log
 	pause
 	;;
 
-    0Q|0q)
+    Q|q)
 	exit 0
 	;;
 
