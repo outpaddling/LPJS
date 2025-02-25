@@ -94,3 +94,10 @@ Convert sbatch scripts to lpjs and vice versa
 
 Add optional disk usage requirements to job specs, e.g.
     #lpjs du /tmp 20GiB
+
+lpjs submit: Process arguments to script
+
+Allow variables in #lpjs directives
+    $1 = 1st argument to script
+    $var = env var
+    $(command)
