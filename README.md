@@ -70,11 +70,18 @@ to be too squirrely.  There may also be issues with VirtualBox and Qemu
 networking, which would confound diagnosis on our Linux and other BSD
 installations.
 
-Proper handling of network communication errors still needs a lot of work,
-but correct batch scripts running on reliable hardware should generally
-work fine at this stage.
+Most remaining issues are related to network fault tolerance.
+These will take some time to iron out, as it means adding checks to
+handle all of the many possible situations where a network connection
+fails.
 
-Support for unreliable
+However, correct batch scripts running on reliable hardware should generally
+work fine at this stage.  The one-node instant cluster option (in the
+"lpjs admin" menu) should
+work well for most people, as it does not rely on networking. This is
+generally the first step to trying out LPJS anyway.
+
+Support for unreliable networks and
 compute nodes (part-time resources that are likely to spontaneously
 disconnect) is a can of worms we're going to kick down the road a bit.
 This will be fully supported in the future, but for now, we'll focus
