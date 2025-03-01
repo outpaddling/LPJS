@@ -20,12 +20,29 @@ usage()
 Usage:
     $0 version ramsize-in-MiB processors [qemu-args]
     
-    qemu-args are passed unaltered to the qemu command.
-    See qemu docs for options.
+    qemu-args represents any arguments accepted by qemu-system-$qemu_system
+    and are passed unaltered to the qemu command.
+    See the qemu documentation or run qemu-system-$qemu_system -help
+    for more info.
 
 Examples:
+    # Graphical display
     $0 14.1-RELEASE 2048 4
+    
+    # No display (headless VM)
     $0 14.1-RELEASE 2048 4 -display none
+
+Note:
+    Before running headless using "-display none", make sure the
+    VM will accept connections via SSH, VNC, or some other protocol.
+    VNC can be enabled using qemu-args.  SSH must be enabled in the
+    FreeBSD VM by adding
+    
+	sshd_enable="YES"
+    
+    to /etc/rc.conf and running
+    
+	service sshd start
 
 EOM
     exit 1
@@ -35,6 +52,15 @@ EOM
 ##########################################################################
 #   Main
 ##########################################################################
+
+# Must be set before usage
+if [ $(uname -m) = arm64 ]; then
+    qemu_system=aarch64
+elif [ $(uname -m) = x86_64 ] || [ $(uname -m) = amd64 ]; then
+    qemu_system=x86_64
+else
+    printf "$(uname -m) is not currently supported.\n"
+fi
 
 if [ $# -lt 3 ]; then
     usage
@@ -95,11 +121,6 @@ x86_64)
     fi
     image=FreeBSD-$version-$freebsd_arch.raw
     qemu_options="-machine $machine"
-    ;;
-
-*)
-    printf "$(uname -m) is not currently supported.\n"
-    exit 1
     ;;
 esac
 

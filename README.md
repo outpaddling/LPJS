@@ -226,13 +226,16 @@ files and upload results. At minimum, the job script must define
 tricky and difficult to debug, so we don't recommend using this approach
 unless you really have to.
 
-2. Use a virtual machine to run jobs on macOS compute nodes under another
+2. Use a virtual machine (VM) to run jobs on macOS compute nodes under another
 operating system, such as BSD or Linux.  There
 are several free desktop virtual machine monitors available, such as
 UTM, VirtualBox and VMWARE, as well as lightweight hypervisors such as Qemu
 and xhyve.  We've had good luck with VirtualBox, which is free and mostly
 open source, and as of version 7.1.0, supports both Intel and ARM guests
-on macOS hosts.
+on macOS hosts.  [This script](https://github.com/outpaddling/LPJS/blob/main/Utils/qemu-freebsd-guest.sh)
+will very quickly create a Qemu based FreeBSD VM on an Intel or Arm
+Mac.  It can also be easily adapted to run other operating systems for
+which VM images are available.
 
 Also, running a 1-node instant cluster on macOS should work just fine, with
 no need for push and pull commands, as long
