@@ -93,7 +93,11 @@ The user interface may undergo significant changes as testing reveals
 oversights in design.
 
 Example job scripts for a real RNA-Seq differential analysis are available
-at [https://github.com/auerlab/CNC-EMDiff/tree/master/RNA-Seq/LPJS](https://github.com/auerlab/CNC-EMDiff/tree/master/RNA-Seq/LPJS).
+at
+[https://github.com/auerlab/fasda/tree/main/Yeast-test/LPJS](https://github.com/auerlab/fasda/tree/main/Yeast-test/LPJS)
+(very quick analysis of yeast RNA, a very small genome) and
+[https://github.com/auerlab/CNC-EMDiff/tree/master/RNA-Seq/LPJS](https://github.com/auerlab/CNC-EMDiff/tree/master/RNA-Seq/LPJS)
+(more involved analysis of mouse RNA, a large genome).
 The output below shows LPJS performing adapter trimming on our small
 hybrid test cluster consisting of PC workstations, Virtual Machines, and
 a Mac Mini M1.
