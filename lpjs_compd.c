@@ -650,6 +650,13 @@ int     lpjs_run_chaperone(job_t *job, const char *script_buff,
 	// the socket connection between dispatchd and compd.
 	// The parent process lpjs_compd will continue to use it,
 	// but we're done with it here.
+	
+	// FIXME: Make sure this doesn't cause dispatchd to
+	// disconnect from the parent compd process
+	// Also, this child could end up receiving messages from
+	// dispatchd instead of the parent compd.  This needs to be
+	// prevented.  Maybe put a hold on this compd before forking
+	// and release it in the parent.
 	close(compd_msg_fd);
 	
 	// If lpjs_compd is running as root, use setuid() to switch

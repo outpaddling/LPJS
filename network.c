@@ -384,7 +384,8 @@ ssize_t lpjs_recv_munge(int msg_fd, char **payload, int flags, int timeout,
 				    &payload_len, uid, gid);
 	if ( munge_status != EMUNGE_SUCCESS )
 	{
-	    close_function(msg_fd);
+	    if ( close_function != NULL )
+		close_function(msg_fd);
 	    lpjs_log("%s(): Error: munge_decode(fd = %d) failed.  %zd bytes, Error = %s\n",
 		     __FUNCTION__, msg_fd, bytes_read, munge_strerror(munge_status));
 	    return -1;  // FIXME: Define return codes
