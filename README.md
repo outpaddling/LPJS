@@ -217,33 +217,85 @@ This issue has been reported via the Apple Developer platform:
 
 Contact Apple if you would like to see it addressed.
 
-There are two possible workarounds:
+There are a few possible workarounds:
 
-1. Don't use a file server from macOS compute nodes.  This complicates
-jobs scripts, however, as they will need to automatically download input
-files and upload results. At minimum, the job script must define
-`#lpjs pull-command` and `#lpjs push-command`.  File transfers are
-tricky and difficult to debug, so we don't recommend using this approach
-unless you really have to.
+1.  Don't use a file server from macOS compute nodes.  This complicates
+    jobs scripts, however, as they will need to automatically download input
+    files and upload results. At minimum, the job script must define
+    `#lpjs pull-command` and `#lpjs push-command`.  File transfers are
+    tricky and difficult to debug, so we don't recommend using this approach
+    unless you really have to.
 
-2. Use a virtual machine (VM) to run jobs on macOS compute nodes under another
-operating system, such as BSD or Linux.  There
-are several free desktop virtual machine monitors available, such as
-UTM, VirtualBox and VMWARE, as well as lightweight hypervisors such as Qemu
-and xhyve.  We've had good luck with VirtualBox, which is free and mostly
-open source, and as of version 7.1.0, supports both Intel and ARM guests
-on macOS hosts.  [This script](https://github.com/outpaddling/LPJS/blob/main/Utils/qemu-freebsd-guest.sh)
-will very quickly create a Qemu based FreeBSD VM on an Intel or Arm
-Mac.  It can also be easily adapted to run other operating systems for
-which VM images are available.
+2.  Use a virtual machine (VM) to run jobs on macOS compute nodes under another
+    operating system, such as BSD or Linux.  There
+    are several free desktop virtual machine monitors available, such as
+    UTM, VirtualBox and VMWARE, as well as lightweight hypervisors such as Qemu
+    and xhyve.  We've had good luck with VirtualBox, which is free and mostly
+    open source, and as of version 7.1.0, supports both Intel and ARM guests
+    on macOS hosts.
+    
+    [This script](https://github.com/outpaddling/LPJS/blob/main/Utils/qemu-freebsd-guest.sh)
+    will very quickly create and launch a Qemu based FreeBSD VM on an Intel or Arm Mac.
+    Just download the script and run it with the FreeBSD release, memory size
+    in mebibytes, and number of processors to emulate as arguments:
+    
+    ```
+    sh ./qemu-freebsd-guest 14.2-RELEASE 4096 4
+    ```
+    
+    Run the same command to launch the VM again in the future.
+    
+    After logging into the VM as root, perform some basic setup:
+    
+    ```
+    passwd                      # Set a password for the root account
+    pkg install -y auto-admin   # Install easy-to-use admin menu
+    auto-admin                  # Add users, install software, etc.
+    ```
+    
+    On FreeBSD, a wide variety of software can be installed in seconds,
+    including a suite of tools for RNA-Seq, ATAC-Seq, and ChIP-Seq analyses.
+    You can use the auto-admin menu, or the ```pkg`` command directly:
+    
+    ```
+    pkg install -y rna-seq atac-seq chip-seq
+    ```
+    
+    The VM can be run in "headless" mode.  First, enable ssh in the FreeBSD VM:
+    
+    ```
+    sysrc sshd_enable=YES       # Enable at boot
+    service sshd start          # Start service
+    ```
+    
+    From the macOS host, test ssh:
+    
+    ```
+    ssh -X -p 8022 localhost
+    ```
+    
+    To run headless, shut down the VM by running `shutdown -p now` as
+    root in FreeBSD.  Then on the host Mac:
+    
+    ```
+    sh ./qemu-freebsd-guest 14.2-RELEASE 4096 4 -display none
+    ```
+    
+    The FreeBSD virtual disk is initially sized at 20GB, but can be
+    expanded by simply growing the disk image file.  FreeBSD will automatically
+    extend the filesystem to fill the added space during the next boot.
+    To add 5 more GB:
+    
+    1. Make sure the VM is not running (`shutdown -p now` in the VM)
+    2. On the Mac host: truncate -s +5G ~/Qemu/FreeBSD-14.1-RELEASE-amd64.raw
 
-Also, running a 1-node instant cluster on macOS should work just fine, with
-no need for push and pull commands, as long
-as your jobs don't try to access any folders protected by full disk
-access checks.  Protected folders include each user's Documents folder, all
-folders shared by remote computers, and possibly others.  If you place all your
-LPJS job scripts and data under an unprotected folder, such as ~/Data,
-LPJS should not encounter any problems.
+3.  Running a 1-node instant cluster on macOS should work just fine, with
+    no need for push and pull commands, as long
+    as your jobs don't try to access any folders protected by full disk
+    access checks.  Protected folders include each user's Documents folder, all
+    folders shared by remote computers, and possibly others.  If you place all your
+    LPJS job scripts and data under an unprotected folder, such as ~/Data,
+    LPJS should not encounter any problems.
 
 ## Security
 
