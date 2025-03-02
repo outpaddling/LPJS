@@ -287,7 +287,7 @@ There are a few possible workarounds:
     To add 5 more GB:
     
     1. Make sure the VM is not running (`shutdown -p now` in the VM)
-    2. On the Mac host: truncate -s +5G ~/Qemu/FreeBSD-14.1-RELEASE-amd64.raw
+    2. On the Mac host: truncate -s +5G ~/Qemu/FreeBSD-14.2-RELEASE-amd64.raw
 
 3.  Running a 1-node instant cluster on macOS should work just fine, with
     no need for push and pull commands, as long
