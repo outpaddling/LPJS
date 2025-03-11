@@ -229,7 +229,7 @@ cat << EOM >> $script
 
 #lpjs jobs $jobs
 #lpjs processors-per-job $processors_per_job
-#lpjs min-processors-per-node $threads_per_process
+#lpjs threads-per-process $threads_per_process
 #lpjs pmem-per-processor $mem_per_proc
 
 $command

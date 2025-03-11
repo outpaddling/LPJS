@@ -170,12 +170,29 @@ The job ID of the job under which the process is running.
 .TP
 \fBLPJS_ARRAY_INDEX\fR
 The 1-base array index of each job in a job array submission.
+For readability and flexibility, use this as the basis for a
+"sample" variable:
+
+.nf
+.na
+# Input files are sample-1.txt, sample-2.txt, ...
+sample=$LPJS_ARRAY_INDEX
+input_file=input-$sample.txt
+.ad
+.fi
+
 .TP
 \fBLPJS_JOB_COUNT\fR
 The number of jobs in the job array submission.
 .TP
 \fBLPJS_PROCESSORS_PER_JOB\fR
 The value set in the script by "#lpjs processors-per-job".
+.TP
+\fBLPJS_PATH\fR
+The optional value set in the script by "#lpjs path".  May be necessary
+to locate tools used in "#lpjs pull-command" and "#lpjs push-command".
+Also useful for commands with the script, although the script itself
+can also set PATH for that purpose.
 .TP
 \fBLPJS_THREADS_PER_PROCESS\fR
 The value set in the script by "#lpjs threads-per-process".
@@ -219,28 +236,40 @@ E.g., pkgsrc installs by default under /usr/pkg on most systems, but
 under /opt/pkg on macOS, since /usr is read-only.
 .TP
 \fBLPJS_PULL_COMMAND\fR
-The command set by "#lpjs pull-command".
+The command set by "#lpjs pull-command" for pulling files to the
+compute node before the script begins.
 .TP
 \fBLPJS_PUSH_COMMAND\fR
-The command set by "#lpjs push-command".
+The command set by "#lpjs push-command" for pushing files from the
+compute node after the script ends.
+.TP
+\fBLPJS_HOME_DIR\fR
+Home directory of $LPJS_USER_NAME on the compute node.  This may differ
+depending on the operating system and local configuration, e.g.
+macOS uses "/Users/username", while many other systems use
+"/home/username" by default.  Not all shells support "~/" to
+represent the home directory, so LPJS_HOME_DIR offers a 100% portable
+way to represent it.
 
 .SH EXAMPLE PRINTENV OUTPUT
 
 .nf
 .na
+LPJS_PROCESSORS_PER_JOB=1
+LPJS_PATH=not-set
 LPJS_JOB_COUNT=1
-LPJS_COMPUTE_NODE=TBD
-LPJS_PUSH_COMMAND=rsync -av %w/ %h:%d
-LPJS_PHYS_MIB_PER_PROCESSOR=9
-LPJS_MIN_PROCS_PER_NODE=1
+LPJS_COMPUTE_NODE=compute-001.acadix.biz
+LPJS_PUSH_COMMAND=not-set
+LPJS_PHYS_MIB_PER_PROCESSOR=100
 LPJS_PRIMARY_GROUP_NAME=bacon
 LPJS_SUBMIT_HOST=moray.acadix.biz
 LPJS_JOB_LOG_DIR=LPJS-logs/env
 LPJS_USER_NAME=bacon
-LPJS_SUBMIT_DIRECTORY=/home/bacon
-LPJS_JOB_ID=1983
+LPJS_SUBMIT_DIRECTORY=/home/bacon/Prog/Src/lpjs/Test
+LPJS_PULL_COMMAND=not-set
+LPJS_JOB_ID=161
 LPJS_SCRIPT_NAME=env.lpjs
-LPJS_PROCS_PER_JOB=1
+LPJS_THREADS_PER_PROCESS=1
 LPJS_ARRAY_INDEX=1
 LPJS_HOME_DIR=/home/bacon
 .ad
