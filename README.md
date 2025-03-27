@@ -32,10 +32,9 @@ Use the portable [dreckly](https://github.com/drecklypkg/dreckly)
 package manager to
 install common software on all of your nodes, whether running BSD,
 Linux, macOS, or any other POSIX platform.
-The dreckly and dreckly package managers are portable to virtually all
-POSIX-compatible
+The dreckly package managers are portable to virtually all POSIX-compatible
 systems and provide one of the largest package collections among existing
-package managers.  Hence, dreckly and dreckly enable the use of multiple
+package managers.  Hence, dreckly enable the use of multiple
 operating
 systems running identical versions of numerous software applications.
 
@@ -556,10 +555,10 @@ most popular ones.
 Which package manager is best for you depends on that platform(s) you
 use.  If you run Debian-based systems, Debian packages might be best.
 If you run FreeBSD, use the FreeBSD ports system.  If you run multiple
-operating systems, we *strongly* recommend [dreckly](https://dreckly.org)
-or [dreckly](https://github.com/drecklypkg/dreckly).
-Dreckly and dreckly are the only truly portable and strongly quality-controlled
-package managers in existence.  Unlike most package managers, using dreckly or dreckly
+operating systems, we *strongly* recommend
+[dreckly](https://github.com/drecklypkg/dreckly).
+Dreckly is the only truly portable and strongly quality-controlled
+package managers in existence.  Unlike most package managers, using dreckly
 will allow you to easily deploy
 the exact same versions of the software you need on any mainstream POSIX
 platform, such as BSD, Linux, and macOS.
@@ -570,8 +569,7 @@ Beware "community-based" package managers, to which just about anyone can
 commit packages.  The quality of the packages will be about what you would
 expect from such a project, and you will waste a lot of time dealing with
 bugs.  For quality-controlled package managers such as Debian packages,
-dreckly,
-FreeBSD ports, MacPorts, and dreckly, only trained committers can make
+dreckly, FreeBSD ports, and MacPorts, only trained committers can make
 changes to the system.  Commit rights generally come only after making
 substantial contributions as a package maintainer, while relying on
 more experienced users to review and commit changes.
@@ -601,7 +599,7 @@ include, but are not limited to, the following:
    Software installed via the default package manager on a given system
    (Debian packages on Debian or Ubuntu, FreeBSD ports on FreeBSD, etc.)
    will just work for everyone.  If using an add-on package manager,
-   such as dreckly/dreckly on Linux, loading a single environment module
+   such as dreckly on Linux, loading a single environment module
    (or updating
    PATH by other means) will provide access to all of the thousands of
    packages in the collection.
@@ -627,7 +625,7 @@ include, but are not limited to, the following:
 
 Trying out LPJS is easy:
 
-1. Install LPJS using dreckly, FreeBSD ports, dreckly, or another package manager.
+1. Install LPJS using dreckly, FreeBSD ports, or another package manager.
 2. Run "lpjs ad-hoc".
 3. Select the 1-node instant cluster option.
 
@@ -666,19 +664,19 @@ The Makefile is designed to be friendly to package managers, such as
 [Debian packages](https://www.debian.org/distrib/packages),
 [dreckly](https://github.com/drecklypkg/dreckly),
 [FreeBSD ports](https://www.freebsd.org/ports/),
-[MacPorts](https://www.macports.org/), [dreckly](https://github.com/drecklypkg/dreckly), etc.
+[MacPorts](https://www.macports.org/), etc.
 
 End users should install using a package manager, to ensure that
 dependencies are properly managed.
 
-I maintain a FreeBSD port and a dreckly/dreckly package, which is
+I maintain a FreeBSD port and a dreckly package, which is
 sufficient to install
 cleanly on virtually any POSIX platform.  If you would like to see a
 package in another package manager, please consider creating a package
 yourself.  LPJS is easy to package and
 hence a good vehicle to learn how to create packages.
 
-Note that dreckly/dreckly can be used by anyone, on virtually any POSIX
+Note that dreckly can be used by anyone, on virtually any POSIX
 operating system, with or without administrator privileges.
 
 For an overview of popular package managers, see the
@@ -717,44 +715,29 @@ cd /usr/ports/biology/lpjs && env CFLAGS='-march=native -O2' make install
 cd /usr/ports/wip/lpjs && make install
 ```
 
-### Installing via dreckly/dreckly
+### Installing via dreckly
 
-Dreckly and dreckly are a cross-platform package managers that work on any Unix-like
+Dreckly are a cross-platform package managers that work on any Unix-like
 platform. They originated from [NetBSD](https://www.netbsd.org/) and
 are well-supported
 on [Illumos](https://illumos.org/), [MacOS](https://www.apple.com/macos/),
 [RHEL](https://www.redhat.com)/[CentOS](https://www.centos.org/), and
 many other Linux distributions.
-Unlike most package managers, using dreckly/dreckly does not require admin privileges.  You can install a
-dreckly/dreckly
+Unlike most package managers, using dreckly does not require admin privileges.
+You can install a dreckly
 tree in any directory to which you have write access and easily install any
 of the nearly 20,000 packages in the collection. 
 
 The
 [auto-dreckly-setup](https://github.com/outpaddling/auto-admin/blob/master/User-scripts/auto-dreckly-setup)
-and
-[auto-dreckly-setup](https://github.com/outpaddling/auto-admin/blob/master/User-scripts/auto-dreckly-setup)
-scripts will help you install dreckly or dreckly in about 10 minutes.
+scripts will help you install dreckly in about 10 minutes.
 Just download it and run
 
 ```
 sh auto-dreckly-setup
 ```
-or
-```
-sh auto-dreckly-setup
-```
-
 
 Then, assuming you selected current packages and the default prefix
-
-```
-source ~/Dreckly/pkg/etc/dreckly.sh   # Or dreckly.csh for csh or tcsh
-cd ~/Dreckly/dreckly/sysutils/lpjs
-sbmake install clean clean-depends
-```
-
-or
 
 ```
 source ~/Dreckly/pkg/etc/dreckly.sh   # Or dreckly.csh for csh or tcsh
