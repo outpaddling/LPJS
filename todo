@@ -65,6 +65,8 @@ Tolerate memory violations if there are no pending jobs
 Add hostname resolution check to all admin scripts
 
 Job dependencies
+    lpjs wait jobid [jobid ...]
+	Return status vector
 
 Support real numbers for pmem, useful when using GB or GiB
 
