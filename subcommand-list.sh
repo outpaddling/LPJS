@@ -23,7 +23,7 @@ lpjs - Lightweight, Portable Job Scheduler
 is a batch system, i.e. a job scheduler and resource manager, for running
 programs in the background when resources available.
 
-.SH subcommand
+.SH SUBCOMMANDS
 .nf
 .na
 EOM
@@ -44,7 +44,7 @@ J Bacon
 EOM
 
 # Debug
-# man Man/lpjs.1
+ape Man/lpjs.1
 
 # For github
 auto-man2man Man/* | awk -F - '$1 !~ "lpjs" { printf("| %s | %s |\n", $1, $2); }' \
