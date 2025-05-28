@@ -1,6 +1,8 @@
 
 Now
 ---
+Cap log size
+
 Node specs don't change on reconnect of compd
     Must restart dispatchd
 
