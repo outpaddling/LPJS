@@ -1,0 +1,36 @@
+.TH lpjs 1
+
+.SH NAME
+lpjs - Lightweight, Portable Job Scheduler
+
+.SH "DESCRIPTION"
+.B LPJS
+is a batch system, i.e. a job scheduler and resource manager, for running
+programs in the background when resources available.
+
+.SH SUBCOMMANDS
+.nf
+.na
+lpjs adhoc - Menu for managing daemons as a regular user
+lpjs admin - Menu for managing LPJS configuration
+lpjs cancel - Cancel one or more jobs
+lpjs clear-queue - Remove all pending and running jobs
+lpjs create-script - Interactively generate an LPJS job script
+lpjs jobs - Show node status on an LPJS cluster
+lpjs log - Show logs on this node
+lpjs menu - User menu for managing jobs, monitoting cluster
+lpjs nodes - Show node status on an LPJS cluster
+lpjs peak-mem - Show peak memory use for a completed job
+lpjs reset-queue - Remove all jobs, set next job ID to 1
+lpjs run-time - Show begin and end times for completed jobs
+lpjs submit - Submit a job script
+.ad
+.fi
+
+.SH "SEE ALSO"
+munge(1), munge(3), munge(7)
+
+.SH AUTHOR
+.nf
+.na
+J Bacon
