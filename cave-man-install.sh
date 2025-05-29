@@ -4,7 +4,7 @@
 #
 #   Perform a cave-man install for development and testing purposes.
 #   For production use, this software should be installed via a package
-#   manager such as Debian packages, FreeBSD ports, MacPorts, pkgsrc, etc.
+#   manager such as Debian packages, FreeBSD ports, MacPorts, dreckly, etc.
 #       
 #   History:
 #   Date        Name        Modification
@@ -28,20 +28,20 @@ FreeBSD|OpenBSD|DragonFly)
     ;;
 
 *)
-    # Use system pkgsrc munge, running as a service
+    # Use system dreckly munge, running as a service
     if [ -e /usr/pkg ]; then
 	export LOCALBASE=/usr/pkg
     elif [ -e /opt/pkg ]; then
 	export LOCALBASE=/opt/pkg
     fi
     
-    # Need separate LOCALBASE to find munge installed by FreeBSD ports or pkgsrc
+    # Need separate LOCALBASE to find munge installed by FreeBSD ports or dreckly
     if [ -z "$LOCALBASE" ]; then
-	if [ -e ~/Pkgsrc/pkgsrc ]; then
+	if [ -e ~/Dreckly/dreckly ]; then
 	    if ! pkg_info munge; then
-		(cd ~/Pkgsrc/pkgsrc/wip/munge && sbmake install)
+		(cd ~/Dreckly/dreckly/wip/munge && sbmake install)
 	    fi
-	    LOCALBASE=~/Pkgsrc/pkg
+	    LOCALBASE=~/Dreckly/pkg
 	elif which pkgin; then
 	    if ! pkg_info munge; then
 		runas root pkgin install munge
