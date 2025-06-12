@@ -18,7 +18,7 @@ usage()
     cat << EOM
 
 Usage:
-    $0 version ramsize-in-MiB processors [qemu-args]
+    $0 version ramsize-in-MiB processors ssh-port [qemu-args]
     
     qemu-args represents any arguments accepted by qemu-system-$qemu_system
     and are passed unaltered to the qemu command.
@@ -27,10 +27,13 @@ Usage:
 
 Examples:
     # Graphical display
-    $0 14.1-RELEASE 2048 4
+    $0 14.1-RELEASE 2048 4 8022
     
-    # No display (headless VM)
-    $0 14.1-RELEASE 2048 4 -display none
+    # No display at all (headless VM)
+    $0 14.1-RELEASE 2048 4 8022 -display none
+    
+    # Use terminal window as console
+    $0 14.1-RELEASE 2048 4 8022 -nographic
 
 Note:
     Before running headless using "-display none", make sure the
@@ -62,14 +65,15 @@ else
     printf "$(uname -m) is not currently supported.\n"
 fi
 
-if [ $# -lt 3 ]; then
+if [ $# -lt 4 ]; then
     usage
 fi
 version=$1
 suffix=${version##*-}
 ramsize=$2
 procs=$3
-shift; shift; shift
+ssh_port=$4
+shift; shift; shift; shift
 
 case $(uname -m) in
 arm64)
@@ -104,6 +108,9 @@ x86_64)
     #
     if [ $(uname) = Darwin ]; then
 	# qemu-system-x86_64 -machine help for more options
+	# FIXME: 2 cpus and 4 GiB RAM on a 2-core, 4-ht, 8 GiB MacBook
+	#        With type=q35, host CPU hovers around 30%
+	#        With default (pc-i440fx-9.1), it hovers around 23%
 	machine="accel=hvf"
     else
 	printf "amd64 is not yet supported on $(uname).\n" >> /dev/stderr
@@ -156,22 +163,30 @@ if [ ! -e $qemu_dir/$image ]; then
 fi
 
 # https://wiki.freebsd.org/arm64/QEMU
-# Enable ssh via TCP port 8022
+# Enable ssh via TCP port $ssh_port
 # Must add sshd_enable="YES" to /etc/rc.conf and run "service sshd start"
 qemu_options="$qemu_options $@"
 set -x
-nohup qemu-system-$qemu_system -m $ramsize \
-    $qemu_options \
-    -smp $procs \
-    -drive if=virtio,file=$qemu_dir/$image,id=hd0,format=raw \
-    -nic user,model=virtio,hostfwd=tcp::8022-:22 &
+if echo $qemu_options | fgrep 'display none'; then
+    nohup qemu-system-$qemu_system -m $ramsize \
+	$qemu_options \
+	-smp $procs \
+	-drive if=virtio,file=$qemu_dir/$image,id=hd0,format=raw \
+	-nic user,model=virtio,hostfwd=tcp::${ssh_port}-:22 &
+else    
+    qemu-system-$qemu_system -m $ramsize \
+	$qemu_options \
+	-smp $procs \
+	-drive if=virtio,file=$qemu_dir/$image,id=hd0,format=raw \
+	-nic user,model=virtio,hostfwd=tcp::${ssh_port}-:22
+fi
 
 #############################################################################
 # More options
 #
 # -vnc :1,password=on
 # Open QEMU monitor for setting VNC password, etc. -monitor stdio
-# -netdev user,id=net0,hostfwd=tcp::8022-:22
+# -netdev user,id=net0,hostfwd=tcp::${ssh_port}-:22
 # -device virtio-net,netdev=net0
 #
 # To get list of available NICs

@@ -204,11 +204,12 @@ one would essentially allow malware to grant itself permissions.
 
 The LPJS compute node daemon, lpjs_compd, needs access to HPC file
 servers in order to create files and directories for running jobs.
-Each time lpjs_compd is updated, macOS revokes previous full disk access
+Each time lpjs_compd is updated, macOS detects the change to the executable
+file and revokes previous full disk access
 authorizations, until the desktop user authorizes it again via the
 macOS graphical interface.  There does not appear to be way around this
 behavior, other than completely disabling the SIP (System Integrity
-Protections).
+Protections), which is a bad idea from a security perspective.
 
 This issue has been reported via the Apple Developer platform:
 
@@ -219,7 +220,7 @@ Contact Apple if you would like to see it addressed.
 There are a few possible workarounds:
 
 1.  Don't use a file server from macOS compute nodes.  This complicates
-    jobs scripts, however, as they will need to automatically download input
+    jobs scripts, however, as they will need extra code to download input
     files and upload results. At minimum, the job script must define
     `#lpjs pull-command` and `#lpjs push-command`.  File transfers are
     tricky and difficult to debug, so we don't recommend using this approach
@@ -234,12 +235,22 @@ There are a few possible workarounds:
     on macOS hosts.
     
     [This script](https://github.com/outpaddling/LPJS/blob/main/Utils/qemu-freebsd-guest.sh)
-    will very quickly create and launch a Qemu based FreeBSD VM on an Intel or Arm Mac.
+    will very quickly create and launch a Qemu-based FreeBSD VM on an
+    Intel or Arm Mac with Qemu installed.  FreeBSD is a good choice, as
+    the project provides Qemu guest images and
+    many scientific applications can be quickly and easily installed via
+    the *pkg* command.
     Just download the script and run it with the FreeBSD release, memory size
-    in mebibytes, and number of processors to emulate as arguments:
+    in mebibytes, number of processors, and TCP port for SSH connections
+    as arguments:
     
     ```
-    sh ./qemu-freebsd-guest 14.2-RELEASE 4096 4
+    # sshd normally uses port 22, but that it likely reserved for the
+    # host OS.  Specify a high-numbered port here that you are sure is
+    # not being used by the host OS.
+    # Use -nographic for the first run so the terminal window is
+    # the console, and we can do some basic testing.
+    sh ./qemu-freebsd-guest.sh 14.2-RELEASE 4096 4 8022 -nographic
     ```
     
     Run the same command to launch the VM again in the future.
@@ -273,11 +284,12 @@ There are a few possible workarounds:
     ssh -X -p 8022 localhost
     ```
     
-    To run headless, shut down the VM by running `shutdown -p now` as
-    root in FreeBSD.  Then on the host Mac:
+    After ssh is tested, you can run the VM in headless mode (in the
+    background with no display).  First, shut down the VM by running
+    `shutdown -p now` as root in FreeBSD.  Then on the host Mac:
     
     ```
-    sh ./qemu-freebsd-guest 14.2-RELEASE 4096 4 -display none
+    sh ./qemu-freebsd-guest.sh 14.2-RELEASE 4096 4 8022 -display none
     ```
     
     The FreeBSD virtual disk is initially sized at 20GB, but can be
@@ -287,6 +299,9 @@ There are a few possible workarounds:
     
     1. Make sure the VM is not running (`shutdown -p now` in the VM)
     2. On the Mac host: truncate -s +5G ~/Qemu/FreeBSD-14.2-RELEASE-amd64.raw
+    
+    (Yes, "truncate" is an odd command for expanding a file, but it works
+    for both shrinking and expanding.)
 
 3.  Running a 1-node instant cluster on macOS should work just fine, with
     no need for push and pull commands, as long
@@ -294,7 +309,8 @@ There are a few possible workarounds:
     access checks.  Protected folders include each user's Documents folder, all
     folders shared by remote computers, and possibly others.  If you place all your
     LPJS job scripts and data under an unprotected folder, such as ~/Data,
-    LPJS should not encounter any problems.
+    LPJS should not encounter any problems.  This is a great option for
+    someone with a powerful system like a Mac Studio.
 
 ## Security
 
