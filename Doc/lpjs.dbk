@@ -16,8 +16,9 @@
         </para>
         
         <para>
-        Unlike most similar tools, LPJS is designed to be small, simple,
-        easy to install and configure, and easy to use.  It provides an
+        Unlike most similar tools, LPJS is designed to be simple,
+        easy to install and configure, easy to use, and portable to any
+        POSIX platform.  It provides an
         intuitive user interface, including menu-based operation for
         most common tasks.
         </para>
@@ -35,9 +36,20 @@
         <title>Installation</title>
         
         <para>
+        An HPC cluster or HTC grid is a group of computers including
+        a <glossterm>head node</glossterm>, which managers the cluster
+        or grid, and one or more <glossterm>compute nodes</glossterm>,
+        which run the computational software.
+        LPJS must be installed and configured on the head
+        node and all compute nodes.
+        </para>
+        
+        <para>
         Installation should be performed using a package manager, such as
-        FreeBSD ports or pkgsrc.  We maintain a FreeBSD port for use on
-        FreeBSD and Dragonfly BSD, and a pkgsrc package that should work on
+        FreeBSD ports or
+        <ulink url="https://github.com/drecklypkg/dreckly">dreckly</ulink>.
+        We maintain a FreeBSD port for use on
+        FreeBSD and Dragonfly BSD, and a dreckly package that should work on
         any other POSIX platform, including other BSDs, most Linux
         distributions, macOS, Solaris-based systems, etc.
         Other package managers may be supported by third parties.  If you
@@ -47,8 +59,12 @@
         </para>
         
         <para>
-        See <ulink url="http://netbsd.org/~bacon/">http://netbsd.org/~bacon/</ulink>
-        for an introduction to installing pkgsrc.
+        The dreckly package manager can be quickly and easily installed on
+        most POSIX platforms using the
+        <ulink url="https://github.com/outpaddling/auto-admin/blob/master/User-scripts/auto-dreckly-setup">auto-dreckly-setup</ulink>
+        script.  Simply download the script to your Unix computer, run
+        <command>sh auto-dreckly-setup</command> in a terminal window,
+        and follow the instructions on the screen.
         </para>
         
         <para>
@@ -67,7 +83,9 @@
         THE MUNGE KEY FILE MUST BE KEPT SECURE AT ALL TIMES ON ALL NODES.
         Use secure procedures
         to distribute it to all nodes, so that it is never visible to
-        unauthorized users.
+        unauthorized users.  The <command>lpjs admin</command> command
+        provides a menu with an option for enabling the munge daemon.
+        This option can securely copy the munge key from another computer.
         </para>
     </chapter>
     
@@ -77,23 +95,26 @@
         <para>
         LPJS is designed to require minimal configuration.  For example,
         compute node resources such as processors and memory are determined
-        automatically, and need not be specified in configuration files.
+        automatically when the <command>lpjs_compd</command> daemon starts
+        and need not be specified in configuration files.
         </para>
         
         <para>
         Most configuration can be done entirely using
         <command>lpjs admin</command>
-        (<command>man lpjs-admin</command>), a menu-driven admin tool.
-        Simply run <command>lpjs-admin</command>, select an item from
+        (<command>man lpjs admin</command>), a menu-driven admin tool.
+        Simply run <command>lpjs admin</command>, select an item from
         the menu, and answer the questions on the screen.
-        </para>
-        
-        <para>
-        For the sake of understanding what <command>lpjs-admin</command>
+        For the sake of understanding what <command>lpjs admin</command>
         does, some basic information is provided below.
         </para>
         
         <para>
+        The head node runs the <glossterm>dispatch daemon</glossterm>,
+        <command>lpjs_dispatchd</command>, which keeps track of all
+        computing resources (e.g. processors, memory) on the compute nodes
+        and dispatches jobs to compute node with sufficient available
+        resources.
         The head node requires a configuration file, which in its simplest
         form merely lists the complete host names (FQDNs) of the head node
         and each compute node, one node per line, e.g.
@@ -108,24 +129,27 @@ compute compute002.mydomain
         
         <para>
         The FQDN (fully qualified domain name) must match the name
-        reported by the <command>hostname</command> command, or
-        the <code>gethostname()</code> standard library function.
-        This is usually either listed in <filename>/etc/hosts</filename>
+        reported by running <command>hostname</command> on that node.
+        On other nodes,
+        this is either listed in <filename>/etc/hosts</filename>
         or provided by <glossterm>DNS</glossterm>
         (<glossterm>domain name service</glossterm>).
         </para>
         
         <para>
+        Each compute node runs the <glossterm>compute daemon</glossterm>,
+        <command>lpjs_compd</command>.
         Hardware specs for compute nodes are automatically determined by
-        lpjs_compd and reported to lpjs_dispatchd.  They may be overridden
-        in the config file in order to reserve memory or processors for
+        lpjs_compd on the compute nodes and reported to lpjs_dispatchd
+        on the head node.  They may be overridden in the configuration file on
+        the head node in order to reserve memory or processors for
         non-LPJS use, e.g.:
         </para>
         
         <screen>
 head    myhead.mydomain
 compute compute001.mydomain
-# compute-002 actually have 16GiB RAM and 8 processors, but
+# compute-002 actually has 16GiB RAM and 8 processors, but
 # we limit LPJS to half of each
 compute compute002.mydomain pmem=8GiB processors=4
 ...
@@ -133,7 +157,7 @@ compute compute002.mydomain pmem=8GiB processors=4
         
         <para>
         Each compute node requires the same type of configuration file, but
-        it need only list the head node.  It can be the same configuration
+        it need only list the head node.  It can be a copy of the configuration
         file used on the head node, in which case the compute node entries
         are ignored.  You may wish to create a configuration file on the head
         node and simply distribute it.
@@ -156,7 +180,7 @@ compute compute002.mydomain pmem=8GiB processors=4
             
             <para>
             Appropriate services can be configured by running
-            <command>lpjs-admin</command> on each node.
+            <command>lpjs admin</command> on each node.
             </para>
             
             <para>
@@ -169,18 +193,23 @@ compute compute002.mydomain pmem=8GiB processors=4
             desktop machine will work just fine for a small cluster.
             Laptops are actually nice in that they have a built-in battery
             backup, so your head node at least is protected against
-            power outages.
+            brief power outages.
             </para>
             
             <para>
-            The head node on larger clusters need not be powerful, but
+            The head node on larger clusters need not be powerful either, but
             should be highly reliable.  We recommend a server with a
-            mirrored boot disk, hot-swap disks, and possibly redundant power
-            supplies, also hot-swap.  With this hardware configuration,
-            down time should be near zero.  FreeBSD makes it easy to
-            mirror a boot disk using any computer with two drives.
+            mirrored boot disk, hot-swap disks, redundant power
+            supplies, also hot-swap, and a UPS (uninterruptable power supply).
+            With this hardware configuration,
+            down time should be near zero.  The FreeBSD installer makes it
+            trivial to mirror a boot disk using ZFS any computer with two
+            drives.
             However, a hardware RAID card will make it easier to swap
             out a bad disk than a ZFS RAIDZ, assuming the disks are hot-swap.
+            With a quality hardware RAID card, we can generally just remove
+            the bad disk, replace it with an equivalent one, and the RAID
+            card will automatically configure the new disk.
             </para>
             
             <para>
@@ -189,16 +218,19 @@ compute compute002.mydomain pmem=8GiB processors=4
             </para>
             
             <note>
+            <para>
             It need not even be running LPJS daemons, but it
-            does require a configuration file listing the head node, and munge
-            to authenticate requests.
-            </note>
+            does require a configuration file listing the head node, a
+            running munge daemon, and the same munge key as the other
+            nodes.
+            </para>
             
             <para>
             Hence, other computers on the network
             can act as submit nodes, even if they are not part of the
             cluster/grid.
             </para>
+            </note>
         </section>
         
         <section>
@@ -226,16 +258,21 @@ compute compute002.mydomain pmem=8GiB processors=4
             <command>munged</command>
             and <command>lpjs_dispatchd</command> on the head node, and
             <command>munged</command> and <command>lpjs_compd</command>
-            on each compute node.  Note that if <command>lpjs_compd</command>
+            on each compute node.
+            </para>
+            
+            <note>
+            Note that if <command>lpjs_compd</command>
             is not running as root,
             the compute node will only be able to run jobs
             under the same user name running <command>lpjs_compd</command>.
-            </para>
+            </note>
             
             <para>
             The <command>lpjs ad-hoc</command> command displays a menu,
             allowing you to start and stop the appropriate daemons
-            without having to know the precise commands.
+            without having to know the precise commands, with or without
+            administrative rights on the computer.
             </para>
         </section>
     </chapter>
@@ -256,10 +293,11 @@ compute compute002.mydomain pmem=8GiB processors=4
         
         <para>
         A <glossterm>grid</glossterm> is conceptually like a cluster,
-        in that it is used for distributed
-        parallel computing.  However, grids are
+        in that it is used for distributed parallel computing (parallel
+        computing across multiple computers).  However, grids are
         more loosely coupled, often utilizing computers that are not
-        on the same LAN.  Hence, a grid is not as suitable for parallel
+        on a dedicated LAN, and possibly not even in the same location.
+        Hence, a grid is not as suitable for parallel
         computing that involves a lot of communication between processes,
         such as MPI (Message Passing Interface) distributed parallel programs.
         </para>
@@ -273,7 +311,8 @@ compute compute002.mydomain pmem=8GiB processors=4
         virtual machines behind a <glossterm>NAT</glossterm>
         (<glossterm>network address translation</glossterm>) firewall,
         or cloud instances in a data center a thousand miles away.  You
-        must consider how each of these resources can effectively be used.
+        must consider how each of these resources can effectively be used,
+        though.
         Network latency and throughput may be quite poor for resources
         that are far away.
         </para>
