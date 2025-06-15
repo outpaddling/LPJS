@@ -26,7 +26,9 @@
 int     main (int argc, char *argv[])
 
 {
-    int             arg;
+    int             arg,
+		    status,
+		    temp_status;
     // Terminates process if malloc() fails, no check required
     node_list_t     *node_list = node_list_new();
     unsigned long   jobid, first_jobid, last_jobid;
@@ -42,7 +44,7 @@ int     main (int argc, char *argv[])
     // Get hostname of head node
     lpjs_load_config(node_list, LPJS_CONFIG_HEAD_ONLY, stderr);
     
-    for (arg=1; arg<argc; ++arg)
+    for (arg=1, status = EX_OK; arg<argc; ++arg)
     {
 	if ( !isdigit(argv[arg][0]) )
 	    return usage(argv);
@@ -55,13 +57,18 @@ int     main (int argc, char *argv[])
 		return usage(argv);
 	    
 	    for (jobid = first_jobid; jobid <= last_jobid; ++jobid)
-		lpjs_request_cancel(node_list, jobid);
+		temp_status = lpjs_request_cancel(node_list, jobid);
 	}
 	else
-	    lpjs_request_cancel(node_list, first_jobid);
+	    temp_status = lpjs_request_cancel(node_list, first_jobid);
+	
+	// If any cancel request fails, exit with the return code of the last
+	// failure.
+	if ( temp_status != EX_OK )
+	    status = temp_status;
     }
     
-    return EX_OK;
+    return status;
 }
 
 
@@ -99,7 +106,7 @@ int     lpjs_request_cancel(node_list_t *node_list, unsigned long jobid)
     lpjs_print_response(msg_fd, "lpjs cancel");
     close(msg_fd);
     
-    return 0;   // FIXME: Define return codes
+    return EX_OK;
 }
 
 
