@@ -29,8 +29,10 @@ enum
 #define LPJS_FIELD_MAX          1024
 #define LPJS_CMD_MAX            4096
 // Not too large: Auto vars may exceed stack size
+// Needs to be big enough to contain a job script
 // FIXME: malloc arrays if this needs to be bigger
-#define LPJS_PAYLOAD_MAX        65536   // FIXME: Does munge have a max?
+// FIXME: Does munge have a max?
+#define LPJS_PAYLOAD_MAX        65536
 #define LPJS_HOSTNAME_MAX       128
 #define LPJS_NO_SELECT_TIMEOUT  NULL
 
@@ -49,7 +51,6 @@ enum
  *  Each script should run one computational command.  Multiple commands
  *  in sequence in the same job script usually doesn't make sense, since they
  *  will have different CPU and memory requirements.
- *  FIXME: submit should print a warning if the script seems too complex.
  */
 
 #define LPJS_SCRIPT_SIZE_MAX    LPJS_PAYLOAD_MAX
