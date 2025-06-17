@@ -188,7 +188,7 @@ The number of jobs in the job array submission.
 \fBLPJS_PROCESSORS_PER_JOB\fR
 The value set in the script by "#lpjs processors-per-job".
 .TP
-\fBLPJS_PATH\fR
+\fBLPJS_CMD_SEARCH_PATH\fR
 The optional value set in the script by "#lpjs path".  May be necessary
 to locate tools used in "#lpjs pull-command" and "#lpjs push-command".
 Also useful for commands with the script, although the script itself
@@ -256,7 +256,7 @@ way to represent it.
 .nf
 .na
 LPJS_PROCESSORS_PER_JOB=1
-LPJS_PATH=not-set
+LPJS_CMD_SEARCH_PATH=not-set
 LPJS_JOB_COUNT=1
 LPJS_COMPUTE_NODE=compute-001.acadix.biz
 LPJS_PUSH_COMMAND=not-set

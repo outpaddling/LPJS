@@ -35,7 +35,7 @@ struct job
     char            *script_name;
     char            *compute_node;
     char            *log_dir;
-    char            *path;
+    char            *cmd_search_path;
     char            *pull_command;
     char            *push_command;
 };

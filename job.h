@@ -23,7 +23,10 @@
 #define JOB_SPECS_ITEMS         (JOB_SPEC_NUMERIC_FIELDS + JOB_SPEC_STRING_FIELDS)
 
 #define JOB_FIELD_MAX_LEN       1024
-#define JOB_STR_MAX_LEN         2048    // Fixme: MAX_PATH + x?
+// Contains submit_dir, log_dir, cmd_search_path, and a bunch of
+// numbers and small strings like job_id, script_name, node_name, ...
+// See job_print_to_string()
+#define JOB_STR_MAX_LEN         PATH_MAX * 3 + 1024
 
 #define JOB_NO_PATH             "not-set"
 #define JOB_NO_PULL_CMD         "not-set"

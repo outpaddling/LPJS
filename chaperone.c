@@ -158,7 +158,7 @@ int     main (int argc, char *argv[])
 	setrlimit(RLIMIT_RSS, &rss_limit);
 	
 	// User-provided PATH
-	temp = getenv("LPJS_PATH");
+	temp = getenv("LPJS_CMD_SEARCH_PATH");
 	if ( strcmp(temp, JOB_NO_PATH) != 0 )
 	{
 	    xt_strshellcpy(expanded_path, temp, PATH_MAX + 1);
