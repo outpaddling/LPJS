@@ -20,7 +20,7 @@ struct node
     int             zfs;        // 0 or 1
     char            *os;
     char            *arch;
-    char            *state;     // FIXME: Use an enum, not a string
+    char            *state;
     int             msg_fd;
     // For detecting odd comm issues, where socket connection drop
     // cannot be detected directly

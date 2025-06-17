@@ -62,7 +62,7 @@ int     main (int argc, char *argv[])
 		shared_fs_marker[PATH_MAX + 1],
 		new_path[LPJS_PATH_ENV_MAX + 1],
 		home_dir[PATH_MAX + 1],
-		expanded_path[PATH_SPEC_MAX + 1];
+		expanded_path[PATH_MAX + 1];
     struct stat st;
     size_t      rss, peak_rss;
     struct rusage   rusage;
@@ -161,7 +161,7 @@ int     main (int argc, char *argv[])
 	temp = getenv("LPJS_PATH");
 	if ( strcmp(temp, JOB_NO_PATH) != 0 )
 	{
-	    xt_strshellcpy(expanded_path, temp, PATH_SPEC_MAX + 1);
+	    xt_strshellcpy(expanded_path, temp, PATH_MAX + 1);
 	    setenv("PATH", expanded_path, 1);
 	    lpjs_log("%s(): Overriding default PATH with user-provided %s\n",
 		    __FUNCTION__, expanded_path);
