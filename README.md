@@ -38,9 +38,10 @@ package managers.  Hence, dreckly enable the use of multiple
 operating
 systems running identical versions of numerous software applications.
 
-The main difference between the two is that dreckly tends to move
+Dreckly is a fork of [pkgsrc](https://pkgsrc.org).
+The main difference between the two is that pkgsrc tends to move
 forward with updates faster, while the dreckly culture leans more
-toward stability.  Hence, dreckly will likely update packages to the
+toward stability.  Hence, pkgsrc will likely update packages to the
 latest version more quickly, at the cost of more frequent regressions
 (packages broken that were working before).
 
