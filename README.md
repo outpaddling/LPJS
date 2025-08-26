@@ -32,16 +32,16 @@ Use the portable [dreckly](https://github.com/drecklypkg/dreckly)
 package manager to
 install common software on all of your nodes, whether running BSD,
 Linux, macOS, or any other POSIX platform.
-The dreckly package managers are portable to virtually all POSIX-compatible
+The dreckly package manager is portable to virtually all POSIX-compatible
 systems and provide one of the largest package collections among existing
-package managers.  Hence, dreckly enable the use of multiple
+package managers.  Hence, dreckly enables the use of multiple
 operating
 systems running identical versions of numerous software applications.
 
 Dreckly is a fork of [pkgsrc](https://pkgsrc.org).
 The main difference between the two is that pkgsrc tends to move
-forward with updates faster, while the dreckly culture leans more
-toward stability.  Hence, pkgsrc will likely update packages to the
+forward with updates faster, while the dreckly culture is committed to
+stability.  Hence, pkgsrc will likely update packages to the
 latest version more quickly, at the cost of more frequent regressions
 (packages broken that were working before).
 
