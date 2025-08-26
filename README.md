@@ -304,14 +304,14 @@ There are a few possible workarounds:
     (Yes, "truncate" is an odd command for expanding a file, but it works
     for both shrinking and expanding.)
 
-3.  Running a 1-node instant cluster on macOS should work just fine, with
-    no need for push and pull commands, as long
-    as your jobs don't try to access any folders protected by full disk
-    access checks.  Protected folders include each user's Documents folder, all
-    folders shared by remote computers, and possibly others.  If you place all your
-    LPJS job scripts and data under an unprotected folder, such as ~/Data,
-    LPJS should not encounter any problems.  This is a great option for
-    someone with a powerful system like a Mac Studio.
+Running a 1-node instant cluster on macOS should work just fine, with
+no need for push and pull commands, as long
+as your jobs don't try to access any folders protected by full disk
+access checks.  Protected folders include each user's Documents folder, all
+folders shared by remote computers, and possibly others.  If you place all your
+LPJS job scripts and data under an unprotected folder, such as ~/Data,
+LPJS should not encounter any problems.  This is a great option for
+someone with a powerful system like a Mac Studio.
 
 ## Security
 
@@ -334,7 +334,7 @@ on which it depends.
 LPJS should not be relied on as the primary security layer.  All nodes
 should have appropriate firewall settings to prohibit unauthorized
 network connections.  We recommend only accepting incoming connections from
-known and trusted hosts.
+a specific list of known and trusted hosts.
 
 LPJS uses [munge](https://github.com/dun/munge) to authenticate messages
 between nodes.  This requires all nodes to have a shared munge key file.
