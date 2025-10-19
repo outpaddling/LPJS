@@ -70,70 +70,70 @@ int     main(int argc,char *argv[])
     
     for (int arg = 1; arg < argc; ++arg)
     {
-	if ( strcmp(argv[arg],"--daemonize") == 0 )
-	{
-	    // Redirect lpjs_log() output from stderr to file
-	    if ( (Log_stream = lpjs_log_output(LPJS_DISPATCHD_LOG, "w")) == NULL )
-		return EX_CANTCREAT;
+        if ( strcmp(argv[arg],"--daemonize") == 0 )
+        {
+            // Redirect lpjs_log() output from stderr to file
+            if ( (Log_stream = lpjs_log_output(LPJS_DISPATCHD_LOG, "w")) == NULL )
+                return EX_CANTCREAT;
     
-	    /*
-	     *  Code run after this must not attempt to write to stdout or
-	     *  stderr since they will be closed.  Use lpjs_log() for all
-	     *  informative messages.
-	     *  FIXME: Prevent unchecked log growth
-	     */
-	    
-	    xt_daemonize(0, 0);
-	}
-	else if ( strcmp(argv[arg],"--log-output") == 0 )
-	{
-	    /*
-	     *  Redirect lpjs_log() output without daemonizing via fork().
-	     *  Used by some platforms for services.
-	     */
+            /*
+             *  Code run after this must not attempt to write to stdout or
+             *  stderr since they will be closed.  Use lpjs_log() for all
+             *  informative messages.
+             *  FIXME: Prevent unchecked log growth
+             */
+            
+            xt_daemonize(0, 0);
+        }
+        else if ( strcmp(argv[arg],"--log-output") == 0 )
+        {
+            /*
+             *  Redirect lpjs_log() output without daemonizing via fork().
+             *  Used by some platforms for services.
+             */
 
-	    if ( (Log_stream = lpjs_log_output(LPJS_DISPATCHD_LOG, "w")) == NULL )
-		return EX_CANTCREAT;
-	}
-	else if ( strcmp(argv[arg], "--user") == 0 )
-	{
-	    /*
-	     *  Set uid under which daemon should run, instead of root.
-	     *  Just determine user for now.  Create system files before
-	     *  giving up root privs.
-	     */
-	    
-	    // pw_ent points to internal static object
-	    // OK since dispatchd is not multithreaded
-	    struct passwd *pw_ent;
-	    char *user_name = argv[++arg];
-	    if ( (pw_ent = getpwnam(user_name)) == NULL )
-	    {
-		lpjs_log("%s(): Error: User %s does not exist.\n",
-			 __FUNCTION__, user_name);
-		return EX_NOUSER;
-	    }
-	    daemon_uid = pw_ent->pw_uid;
-	}
-	else if ( strcmp(argv[arg], "--group") == 0 )
-	{
-	    // gr_ent points to internal static object
-	    // OK since dispatchd is not multithreaded
-	    struct group *gr_ent;
-	    char *group_name = argv[++arg];
-	    if ( (gr_ent = getgrnam(group_name)) == NULL )
-	    {
-		lpjs_log("%s(): Error: Group %s does not exist.\n",
-			__FUNCTION__, group_name);
-		return EX_NOUSER;
-	    }
-	    daemon_gid = gr_ent->gr_gid;
-	}
-	else
-	{
-	    fprintf (stderr, "Usage: %s [--daemonize|--log-output] [--user username] [--group groupname]\n", argv[0]);
-	    return EX_USAGE;
-	}
+            if ( (Log_stream = lpjs_log_output(LPJS_DISPATCHD_LOG, "w")) == NULL )
+                return EX_CANTCREAT;
+        }
+        else if ( strcmp(argv[arg], "--user") == 0 )
+        {
+            /*
+             *  Set uid under which daemon should run, instead of root.
+             *  Just determine user for now.  Create system files before
+             *  giving up root privs.
+             */
+            
+            // pw_ent points to internal static object
+            // OK since dispatchd is not multithreaded
+            struct passwd *pw_ent;
+            char *user_name = argv[++arg];
+            if ( (pw_ent = getpwnam(user_name)) == NULL )
+            {
+                lpjs_log("%s(): Error: User %s does not exist.\n",
+                         __FUNCTION__, user_name);
+                return EX_NOUSER;
+            }
+            daemon_uid = pw_ent->pw_uid;
+        }
+        else if ( strcmp(argv[arg], "--group") == 0 )
+        {
+            // gr_ent points to internal static object
+            // OK since dispatchd is not multithreaded
+            struct group *gr_ent;
+            char *group_name = argv[++arg];
+            if ( (gr_ent = getgrnam(group_name)) == NULL )
+            {
+                lpjs_log("%s(): Error: Group %s does not exist.\n",
+                        __FUNCTION__, group_name);
+                return EX_NOUSER;
+            }
+            daemon_gid = gr_ent->gr_gid;
+        }
+        else
+        {
+            fprintf (stderr, "Usage: %s [--daemonize|--log-output] [--user username] [--group groupname]\n", argv[0]);
+            return EX_USAGE;
+        }
     }
     Job_history_stream = lpjs_log_output(LPJS_JOB_HISTORY, "a");
     
@@ -148,15 +148,15 @@ int     main(int argc,char *argv[])
     // Parent of all new job directories
     if ( xt_rmkdir(LPJS_PENDING_DIR, 0755) != 0 )
     {
-	fprintf(stderr, "Cannot create %s: %s\n", LPJS_PENDING_DIR, strerror(errno));
-	return EX_CANTCREAT;
+        fprintf(stderr, "Cannot create %s: %s\n", LPJS_PENDING_DIR, strerror(errno));
+        return EX_CANTCREAT;
     }
 
     // Parent of all running job directories
     if ( xt_rmkdir(LPJS_RUNNING_DIR, 0755) != 0 )
     {
-	fprintf(stderr, "Cannot create %s: %s\n", LPJS_RUNNING_DIR, strerror(errno));
-	return EX_CANTCREAT;
+        fprintf(stderr, "Cannot create %s: %s\n", LPJS_RUNNING_DIR, strerror(errno));
+        return EX_CANTCREAT;
     }
     
     // Make spool dir writable to daemon owner after root creates it
@@ -187,12 +187,12 @@ int     main(int argc,char *argv[])
     extern char Pid_path[PATH_MAX + 1];
     
     if ( xt_rmkdir(LPJS_RUN_DIR, 0755) != 0 )
-	return EX_CANTCREAT;
+        return EX_CANTCREAT;
     
     snprintf(Pid_path, PATH_MAX + 1, "%s/lpjs_dispatchd.pid", LPJS_RUN_DIR);
     status = xt_create_pid_file(Pid_path, Log_stream);
     if ( status != EX_OK )
-	return status;
+        return status;
     chown(LPJS_RUN_DIR, daemon_uid, daemon_gid);
     chown(Pid_path, daemon_uid, daemon_gid);
 #endif
@@ -200,26 +200,26 @@ int     main(int argc,char *argv[])
     // setgid() must be done while still running as root, so do setuid() after
     if ( daemon_gid != 0 )
     {
-	lpjs_log("%s(): Setting daemon_gid to %u.\n",
-		__FUNCTION__, daemon_gid);
-	if ( setgid(daemon_gid) != 0 )
-	{
-	    lpjs_log("%s(): setgid() failed: %s\n",
-		    __FUNCTION__, strerror(errno));
-	    return EX_NOPERM;
-	}
+        lpjs_log("%s(): Setting daemon_gid to %u.\n",
+                __FUNCTION__, daemon_gid);
+        if ( setgid(daemon_gid) != 0 )
+        {
+            lpjs_log("%s(): setgid() failed: %s\n",
+                    __FUNCTION__, strerror(errno));
+            return EX_NOPERM;
+        }
     }
     
     if ( daemon_uid != 0 )
     {
-	lpjs_log("%s(): Setting daemon_uid to %u.\n",
-		__FUNCTION__, daemon_uid);
-	if ( setuid(daemon_uid) != 0 )
-	{
-	    lpjs_log("%s(): Error: setuid() failed: %s\n",
-		    __FUNCTION__, strerror(errno));
-	    return EX_NOPERM;
-	}
+        lpjs_log("%s(): Setting daemon_uid to %u.\n",
+                __FUNCTION__, daemon_uid);
+        if ( setuid(daemon_uid) != 0 )
+        {
+            lpjs_log("%s(): Error: setuid() failed: %s\n",
+                    __FUNCTION__, strerror(errno));
+            return EX_NOPERM;
+        }
     }
     
     // Read etc/lpjs/config, created by lpjs-admin
@@ -265,7 +265,7 @@ int     lpjs_process_events(node_list_t *node_list)
     struct sockaddr_in  server_address = { 0 };
     // job_list_new() terminates process if malloc fails, no need to check
     job_list_t          *pending_jobs = job_list_new(),
-			*running_jobs = job_list_new();
+                        *running_jobs = job_list_new();
 
     lpjs_load_job_list(pending_jobs, node_list, LPJS_PENDING_DIR);
     lpjs_load_job_list(running_jobs, node_list, LPJS_RUNNING_DIR);
@@ -283,63 +283,63 @@ int     lpjs_process_events(node_list_t *node_list)
     
     while ( true )
     {
-	fd_set  read_fds;
-	int     nfds, highest_fd;
-	
-	// poll() is generally preferable to select(), because it checks
-	// only fds explicitly listed, while select() checks every fd from
-	// 0 to the highest.  However, in this case, every fd is examined
-	// individually after select() returns, so irrelevant I/O events,
-	// which are rare anyway, won't hurt anything.  select() is a
-	// little more convenient here.
+        fd_set  read_fds;
+        int     nfds, highest_fd;
+        
+        // poll() is generally preferable to select(), because it checks
+        // only fds explicitly listed, while select() checks every fd from
+        // 0 to the highest.  However, in this case, every fd is examined
+        // individually after select() returns, so irrelevant I/O events,
+        // which are rare anyway, won't hurt anything.  select() is a
+        // little more convenient here.
 
-	// FIXME: Might this erase pending messages?
-	FD_ZERO(&read_fds);
-	
-	FD_SET(listen_fd, &read_fds);
-	highest_fd = listen_fd;
-	
-	for (unsigned c = 0; c < node_list_get_compute_node_count(node_list); ++c)
-	{
-	    node_t *node = node_list_get_compute_nodes_ae(node_list, c);
-	    //lpjs_debug("%s(): Checking node %s, fd = %d...\n",
-	    //        __FUNCTION__, node_get_hostname(node), node_get_msg_fd(node));
-	    if ( node_get_msg_fd(node) != NODE_MSG_FD_NOT_OPEN )
-	    {
-		FD_SET(node_get_msg_fd(node), &read_fds);
-		if ( node_get_msg_fd(node) > highest_fd )
-		    highest_fd = node_get_msg_fd(node);
-	    }
-	}
+        // FIXME: Might this erase pending messages?
+        FD_ZERO(&read_fds);
+        
+        FD_SET(listen_fd, &read_fds);
+        highest_fd = listen_fd;
+        
+        for (unsigned c = 0; c < node_list_get_compute_node_count(node_list); ++c)
+        {
+            node_t *node = node_list_get_compute_nodes_ae(node_list, c);
+            //lpjs_debug("%s(): Checking node %s, fd = %d...\n",
+            //        __FUNCTION__, node_get_hostname(node), node_get_msg_fd(node));
+            if ( node_get_msg_fd(node) != NODE_MSG_FD_NOT_OPEN )
+            {
+                FD_SET(node_get_msg_fd(node), &read_fds);
+                if ( node_get_msg_fd(node) > highest_fd )
+                    highest_fd = node_get_msg_fd(node);
+            }
+        }
 
-	/*
-	 *  The nfds (# of file descriptors) argument to select is a
-	 *  bit confusing.  It's actually the highest descriptor + 1,
-	 *  not the number of open descriptors.  E.g., to check only
-	 *  descriptors 3 and 8, nfds must be 9, not 2.  This is
-	 *  different from the analogous poll() function, which takes
-	 *  an array of open descriptors.
-	 */
-	nfds = highest_fd + 1;
-	
-	lpjs_log("%s(): Waiting for input events...\n", __FUNCTION__);
-	if ( select(nfds, &read_fds, NULL, NULL, LPJS_NO_SELECT_TIMEOUT) > 0 )
-	{
-	    //lpjs_debug("%s(): Checking comp fds...\n", __FUNCTION__);
-	    // compd doesn't presently initiate conversations on
-	    // the persistend socket.  It is used only for dispatchd
-	    // to send new jobs to compd.  This function only serves
-	    // to check for lost connections with compd daemons.
-	    lpjs_check_comp_fds(&read_fds, node_list, running_jobs);
-	    
-	    //lpjs_debug("%s(): Checking listen fd...\n", __FUNCTION__);
-	    // Check FD_ISSET before calling function to avoid overhead
-	    if ( FD_ISSET(listen_fd, &read_fds) )
-		lpjs_check_listen_fd(listen_fd, &read_fds,
-				     node_list, pending_jobs, running_jobs);
-	}
-	else
-	    lpjs_log("%s(): Bug: select() returned 0. This should never happen with no timeout.\n");
+        /*
+         *  The nfds (# of file descriptors) argument to select is a
+         *  bit confusing.  It's actually the highest descriptor + 1,
+         *  not the number of open descriptors.  E.g., to check only
+         *  descriptors 3 and 8, nfds must be 9, not 2.  This is
+         *  different from the analogous poll() function, which takes
+         *  an array of open descriptors.
+         */
+        nfds = highest_fd + 1;
+        
+        lpjs_log("%s(): Waiting for input events...\n", __FUNCTION__);
+        if ( select(nfds, &read_fds, NULL, NULL, LPJS_NO_SELECT_TIMEOUT) > 0 )
+        {
+            //lpjs_debug("%s(): Checking comp fds...\n", __FUNCTION__);
+            // compd doesn't presently initiate conversations on
+            // the persistend socket.  It is used only for dispatchd
+            // to send new jobs to compd.  This function only serves
+            // to check for lost connections with compd daemons.
+            lpjs_check_comp_fds(&read_fds, node_list, running_jobs);
+            
+            //lpjs_debug("%s(): Checking listen fd...\n", __FUNCTION__);
+            // Check FD_ISSET before calling function to avoid overhead
+            if ( FD_ISSET(listen_fd, &read_fds) )
+                lpjs_check_listen_fd(listen_fd, &read_fds,
+                                     node_list, pending_jobs, running_jobs);
+        }
+        else
+            lpjs_log("%s(): Bug: select() returned 0. This should never happen with no timeout.\n");
     }
     
     // Never actually get here, but make the compiler happy
@@ -359,7 +359,7 @@ int     lpjs_process_events(node_list_t *node_list)
  ***************************************************************************/
 
 void    lpjs_log_job(job_list_t *job_list, const char *hostname,
-		    unsigned long job_id, int exit_status, size_t peak_rss)
+                    unsigned long job_id, int exit_status, size_t peak_rss)
 
 {
     extern FILE *Job_history_stream;
@@ -368,19 +368,19 @@ void    lpjs_log_job(job_list_t *job_list, const char *hostname,
     
     if ( (index = job_list_find_job_id(job_list, job_id)) != JOB_LIST_NOT_FOUND )
     {
-	if ( (job = job_list_get_jobs_ae(job_list, index)) != NULL )
-	{
-	    // phys_mib_per_processor is MiB and peak_rss if KiB
-	    fprintf(Job_history_stream, "%s %lu %d %zu %zu %d %d %s %s %s/%s\n",
-		    xt_str_localtime("%m-%d %H:%M:%S"),
-		    job_id, exit_status, peak_rss,
-		    job_get_phys_mib_per_processor(job) * 1024,
-		    job_get_processors_per_job(job),
-		    job_get_threads_per_process(job),
-		    hostname, job_get_user_name(job),
-		    job_get_submit_dir(job), job_get_script_name(job));
-	    fflush(Job_history_stream);
-	}
+        if ( (job = job_list_get_jobs_ae(job_list, index)) != NULL )
+        {
+            // phys_mib_per_processor is MiB and peak_rss if KiB
+            fprintf(Job_history_stream, "%s %lu %d %zu %zu %d %d %s %s %s/%s\n",
+                    xt_str_localtime("%m-%d %H:%M:%S"),
+                    job_id, exit_status, peak_rss,
+                    job_get_phys_mib_per_processor(job) * 1024,
+                    job_get_processors_per_job(job),
+                    job_get_threads_per_process(job),
+                    hostname, job_get_user_name(job),
+                    job_get_submit_dir(job), job_get_script_name(job));
+            fflush(Job_history_stream);
+        }
     }
 }
 
@@ -395,7 +395,7 @@ void    lpjs_log_job(job_list_t *job_list, const char *hostname,
  ***************************************************************************/
 
 void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
-			    job_list_t *running_jobs)
+                            job_list_t *running_jobs)
 
 {
     // Terminates process if malloc() fails, no check required
@@ -411,41 +411,41 @@ void    lpjs_check_comp_fds(fd_set *read_fds, node_list_t *node_list,
     // Lowest priority: User commands
     for (unsigned c = 0; c < node_list_get_compute_node_count(node_list); ++c)
     {
-	node = node_list_get_compute_nodes_ae(node_list, c);
-	fd = node_get_msg_fd(node);
-	if ( (fd != NODE_MSG_FD_NOT_OPEN) && FD_ISSET(fd, read_fds) )
-	{
-	    // lpjs_debug("Activity on fd %d\n", fd);
-	    
-	    /*
-	     *  select() returns when a peer has closed the connection.
-	     *  lpjs_recv() will return 0 in this case.
-	     */
-	    
-	    // FIXME: Verify that lost connections are handled properly
-	    bytes = lpjs_recv_munge(fd, &munge_payload,
-				    0, 0, &uid, &gid,
-				    lpjs_dispatchd_safe_close);
-	    if ( bytes < 1 )
-	    {
-		lpjs_log("%s(): Lost connection to %s.  Closing %d...\n",
-			__FUNCTION__, node_get_hostname(node), fd);
-		lpjs_wait_close(fd);
-		node_set_msg_fd(node, NODE_MSG_FD_NOT_OPEN);
-		node_set_state(node, "down");
-	    }
-	    else
-	    {
-		// At present, compd never messages dispatchd after checkin
-		switch(munge_payload[0])
-		{
-		    default:
-			lpjs_log("%s(): Error: Invalid notification on fd %d: %d\n",
-				__FUNCTION__, fd, munge_payload[0]);
-		}
-		free(munge_payload);
-	    }
-	}
+        node = node_list_get_compute_nodes_ae(node_list, c);
+        fd = node_get_msg_fd(node);
+        if ( (fd != NODE_MSG_FD_NOT_OPEN) && FD_ISSET(fd, read_fds) )
+        {
+            // lpjs_debug("Activity on fd %d\n", fd);
+            
+            /*
+             *  select() returns when a peer has closed the connection.
+             *  lpjs_recv() will return 0 in this case.
+             */
+            
+            // FIXME: Verify that lost connections are handled properly
+            bytes = lpjs_recv_munge(fd, &munge_payload,
+                                    0, 0, &uid, &gid,
+                                    lpjs_dispatchd_safe_close);
+            if ( bytes < 1 )
+            {
+                lpjs_log("%s(): Lost connection to %s.  Closing %d...\n",
+                        __FUNCTION__, node_get_hostname(node), fd);
+                lpjs_wait_close(fd);
+                node_set_msg_fd(node, NODE_MSG_FD_NOT_OPEN);
+                node_set_state(node, "down");
+            }
+            else
+            {
+                // At present, compd never messages dispatchd after checkin
+                switch(munge_payload[0])
+                {
+                    default:
+                        lpjs_log("%s(): Error: Invalid notification on fd %d: %d\n",
+                                __FUNCTION__, fd, munge_payload[0]);
+                }
+                free(munge_payload);
+            }
+        }
     }
 }
 
@@ -477,8 +477,8 @@ int     lpjs_listen(struct sockaddr_in *server_address)
      */
     if ((listen_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0)
     {
-	lpjs_log("%s(): Error: Can't create listener socket.\n", __FUNCTION__);
-	exit(EX_UNAVAILABLE);
+        lpjs_log("%s(): Error: Can't create listener socket.\n", __FUNCTION__);
+        exit(EX_UNAVAILABLE);
     }
 
     /*
@@ -500,11 +500,11 @@ int     lpjs_listen(struct sockaddr_in *server_address)
 
     // Bind socket fd and server address
     while ( bind(listen_fd, (struct sockaddr *)server_address,
-	      sizeof (*server_address)) < 0 )
+              sizeof (*server_address)) < 0 )
     {
-	lpjs_log("%s(): Error: bind() failed: %s\n", __FUNCTION__, strerror(errno));
-	lpjs_log("%s(): Retry in 10 seconds...\n", __FUNCTION__);
-	sleep(10);
+        lpjs_log("%s(): Error: bind() failed: %s\n", __FUNCTION__, strerror(errno));
+        lpjs_log("%s(): Retry in 10 seconds...\n", __FUNCTION__);
+        sleep(10);
     }
     lpjs_log("%s(): Bound to port %d...\n", __FUNCTION__, LPJS_IP_TCP_PORT);
     
@@ -513,8 +513,8 @@ int     lpjs_listen(struct sockaddr_in *server_address)
      */
     if (listen(listen_fd, LPJS_CONNECTION_QUEUE_MAX) != 0)
     {
-	lpjs_log("%s(): Error: listen() failed.\n", __FUNCTION__);
-	exit(EX_UNAVAILABLE);
+        lpjs_log("%s(): Error: listen() failed.\n", __FUNCTION__);
+        exit(EX_UNAVAILABLE);
     }
     return listen_fd;
 }
@@ -531,19 +531,19 @@ int     lpjs_listen(struct sockaddr_in *server_address)
  ***************************************************************************/
 
 int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
-			     node_list_t *node_list,
-			     job_list_t *pending_jobs, job_list_t *running_jobs)
+                             node_list_t *node_list,
+                             job_list_t *pending_jobs, job_list_t *running_jobs)
 
 {
     int             msg_fd,
-		    chaperone_status,
-		    exit_status;
+                    chaperone_status,
+                    exit_status;
     ssize_t         bytes;
     size_t          peak_rss;
     char            *munge_payload,
-		    *p,
-		    *compute_node,
-		    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
+                    *p,
+                    *compute_node,
+                    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
     socklen_t       address_len = sizeof (struct sockaddr_in);
     uid_t           munge_uid;
     gid_t           munge_gid;
@@ -556,291 +556,291 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
     bytes = 0;
     /* Accept a connection request */
     if ((msg_fd = accept(listen_fd,
-	    (struct sockaddr *)&client_address, &address_len)) == -1)
+            (struct sockaddr *)&client_address, &address_len)) == -1)
     {
-	lpjs_log("%s(): Error: accept() failed, even though select indicated listen_fd.\n",
-		__FUNCTION__);
-	return -1;
+        lpjs_log("%s(): Error: accept() failed, even though select indicated listen_fd.\n",
+                __FUNCTION__);
+        return -1;
     }
     else
     {
-	lpjs_log("%s(): Accepted connection. fd = %d  addr = %s  port = %u\n",
-		 __FUNCTION__, msg_fd, inet_ntoa(client_address.sin_addr),
-		 client_address.sin_port);
+        lpjs_log("%s(): Accepted connection. fd = %d  addr = %s  port = %u\n",
+                 __FUNCTION__, msg_fd, inet_ntoa(client_address.sin_addr),
+                 client_address.sin_port);
 
-	/* Read a message through the socket */
-	// FIXME: Timeouts temporarily disabled to debug hung connections
-	//              &munge_payload, 0, LPJS_CONNECT_TIMEOUT,
-	bytes = lpjs_recv_munge(msg_fd,
-		     &munge_payload, 0, 0,
-		     &munge_uid, &munge_gid,
-		     lpjs_dispatchd_safe_close);
+        /* Read a message through the socket */
+        // FIXME: Timeouts temporarily disabled to debug hung connections
+        //              &munge_payload, 0, LPJS_CONNECT_TIMEOUT,
+        bytes = lpjs_recv_munge(msg_fd,
+                     &munge_payload, 0, 0,
+                     &munge_uid, &munge_gid,
+                     lpjs_dispatchd_safe_close);
 
-	lpjs_debug("%s(): Got %zd byte message.\n", __FUNCTION__, bytes);
+        lpjs_debug("%s(): Got %zd byte message.\n", __FUNCTION__, bytes);
 
-	if ( bytes == LPJS_RECV_TIMEOUT )
-	{
-	    lpjs_log("%s(): Error: lpjs_recv_munge() timed out after %dus: %s, closing %d.\n",
-		    __FUNCTION__, LPJS_CONNECT_TIMEOUT, strerror(errno), msg_fd);
-	    lpjs_dispatchd_safe_close(msg_fd);
-	    // Nothing to free if munge_decode() failed, since it
-	    // allocates the buffer
-	    // free(munge_payload);
-	    return LPJS_RECV_TIMEOUT;
-	}
-	else if ( bytes == LPJS_RECV_FAILED )
-	{
-	    lpjs_log("%s(): Error: lpjs_recv_munge() failed (%zd bytes): %s, closing %d.\n",
-		    __FUNCTION__, bytes, strerror(errno), msg_fd);
-	    lpjs_dispatchd_safe_close(msg_fd);
-	    // Nothing to free if munge_decode() failed, since it
-	    // allocates the buffer
-	    // free(munge_payload);
-	    return LPJS_RECV_FAILED;
-	}
-	// bytes must be at least 1, or no mem is allocated
-	else if ( bytes < 1 )
-	{
-	    lpjs_log("%s(): Bug: Invalid return code from lpjs_recv_munge(): %d\n",
-		     __FUNCTION__, bytes);
-	    return LPJS_RECV_FAILED;
-	}
-	
-	/* Process request */
-	switch(munge_payload[0])
-	{
-	    case    LPJS_DISPATCHD_REQUEST_COMPD_CHECKIN:
-		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_COMPD_CHECKIN fd = %d\n",
-			__FUNCTION__, msg_fd);
-		lpjs_process_compute_node_checkin(msg_fd, munge_payload,
-						  node_list, munge_uid, munge_gid);
-		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
-		// This connection is sustained, don't close it
-		break;
-	    
-	    case    LPJS_DISPATCHD_REQUEST_NODE_LIST:
-		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_NODE_STATUS fd = %d\n",
-			__FUNCTION__, msg_fd);
-		node_list_send_status(msg_fd, node_list);
-		// lpjs_dispatchd_safe_close(msg_fd);
-		// node_list_send_status() sends EOT,
-		// so don't use safe_close here.
-		// lpjs_debug("%s(): Closing %d.\n", __FUNCTION__, msg_fd);
-		lpjs_wait_close(msg_fd);
-		break;
-	    
-	    case    LPJS_DISPATCHD_REQUEST_PAUSE:
-		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_PAUSE fd = %d\n",
-			__FUNCTION__, msg_fd);
-		node_list_set_state(node_list, munge_payload + 1, munge_uid, msg_fd);
-		lpjs_wait_close(msg_fd);
-		break;
-		
-	    case    LPJS_DISPATCHD_REQUEST_RESUME:
-		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_RESUME fd = %d\n",
-			__FUNCTION__, msg_fd);
-		node_list_set_state(node_list, munge_payload + 1, munge_uid, msg_fd);
-		lpjs_wait_close(msg_fd);
+        if ( bytes == LPJS_RECV_TIMEOUT )
+        {
+            lpjs_log("%s(): Error: lpjs_recv_munge() timed out after %dus: %s, closing %d.\n",
+                    __FUNCTION__, LPJS_CONNECT_TIMEOUT, strerror(errno), msg_fd);
+            lpjs_dispatchd_safe_close(msg_fd);
+            // Nothing to free if munge_decode() failed, since it
+            // allocates the buffer
+            // free(munge_payload);
+            return LPJS_RECV_TIMEOUT;
+        }
+        else if ( bytes == LPJS_RECV_FAILED )
+        {
+            lpjs_log("%s(): Error: lpjs_recv_munge() failed (%zd bytes): %s, closing %d.\n",
+                    __FUNCTION__, bytes, strerror(errno), msg_fd);
+            lpjs_dispatchd_safe_close(msg_fd);
+            // Nothing to free if munge_decode() failed, since it
+            // allocates the buffer
+            // free(munge_payload);
+            return LPJS_RECV_FAILED;
+        }
+        // bytes must be at least 1, or no mem is allocated
+        else if ( bytes < 1 )
+        {
+            lpjs_log("%s(): Bug: Invalid return code from lpjs_recv_munge(): %d\n",
+                     __FUNCTION__, bytes);
+            return LPJS_RECV_FAILED;
+        }
+        
+        /* Process request */
+        switch(munge_payload[0])
+        {
+            case    LPJS_DISPATCHD_REQUEST_COMPD_CHECKIN:
+                lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_COMPD_CHECKIN fd = %d\n",
+                        __FUNCTION__, msg_fd);
+                lpjs_process_compute_node_checkin(msg_fd, munge_payload,
+                                                  node_list, munge_uid, munge_gid);
+                lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
+                // This connection is sustained, don't close it
+                break;
+            
+            case    LPJS_DISPATCHD_REQUEST_NODE_LIST:
+                lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_NODE_STATUS fd = %d\n",
+                        __FUNCTION__, msg_fd);
+                node_list_send_status(msg_fd, node_list);
+                // lpjs_dispatchd_safe_close(msg_fd);
+                // node_list_send_status() sends EOT,
+                // so don't use safe_close here.
+                // lpjs_debug("%s(): Closing %d.\n", __FUNCTION__, msg_fd);
+                lpjs_wait_close(msg_fd);
+                break;
+            
+            case    LPJS_DISPATCHD_REQUEST_PAUSE:
+                lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_PAUSE fd = %d\n",
+                        __FUNCTION__, msg_fd);
+                node_list_set_state(node_list, munge_payload + 1, munge_uid, msg_fd);
+                lpjs_wait_close(msg_fd);
+                break;
+                
+            case    LPJS_DISPATCHD_REQUEST_RESUME:
+                lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_RESUME fd = %d\n",
+                        __FUNCTION__, msg_fd);
+                node_list_set_state(node_list, munge_payload + 1, munge_uid, msg_fd);
+                lpjs_wait_close(msg_fd);
 
-		// New resources might be available
-		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
-		break;
-	    
-	    case    LPJS_DISPATCHD_REQUEST_JOB_LIST:
-		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_JOB_STATUS fd = %d\n",
-			__FUNCTION__, msg_fd);
-	     
-		// FIXME: Keep list sorted at all times instead of
-		// just for "lpjs jobs" output?
-		job_list_sort(running_jobs);
-		
-		// FIXME: factor out to lpjs_send_job_list(), check
-		// all messages for success
-		snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%zu running:\n\n",
-				job_list_get_count(running_jobs));
-		if ( lpjs_send_munge(msg_fd, outgoing_msg,
-				lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
-		{
-		    lpjs_log("%s(): Error: Failed to send \"Running\".\n", __FUNCTION__);
-		    break;
-		}
-		job_list_send_params(msg_fd, running_jobs);
-		snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "\n%zu pending:\n\n",
-				job_list_get_count(pending_jobs));
-		if ( lpjs_send_munge(msg_fd, outgoing_msg,
-				lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
-		{
-		    lpjs_log("%s(): Failed to send \"Pending\".\n", __FUNCTION__);
-		    break;
-		}
-		job_list_send_params(msg_fd, pending_jobs);
-		// Need to send EOT after job list
-		lpjs_dispatchd_safe_close(msg_fd);
-		break;
-	    
-	    case    LPJS_DISPATCHD_REQUEST_SUBMIT:
-		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_SUBMIT fd = %d\n",
-			__FUNCTION__, msg_fd);
-		lpjs_submit(msg_fd, munge_payload, node_list,
-			    pending_jobs, running_jobs,
-			    munge_uid, munge_gid);
-		lpjs_wait_close(msg_fd);
-		
-		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
-		break;
-	    
-	    case    LPJS_DISPATCHD_REQUEST_CANCEL:
-		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_CANCEL fd = %d\n",
-			__FUNCTION__, msg_fd);
-		
-		lpjs_cancel(msg_fd, munge_payload + 1, node_list,
-			    pending_jobs, running_jobs,
-			    munge_uid, munge_gid);
-		lpjs_wait_close(msg_fd);
-		
-		// Resources might become available here
-		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
-		break;
-		
-	    case    LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS:
-		// This is a temporary connection from the chaperone
-		// for just this message.  Don't keep it open.
-		// FIXME: Seeing if this causes stalls
-		// lpjs_dispatchd_safe_close(msg_fd);
-		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS fd = %d\n",
-			__FUNCTION__, msg_fd);
-		p = munge_payload + 1;
-		compute_node = strsep(&p, " ");
-		sscanf(p, "%lu %d", &job_id, &chaperone_status);
-		lpjs_debug("%s(): job_id = %lu status = %d  compute_node = %s\n",
-			 __FUNCTION__, job_id, chaperone_status,
-			 compute_node);
-		
-		// Errors that occur before exec()ing script
-		switch(chaperone_status)
-		{
-		    case    LPJS_CHAPERONE_OK:
-			lpjs_log("%s(): Chaperone status OK.\n",__FUNCTION__);
-			// FIXME: Anything to do here?
-			break;
+                // New resources might be available
+                lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
+                break;
+            
+            case    LPJS_DISPATCHD_REQUEST_JOB_LIST:
+                lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_JOB_STATUS fd = %d\n",
+                        __FUNCTION__, msg_fd);
+             
+                // FIXME: Keep list sorted at all times instead of
+                // just for "lpjs jobs" output?
+                job_list_sort(running_jobs);
+                
+                // FIXME: factor out to lpjs_send_job_list(), check
+                // all messages for success
+                snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%zu running:\n\n",
+                                job_list_get_count(running_jobs));
+                if ( lpjs_send_munge(msg_fd, outgoing_msg,
+                                lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
+                {
+                    lpjs_log("%s(): Error: Failed to send \"Running\".\n", __FUNCTION__);
+                    break;
+                }
+                job_list_send_params(msg_fd, running_jobs);
+                snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "\n%zu pending:\n\n",
+                                job_list_get_count(pending_jobs));
+                if ( lpjs_send_munge(msg_fd, outgoing_msg,
+                                lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
+                {
+                    lpjs_log("%s(): Failed to send \"Pending\".\n", __FUNCTION__);
+                    break;
+                }
+                job_list_send_params(msg_fd, pending_jobs);
+                // Need to send EOT after job list
+                lpjs_dispatchd_safe_close(msg_fd);
+                break;
+            
+            case    LPJS_DISPATCHD_REQUEST_SUBMIT:
+                lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_SUBMIT fd = %d\n",
+                        __FUNCTION__, msg_fd);
+                lpjs_submit(msg_fd, munge_payload, node_list,
+                            pending_jobs, running_jobs,
+                            munge_uid, munge_gid);
+                lpjs_wait_close(msg_fd);
+                
+                lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
+                break;
+            
+            case    LPJS_DISPATCHD_REQUEST_CANCEL:
+                lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_CANCEL fd = %d\n",
+                        __FUNCTION__, msg_fd);
+                
+                lpjs_cancel(msg_fd, munge_payload + 1, node_list,
+                            pending_jobs, running_jobs,
+                            munge_uid, munge_gid);
+                lpjs_wait_close(msg_fd);
+                
+                // Resources might become available here
+                lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
+                break;
+                
+            case    LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS:
+                // This is a temporary connection from the chaperone
+                // for just this message.  Don't keep it open.
+                // FIXME: Seeing if this causes stalls
+                // lpjs_dispatchd_safe_close(msg_fd);
+                lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_CHAPERONE_STATUS fd = %d\n",
+                        __FUNCTION__, msg_fd);
+                p = munge_payload + 1;
+                compute_node = strsep(&p, " ");
+                sscanf(p, "%lu %d", &job_id, &chaperone_status);
+                lpjs_debug("%s(): job_id = %lu status = %d  compute_node = %s\n",
+                         __FUNCTION__, job_id, chaperone_status,
+                         compute_node);
+                
+                // Errors that occur before exec()ing script
+                switch(chaperone_status)
+                {
+                    case    LPJS_CHAPERONE_OK:
+                        lpjs_log("%s(): Chaperone status OK.\n",__FUNCTION__);
+                        // FIXME: Anything to do here?
+                        break;
 
-		    case    LPJS_CHAPERONE_SCRIPT_FAILED:
-			lpjs_log("%s(): Error: Job script failed to start: %d\n",
-				__FUNCTION__, chaperone_status);
-			// Don't try to restart a script that failed
-			// Either the user needs to fix it, or something
-			// is not installed properly
-			adjust_resources(node_list, pending_jobs,
-					 compute_node,
-					 job_id, NODE_RESOURCE_RELEASE);
-			lpjs_remove_pending_job(pending_jobs, job_id);
-			break;
-		    
-		    default:    // LPJS_CHAPERONE_OSERR and the rest...
-			lpjs_log("%s(): Error %d detected on %s.\n"
-				"See chaperone_status_t in network.h.\n",
-				__FUNCTION__, chaperone_status, compute_node);
-			
-			lpjs_log("%s(): Releasing resourcesfor job %lu...\n",
-				 __FUNCTION__, job_id);
-			adjust_resources(node_list, pending_jobs,
-					 compute_node,
-					 job_id, NODE_RESOURCE_RELEASE);
+                    case    LPJS_CHAPERONE_SCRIPT_FAILED:
+                        lpjs_log("%s(): Error: Job script failed to start: %d\n",
+                                __FUNCTION__, chaperone_status);
+                        // Don't try to restart a script that failed
+                        // Either the user needs to fix it, or something
+                        // is not installed properly
+                        adjust_resources(node_list, pending_jobs,
+                                         compute_node,
+                                         job_id, NODE_RESOURCE_RELEASE);
+                        lpjs_remove_pending_job(pending_jobs, job_id);
+                        break;
+                    
+                    default:    // LPJS_CHAPERONE_OSERR and the rest...
+                        lpjs_log("%s(): Error %d detected on %s.\n"
+                                "See chaperone_status_t in network.h.\n",
+                                __FUNCTION__, chaperone_status, compute_node);
+                        
+                        lpjs_log("%s(): Releasing resourcesfor job %lu...\n",
+                                 __FUNCTION__, job_id);
+                        adjust_resources(node_list, pending_jobs,
+                                         compute_node,
+                                         job_id, NODE_RESOURCE_RELEASE);
     
-			// FIXME: Node should not come back up from here when daemons
-			// are restarted.  It should require "lpjs nodes up nodename"
-			// node_set_state(node, "malfunction");
-			lpjs_log("%s(): Setting %s state to down...\n",
-				 __FUNCTION__, compute_node);
-			node = node_list_find_hostname(node_list, compute_node);
-			if ( node == NULL )
-			    lpjs_log("%s(): Bug: No such node in list.\n",
-				     __FUNCTION__);
-			else
-			    node_set_state(node, "down");
-			lpjs_debug("%s(): Done.\n");
-			// FIXME: Make sure job state is reset, but don't remove
-			break;
-		}
-		break;
+                        // FIXME: Node should not come back up from here when daemons
+                        // are restarted.  It should require "lpjs nodes up nodename"
+                        // node_set_state(node, "malfunction");
+                        lpjs_log("%s(): Setting %s state to down...\n",
+                                 __FUNCTION__, compute_node);
+                        node = node_list_find_hostname(node_list, compute_node);
+                        if ( node == NULL )
+                            lpjs_log("%s(): Bug: No such node in list.\n",
+                                     __FUNCTION__);
+                        else
+                            node_set_state(node, "down");
+                        lpjs_debug("%s(): Done.\n");
+                        // FIXME: Make sure job state is reset, but don't remove
+                        break;
+                }
+                break;
 
-	    case    LPJS_DISPATCHD_REQUEST_JOB_STARTED:
-		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_JOB_STARTED fd = %d\n",
-			__FUNCTION__, msg_fd);
-		lpjs_send_munge(msg_fd, LPJS_NODE_AUTHORIZED_MSG,
-				lpjs_wait_close);
-		// lpjs_debug("%s(): Auth sent.\n", __FUNCTION__);
+            case    LPJS_DISPATCHD_REQUEST_JOB_STARTED:
+                lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_JOB_STARTED fd = %d\n",
+                        __FUNCTION__, msg_fd);
+                lpjs_send_munge(msg_fd, LPJS_NODE_AUTHORIZED_MSG,
+                                lpjs_wait_close);
+                // lpjs_debug("%s(): Auth sent.\n", __FUNCTION__);
 
-		// This is a temporary connection from the chaperone
-		// for just this message.  Don't keep it open.
-		// Don't sent EOT, but wait for other end to close
-		lpjs_wait_close(msg_fd);
-		
-		/*
-		 *  No change in node status, don't try to dispatch jobs.
-		 *  Resources were allocated at dispatch time.
-		 */
-		
-		// Job compute node and PIDs are in text form following
-		// the one byte LPJS_DISPATCHD_REQUEST_JOB_STARTED
-		lpjs_update_job(node_list, munge_payload + 1,
-				pending_jobs, running_jobs);
-		break;
-		
-	    case    LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:
-		lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_JOB_COMPLETE fd = %d\n",
-			__FUNCTION__, msg_fd);
-		p = munge_payload + 1;
-		compute_node = strsep(&p, " ");
-		lpjs_debug("%s(): compute_node = %s ", __FUNCTION__, compute_node);
-		node = node_list_find_hostname(node_list, compute_node);
-		if ( node == NULL )
-		{
-		    lpjs_log("%s(): Error: Invalid hostname in job completion report.\n",
-			    __FUNCTION__);
-		    break;
-		}
-		if ( (items = sscanf(p, "%lu %d %zu", &job_id,
-				     &exit_status, &peak_rss)) != 3 )
-		{
-		    lpjs_log("%s(): Error: Got %d items reading job_id, processors, mem, status, peak_rss.\n",
-			    items);
-		    break;
-		}
-		lpjs_debug("%s(): job_id = %lu  status = %d  peak-RSS = %zu\n",
-		    __FUNCTION__, job_id, exit_status, peak_rss);
-		
-		adjust_resources(node_list, running_jobs, compute_node, job_id, NODE_RESOURCE_RELEASE);
-		
-		/*
-		 *      Write a completed job record to accounting log
-		 *      Note the job completion in the main log
-		 *      Do this before removing from running_jobs
-		 */
-		lpjs_log_job(running_jobs, compute_node, job_id, exit_status, peak_rss);
-		
-		if ( (job = lpjs_remove_running_job(running_jobs,
-						    job_id)) != NULL )
-		    job_free(&job);
-		else
-		    lpjs_log("%s(): Error: remove_running_job returned NULL.  This is a bug.\n",
-			    __FUNCTION__);
-		
-		// FIXME: Don't dispatch pending jobs that have been canceled
-		lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
+                // This is a temporary connection from the chaperone
+                // for just this message.  Don't keep it open.
+                // Don't sent EOT, but wait for other end to close
+                lpjs_wait_close(msg_fd);
+                
+                /*
+                 *  No change in node status, don't try to dispatch jobs.
+                 *  Resources were allocated at dispatch time.
+                 */
+                
+                // Job compute node and PIDs are in text form following
+                // the one byte LPJS_DISPATCHD_REQUEST_JOB_STARTED
+                lpjs_update_job(node_list, munge_payload + 1,
+                                pending_jobs, running_jobs);
+                break;
+                
+            case    LPJS_DISPATCHD_REQUEST_JOB_COMPLETE:
+                lpjs_log("%s(): LPJS_DISPATCHD_REQUEST_JOB_COMPLETE fd = %d\n",
+                        __FUNCTION__, msg_fd);
+                p = munge_payload + 1;
+                compute_node = strsep(&p, " ");
+                lpjs_debug("%s(): compute_node = %s ", __FUNCTION__, compute_node);
+                node = node_list_find_hostname(node_list, compute_node);
+                if ( node == NULL )
+                {
+                    lpjs_log("%s(): Error: Invalid hostname in job completion report.\n",
+                            __FUNCTION__);
+                    break;
+                }
+                if ( (items = sscanf(p, "%lu %d %zu", &job_id,
+                                     &exit_status, &peak_rss)) != 3 )
+                {
+                    lpjs_log("%s(): Error: Got %d items reading job_id, processors, mem, status, peak_rss.\n",
+                            items);
+                    break;
+                }
+                lpjs_debug("%s(): job_id = %lu  status = %d  peak-RSS = %zu\n",
+                    __FUNCTION__, job_id, exit_status, peak_rss);
+                
+                adjust_resources(node_list, running_jobs, compute_node, job_id, NODE_RESOURCE_RELEASE);
+                
+                /*
+                 *      Write a completed job record to accounting log
+                 *      Note the job completion in the main log
+                 *      Do this before removing from running_jobs
+                 */
+                lpjs_log_job(running_jobs, compute_node, job_id, exit_status, peak_rss);
+                
+                if ( (job = lpjs_remove_running_job(running_jobs,
+                                                    job_id)) != NULL )
+                    job_free(&job);
+                else
+                    lpjs_log("%s(): Error: remove_running_job returned NULL.  This is a bug.\n",
+                            __FUNCTION__);
+                
+                // FIXME: Don't dispatch pending jobs that have been canceled
+                lpjs_dispatch_jobs(node_list, pending_jobs, running_jobs);
 
-		// This is a temporary connection from the chaperone
-		// for just this message.  Don't keep it open.
-		// Don't sent EOT, but wait for other end to close
-		lpjs_wait_close(msg_fd);
-		break;
-		
-	    default:
-		lpjs_log("%s(): Error: Invalid request code byte on listen_fd: %d\n",
-			__FUNCTION__, munge_payload[0]);
-		
-	}   // switch
-	free(munge_payload);
+                // This is a temporary connection from the chaperone
+                // for just this message.  Don't keep it open.
+                // Don't sent EOT, but wait for other end to close
+                lpjs_wait_close(msg_fd);
+                break;
+                
+            default:
+                lpjs_log("%s(): Error: Invalid request code byte on listen_fd: %d\n",
+                        __FUNCTION__, munge_payload[0]);
+                
+        }   // switch
+        free(munge_payload);
     }
     
     return bytes;
@@ -857,9 +857,9 @@ int     lpjs_check_listen_fd(int listen_fd, fd_set *read_fds,
  ***************************************************************************/
 
 void    lpjs_process_compute_node_checkin(int msg_fd,
-					  char *munge_payload,
-					  node_list_t *node_list,
-					  uid_t munge_uid, gid_t munge_gid)
+                                          char *munge_payload,
+                                          node_list_t *node_list,
+                                          uid_t munge_uid, gid_t munge_gid)
 
 {
     // Terminates process if malloc() fails, no check required
@@ -873,7 +873,7 @@ void    lpjs_process_compute_node_checkin(int msg_fd,
     // lpjs_log("munge msg: %s\n", incoming_msg);
     
     lpjs_log("%s(): Checkin from munge_uid %d, munge_gid %d\n",
-	    __FUNCTION__, munge_uid, munge_gid);
+            __FUNCTION__, munge_uid, munge_gid);
 
     /*
      *  Validate version of connecting client.
@@ -886,14 +886,14 @@ void    lpjs_process_compute_node_checkin(int msg_fd,
     p = munge_payload + 1;
     compd_version = strsep(&p, " ");
     lpjs_debug("compd_version = %s  dispatchd_version = %s\n",
-		compd_version, VERSION);
+                compd_version, VERSION);
     if ( strcmp(compd_version, VERSION) != 0 )
     {
-	lpjs_send_munge(msg_fd, LPJS_WRONG_VERSION_MSG, lpjs_dispatchd_safe_close);
-	lpjs_log("%s(): Warning: Checkin request from node with wrong LPJS version: %s\n",
-		__FUNCTION__, compd_version);
-	lpjs_dispatchd_safe_close(msg_fd);
-	return; // FIXME: Return status?
+        lpjs_send_munge(msg_fd, LPJS_WRONG_VERSION_MSG, lpjs_dispatchd_safe_close);
+        lpjs_log("%s(): Warning: Checkin request from node with wrong LPJS version: %s\n",
+                __FUNCTION__, compd_version);
+        lpjs_dispatchd_safe_close(msg_fd);
+        return; // FIXME: Return status?
     }
     
     // FIXME: Record username of compd checkin.  If not root, then only
@@ -920,27 +920,27 @@ void    lpjs_process_compute_node_checkin(int msg_fd,
     bool valid_node = false;
     for (unsigned c = 0; c < node_list_get_compute_node_count(node_list); ++c)
     {
-	node_t *node = node_list_get_compute_nodes_ae(node_list, c);
-	// If config has short hostnames, just match that
-	int valid_hostname_len = strlen(node_get_hostname(node));
-	if ( memcmp(node_get_hostname(node), node_get_hostname(new_node), valid_hostname_len) == 0 )
-	    valid_node = true;
+        node_t *node = node_list_get_compute_nodes_ae(node_list, c);
+        // If config has short hostnames, just match that
+        int valid_hostname_len = strlen(node_get_hostname(node));
+        if ( memcmp(node_get_hostname(node), node_get_hostname(new_node), valid_hostname_len) == 0 )
+            valid_node = true;
     }
     if ( ! valid_node )
     {
-	lpjs_send_munge(msg_fd, LPJS_NODE_NOT_AUTHORIZED_MSG, lpjs_dispatchd_safe_close);
-	lpjs_log("%s(): Warning: Unauthorized checkin request from host %s.\n",
-		__FUNCTION__, node_get_hostname(new_node));
-	lpjs_dispatchd_safe_close(msg_fd);
+        lpjs_send_munge(msg_fd, LPJS_NODE_NOT_AUTHORIZED_MSG, lpjs_dispatchd_safe_close);
+        lpjs_log("%s(): Warning: Unauthorized checkin request from host %s.\n",
+                __FUNCTION__, node_get_hostname(new_node));
+        lpjs_dispatchd_safe_close(msg_fd);
     }
     else
     {
-	lpjs_send_munge(msg_fd, LPJS_NODE_AUTHORIZED_MSG, lpjs_dispatchd_safe_close);
-	node_set_msg_fd(new_node, msg_fd);
-	
-	// Nodes were added to node_list by lpjs_load_config()
-	// Just update the fields here
-	node_list_update_compute(node_list, new_node);
+        lpjs_send_munge(msg_fd, LPJS_NODE_AUTHORIZED_MSG, lpjs_dispatchd_safe_close);
+        node_set_msg_fd(new_node, msg_fd);
+        
+        // Nodes were added to node_list by lpjs_load_config()
+        // Just update the fields here
+        node_list_update_compute(node_list, new_node);
     }
 }
 
@@ -957,17 +957,17 @@ void    lpjs_process_compute_node_checkin(int msg_fd,
  ***************************************************************************/
 
 int     lpjs_submit(int msg_fd, const char *incoming_msg,
-		    node_list_t *node_list,
-		    job_list_t *pending_jobs, job_list_t *running_jobs,
-		    uid_t munge_uid, gid_t munge_gid)
+                    node_list_t *node_list,
+                    job_list_t *pending_jobs, job_list_t *running_jobs,
+                    uid_t munge_uid, gid_t munge_gid)
 
 {
     char        script_path[PATH_MAX + 1],
-		*end,
-		*script_text;
+                *end,
+                *script_text;
     // Terminates process if malloc() fails, no check required
     job_t       *submission = job_new(),
-		*job;
+                *job;
     int         c, job_array_index;
     
     // Payload from lpjs submit is a job description in JOB_SPEC_FORMAT
@@ -975,30 +975,30 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
     
     if ( strcmp(job_get_user_name(submission), "root") == 0 )
     {
-	lpjs_log("%s(): Error: Rejecting job submission from root.\n",
-		__FUNCTION__);
-	// msg_fd is closed below
-	lpjs_send_munge(msg_fd, "Error: Cannot run jobs as root.\n", lpjs_no_close);
+        lpjs_log("%s(): Error: Rejecting job submission from root.\n",
+                __FUNCTION__);
+        // msg_fd is closed below
+        lpjs_send_munge(msg_fd, "Error: Cannot run jobs as root.\n", lpjs_no_close);
     }
     else
     {
-	// Should only be a newline between job specs and script
-	script_text = end + 1;
-	
-	snprintf(script_path, PATH_MAX + 1, "%s/%s",
-		 job_get_submit_dir(submission), job_get_script_name(submission));
-	for (c = 0; c < job_get_job_count(submission); ++c)
-	{
-	    lpjs_log("%s(): Submit script %s:%s from %d, %d\n", __FUNCTION__,
-		    job_get_submit_node(submission), script_path, munge_uid,
-		    munge_gid);
-	    job_array_index = c + 1;    // Job arrays are 1-based
-	    
-	    // Create a separate job_t object for each member of the job array
-	    // job_dup() terminates process if malloc() fails
-	    job = job_dup(submission);
-	    lpjs_queue_job(msg_fd, pending_jobs, job, job_array_index, script_text);
-	}
+        // Should only be a newline between job specs and script
+        script_text = end + 1;
+        
+        snprintf(script_path, PATH_MAX + 1, "%s/%s",
+                 job_get_submit_dir(submission), job_get_script_name(submission));
+        for (c = 0; c < job_get_job_count(submission); ++c)
+        {
+            lpjs_log("%s(): Submit script %s:%s from %d, %d\n", __FUNCTION__,
+                    job_get_submit_node(submission), script_path, munge_uid,
+                    munge_gid);
+            job_array_index = c + 1;    // Job arrays are 1-based
+            
+            // Create a separate job_t object for each member of the job array
+            // job_dup() terminates process if malloc() fails
+            job = job_dup(submission);
+            lpjs_queue_job(msg_fd, pending_jobs, job, job_array_index, script_text);
+        }
     }
     
     lpjs_dispatchd_safe_close(msg_fd);
@@ -1021,9 +1021,9 @@ int     lpjs_submit(int msg_fd, const char *incoming_msg,
  ***************************************************************************/
 
 int     lpjs_cancel(int msg_fd, const char *incoming_msg,
-		    node_list_t *node_list,
-		    job_list_t *pending_jobs, job_list_t *running_jobs,
-		    uid_t munge_uid, gid_t munge_gid)
+                    node_list_t *node_list,
+                    job_list_t *pending_jobs, job_list_t *running_jobs,
+                    uid_t munge_uid, gid_t munge_gid)
 
 {
     unsigned long   job_id;
@@ -1036,62 +1036,62 @@ int     lpjs_cancel(int msg_fd, const char *incoming_msg,
     job_id = strtoul(incoming_msg, &end, 10);
     if ( *end != '\0' )
     {
-	lpjs_log("%s(): Bug: Malformed job_id: '%s'\n",
-		__FUNCTION__, incoming_msg);
-	return -1;
+        lpjs_log("%s(): Bug: Malformed job_id: '%s'\n",
+                __FUNCTION__, incoming_msg);
+        return -1;
     }
     
     // If job is pending, but dispatched, wait for chaperone checkin
     // before removing it, so the processes can be terminated.
     if ( (index = job_list_find_job_id(pending_jobs, job_id)) != JOB_LIST_NOT_FOUND )
     {
-	lpjs_debug("%s(): index = %zu\n", __FUNCTION__, index);
-	if ( (job = job_list_get_jobs_ae(pending_jobs, index)) != NULL )
-	{
-	    if ( job_get_state(job) == JOB_STATE_DISPATCHED )
-	    {
-		job_set_state(job, JOB_STATE_CANCELED);
-		// Resources are reserved as soon as chaperone is forked,
-		// before job state is changed to running
-		hostname = job_get_compute_node(job);
-		adjust_resources(node_list, pending_jobs, hostname,
-				 job_id, NODE_RESOURCE_RELEASE);
-		lpjs_log("%s(): Pending job %lu is dispatched.  Scheduled for removal after chaperone checkin.\n",
-			__FUNCTION__, job_id);
-	    }
-	    else
-	    {
-		lpjs_remove_pending_job(pending_jobs, job_id);
-		job_free(&job);
-		lpjs_log("%s(): Canceled pending job %lu...\n", __FUNCTION__, job_id);
-	    }
-	}
-	else
-	    lpjs_log("%s(): Bug: Got valid index for pending job, but no job object.\n",
-		    __FUNCTION__);
+        lpjs_debug("%s(): index = %zu\n", __FUNCTION__, index);
+        if ( (job = job_list_get_jobs_ae(pending_jobs, index)) != NULL )
+        {
+            if ( job_get_state(job) == JOB_STATE_DISPATCHED )
+            {
+                job_set_state(job, JOB_STATE_CANCELED);
+                // Resources are reserved as soon as chaperone is forked,
+                // before job state is changed to running
+                hostname = job_get_compute_node(job);
+                adjust_resources(node_list, pending_jobs, hostname,
+                                 job_id, NODE_RESOURCE_RELEASE);
+                lpjs_log("%s(): Pending job %lu is dispatched.  Scheduled for removal after chaperone checkin.\n",
+                        __FUNCTION__, job_id);
+            }
+            else
+            {
+                lpjs_remove_pending_job(pending_jobs, job_id);
+                job_free(&job);
+                lpjs_log("%s(): Canceled pending job %lu...\n", __FUNCTION__, job_id);
+            }
+        }
+        else
+            lpjs_log("%s(): Bug: Got valid index for pending job, but no job object.\n",
+                    __FUNCTION__);
     }
     // Do not remove the job here.  chaperone will send a completion report
     // else if ( (job = lpjs_remove_running_job(running_jobs, job_id)) != NULL )
     else if ( (index = job_list_find_job_id(running_jobs, job_id)) != JOB_LIST_NOT_FOUND )
     {
-	lpjs_log("%s(): Terminating processes for running job %lu...\n", __FUNCTION__, job_id);
-	if ( (job = job_list_get_jobs_ae(running_jobs, index)) != NULL )
-	{
-	    lpjs_kill_processes(node_list, job);
-	    // FIXME: lpjs_remove_running_job(running_jobs, job_id)
-	    // should be called in response to a job termination
-	    // under LPJS_DISPATCHD_REQUEST_JOB_COMPLETE, but if the
-	    // chaperone is dead, this event won't happen.  Make sure
-	    // canceled jobs are cleaned up if a node goes down,
-	    // chaperone is killed, etc.
-	}
-	else
-	    lpjs_log("%s(): Bug: Got valid index for running job, but no job object.\n",
-		    __FUNCTION__);
+        lpjs_log("%s(): Terminating processes for running job %lu...\n", __FUNCTION__, job_id);
+        if ( (job = job_list_get_jobs_ae(running_jobs, index)) != NULL )
+        {
+            lpjs_kill_processes(node_list, job);
+            // FIXME: lpjs_remove_running_job(running_jobs, job_id)
+            // should be called in response to a job termination
+            // under LPJS_DISPATCHD_REQUEST_JOB_COMPLETE, but if the
+            // chaperone is dead, this event won't happen.  Make sure
+            // canceled jobs are cleaned up if a node goes down,
+            // chaperone is killed, etc.
+        }
+        else
+            lpjs_log("%s(): Bug: Got valid index for running job, but no job object.\n",
+                    __FUNCTION__);
     }
     else
-	lpjs_log("%s(): Error: No such active job ID: %lu.\n", __FUNCTION__, job_id);
-	
+        lpjs_log("%s(): Error: No such active job ID: %lu.\n", __FUNCTION__, job_id);
+        
     lpjs_dispatchd_safe_close(msg_fd);
     
     return LPJS_SUCCESS;
@@ -1114,57 +1114,57 @@ int     lpjs_kill_processes(node_list_t *node_list, job_t *job)
 
 {
     char            *compute_node_name,
-		    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
+                    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
     pid_t           chaperone_pid;
     node_t          *compute_node;
     int             compute_node_fd;
     
     if ( job == NULL )
     {
-	lpjs_log("%s(): Error: Received NULL job pointer.  This is a bug.\n",
-		__FUNCTION__);
-	return 0;
+        lpjs_log("%s(): Error: Received NULL job pointer.  This is a bug.\n",
+                __FUNCTION__);
+        return 0;
     }
     
     if ( (compute_node_name = job_get_compute_node(job)) == NULL )
     {
-	lpjs_log("%s(): Error: Received job with no compute node name.  This is a bug.\n",
-		__FUNCTION__);
-	return 0;
+        lpjs_log("%s(): Error: Received job with no compute node name.  This is a bug.\n",
+                __FUNCTION__);
+        return 0;
     }
     
     if ( (chaperone_pid = job_get_chaperone_pid(job)) == 0 )
     {
-	lpjs_log("%s(): Error: Received job with no chaperone PID.  This is a bug.\n",
-		__FUNCTION__);
-	return 0;
+        lpjs_log("%s(): Error: Received job with no chaperone PID.  This is a bug.\n",
+                __FUNCTION__);
+        return 0;
     }
     
     lpjs_log("%s(): Signaling chaperone PID %lu on %s\n",
-	    __FUNCTION__, chaperone_pid, compute_node_name);
+            __FUNCTION__, chaperone_pid, compute_node_name);
     
     compute_node = node_list_find_hostname(node_list, compute_node_name);
     if ( compute_node == NULL )
     {
-	lpjs_log("%s(): Error: Compute node name not in node list.\n",
-		__FUNCTION__);
-	return 0;
+        lpjs_log("%s(): Error: Compute node name not in node list.\n",
+                __FUNCTION__);
+        return 0;
     }
     
     if ( (compute_node_fd = node_get_msg_fd(compute_node)) == -1 )
     {
-	lpjs_log("%s(): Error: Compute node msg_fd is not open.\n",
-		__FUNCTION__);
-	return 0;
+        lpjs_log("%s(): Error: Compute node msg_fd is not open.\n",
+                __FUNCTION__);
+        return 0;
     }
 
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX + 1, "%c%u",
-	    LPJS_COMPD_REQUEST_CANCEL, chaperone_pid);
+            LPJS_COMPD_REQUEST_CANCEL, chaperone_pid);
     if ( lpjs_send_munge(compute_node_fd, outgoing_msg,
-			 lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
+                         lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
     {
-	lpjs_log("%s(): Error: Failed to send cancel request.\n", __FUNCTION__);
-	return 0;
+        lpjs_log("%s(): Error: Failed to send cancel request.\n", __FUNCTION__);
+        return 0;
     }
     
     return 1;   // FIXME: Define return codes
@@ -1184,15 +1184,15 @@ int     lpjs_kill_processes(node_list_t *node_list, job_t *job)
  ***************************************************************************/
 
 int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
-		       unsigned long job_array_index, const char *script_text)
+                       unsigned long job_array_index, const char *script_text)
 
 {
     char    pending_dir[PATH_MAX + 1],
-	    script_path[PATH_MAX + 2],
-	    specs_path[PATH_MAX + 11],
-	    job_id_path[PATH_MAX + 1],
-	    job_id_buff[LPJS_MAX_INT_DIGITS + 1],
-	    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
+            script_path[PATH_MAX + 2],
+            specs_path[PATH_MAX + 11],
+            job_id_path[PATH_MAX + 1],
+            job_id_buff[LPJS_MAX_INT_DIGITS + 1],
+            outgoing_msg[LPJS_MSG_LEN_MAX + 1];
     int     fd;
     ssize_t bytes;
     unsigned long   next_job_id;
@@ -1203,21 +1203,21 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
     snprintf(job_id_path, PATH_MAX + 1, "%s/next-job", LPJS_SPOOL_DIR);
     if ( (fd = open(job_id_path, O_RDONLY)) == -1 )
     {
-	lpjs_log("%s(): Cannot open %s/next-job: %s\n", __FUNCTION__,
-		LPJS_SPOOL_DIR, strerror(errno));
-	next_job_id = 1;
+        lpjs_log("%s(): Cannot open %s/next-job: %s\n", __FUNCTION__,
+                LPJS_SPOOL_DIR, strerror(errno));
+        next_job_id = 1;
     }
     else
     {
-	bytes = read(fd, job_id_buff, LPJS_MAX_INT_DIGITS + 1);
-	if ( bytes == -1 )
-	{
-	    lpjs_log("%s(): Error: Can't read %s: %s\n",
-		    __FUNCTION__, job_id_path, strerror(errno));
-	    exit(EX_DATAERR);
-	}
-	sscanf(job_id_buff, "%lu", &next_job_id);
-	close(fd);
+        bytes = read(fd, job_id_buff, LPJS_MAX_INT_DIGITS + 1);
+        if ( bytes == -1 )
+        {
+            lpjs_log("%s(): Error: Can't read %s: %s\n",
+                    __FUNCTION__, job_id_path, strerror(errno));
+            exit(EX_DATAERR);
+        }
+        sscanf(job_id_buff, "%lu", &next_job_id);
+        close(fd);
     }
     lpjs_debug("%s(): Selected job ID %lu\n", __FUNCTION__, next_job_id);
 
@@ -1225,29 +1225,29 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
     job_set_array_index(job, job_array_index);
     
     snprintf(pending_dir, PATH_MAX + 1, "%s/%lu", LPJS_PENDING_DIR,
-	    next_job_id);
+            next_job_id);
     if ( xt_rmkdir(pending_dir, 0755) != 0 )
     {
-	fprintf(stderr, "Cannot create %s: %s\n", pending_dir, strerror(errno));
-	return LPJS_WRITE_FAILED;
+        fprintf(stderr, "Cannot create %s: %s\n", pending_dir, strerror(errno));
+        return LPJS_WRITE_FAILED;
     }
 
     snprintf(script_path, PATH_MAX + 2, "%s/%s", pending_dir,
-	    xt_basename(job_get_script_name(job)));
+            xt_basename(job_get_script_name(job)));
     
     if ( (fd = open(script_path, O_WRONLY|O_CREAT|O_TRUNC, 0644)) == -1 )
     {
-	lpjs_log("%s(): Error: Failed to copy %s to %s: %s\n", __FUNCTION__,
-		job_get_script_name(job), script_path, strerror(errno));
-	return LPJS_WRITE_FAILED;
+        lpjs_log("%s(): Error: Failed to copy %s to %s: %s\n", __FUNCTION__,
+                job_get_script_name(job), script_path, strerror(errno));
+        return LPJS_WRITE_FAILED;
     }
     
     if ( write(fd, script_text, strlen(script_text)) == -1 )
     {
-	lpjs_log("%s(): Error: write() failed for %s: %s\n", __FUNCTION__,
-		script_path, strerror(errno));
-	close(fd);
-	return LPJS_WRITE_FAILED;
+        lpjs_log("%s(): Error: write() failed for %s: %s\n", __FUNCTION__,
+                script_path, strerror(errno));
+        close(fd);
+        return LPJS_WRITE_FAILED;
     }
     close(fd);
     lpjs_debug("%s(): Copied script to %s.\n", __FUNCTION__, script_path);
@@ -1260,48 +1260,48 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
     // FIXME: Switch to low-level I/O?
     if ( (fp = fopen(specs_path, "w")) == NULL )
     {
-	lpjs_log("%s(): Error: Cannot create %s: %s\n", __FUNCTION__,
-		specs_path, strerror(errno));
-	return LPJS_WRITE_FAILED;
+        lpjs_log("%s(): Error: Cannot create %s: %s\n", __FUNCTION__,
+                specs_path, strerror(errno));
+        return LPJS_WRITE_FAILED;
     }
     if ( job_print_full_specs(job, fp) < 0 )
     {
-	lpjs_log("%s(): Error: write() failed for %s: %s\n", __FUNCTION__,
-		specs_path, strerror(errno));
-	fclose(fp);
-	return LPJS_WRITE_FAILED;
+        lpjs_log("%s(): Error: write() failed for %s: %s\n", __FUNCTION__,
+                specs_path, strerror(errno));
+        fclose(fp);
+        return LPJS_WRITE_FAILED;
     }
     fclose(fp);
     lpjs_debug("%s(): Wrote job specs to %s.\n", __FUNCTION__, specs_path);
     
     // Back to submit command for terminal output
     snprintf(outgoing_msg, LPJS_MSG_LEN_MAX, "Spooled job %lu to %s.\n",
-	    next_job_id, pending_dir);
+            next_job_id, pending_dir);
     if ( lpjs_send_munge(msg_fd, outgoing_msg,
-			 lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
+                         lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
     {
-	lpjs_log("%s(): Error: Failed to send response.\n", __FUNCTION__);
-	// FIXME: Should we continue?
+        lpjs_log("%s(): Error: Failed to send response.\n", __FUNCTION__);
+        // FIXME: Should we continue?
     }
     lpjs_debug("%s(): Send message %s back to user.\n", __FUNCTION__, outgoing_msg);
     
     // Bump job num after successful spool
     if ( (fd = open(job_id_path, O_WRONLY|O_CREAT|O_TRUNC, 0644)) == -1 )
     {
-	lpjs_log("%s(): Error: Cannot update %s: %s\n", __FUNCTION__,
-		job_id_path, strerror(errno));
-	return LPJS_WRITE_FAILED;
+        lpjs_log("%s(): Error: Cannot update %s: %s\n", __FUNCTION__,
+                job_id_path, strerror(errno));
+        return LPJS_WRITE_FAILED;
     }
     else
     {
-	if ( xt_dprintf(fd, "%lu\n", ++next_job_id) < 0 )
-	{
-	    lpjs_log("%s(): Error: write() failed for %job_id_path: %s\n", __FUNCTION__,
-		    script_path, strerror(errno));
-	    close(fd);
-	    return LPJS_WRITE_FAILED;
-	}
-	close(fd);
+        if ( xt_dprintf(fd, "%lu\n", ++next_job_id) < 0 )
+        {
+            lpjs_log("%s(): Error: write() failed for %job_id_path: %s\n", __FUNCTION__,
+                    script_path, strerror(errno));
+            close(fd);
+            return LPJS_WRITE_FAILED;
+        }
+        close(fd);
     }
     
     job_list_add_job(pending_jobs, job);
@@ -1322,14 +1322,14 @@ int     lpjs_queue_job(int msg_fd, job_list_t *pending_jobs, job_t *job,
  ***************************************************************************/
 
 int     lpjs_update_job(node_list_t *node_list, char *payload,
-			job_list_t *pending_jobs, job_list_t *running_jobs)
+                        job_list_t *pending_jobs, job_list_t *running_jobs)
 
 {
     char    *compute_node,
-	    *p,
-	    pending_job_dir[PATH_MAX + 1],
-	    running_job_dir[PATH_MAX + 1 - 10],
-	    specs_path[PATH_MAX + 1];
+            *p,
+            pending_job_dir[PATH_MAX + 1],
+            running_job_dir[PATH_MAX + 1 - 10],
+            specs_path[PATH_MAX + 1];
     FILE    *fp;
     unsigned long   job_id;
     pid_t   chaperone_pid, job_pid;
@@ -1340,63 +1340,63 @@ int     lpjs_update_job(node_list_t *node_list, char *payload,
     compute_node = strsep(&p, " ");
     sscanf(p, "%lu %u %u", &job_id, &chaperone_pid, &job_pid);
     lpjs_log("%s(): compute_node = %s job_id = %lu  chaperone_pid = %u  job_pid = %u\n",
-	    __FUNCTION__, compute_node, job_id, chaperone_pid, job_pid);
+            __FUNCTION__, compute_node, job_id, chaperone_pid, job_pid);
     
     job_list_index = job_list_find_job_id(pending_jobs, job_id);
     if ( job_list_index == JOB_LIST_NOT_FOUND )
-	lpjs_log("%s(): Bug: Job id not found.\n", __FUNCTION__);
+        lpjs_log("%s(): Bug: Job id not found.\n", __FUNCTION__);
     else
     {
-	// FIXME: Check success of all steps below
-	// Move job from pending spool dir to running
-	snprintf(pending_job_dir, PATH_MAX + 1,
-		LPJS_PENDING_DIR "/%lu", job_id);
-	snprintf(running_job_dir, PATH_MAX + 1 - 10,
-		LPJS_RUNNING_DIR "/%lu", job_id);
-	// lpjs_debug("%s(): Moving %s to %s...\n", __FUNCTION__,
-	//              pending_job_dir, running_job_dir);
-	rename(pending_job_dir, running_job_dir);
-	
-	// Add node and PID info to job object
-	job = job_list_get_jobs_ae(pending_jobs, job_list_index);
-	// lpjs_debug("%s(): Adding %s %lu %lu to job %lu\n",
-	//        __FUNCTION__, compute_node, chaperone_pid, job_pid, job_id);
-	job_set_compute_node(job, strdup(compute_node));
-	job_set_chaperone_pid(job, chaperone_pid);
-	job_set_job_pid(job, job_pid);
+        // FIXME: Check success of all steps below
+        // Move job from pending spool dir to running
+        snprintf(pending_job_dir, PATH_MAX + 1,
+                LPJS_PENDING_DIR "/%lu", job_id);
+        snprintf(running_job_dir, PATH_MAX + 1 - 10,
+                LPJS_RUNNING_DIR "/%lu", job_id);
+        // lpjs_debug("%s(): Moving %s to %s...\n", __FUNCTION__,
+        //              pending_job_dir, running_job_dir);
+        rename(pending_job_dir, running_job_dir);
+        
+        // Add node and PID info to job object
+        job = job_list_get_jobs_ae(pending_jobs, job_list_index);
+        // lpjs_debug("%s(): Adding %s %lu %lu to job %lu\n",
+        //        __FUNCTION__, compute_node, chaperone_pid, job_pid, job_id);
+        job_set_compute_node(job, strdup(compute_node));
+        job_set_chaperone_pid(job, chaperone_pid);
+        job_set_job_pid(job, job_pid);
 
-	// Update in-memory job lists
-	job_list_add_job(running_jobs, job);
-	job_list_remove_job(pending_jobs, job_get_job_id(job));
-	
-	// FIXME: Update specs file in running dir with node and PIDs
-	snprintf(specs_path, PATH_MAX + 1, "%s/job.specs", running_job_dir);
-	lpjs_log("%s(): Storing updated specs to %s.\n",
-		__FUNCTION__, specs_path);
-	
-	// FIXME: Switch to low-level I/O?
-	if ( (fp = fopen(specs_path, "w")) == NULL )
-	{
-	    lpjs_log("%s(): Error: Cannot create %s: %s\n", __FUNCTION__,
-		    specs_path, strerror(errno));
-	    return LPJS_WRITE_FAILED;
-	}
-	job_print_full_specs(job, fp);
-	fclose(fp);
-	
-	/*
-	 *  If job was canceled while still pending but after dispatched,
-	 *  we need to terminate the processes now.
-	 */
-	
-	if ( job_get_state(job) == JOB_STATE_CANCELED )
-	{
-	    lpjs_log("%s(): Job %lu was canceled after dispatch.  Removing...\n",
-		    __FUNCTION__, job_id);
-	    lpjs_remove_running_job(running_jobs, job_id);
-	    lpjs_kill_processes(node_list, job);
-	    job_free(&job);
-	}
+        // Update in-memory job lists
+        job_list_add_job(running_jobs, job);
+        job_list_remove_job(pending_jobs, job_get_job_id(job));
+        
+        // FIXME: Update specs file in running dir with node and PIDs
+        snprintf(specs_path, PATH_MAX + 1, "%s/job.specs", running_job_dir);
+        lpjs_log("%s(): Storing updated specs to %s.\n",
+                __FUNCTION__, specs_path);
+        
+        // FIXME: Switch to low-level I/O?
+        if ( (fp = fopen(specs_path, "w")) == NULL )
+        {
+            lpjs_log("%s(): Error: Cannot create %s: %s\n", __FUNCTION__,
+                    specs_path, strerror(errno));
+            return LPJS_WRITE_FAILED;
+        }
+        job_print_full_specs(job, fp);
+        fclose(fp);
+        
+        /*
+         *  If job was canceled while still pending but after dispatched,
+         *  we need to terminate the processes now.
+         */
+        
+        if ( job_get_state(job) == JOB_STATE_CANCELED )
+        {
+            lpjs_log("%s(): Job %lu was canceled after dispatch.  Removing...\n",
+                    __FUNCTION__, job_id);
+            lpjs_remove_running_job(running_jobs, job_id);
+            lpjs_kill_processes(node_list, job);
+            job_free(&job);
+        }
     }
     
     return LPJS_SUCCESS;
@@ -1418,7 +1418,7 @@ int     lpjs_update_job(node_list_t *node_list, char *payload,
  ***************************************************************************/
 
 int     lpjs_load_job_list(job_list_t *job_list, node_list_t *node_list,
-			   char *spool_dir)
+                           char *spool_dir)
 
 {
     DIR             *dp;
@@ -1430,53 +1430,53 @@ int     lpjs_load_job_list(job_list_t *job_list, node_list_t *node_list,
     lpjs_log("%s(): Reloading jobs from %s...\n", __FUNCTION__, spool_dir);
     if ( (dp = opendir(spool_dir)) == NULL )
     {
-	lpjs_log("%s(): Error: Cannot open %s: %s\n", __FUNCTION__,
-		spool_dir, strerror(errno));
-	return LPJS_READ_FAILED;
+        lpjs_log("%s(): Error: Cannot open %s: %s\n", __FUNCTION__,
+                spool_dir, strerror(errno));
+        return LPJS_READ_FAILED;
     }
     
     while ( (entry = readdir(dp)) != NULL )
     {
-	// Job directories are named after job #s
-	if ( xt_strisint(entry->d_name, 10) )
-	{
-	    // job_new() terminates the process if malloc fails
-	    job_t   *job = job_new();
-	    
-	    /*
-	     *  Load job specs from file
-	     */
-	    
-	    snprintf(specs_path, PATH_MAX + 1, "%s/%s/%s",
-		    spool_dir, entry->d_name, LPJS_SPECS_FILE_NAME);
-	    if ( job_read_from_file(job, specs_path) != JOB_SPECS_ITEMS )
-	    {
-		lpjs_log("%s(): Error: Can't read %s.\n",
-			__FUNCTION__, specs_path);
-		return LPJS_READ_FAILED;
-	    }
-	    lpjs_log("%s(): Loaded job #%s\n", __FUNCTION__, entry->d_name);
-	    job_list_add_job(job_list, job);
-	    
-	    // FIXME: Update node status if job is running
-	    // This code is untested
-	    if ( strcmp(spool_dir, LPJS_RUNNING_DIR) == 0 )
-	    {
-		compute_node = node_list_find_hostname(node_list,
-						       job_get_compute_node(job));
-		node_adjust_resources(compute_node, job,
-				      NODE_RESOURCE_ALLOCATE);
-		/* Replaces...
-		node_set_processors_used(compute_node,
-				    node_get_processors_used(compute_node) +
-				    job_get_processors_per_job(job));
-		node_set_phys_MiB_used(compute_node,
-				       node_get_phys_MiB_used(compute_node) +
-				       job_get_processors_per_job(job) *
-				       job_get_phys_mib_per_processor(job));
-		*/
-	    }
-	}
+        // Job directories are named after job #s
+        if ( xt_strisint(entry->d_name, 10) )
+        {
+            // job_new() terminates the process if malloc fails
+            job_t   *job = job_new();
+            
+            /*
+             *  Load job specs from file
+             */
+            
+            snprintf(specs_path, PATH_MAX + 1, "%s/%s/%s",
+                    spool_dir, entry->d_name, LPJS_SPECS_FILE_NAME);
+            if ( job_read_from_file(job, specs_path) != JOB_SPECS_ITEMS )
+            {
+                lpjs_log("%s(): Error: Can't read %s.\n",
+                        __FUNCTION__, specs_path);
+                return LPJS_READ_FAILED;
+            }
+            lpjs_log("%s(): Loaded job #%s\n", __FUNCTION__, entry->d_name);
+            job_list_add_job(job_list, job);
+            
+            // FIXME: Update node status if job is running
+            // This code is untested
+            if ( strcmp(spool_dir, LPJS_RUNNING_DIR) == 0 )
+            {
+                compute_node = node_list_find_hostname(node_list,
+                                                       job_get_compute_node(job));
+                node_adjust_resources(compute_node, job,
+                                      NODE_RESOURCE_ALLOCATE);
+                /* Replaces...
+                node_set_processors_used(compute_node,
+                                    node_get_processors_used(compute_node) +
+                                    job_get_processors_per_job(job));
+                node_set_phys_MiB_used(compute_node,
+                                       node_get_phys_MiB_used(compute_node) +
+                                       job_get_processors_per_job(job) *
+                                       job_get_phys_mib_per_processor(job));
+                */
+            }
+        }
     }
     closedir(dp);
     
@@ -1506,13 +1506,13 @@ void    lpjs_dispatchd_terminate_handler(int s2)
     lpjs_log("%s(): Received signal, shutting down...\n", __FUNCTION__);
     for (c = 0; c < node_list_get_compute_node_count(Node_list); ++c)
     {
-	node = node_list_get_compute_nodes_ae(Node_list, c);
-	if ( node_get_msg_fd(node) != -1 )
-	{
-	    lpjs_log("%s(): Closing connection with %s...\n",
-		    __FUNCTION__, node_get_hostname(node));
-	    lpjs_dispatchd_safe_close(node_get_msg_fd(node));
-	}
+        node = node_list_get_compute_nodes_ae(Node_list, c);
+        if ( node_get_msg_fd(node) != -1 )
+        {
+            lpjs_log("%s(): Closing connection with %s...\n",
+                    __FUNCTION__, node_get_hostname(node));
+            lpjs_dispatchd_safe_close(node_get_msg_fd(node));
+        }
     }
 #ifdef __linux__
     extern char Pid_path[PATH_MAX + 1];
@@ -1546,8 +1546,8 @@ void    lpjs_dispatchd_sigpipe(int s2)
  ***************************************************************************/
 
 int     adjust_resources(node_list_t *node_list, job_list_t *job_list,
-			   const char *hostname, unsigned long job_id,
-			   node_resource_t direction)
+                           const char *hostname, unsigned long job_id,
+                           node_resource_t direction)
 
 {
     node_t  *node;
@@ -1557,13 +1557,13 @@ int     adjust_resources(node_list_t *node_list, job_list_t *job_list,
     // FIXME: MPI jobs may use multiple nodes
     if ( (node = node_list_find_hostname(node_list, hostname)) == NULL )
     {
-	lpjs_log("%s(): Error: %s not found in node list.\n", __FUNCTION__, hostname);
-	return 1;
+        lpjs_log("%s(): Error: %s not found in node list.\n", __FUNCTION__, hostname);
+        return 1;
     }
     if ( (job_index = job_list_find_job_id(job_list, job_id)) == JOB_LIST_NOT_FOUND )
     {
-	lpjs_log("%s(): Error: %lu not found in job list.\n", __FUNCTION__, job_id);
-	return 1;
+        lpjs_log("%s(): Error: %lu not found in job list.\n", __FUNCTION__, job_id);
+        return 1;
     }
     job = job_list_get_jobs_ae(job_list, job_index);
     node_adjust_resources(node, job, direction);
