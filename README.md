@@ -304,6 +304,17 @@ There are a few possible workarounds:
     (Yes, "truncate" is an odd command for expanding a file, but it works
     for both shrinking and expanding.)
 
+3.  Use an MDM (Mobile Device Management) product to manage full-disk
+    access.  This approach will require the following sequence for
+    each LPJS update:
+    
+    1.  Disable lpjs_compd on the compute node to prevent new jobs
+	from landing there
+    2.  Wait for any existing jobs on the node to complete
+    3.  Update LPJS
+    4.  Use your MDM software to re-enable full-disk access for lpjs_compd
+    5.  Restart lpjs_compd
+
 Running a 1-node instant cluster on macOS should work just fine, with
 no need for push and pull commands, as long
 as your jobs don't try to access any folders protected by full disk
