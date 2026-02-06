@@ -78,13 +78,16 @@ EOM
 
 This process will be simpler if SSH keys are installed for
 root@$(hostname) to $user_name@$host_name.  If this has not
-already been done, run the following command as root in
-another terminal:
+already been done, we can do it now by running
 
     auto-ssh-authorize $user_name@$host_name
 
 EOM
-	    pause
+	    printf "Authorize root@$(hostname -s) on $user_name@$host_name? y/[n] "
+	    read auth
+	    if [ 0"$auth" = 0y ]; then
+		auto-ssh-authorize $user_name@$host_name
+	    fi
 	    set +e
 	    printf "Enter password for $user_name@$host_name:\n"
 	    remote_localbase=$(ssh -p $tcp_port $user_name@$host_name auto-localbase)
