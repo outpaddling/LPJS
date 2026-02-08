@@ -60,6 +60,17 @@ we strive for the following goals above all else:
     2.  Suggest a solution or diagnostic test, so end-users
 	can reach a solution with minimal wasted effort
 
+LPJS provides a user interface where there would otherwise be significant
+differences across platforms.  E.g., restarting daemons is very different
+for FreeBSD, Linux, and macOS, so LPJS provides the following compatibility
+UI that works on all platforms:
+
+    lpjs restart
+
+Viewing output files is the same on all platforms, so no UI is provided here:
+
+    more Logs/08-kallisto-index/*.stderr
+
 ## Status
 
 LPJS is working reliably on our bare-metal FreeBSD + Mac clusters for simple
