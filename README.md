@@ -23,7 +23,7 @@ software you need.
 With LPJS, you can even use multiple
 operating systems in the same cluster or grid.  E.g., use RHEL on some nodes
 to run commercial software, Debian or FreeBSD for easy installation of
-open source software from huge package collections, DragonFly for optimal
+open source software from huge package collections, DragonFly BSD for optimal
 multithreading, macOS to capitalize on the power of Apple Silicon
 systems, or OpenBSD for maximum security.  Use the highly portable NetBSD
 to utilize hardware not supported by other platforms.
@@ -370,7 +370,7 @@ jail, or other container, to add another layer of protection for the
 host system.  We do not recommend this for dedicated compute nodes, as
 it would generally only add needless overhead within a realm of trust.
 
-## Description
+## Understanding Clusters and Grids
 
 Most __clusters__ consist of a few or many dedicated rack-mounted computers
 linked together with a private high-speed network, to
@@ -428,7 +428,7 @@ imagination.  The 'S' in SLURM has become somewhat of an irony as it has
 evolved into the premier batch system for massive and complex HPC clusters.
 
 Note that THERE IS NOTHING INHERENTLY COMPLICATED ABOUT AN HPC CLUSTER OR
-GRID. In its basic form, it's just a computer network
+GRID. In its basic form, it's just a LAN (local area network)
 with a head node for tracking resource use, some
 compute nodes, possibly one or more file servers, and some software to
 manage computing resources.  You can make a cluster or grid 
@@ -580,6 +580,33 @@ as cgroups, CUDA, FreeBSD jails, NUMA, CPU affinity, etc.,
 but all such features shall be
 optional, implemented and installed separately as 3rd-party plugins
 or other types of add-ons.
+
+## Hardware Requirements
+
+LPJS can manage the resources of anything from a single computer to
+a network of thousands.  Large clusters have not yet been tested, but
+LPJS is highly efficient, so we expect it to scale well.
+
+There are many tasks that are just a little too intense for a single
+PC to handle quickly.  Many common bioinformatics analyses, such as
+RNA-Seq differential expression (DE), fall into this category.  A
+DE analysis for a large genome might take several days on a single PC.
+Putting together a small cluster can reduce this to less than a day.
+
+A small cluster or grid consisting of up to a dozen or so ordinary PCs
+can often be run in an office environment with no special power or cooling.
+There are many good options today, such as the Apple Silicon Mac Mini
+or Mac Studio, the Lenovo ThinkCentre Tiny with Ryzen processors, etc.
+These machines are compact enough to stack several of them on a desktop,
+require minimal power, are relatively quiet.
+
+Large clusters are typically built using rack-mount servers that can
+draw over 300 watts each.  Such servers are very noisy and, five of
+them will require more power than a typical 15 amp (~1500 watt)
+wall outlet can provide.
+The heat they generate is enough to keep an average apartment warm
+in the dead of winter, so a special cooling system is needed to dissipate
+it.
 
 ## Software Deployment
 
