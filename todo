@@ -3,6 +3,8 @@ Now
 ---
 Cap log size
 
+Define a protocol version to allow different package versions to connect
+
 Node specs don't change on reconnect of compd
     Must restart dispatchd
 
