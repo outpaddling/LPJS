@@ -865,7 +865,7 @@ void    lpjs_process_compute_node_checkin(int msg_fd,
     // Terminates process if malloc() fails, no check required
     node_t      *new_node = node_new();
     extern FILE *Log_stream;
-    char        *p, *compd_version;
+    char        *p, *compd_protocol_version;
     
     // FIXME: Check for duplicate checkins.  We should not get
     // a checkin request while one is already open
@@ -884,14 +884,14 @@ void    lpjs_process_compute_node_checkin(int msg_fd,
      *  slows and communication protocols are more stable.
      */
     p = munge_payload + 1;
-    compd_version = strsep(&p, " ");
-    lpjs_debug("compd_version = %s  dispatchd_version = %s\n",
-                compd_version, VERSION);
-    if ( strcmp(compd_version, VERSION) != 0 )
+    compd_protocol_version = strsep(&p, " ");
+    lpjs_debug("compd protocol version = %s  dispatchd protocol version = %s\n",
+                compd_protocol_version, LPJS_PROTOCOL_VERSION);
+    if ( strcmp(compd_protocol_version, LPJS_PROTOCOL_VERSION) != 0 )
     {
-        lpjs_send_munge(msg_fd, LPJS_WRONG_VERSION_MSG, lpjs_dispatchd_safe_close);
-        lpjs_log("%s(): Warning: Checkin request from node with wrong LPJS version: %s\n",
-                __FUNCTION__, compd_version);
+        lpjs_send_munge(msg_fd, LPJS_WRONG_PROTOCOL_VERSION_MSG, lpjs_dispatchd_safe_close);
+        lpjs_log("%s(): Warning: Checkin request from node with wrong LPJS protocol version: %s\n",
+                __FUNCTION__, compd_protocol_version);
         lpjs_dispatchd_safe_close(msg_fd);
         return; // FIXME: Return status?
     }

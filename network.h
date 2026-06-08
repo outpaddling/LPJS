@@ -78,11 +78,17 @@ typedef enum
  */
 #define LPJS_IP_TCP_PORT                (short)6818 // Need short for htons()
 #define LPJS_RETRY_TIME                 5
-#define LPJS_WRONG_VERSION_RETRY_TIME   10  // Use 60 when stable
 #define LPJS_MUNGE_CRED_VERIFIED_MSG    "MCD"
-#define LPJS_WRONG_VERSION_MSG          "Wrong LPJS version"
 #define LPJS_NODE_AUTHORIZED_MSG        "Node authorized"
 #define LPJS_NODE_NOT_AUTHORIZED_MSG    "Node not authorized"
+
+/*
+ *  Used to decide whether different versions of LPJS can talk to each other.
+ *  Bump this when there's a change to any message format.
+ */
+#define LPJS_PROTOCOL_VERSION           "0.0.1"
+#define LPJS_WRONG_PROTOCOL_VERSION_MSG "Wrong LPJS protocol version"
+#define LPJS_WRONG_VERSION_RETRY_TIME   10  // Use 60 when stable
 
 #ifndef _SYS_POLL_H_
 #include <sys/poll.h>
