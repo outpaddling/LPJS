@@ -50,8 +50,8 @@ node_list_t *node_list_new(void)
     
     if ( (new_list = malloc(sizeof(node_list_t))) == NULL )
     {
-	lpjs_log("%s(): Error: malloc() failed.\n", __FUNCTION__);
-	exit(EX_UNAVAILABLE);
+        lpjs_log("%s(): Error: malloc() failed.\n", __FUNCTION__);
+        exit(EX_UNAVAILABLE);
     }
     node_list_init(new_list);
     return new_list;
@@ -95,23 +95,26 @@ void    node_list_update_compute(node_list_t *node_list, node_t *node)
     hostname = node_get_hostname(node);
     for (c = 0; c < node_list->compute_node_count; ++c)
     {
-	if ( strcmp(node_get_hostname(node_list->compute_nodes[c]), hostname) == 0 )
-	{
-	    // lpjs_debug("Updating compute node %zu %s\n", c, NODE_HOSTNAME(node_list->compute_nodes[c]));
-	    node_set_state(node_list->compute_nodes[c], "up");
-	    // processors and phys_MiB may have been set in config file
-	    // Don't overwrite them with auto-detected specs
-	    if ( node_get_processors(node_list->compute_nodes[c]) == 0 )
-		node_set_processors(node_list->compute_nodes[c], node_get_processors(node));
-	    if ( node_get_phys_MiB(node_list->compute_nodes[c]) == 0 )
-		node_set_phys_MiB(node_list->compute_nodes[c], node_get_phys_MiB(node));
-	    node_set_zfs(node_list->compute_nodes[c], node_get_zfs(node));
-	    node_set_os(node_list->compute_nodes[c], strdup(node_get_os(node)));
-	    node_set_arch(node_list->compute_nodes[c], strdup(node_get_arch(node)));
-	    node_set_msg_fd(node_list->compute_nodes[c], node_get_msg_fd(node));
-	    node_set_last_ping(node_list->compute_nodes[c], node_get_last_ping(node));
-	    return;
-	}
+        if ( strcmp(node_get_hostname(node_list->compute_nodes[c]), hostname) == 0 )
+        {
+            // lpjs_debug("Updating compute node %zu %s\n", c, NODE_HOSTNAME(node_list->compute_nodes[c]));
+            node_set_state(node_list->compute_nodes[c], "up");
+            // processors and phys_MiB may have been set in config file
+            // Don't overwrite them with auto-detected specs
+            // FIXME: Overwrite node specs if they are not set
+            // explicitly in the config, or if auto-detected specs are
+            // less than the config indicates
+            if ( node_get_processors(node_list->compute_nodes[c]) == 0 )
+                node_set_processors(node_list->compute_nodes[c], node_get_processors(node));
+            if ( node_get_phys_MiB(node_list->compute_nodes[c]) == 0 )
+                node_set_phys_MiB(node_list->compute_nodes[c], node_get_phys_MiB(node));
+            node_set_zfs(node_list->compute_nodes[c], node_get_zfs(node));
+            node_set_os(node_list->compute_nodes[c], strdup(node_get_os(node)));
+            node_set_arch(node_list->compute_nodes[c], strdup(node_get_arch(node)));
+            node_set_msg_fd(node_list->compute_nodes[c], node_get_msg_fd(node));
+            node_set_last_ping(node_list->compute_nodes[c], node_get_last_ping(node));
+            return;
+        }
     }
 }
 
@@ -129,20 +132,20 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
 
 {
     unsigned        c,
-		    processors_up,
-		    processors_up_used,
-		    processors_down;
+                    processors_up,
+                    processors_up_used,
+                    processors_down;
     unsigned long   mem_up,
-		    mem_up_used,
-		    mem_down;
+                    mem_up_used,
+                    mem_down;
     char            temp[LPJS_MSG_LEN_MAX + 1],
-		    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
+                    outgoing_msg[LPJS_MSG_LEN_MAX + 1];
     
     outgoing_msg[0] = '\0';
     
     snprintf(temp, LPJS_MSG_LEN_MAX,
-	    NODE_STATUS_HEADER_FORMAT, "Hostname", "State",
-	    "Procs", "Used", "PhysMiB", "Used", "OS", "Arch");
+            NODE_STATUS_HEADER_FORMAT, "Hostname", "State",
+            "Procs", "Used", "PhysMiB", "Used", "OS", "Arch");
     strlcat(outgoing_msg, temp, LPJS_MSG_LEN_MAX + 1);
     
     processors_up = processors_up_used = processors_down = 0;
@@ -150,40 +153,40 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
     
     for (c = 0; c < node_list->compute_node_count; ++c)
     {
-	node_status_to_str(node_list->compute_nodes[c], temp, LPJS_MSG_LEN_MAX + 1);
-	strlcat(outgoing_msg, temp, LPJS_MSG_LEN_MAX + 1);
-	if ( strcmp(node_get_state(node_list->compute_nodes[c]), "up") == 0 )
-	{
-	    processors_up += node_get_processors(node_list->compute_nodes[c]);
-	    processors_up_used += node_get_processors_used(node_list->compute_nodes[c]);
-	    mem_up += node_get_phys_MiB(node_list->compute_nodes[c]);
-	    mem_up_used += node_get_phys_MiB_used(node_list->compute_nodes[c]);
-	}
-	else
-	{
-	    processors_down += node_get_processors(node_list->compute_nodes[c]);
-	    mem_down += node_get_phys_MiB(node_list->compute_nodes[c]);
-	}
+        node_status_to_str(node_list->compute_nodes[c], temp, LPJS_MSG_LEN_MAX + 1);
+        strlcat(outgoing_msg, temp, LPJS_MSG_LEN_MAX + 1);
+        if ( strcmp(node_get_state(node_list->compute_nodes[c]), "up") == 0 )
+        {
+            processors_up += node_get_processors(node_list->compute_nodes[c]);
+            processors_up_used += node_get_processors_used(node_list->compute_nodes[c]);
+            mem_up += node_get_phys_MiB(node_list->compute_nodes[c]);
+            mem_up_used += node_get_phys_MiB_used(node_list->compute_nodes[c]);
+        }
+        else
+        {
+            processors_down += node_get_processors(node_list->compute_nodes[c]);
+            mem_down += node_get_phys_MiB(node_list->compute_nodes[c]);
+        }
     }
     
     // lpjs_debug("Sending summary...\n");
     snprintf(temp, LPJS_MSG_LEN_MAX + 1,
-	    "\n" NODE_STATUS_FORMAT, "Total", "up",
-	    processors_up, processors_up_used, mem_up, mem_up_used, "-", "-");
+            "\n" NODE_STATUS_FORMAT, "Total", "up",
+            processors_up, processors_up_used, mem_up, mem_up_used, "-", "-");
     strlcat(outgoing_msg, temp, LPJS_MSG_LEN_MAX + 1);
     
     snprintf(temp, LPJS_MSG_LEN_MAX,
-	    NODE_STATUS_FORMAT, "Total", "down",
-	    processors_down, 0, mem_down, (size_t)0, "-", "-");
+            NODE_STATUS_FORMAT, "Total", "down",
+            processors_down, 0, mem_down, (size_t)0, "-", "-");
     strlcat(outgoing_msg, temp, LPJS_MSG_LEN_MAX + 1);
 
     // Only dispatchd calls this function, so wait for client to close first
     if ( lpjs_send_munge(msg_fd, outgoing_msg,
-			 lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
+                         lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
     {
-	lpjs_log("%s(): Error: Failed to send node list info.\n", __FUNCTION__);
-	lpjs_dispatchd_safe_close(msg_fd);
-	return; // FIXME: Define return codes
+        lpjs_log("%s(): Error: Failed to send node list info.\n", __FUNCTION__);
+        lpjs_dispatchd_safe_close(msg_fd);
+        return; // FIXME: Define return codes
     }
     
     /*
@@ -194,10 +197,10 @@ void    node_list_send_status(int msg_fd, node_list_t *node_list)
      */
     
     if ( lpjs_send_munge(msg_fd, LPJS_EOT_MSG, lpjs_dispatchd_safe_close)
-			 != LPJS_MSG_SENT )
-	lpjs_log("%s(): Error: Failed to send EOT.\n", __FUNCTION__);
+                         != LPJS_MSG_SENT )
+        lpjs_log("%s(): Error: Failed to send EOT.\n", __FUNCTION__);
     else
-	lpjs_log("%s(): EOT sent.\n", __FUNCTION__);
+        lpjs_log("%s(): EOT sent.\n", __FUNCTION__);
 }
 
 
@@ -235,8 +238,8 @@ int     node_list_add_compute_node(node_list_t *node_list, node_t *node)
 {
     if ( node_list->compute_node_count == LPJS_MAX_NODES )
     {
-	lpjs_log("%s(): Error: LPJS_MAX_NODES reached.  Cannot add new node.\n", __FUNCTION__);
-	return -1;
+        lpjs_log("%s(): Error: LPJS_MAX_NODES reached.  Cannot add new node.\n", __FUNCTION__);
+        return -1;
     }
     
     // lpjs_debug("%s(): Adding %s\n", __FUNCTION__, node_get_hostname(node));
@@ -254,10 +257,10 @@ node_t  *node_list_find_hostname(node_list_t *node_list, const char *hostname)
     
     for (c = 0; c < node_list->compute_node_count; ++c)
     {
-	node = node_list->compute_nodes[c];
-	// lpjs_debug("%s(): Checking %s\n", __FUNCTION__, node_get_hostname(node));
-	if ( strcmp(node_get_hostname(node), hostname) == 0 )
-	    return node;
+        node = node_list->compute_nodes[c];
+        // lpjs_debug("%s(): Checking %s\n", __FUNCTION__, node_get_hostname(node));
+        if ( strcmp(node_get_hostname(node), hostname) == 0 )
+            return node;
     }
     
     // hostname not found
@@ -295,25 +298,25 @@ node_t  *node_list_find_hostname(node_list_t *node_list, const char *hostname)
  ***************************************************************************/
 
 int     node_list_set_state(node_list_t *node_list, char *arg_string,
-			    uid_t munge_uid, int msg_fd)
+                            uid_t munge_uid, int msg_fd)
 
 {
     char    *p,
-	    *state,
-	    *node_name;
+            *state,
+            *node_name;
     node_t  *node;
     
     if ( (munge_uid != 0) && (munge_uid != getuid()) )
     {
-	if ( lpjs_send_munge(msg_fd, "Only root or the user running lpjs_dispatchd can change node states.\n"
-			     LPJS_EOT_MSG,
-			     lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
-	{
-	    lpjs_log("%s(): Error: Failed to send node status.\n", __FUNCTION__);
-	    lpjs_dispatchd_safe_close(msg_fd);
-	    // return 1
-	}
-	return 1;
+        if ( lpjs_send_munge(msg_fd, "Only root or the user running lpjs_dispatchd can change node states.\n"
+                             LPJS_EOT_MSG,
+                             lpjs_dispatchd_safe_close) != LPJS_MSG_SENT )
+        {
+            lpjs_log("%s(): Error: Failed to send node status.\n", __FUNCTION__);
+            lpjs_dispatchd_safe_close(msg_fd);
+            // return 1
+        }
+        return 1;
     }
     
     p = arg_string;
@@ -321,49 +324,49 @@ int     node_list_set_state(node_list_t *node_list, char *arg_string,
     
     // Point state to static data so it will survive function exit
     if ( strcmp(state, "paused") == 0 )
-	state = "paused";
+        state = "paused";
     else if ( strcmp(state, "updating") == 0 )
-	state = "updating";
+        state = "updating";
     else if ( strcmp(state, "updated") == 0 )
-	state = "updated";
+        state = "updated";
     else if ( strcmp(state, "up") == 0 )
-	state = "up";
+        state = "up";
     else
     {
-	lpjs_log("%s(): Got bad state: %s\n", __FUNCTION__, state);
-	return 1;
+        lpjs_log("%s(): Got bad state: %s\n", __FUNCTION__, state);
+        return 1;
     }
     
     node_name = strsep(&p, " ");
     // nodes.c ensures that "all" is the only argument
     if ( strcmp(node_name, "all") == 0 )
     {
-	lpjs_debug("Setting all nodes to %s...\n", state);
-	for (size_t c = 0; c < node_list->compute_node_count; ++c)
-	    node_set_state(node_list->compute_nodes[c], state);
+        lpjs_debug("Setting all nodes to %s...\n", state);
+        for (size_t c = 0; c < node_list->compute_node_count; ++c)
+            node_set_state(node_list->compute_nodes[c], state);
     }
     else
     {
-	while ( node_name != NULL )
-	{
-	    node = node_list_find_hostname(node_list, node_name);
-	    if ( node == NULL )
-		lpjs_log("%s(): Error: Node %s not found.\n", __FUNCTION__, node_name);
-	    else
-	    {
-		lpjs_debug("Setting node %s to %s...\n", node_name, state);
-		// FIXME: Save state and restore upon dispatchd restart
-		node_set_state(node, state);
-	    }
-	    node_name = strsep(&p, " ");
-	}
+        while ( node_name != NULL )
+        {
+            node = node_list_find_hostname(node_list, node_name);
+            if ( node == NULL )
+                lpjs_log("%s(): Error: Node %s not found.\n", __FUNCTION__, node_name);
+            else
+            {
+                lpjs_debug("Setting node %s to %s...\n", node_name, state);
+                // FIXME: Save state and restore upon dispatchd restart
+                node_set_state(node, state);
+            }
+            node_name = strsep(&p, " ");
+        }
     }
     
     if ( lpjs_send_munge(msg_fd, LPJS_EOT_MSG, lpjs_dispatchd_safe_close)
-			 != LPJS_MSG_SENT )
-	lpjs_log("%s(): Error: Failed to send EOT.\n", __FUNCTION__);
+                         != LPJS_MSG_SENT )
+        lpjs_log("%s(): Error: Failed to send EOT.\n", __FUNCTION__);
     else
-	lpjs_log("%s(): EOT sent.\n", __FUNCTION__);
+        lpjs_log("%s(): EOT sent.\n", __FUNCTION__);
     
     return 0;   // FIXME: Define return codes
 }

@@ -945,8 +945,6 @@ void    lpjs_process_compute_node_checkin(int msg_fd,
 }
 
 
-
-
 /***************************************************************************
  *  Description:
  *      Add a new submission to the queue
