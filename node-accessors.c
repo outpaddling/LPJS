@@ -260,31 +260,31 @@ bool    node_get_auto_processors(node_t *node_ptr)
  *      
  *
  *  Description:
- *      Accessor for auto_MiB member in a node_t structure.
- *      Use this function to get auto_MiB in a node_t object
+ *      Accessor for auto_phys_MiB member in a node_t structure.
+ *      Use this function to get auto_phys_MiB in a node_t object
  *      from non-member functions.
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
  *
  *  Returns:
- *      Value of the structure member auto_MiB.
+ *      Value of the structure member auto_phys_MiB.
  *
  *  Examples:
  *      node_t          node;
- *      bool            auto_MiB;
+ *      bool            auto_phys_MiB;
  *
- *      auto_MiB = node_get_auto_MiB(&node);
+ *      auto_phys_MiB = node_get_auto_phys_MiB(&node);
  *
  *  History: 
  *  Date        Name        Modification
  *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
-bool    node_get_auto_MiB(node_t *node_ptr)
+bool    node_get_auto_phys_MiB(node_t *node_ptr)
 
 {
-    return node_ptr->auto_MiB;
+    return node_ptr->auto_phys_MiB;
 }
 
 

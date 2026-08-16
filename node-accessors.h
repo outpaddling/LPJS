@@ -17,7 +17,7 @@ unsigned node_get_processors_used(node_t *node_ptr);
 size_t node_get_phys_MiB(node_t *node_ptr);
 size_t node_get_phys_MiB_used(node_t *node_ptr);
 _Bool node_get_auto_processors(node_t *node_ptr);
-_Bool node_get_auto_MiB(node_t *node_ptr);
+_Bool node_get_auto_phys_MiB(node_t *node_ptr);
 int node_get_zfs(node_t *node_ptr);
 char *node_get_os(node_t *node_ptr);
 char node_get_os_ae(node_t *node_ptr, size_t c);

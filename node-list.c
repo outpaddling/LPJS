@@ -110,7 +110,7 @@ void    node_list_update_compute(node_list_t *node_list, node_t *new_node)
                   (node_get_processors(new_node) < node_get_processors(temp_node)) )
                 node_set_processors(node_list->compute_nodes[c], node_get_processors(new_node));
             if ( (node_get_phys_MiB(temp_node) == 0) ||
-                  node_get_auto_MiB(temp_node) ||
+                  node_get_auto_phys_MiB(temp_node) ||
                   (node_get_phys_MiB(new_node) < node_get_phys_MiB(temp_node)) )
                 node_set_phys_MiB(node_list->compute_nodes[c], node_get_phys_MiB(new_node));
             node_set_zfs(node_list->compute_nodes[c], node_get_zfs(new_node));

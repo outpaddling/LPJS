@@ -434,17 +434,17 @@ int     node_set_auto_processors(node_t *node_ptr, bool new_auto_processors)
  *      
  *
  *  Description:
- *      Mutator for auto_MiB member in a node_t structure.
- *      Use this function to set auto_MiB in a node_t object
+ *      Mutator for auto_phys_MiB member in a node_t structure.
+ *      Use this function to set auto_phys_MiB in a node_t object
  *      from non-member functions.  This function performs a direct
  *      assignment for scalar or pointer structure members.  If
- *      auto_MiB is a pointer, data previously pointed to should
+ *      auto_phys_MiB is a pointer, data previously pointed to should
  *      be freed before calling this function to avoid memory
  *      leaks.
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
- *      new_auto_MiB    The new value for auto_MiB
+ *      new_auto_phys_MiB    The new value for auto_phys_MiB
  *
  *  Returns:
  *      NODE_DATA_OK if the new value is acceptable and assigned
@@ -452,9 +452,9 @@ int     node_set_auto_processors(node_t *node_ptr, bool new_auto_processors)
  *
  *  Examples:
  *      node_t          node;
- *      bool            new_auto_MiB;
+ *      bool            new_auto_phys_MiB;
  *
- *      if ( node_set_auto_MiB(&node, new_auto_MiB)
+ *      if ( node_set_auto_phys_MiB(&node, new_auto_phys_MiB)
  *              == NODE_DATA_OK )
  *      {
  *      }
@@ -467,14 +467,14 @@ int     node_set_auto_processors(node_t *node_ptr, bool new_auto_processors)
  *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
-int     node_set_auto_MiB(node_t *node_ptr, bool new_auto_MiB)
+int     node_set_auto_phys_MiB(node_t *node_ptr, bool new_auto_phys_MiB)
 
 {
     if ( false )
 	return NODE_DATA_OUT_OF_RANGE;
     else
     {
-	node_ptr->auto_MiB = new_auto_MiB;
+	node_ptr->auto_phys_MiB = new_auto_phys_MiB;
 	return NODE_DATA_OK;
     }
 }

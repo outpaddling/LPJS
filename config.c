@@ -177,7 +177,7 @@ int     lpjs_load_compute_config(node_list_t *node_list, FILE *input_stream,
     if ( pmem != 0 )
     {
         node_set_phys_MiB(node, pmem);
-        node_set_auto_MiB(node, false);
+        node_set_auto_phys_MiB(node, false);
     }
     if ( processors != 0 )
     {

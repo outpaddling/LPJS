@@ -60,7 +60,7 @@ void    node_init(node_t *node)
     node->processors_used = 0;
     // Auto is the default, override if found in config file
     node->auto_processors = true;
-    node->auto_MiB = true;
+    node->auto_phys_MiB = true;
     node->zfs = 0;
     node->os = "unknown";
     node->arch = "unknown";

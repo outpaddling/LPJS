@@ -22,7 +22,7 @@ int node_set_processors_used(node_t *node_ptr, unsigned new_processors_used);
 int node_set_phys_MiB(node_t *node_ptr, size_t new_phys_MiB);
 int node_set_phys_MiB_used(node_t *node_ptr, size_t new_phys_MiB_used);
 int node_set_auto_processors(node_t *node_ptr, _Bool new_auto_processors);
-int node_set_auto_MiB(node_t *node_ptr, _Bool new_auto_MiB);
+int node_set_auto_phys_MiB(node_t *node_ptr, _Bool new_auto_phys_MiB);
 int node_set_zfs(node_t *node_ptr, int new_zfs);
 int node_set_os(node_t *node_ptr, char *new_os);
 int node_set_os_ae(node_t *node_ptr, size_t c, char new_os_element);
