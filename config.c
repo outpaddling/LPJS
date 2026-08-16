@@ -175,9 +175,15 @@ int     lpjs_load_compute_config(node_list_t *node_list, FILE *input_stream,
     // Terminates process if malloc() fails, no check required
     node = node_new();
     if ( pmem != 0 )
+    {
         node_set_phys_MiB(node, pmem);
+        node_set_auto_MiB(node, false);
+    }
     if ( processors != 0 )
+    {
         node_set_processors(node, processors);
+        node_set_auto_processors(node, false);
+    }
     node_set_hostname(node, strdup(hostname));
     node_list_add_compute_node(node_list, node);
 

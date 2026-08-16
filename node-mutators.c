@@ -57,11 +57,11 @@ int     node_set_hostname(node_t *node_ptr, char * new_hostname)
 
 {
     if ( new_hostname == NULL )
-        return NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
-        node_ptr->hostname = new_hostname;
-        return NODE_DATA_OK;
+	node_ptr->hostname = new_hostname;
+	return NODE_DATA_OK;
     }
 }
 
@@ -107,11 +107,11 @@ int     node_set_hostname_ae(node_t *node_ptr, size_t c, char  new_hostname_elem
 
 {
     if ( false )
-        return NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
-        node_ptr->hostname[c] = new_hostname_element;
-        return NODE_DATA_OK;
+	node_ptr->hostname[c] = new_hostname_element;
+	return NODE_DATA_OK;
     }
 }
 
@@ -158,12 +158,12 @@ int     node_set_hostname_cpy(node_t *node_ptr, char * new_hostname, size_t arra
 
 {
     if ( new_hostname == NULL )
-        return NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
-        // FIXME: Assuming char array is a null-terminated string
-        strlcpy(node_ptr->hostname, new_hostname, array_size);
-        return NODE_DATA_OK;
+	// FIXME: Assuming char array is a null-terminated string
+	strlcpy(node_ptr->hostname, new_hostname, array_size);
+	return NODE_DATA_OK;
     }
 }
 
@@ -211,11 +211,11 @@ int     node_set_processors(node_t *node_ptr, unsigned new_processors)
 
 {
     if ( false )
-        return NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
-        node_ptr->processors = new_processors;
-        return NODE_DATA_OK;
+	node_ptr->processors = new_processors;
+	return NODE_DATA_OK;
     }
 }
 
@@ -263,11 +263,11 @@ int     node_set_processors_used(node_t *node_ptr, unsigned new_processors_used)
 
 {
     if ( false )
-        return NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
-        node_ptr->processors_used = new_processors_used;
-        return NODE_DATA_OK;
+	node_ptr->processors_used = new_processors_used;
+	return NODE_DATA_OK;
     }
 }
 
@@ -315,11 +315,11 @@ int     node_set_phys_MiB(node_t *node_ptr, size_t new_phys_MiB)
 
 {
     if ( false )
-        return NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
-        node_ptr->phys_MiB = new_phys_MiB;
-        return NODE_DATA_OK;
+	node_ptr->phys_MiB = new_phys_MiB;
+	return NODE_DATA_OK;
     }
 }
 
@@ -367,11 +367,115 @@ int     node_set_phys_MiB_used(node_t *node_ptr, size_t new_phys_MiB_used)
 
 {
     if ( false )
-        return NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
-        node_ptr->phys_MiB_used = new_phys_MiB_used;
-        return NODE_DATA_OK;
+	node_ptr->phys_MiB_used = new_phys_MiB_used;
+	return NODE_DATA_OK;
+    }
+}
+
+
+/***************************************************************************
+ *  Library:
+ *      #include <node.h>
+ *      
+ *
+ *  Description:
+ *      Mutator for auto_processors member in a node_t structure.
+ *      Use this function to set auto_processors in a node_t object
+ *      from non-member functions.  This function performs a direct
+ *      assignment for scalar or pointer structure members.  If
+ *      auto_processors is a pointer, data previously pointed to should
+ *      be freed before calling this function to avoid memory
+ *      leaks.
+ *
+ *  Arguments:
+ *      node_ptr        Pointer to the structure to set
+ *      new_auto_processors The new value for auto_processors
+ *
+ *  Returns:
+ *      NODE_DATA_OK if the new value is acceptable and assigned
+ *      NODE_DATA_OUT_OF_RANGE otherwise
+ *
+ *  Examples:
+ *      node_t          node;
+ *      bool            new_auto_processors;
+ *
+ *      if ( node_set_auto_processors(&node, new_auto_processors)
+ *              == NODE_DATA_OK )
+ *      {
+ *      }
+ *
+ *  See also:
+ *      (3)
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
+ ***************************************************************************/
+
+int     node_set_auto_processors(node_t *node_ptr, bool new_auto_processors)
+
+{
+    if ( false )
+	return NODE_DATA_OUT_OF_RANGE;
+    else
+    {
+	node_ptr->auto_processors = new_auto_processors;
+	return NODE_DATA_OK;
+    }
+}
+
+
+/***************************************************************************
+ *  Library:
+ *      #include <node.h>
+ *      
+ *
+ *  Description:
+ *      Mutator for auto_MiB member in a node_t structure.
+ *      Use this function to set auto_MiB in a node_t object
+ *      from non-member functions.  This function performs a direct
+ *      assignment for scalar or pointer structure members.  If
+ *      auto_MiB is a pointer, data previously pointed to should
+ *      be freed before calling this function to avoid memory
+ *      leaks.
+ *
+ *  Arguments:
+ *      node_ptr        Pointer to the structure to set
+ *      new_auto_MiB    The new value for auto_MiB
+ *
+ *  Returns:
+ *      NODE_DATA_OK if the new value is acceptable and assigned
+ *      NODE_DATA_OUT_OF_RANGE otherwise
+ *
+ *  Examples:
+ *      node_t          node;
+ *      bool            new_auto_MiB;
+ *
+ *      if ( node_set_auto_MiB(&node, new_auto_MiB)
+ *              == NODE_DATA_OK )
+ *      {
+ *      }
+ *
+ *  See also:
+ *      (3)
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
+ ***************************************************************************/
+
+int     node_set_auto_MiB(node_t *node_ptr, bool new_auto_MiB)
+
+{
+    if ( false )
+	return NODE_DATA_OUT_OF_RANGE;
+    else
+    {
+	node_ptr->auto_MiB = new_auto_MiB;
+	return NODE_DATA_OK;
     }
 }
 
@@ -419,11 +523,11 @@ int     node_set_zfs(node_t *node_ptr, int new_zfs)
 
 {
     if ( false )
-        return NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
-        node_ptr->zfs = new_zfs;
-        return NODE_DATA_OK;
+	node_ptr->zfs = new_zfs;
+	return NODE_DATA_OK;
     }
 }
 
@@ -471,11 +575,11 @@ int     node_set_os(node_t *node_ptr, char * new_os)
 
 {
     if ( new_os == NULL )
-        return NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
-        node_ptr->os = new_os;
-        return NODE_DATA_OK;
+	node_ptr->os = new_os;
+	return NODE_DATA_OK;
     }
 }
 
@@ -521,11 +625,11 @@ int     node_set_os_ae(node_t *node_ptr, size_t c, char  new_os_element)
 
 {
     if ( false )
-        return NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
-        node_ptr->os[c] = new_os_element;
-        return NODE_DATA_OK;
+	node_ptr->os[c] = new_os_element;
+	return NODE_DATA_OK;
     }
 }
 
@@ -572,12 +676,12 @@ int     node_set_os_cpy(node_t *node_ptr, char * new_os, size_t array_size)
 
 {
     if ( new_os == NULL )
-        return NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
-        // FIXME: Assuming char array is a null-terminated string
-        strlcpy(node_ptr->os, new_os, array_size);
-        return NODE_DATA_OK;
+	// FIXME: Assuming char array is a null-terminated string
+	strlcpy(node_ptr->os, new_os, array_size);
+	return NODE_DATA_OK;
     }
 }
 
@@ -625,11 +729,11 @@ int     node_set_arch(node_t *node_ptr, char * new_arch)
 
 {
     if ( new_arch == NULL )
-        return NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
-        node_ptr->arch = new_arch;
-        return NODE_DATA_OK;
+	node_ptr->arch = new_arch;
+	return NODE_DATA_OK;
     }
 }
 
@@ -675,11 +779,11 @@ int     node_set_arch_ae(node_t *node_ptr, size_t c, char  new_arch_element)
 
 {
     if ( false )
-        return NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
-        node_ptr->arch[c] = new_arch_element;
-        return NODE_DATA_OK;
+	node_ptr->arch[c] = new_arch_element;
+	return NODE_DATA_OK;
     }
 }
 
@@ -726,12 +830,12 @@ int     node_set_arch_cpy(node_t *node_ptr, char * new_arch, size_t array_size)
 
 {
     if ( new_arch == NULL )
-        return NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
-        // FIXME: Assuming char array is a null-terminated string
-        strlcpy(node_ptr->arch, new_arch, array_size);
-        return NODE_DATA_OK;
+	// FIXME: Assuming char array is a null-terminated string
+	strlcpy(node_ptr->arch, new_arch, array_size);
+	return NODE_DATA_OK;
     }
 }
 
@@ -779,11 +883,11 @@ int     node_set_state(node_t *node_ptr, char * new_state)
 
 {
     if ( new_state == NULL )
-        return NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
-        node_ptr->state = new_state;
-        return NODE_DATA_OK;
+	node_ptr->state = new_state;
+	return NODE_DATA_OK;
     }
 }
 
@@ -829,11 +933,11 @@ int     node_set_state_ae(node_t *node_ptr, size_t c, char  new_state_element)
 
 {
     if ( false )
-        return NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
-        node_ptr->state[c] = new_state_element;
-        return NODE_DATA_OK;
+	node_ptr->state[c] = new_state_element;
+	return NODE_DATA_OK;
     }
 }
 
@@ -880,12 +984,12 @@ int     node_set_state_cpy(node_t *node_ptr, char * new_state, size_t array_size
 
 {
     if ( new_state == NULL )
-        return NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
-        // FIXME: Assuming char array is a null-terminated string
-        strlcpy(node_ptr->state, new_state, array_size);
-        return NODE_DATA_OK;
+	// FIXME: Assuming char array is a null-terminated string
+	strlcpy(node_ptr->state, new_state, array_size);
+	return NODE_DATA_OK;
     }
 }
 
@@ -933,11 +1037,11 @@ int     node_set_msg_fd(node_t *node_ptr, int new_msg_fd)
 
 {
     if ( false )
-        return NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
-        node_ptr->msg_fd = new_msg_fd;
-        return NODE_DATA_OK;
+	node_ptr->msg_fd = new_msg_fd;
+	return NODE_DATA_OK;
     }
 }
 
@@ -985,10 +1089,10 @@ int     node_set_last_ping(node_t *node_ptr, time_t new_last_ping)
 
 {
     if ( false )
-        return NODE_DATA_OUT_OF_RANGE;
+	return NODE_DATA_OUT_OF_RANGE;
     else
     {
-        node_ptr->last_ping = new_last_ping;
-        return NODE_DATA_OK;
+	node_ptr->last_ping = new_last_ping;
+	return NODE_DATA_OK;
     }
 }

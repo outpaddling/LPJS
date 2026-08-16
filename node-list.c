@@ -97,17 +97,20 @@ void    node_list_update_compute(node_list_t *node_list, node_t *new_node)
     {
         if ( strcmp(node_get_hostname(node_list->compute_nodes[c]), hostname) == 0 )
         {
+            // lpjs_debug("Updating compute node %zu %s\n", c, NODE_HOSTNAME(node_list->compute_nodes[c]));
             node_set_state(node_list->compute_nodes[c], "up");
-            // processors and phys_MiB may have been set in config file,
-            // in which case they will be non-zero.
-            // Overwrite them only if they are not set explicitly in the
-            // config, OR if auto-detected specs are less than the config
-            // indicates.
+            // processors and phys_MiB may have been set in config file
+            // Don't overwrite them with auto-detected specs
+            // Overwrite node specs if they are not set
+            // explicitly in the config, OR if auto-detected specs are
+            // less than the config indicates
             node_t *temp_node = node_list->compute_nodes[c];
             if ( (node_get_processors(temp_node) == 0) ||
+                  node_get_auto_processors(temp_node) ||
                   (node_get_processors(new_node) < node_get_processors(temp_node)) )
                 node_set_processors(node_list->compute_nodes[c], node_get_processors(new_node));
             if ( (node_get_phys_MiB(temp_node) == 0) ||
+                  node_get_auto_MiB(temp_node) ||
                   (node_get_phys_MiB(new_node) < node_get_phys_MiB(temp_node)) )
                 node_set_phys_MiB(node_list->compute_nodes[c], node_get_phys_MiB(new_node));
             node_set_zfs(node_list->compute_nodes[c], node_get_zfs(new_node));
