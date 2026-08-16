@@ -38,7 +38,7 @@
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 char *    node_get_hostname(node_t *node_ptr)
@@ -74,7 +74,7 @@ char *    node_get_hostname(node_t *node_ptr)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 char  node_get_hostname_ae(node_t *node_ptr, size_t c)
@@ -108,7 +108,7 @@ char  node_get_hostname_ae(node_t *node_ptr, size_t c)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 unsigned    node_get_processors(node_t *node_ptr)
@@ -142,7 +142,7 @@ unsigned    node_get_processors(node_t *node_ptr)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 unsigned    node_get_processors_used(node_t *node_ptr)
@@ -170,16 +170,16 @@ unsigned    node_get_processors_used(node_t *node_ptr)
  *
  *  Examples:
  *      node_t          node;
- *      unsigned long   phys_MiB;
+ *      size_t          phys_MiB;
  *
  *      phys_MiB = node_get_phys_MiB(&node);
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
-unsigned long    node_get_phys_MiB(node_t *node_ptr)
+size_t    node_get_phys_MiB(node_t *node_ptr)
 
 {
     return node_ptr->phys_MiB;
@@ -204,19 +204,87 @@ unsigned long    node_get_phys_MiB(node_t *node_ptr)
  *
  *  Examples:
  *      node_t          node;
- *      unsigned long   phys_MiB_used;
+ *      size_t          phys_MiB_used;
  *
  *      phys_MiB_used = node_get_phys_MiB_used(&node);
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
-unsigned long    node_get_phys_MiB_used(node_t *node_ptr)
+size_t    node_get_phys_MiB_used(node_t *node_ptr)
 
 {
     return node_ptr->phys_MiB_used;
+}
+
+
+/***************************************************************************
+ *  Library:
+ *      #include <node.h>
+ *      
+ *
+ *  Description:
+ *      Accessor for auto_processors member in a node_t structure.
+ *      Use this function to get auto_processors in a node_t object
+ *      from non-member functions.
+ *
+ *  Arguments:
+ *      node_ptr        Pointer to the structure to set
+ *
+ *  Returns:
+ *      Value of the structure member auto_processors.
+ *
+ *  Examples:
+ *      node_t          node;
+ *      bool            auto_processors;
+ *
+ *      auto_processors = node_get_auto_processors(&node);
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
+ ***************************************************************************/
+
+bool    node_get_auto_processors(node_t *node_ptr)
+
+{
+    return node_ptr->auto_processors;
+}
+
+
+/***************************************************************************
+ *  Library:
+ *      #include <node.h>
+ *      
+ *
+ *  Description:
+ *      Accessor for auto_MiB member in a node_t structure.
+ *      Use this function to get auto_MiB in a node_t object
+ *      from non-member functions.
+ *
+ *  Arguments:
+ *      node_ptr        Pointer to the structure to set
+ *
+ *  Returns:
+ *      Value of the structure member auto_MiB.
+ *
+ *  Examples:
+ *      node_t          node;
+ *      bool            auto_MiB;
+ *
+ *      auto_MiB = node_get_auto_MiB(&node);
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
+ ***************************************************************************/
+
+bool    node_get_auto_MiB(node_t *node_ptr)
+
+{
+    return node_ptr->auto_MiB;
 }
 
 
@@ -244,7 +312,7 @@ unsigned long    node_get_phys_MiB_used(node_t *node_ptr)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int    node_get_zfs(node_t *node_ptr)
@@ -278,7 +346,7 @@ int    node_get_zfs(node_t *node_ptr)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 char *    node_get_os(node_t *node_ptr)
@@ -314,7 +382,7 @@ char *    node_get_os(node_t *node_ptr)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 char  node_get_os_ae(node_t *node_ptr, size_t c)
@@ -348,7 +416,7 @@ char  node_get_os_ae(node_t *node_ptr, size_t c)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 char *    node_get_arch(node_t *node_ptr)
@@ -384,7 +452,7 @@ char *    node_get_arch(node_t *node_ptr)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 char  node_get_arch_ae(node_t *node_ptr, size_t c)
@@ -418,7 +486,7 @@ char  node_get_arch_ae(node_t *node_ptr, size_t c)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 char *    node_get_state(node_t *node_ptr)
@@ -454,7 +522,7 @@ char *    node_get_state(node_t *node_ptr)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 char  node_get_state_ae(node_t *node_ptr, size_t c)
@@ -488,7 +556,7 @@ char  node_get_state_ae(node_t *node_ptr, size_t c)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int    node_get_msg_fd(node_t *node_ptr)
@@ -522,7 +590,7 @@ int    node_get_msg_fd(node_t *node_ptr)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 time_t    node_get_last_ping(node_t *node_ptr)

@@ -9,6 +9,10 @@
 #include <stdio.h>
 #endif
 
+#ifndef true
+#include <stdbool.h>
+#endif
+
 #ifndef _LPJS_NODE_H_
 #include "node.h"
 #endif

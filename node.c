@@ -32,8 +32,8 @@ node_t  *node_new(void)
     
     if ( (node = malloc(sizeof(node_t))) == NULL )
     {
-	lpjs_log("%s(): Error: malloc failed.\n", __FUNCTION__);
-	exit(EX_UNAVAILABLE);
+        lpjs_log("%s(): Error: malloc failed.\n", __FUNCTION__);
+        exit(EX_UNAVAILABLE);
     }
     node_init(node);
     
@@ -58,6 +58,9 @@ void    node_init(node_t *node)
     node->phys_MiB_used = 0;
     node->processors = 0;
     node->processors_used = 0;
+    // Auto is the default, override if found in config file
+    node->auto_processors = true;
+    node->auto_MiB = true;
     node->zfs = 0;
     node->os = "unknown";
     node->arch = "unknown";
@@ -81,8 +84,8 @@ void    node_detect_specs(node_t *node)
 {
     struct utsname  u_name;
     char            temp_hostname[sysconf(_SC_HOST_NAME_MAX) + 1],
-		    temp_osname[128],
-		    *ostype_path;
+                    temp_osname[128],
+                    *ostype_path;
     FILE            *fp;
     struct stat     st;
     
@@ -100,7 +103,7 @@ void    node_detect_specs(node_t *node)
     // sysctl on FreeBSD if you don't want to oversubscribe physical processors.
     node->processors = sysconf(_SC_NPROCESSORS_ONLN);
     node->phys_MiB = sysconf(_SC_PAGESIZE) * sysconf(_SC_PHYS_PAGES)
-		     / 1024 / 1024;
+                     / 1024 / 1024;
     /*
      *  Report 1 if ZFS filesystem found, so that additional memory
      *  can be reserved on compute nodes.
@@ -112,21 +115,21 @@ void    node_detect_specs(node_t *node)
     ostype_path = LOCALBASE "/bin/auto-ostype";
     if ( (stat(ostype_path, &st) == 0) && (fp = popen(ostype_path, "r")) != NULL )
     {
-	xt_fgetline(fp, temp_osname, 128);
-	if ( (node->os = strdup(temp_osname)) == NULL )
-	{
-	    lpjs_log("%s(): Error: strdup() failed.\n", __FUNCTION__);
-	    exit(EX_UNAVAILABLE);
-	}
-	pclose(fp);
+        xt_fgetline(fp, temp_osname, 128);
+        if ( (node->os = strdup(temp_osname)) == NULL )
+        {
+            lpjs_log("%s(): Error: strdup() failed.\n", __FUNCTION__);
+            exit(EX_UNAVAILABLE);
+        }
+        pclose(fp);
     }
     else
     {
-	if ( (node->os = strdup(u_name.sysname)) == NULL )
-	{
-	    lpjs_log("%s(): Error: strdup() failed.\n", __FUNCTION__);
-	    exit(EX_UNAVAILABLE);
-	}
+        if ( (node->os = strdup(u_name.sysname)) == NULL )
+        {
+            lpjs_log("%s(): Error: strdup() failed.\n", __FUNCTION__);
+            exit(EX_UNAVAILABLE);
+        }
     }
     node->arch = strdup(u_name.machine);
 }
@@ -145,7 +148,7 @@ void    node_print_status_header(FILE *stream)
 
 {
     fprintf(stderr, NODE_STATUS_HEADER_FORMAT, "Hostname", "State",
-	  "Procs", "Used", "PhysMiB", "Used", "OS", "Arch");
+          "Procs", "Used", "PhysMiB", "Used", "OS", "Arch");
 }
 
 
@@ -162,8 +165,8 @@ void    node_print_status(node_t *node, FILE *stream)
 
 {
     fprintf(stream, NODE_STATUS_FORMAT, node->hostname, node->state,
-	   node->processors, node->processors_used,
-	   node->phys_MiB, node->phys_MiB_used, node->os, node->arch);
+           node->processors, node->processors_used,
+           node->phys_MiB, node->phys_MiB_used, node->os, node->arch);
 }
 
 
@@ -171,9 +174,9 @@ void    node_status_to_str(node_t *node, char *str, size_t array_size)
 
 {
     snprintf(str, array_size,
-		NODE_STATUS_FORMAT, node->hostname, node->state,        
-		node->processors, node->processors_used,                                 
-		node->phys_MiB, node->phys_MiB_used, node->os, node->arch);
+                NODE_STATUS_FORMAT, node->hostname, node->state,        
+                node->processors, node->processors_used,                                 
+                node->phys_MiB, node->phys_MiB_used, node->os, node->arch);
 }
 
 
@@ -195,10 +198,10 @@ void    node_send_status(node_t *node, int msg_fd)
     node_status_to_str(node, outgoing_msg, LPJS_MSG_LEN_MAX + 1);
     if ( lpjs_send_munge(msg_fd, outgoing_msg, close) != LPJS_MSG_SENT )
     {
-	// This function should never be called by dispatchd, so
-	// use a simple close() vs lpjs_dispatchd_safe_close()
-	lpjs_log("%s(): Error: xt_dprintf() failed: %s", __FUNCTION__, strerror(errno));
-	exit(EX_IOERR);
+        // This function should never be called by dispatchd, so
+        // use a simple close() vs lpjs_dispatchd_safe_close()
+        lpjs_log("%s(): Error: xt_dprintf() failed: %s", __FUNCTION__, strerror(errno));
+        exit(EX_IOERR);
     }
 }
 
@@ -207,9 +210,9 @@ int     node_print_specs_header(FILE *stream)
 
 {
     return fprintf(stream,
-		  "%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
-		  "Hostname", "state", "processors",
-		  "phys_MiB", "zfs", "os", "arch");
+                  "%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
+                  "Hostname", "state", "processors",
+                  "phys_MiB", "zfs", "os", "arch");
 }
 
 
@@ -217,12 +220,12 @@ char    *node_specs_to_str(node_t *node, char *str, size_t buff_len)
 
 {
     if ( snprintf(str, buff_len,
-		  "%s\t%s\t%u\t%lu\t%u\t%s\t%s",
-		  node->hostname, node->state, node->processors,
-		  node->phys_MiB, node->zfs, node->os, node->arch) < 0 )
+                  "%s\t%s\t%u\t%lu\t%u\t%s\t%s",
+                  node->hostname, node->state, node->processors,
+                  node->phys_MiB, node->zfs, node->os, node->arch) < 0 )
     {
-	lpjs_log("%s(): Error: snprintf() failed\n", __FUNCTION__);
-	exit(EX_IOERR);
+        lpjs_log("%s(): Error: snprintf() failed\n", __FUNCTION__);
+        exit(EX_IOERR);
     }
     
     return str;
@@ -243,16 +246,16 @@ ssize_t node_str_to_specs(node_t *node, const char *str)
 
 {
     char    *temp_str,
-	    *field,
-	    *stringp,
-	    *end;
+            *field,
+            *stringp,
+            *end;
     
     node_init(node);
     
     if ( (temp_str = strdup(str)) == NULL )
     {
-	lpjs_log("%s(): Error: strdup() failed.\n", __FUNCTION__);
-	exit(EX_UNAVAILABLE);
+        lpjs_log("%s(): Error: strdup() failed.\n", __FUNCTION__);
+        exit(EX_UNAVAILABLE);
     }
     
     node->state = "offline";
@@ -263,65 +266,65 @@ ssize_t node_str_to_specs(node_t *node, const char *str)
     
     if ( (field = strsep(&stringp, "\t")) == NULL )
     {
-	lpjs_log("%s(): Bug: Failed to extract hostname from specs.\n", __FUNCTION__);
-	return -1;
+        lpjs_log("%s(): Bug: Failed to extract hostname from specs.\n", __FUNCTION__);
+        return -1;
     }
     node->hostname = strdup(field);
 
     if ( (field = strsep(&stringp, "\t")) == NULL )
     {
-	lpjs_log("%s(): Bug: Failed to extract state from specs.\n", __FUNCTION__);
-	return -1;
+        lpjs_log("%s(): Bug: Failed to extract state from specs.\n", __FUNCTION__);
+        return -1;
     }
     node->state = strdup(field);
 
     if ( (field = strsep(&stringp, "\t")) == NULL )
     {
-	lpjs_log("%s(): Bug: Failed to extract processors from specs.\n", __FUNCTION__);
-	return -1;
+        lpjs_log("%s(): Bug: Failed to extract processors from specs.\n", __FUNCTION__);
+        return -1;
     }
     node->processors = strtoul(field, &end, 10);
     if ( *end != '\0' )
     {
-	lpjs_log("%s(): Bug: Procs field is not a valid number.\n", __FUNCTION__);
-	return -1;
+        lpjs_log("%s(): Bug: Procs field is not a valid number.\n", __FUNCTION__);
+        return -1;
     }
 
     if ( (field = strsep(&stringp, "\t")) == NULL )
     {
-	lpjs_log("%s(): Bug: Failed to extract physMiB from specs.\n", __FUNCTION__);
-	return -1;
+        lpjs_log("%s(): Bug: Failed to extract physMiB from specs.\n", __FUNCTION__);
+        return -1;
     }
     node->phys_MiB = strtoul(field, &end, 10);
     if ( *end != '\0' )
     {
-	lpjs_log("%s(): Bug: PhysMiB field is not a valid number.\n", __FUNCTION__);
-	return -1;
+        lpjs_log("%s(): Bug: PhysMiB field is not a valid number.\n", __FUNCTION__);
+        return -1;
     }
 
     if ( (field = strsep(&stringp, "\t")) == NULL )
     {
-	lpjs_log("%s(): Bug: Failed to extract ZFS Boolean from specs.\n", __FUNCTION__);
-	return -1;
+        lpjs_log("%s(): Bug: Failed to extract ZFS Boolean from specs.\n", __FUNCTION__);
+        return -1;
     }
     node->zfs = strtoul(field, &end, 10);
     if ( *end != '\0' )
     {
-	lpjs_log("%s(): Bug: ZFS field is not a valid number (should be 0 or 1).\n", __FUNCTION__);
-	return -1;
+        lpjs_log("%s(): Bug: ZFS field is not a valid number (should be 0 or 1).\n", __FUNCTION__);
+        return -1;
     }
 
     if ( (field = strsep(&stringp, "\t")) == NULL )
     {
-	lpjs_log("%s(): Bug: Failed to extract OS from specs.\n", __FUNCTION__);
-	return -1;
+        lpjs_log("%s(): Bug: Failed to extract OS from specs.\n", __FUNCTION__);
+        return -1;
     }
     node->os = strdup(field);
 
     if ( (field = strsep(&stringp, "\t\n")) == NULL )
     {
-	lpjs_log("%s(): Bug: Failed to extract arch from specs.\n", __FUNCTION__);
-	return -1;
+        lpjs_log("%s(): Bug: Failed to extract arch from specs.\n", __FUNCTION__);
+        return -1;
     }
     node->arch = strdup(field);
 
@@ -351,8 +354,8 @@ int     node_adjust_resources(node_t *node, job_t *job, node_resource_t directio
     long    MiB = direction * job_get_phys_mib_per_processor(job) * job_get_processors_per_job(job);
 
     lpjs_log("%s(): Allocating %d processors and %ld MiB on %s.\n",
-	     __FUNCTION__, processors, MiB, 
-	     node_get_hostname(node));
+             __FUNCTION__, processors, MiB, 
+             node_get_hostname(node));
     node->processors_used += processors;
     node->phys_MiB_used += MiB;
     

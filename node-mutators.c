@@ -50,7 +50,7 @@
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_hostname(node_t *node_ptr, char * new_hostname)
@@ -100,7 +100,7 @@ int     node_set_hostname(node_t *node_ptr, char * new_hostname)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_hostname_ae(node_t *node_ptr, size_t c, char  new_hostname_element)
@@ -151,7 +151,7 @@ int     node_set_hostname_ae(node_t *node_ptr, size_t c, char  new_hostname_elem
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_hostname_cpy(node_t *node_ptr, char * new_hostname, size_t array_size)
@@ -184,7 +184,7 @@ int     node_set_hostname_cpy(node_t *node_ptr, char * new_hostname, size_t arra
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
- *      new_processors       The new value for processors
+ *      new_processors  The new value for processors
  *
  *  Returns:
  *      NODE_DATA_OK if the new value is acceptable and assigned
@@ -204,7 +204,7 @@ int     node_set_hostname_cpy(node_t *node_ptr, char * new_hostname, size_t arra
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_processors(node_t *node_ptr, unsigned new_processors)
@@ -236,7 +236,7 @@ int     node_set_processors(node_t *node_ptr, unsigned new_processors)
  *
  *  Arguments:
  *      node_ptr        Pointer to the structure to set
- *      new_processors_used  The new value for processors_used
+ *      new_processors_used The new value for processors_used
  *
  *  Returns:
  *      NODE_DATA_OK if the new value is acceptable and assigned
@@ -256,7 +256,7 @@ int     node_set_processors(node_t *node_ptr, unsigned new_processors)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_processors_used(node_t *node_ptr, unsigned new_processors_used)
@@ -296,7 +296,7 @@ int     node_set_processors_used(node_t *node_ptr, unsigned new_processors_used)
  *
  *  Examples:
  *      node_t          node;
- *      unsigned long   new_phys_MiB;
+ *      size_t          new_phys_MiB;
  *
  *      if ( node_set_phys_MiB(&node, new_phys_MiB)
  *              == NODE_DATA_OK )
@@ -308,10 +308,10 @@ int     node_set_processors_used(node_t *node_ptr, unsigned new_processors_used)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
-int     node_set_phys_MiB(node_t *node_ptr, unsigned long new_phys_MiB)
+int     node_set_phys_MiB(node_t *node_ptr, size_t new_phys_MiB)
 
 {
     if ( false )
@@ -348,7 +348,7 @@ int     node_set_phys_MiB(node_t *node_ptr, unsigned long new_phys_MiB)
  *
  *  Examples:
  *      node_t          node;
- *      unsigned long   new_phys_MiB_used;
+ *      size_t          new_phys_MiB_used;
  *
  *      if ( node_set_phys_MiB_used(&node, new_phys_MiB_used)
  *              == NODE_DATA_OK )
@@ -360,10 +360,10 @@ int     node_set_phys_MiB(node_t *node_ptr, unsigned long new_phys_MiB)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
-int     node_set_phys_MiB_used(node_t *node_ptr, unsigned long new_phys_MiB_used)
+int     node_set_phys_MiB_used(node_t *node_ptr, size_t new_phys_MiB_used)
 
 {
     if ( false )
@@ -371,6 +371,110 @@ int     node_set_phys_MiB_used(node_t *node_ptr, unsigned long new_phys_MiB_used
     else
     {
 	node_ptr->phys_MiB_used = new_phys_MiB_used;
+	return NODE_DATA_OK;
+    }
+}
+
+
+/***************************************************************************
+ *  Library:
+ *      #include <node.h>
+ *      
+ *
+ *  Description:
+ *      Mutator for auto_processors member in a node_t structure.
+ *      Use this function to set auto_processors in a node_t object
+ *      from non-member functions.  This function performs a direct
+ *      assignment for scalar or pointer structure members.  If
+ *      auto_processors is a pointer, data previously pointed to should
+ *      be freed before calling this function to avoid memory
+ *      leaks.
+ *
+ *  Arguments:
+ *      node_ptr        Pointer to the structure to set
+ *      new_auto_processors The new value for auto_processors
+ *
+ *  Returns:
+ *      NODE_DATA_OK if the new value is acceptable and assigned
+ *      NODE_DATA_OUT_OF_RANGE otherwise
+ *
+ *  Examples:
+ *      node_t          node;
+ *      bool            new_auto_processors;
+ *
+ *      if ( node_set_auto_processors(&node, new_auto_processors)
+ *              == NODE_DATA_OK )
+ *      {
+ *      }
+ *
+ *  See also:
+ *      (3)
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
+ ***************************************************************************/
+
+int     node_set_auto_processors(node_t *node_ptr, bool new_auto_processors)
+
+{
+    if ( false )
+	return NODE_DATA_OUT_OF_RANGE;
+    else
+    {
+	node_ptr->auto_processors = new_auto_processors;
+	return NODE_DATA_OK;
+    }
+}
+
+
+/***************************************************************************
+ *  Library:
+ *      #include <node.h>
+ *      
+ *
+ *  Description:
+ *      Mutator for auto_MiB member in a node_t structure.
+ *      Use this function to set auto_MiB in a node_t object
+ *      from non-member functions.  This function performs a direct
+ *      assignment for scalar or pointer structure members.  If
+ *      auto_MiB is a pointer, data previously pointed to should
+ *      be freed before calling this function to avoid memory
+ *      leaks.
+ *
+ *  Arguments:
+ *      node_ptr        Pointer to the structure to set
+ *      new_auto_MiB    The new value for auto_MiB
+ *
+ *  Returns:
+ *      NODE_DATA_OK if the new value is acceptable and assigned
+ *      NODE_DATA_OUT_OF_RANGE otherwise
+ *
+ *  Examples:
+ *      node_t          node;
+ *      bool            new_auto_MiB;
+ *
+ *      if ( node_set_auto_MiB(&node, new_auto_MiB)
+ *              == NODE_DATA_OK )
+ *      {
+ *      }
+ *
+ *  See also:
+ *      (3)
+ *
+ *  History: 
+ *  Date        Name        Modification
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
+ ***************************************************************************/
+
+int     node_set_auto_MiB(node_t *node_ptr, bool new_auto_MiB)
+
+{
+    if ( false )
+	return NODE_DATA_OUT_OF_RANGE;
+    else
+    {
+	node_ptr->auto_MiB = new_auto_MiB;
 	return NODE_DATA_OK;
     }
 }
@@ -412,7 +516,7 @@ int     node_set_phys_MiB_used(node_t *node_ptr, unsigned long new_phys_MiB_used
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_zfs(node_t *node_ptr, int new_zfs)
@@ -464,7 +568,7 @@ int     node_set_zfs(node_t *node_ptr, int new_zfs)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_os(node_t *node_ptr, char * new_os)
@@ -514,7 +618,7 @@ int     node_set_os(node_t *node_ptr, char * new_os)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_os_ae(node_t *node_ptr, size_t c, char  new_os_element)
@@ -565,7 +669,7 @@ int     node_set_os_ae(node_t *node_ptr, size_t c, char  new_os_element)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_os_cpy(node_t *node_ptr, char * new_os, size_t array_size)
@@ -618,7 +722,7 @@ int     node_set_os_cpy(node_t *node_ptr, char * new_os, size_t array_size)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_arch(node_t *node_ptr, char * new_arch)
@@ -668,7 +772,7 @@ int     node_set_arch(node_t *node_ptr, char * new_arch)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_arch_ae(node_t *node_ptr, size_t c, char  new_arch_element)
@@ -719,7 +823,7 @@ int     node_set_arch_ae(node_t *node_ptr, size_t c, char  new_arch_element)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_arch_cpy(node_t *node_ptr, char * new_arch, size_t array_size)
@@ -772,7 +876,7 @@ int     node_set_arch_cpy(node_t *node_ptr, char * new_arch, size_t array_size)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_state(node_t *node_ptr, char * new_state)
@@ -822,7 +926,7 @@ int     node_set_state(node_t *node_ptr, char * new_state)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_state_ae(node_t *node_ptr, size_t c, char  new_state_element)
@@ -873,7 +977,7 @@ int     node_set_state_ae(node_t *node_ptr, size_t c, char  new_state_element)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_state_cpy(node_t *node_ptr, char * new_state, size_t array_size)
@@ -926,7 +1030,7 @@ int     node_set_state_cpy(node_t *node_ptr, char * new_state, size_t array_size
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_msg_fd(node_t *node_ptr, int new_msg_fd)
@@ -978,7 +1082,7 @@ int     node_set_msg_fd(node_t *node_ptr, int new_msg_fd)
  *
  *  History: 
  *  Date        Name        Modification
- *  2024-02-01  gen-get-set Auto-generated from node-private.h
+ *  2026-08-15  gen-get-set Auto-generated from node-private.h
  ***************************************************************************/
 
 int     node_set_last_ping(node_t *node_ptr, time_t new_last_ping)
