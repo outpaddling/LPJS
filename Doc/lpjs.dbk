@@ -155,6 +155,12 @@ compute compute002.mydomain pmem=8GiB processors=4
 ...
         </screen>
         
+        <note>
+        Overrides for processors and pmem in the configuration file are
+        ignored if they exceed the auto-detected specs reported by
+        lpjs_compd.
+        </note>
+        
         <para>
         Each compute node requires the same type of configuration file, but
         it need only list the head node.  It can be a copy of the configuration

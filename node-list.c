@@ -85,14 +85,14 @@ void    node_list_init(node_list_t *node_list)
  *  2021-10-02  Jason Bacon Begin
  ***************************************************************************/
 
-void    node_list_update_compute(node_list_t *node_list, node_t *node)
+void    node_list_update_compute(node_list_t *node_list, node_t *new_node)
 
 {
     size_t  c;
     char    *hostname;
     
     // Note: FQDN is required
-    hostname = node_get_hostname(node);
+    hostname = node_get_hostname(new_node);
     for (c = 0; c < node_list->compute_node_count; ++c)
     {
         if ( strcmp(node_get_hostname(node_list->compute_nodes[c]), hostname) == 0 )
@@ -101,21 +101,23 @@ void    node_list_update_compute(node_list_t *node_list, node_t *node)
             node_set_state(node_list->compute_nodes[c], "up");
             // processors and phys_MiB may have been set in config file
             // Don't overwrite them with auto-detected specs
-            // FIXME: Overwrite node specs if they are not set
+            // Overwrite node specs if they are not set
             // explicitly in the config, OR if auto-detected specs are
             // less than the config indicates
             node_t *temp_node = node_list->compute_nodes[c];
-            if ( (node_get_processors(temp_node) == 0) &&
-                  node_get_auto_processors(temp_node) )
-                node_set_processors(node_list->compute_nodes[c], node_get_processors(node));
-            if ( (node_get_phys_MiB(temp_node) == 0) &&
-                  node_get_auto_MiB(temp_node) )
-                node_set_phys_MiB(node_list->compute_nodes[c], node_get_phys_MiB(node));
-            node_set_zfs(node_list->compute_nodes[c], node_get_zfs(node));
-            node_set_os(node_list->compute_nodes[c], strdup(node_get_os(node)));
-            node_set_arch(node_list->compute_nodes[c], strdup(node_get_arch(node)));
-            node_set_msg_fd(node_list->compute_nodes[c], node_get_msg_fd(node));
-            node_set_last_ping(node_list->compute_nodes[c], node_get_last_ping(node));
+            if ( (node_get_processors(temp_node) == 0) ||
+                  node_get_auto_processors(temp_node) ||
+                  (node_get_processors(new_node) < node_get_processors(temp_node)) )
+                node_set_processors(node_list->compute_nodes[c], node_get_processors(new_node));
+            if ( (node_get_phys_MiB(temp_node) == 0) ||
+                  node_get_auto_MiB(temp_node) ||
+                  (node_get_phys_MiB(new_node) < node_get_phys_MiB(temp_node)) )
+                node_set_phys_MiB(node_list->compute_nodes[c], node_get_phys_MiB(new_node));
+            node_set_zfs(node_list->compute_nodes[c], node_get_zfs(new_node));
+            node_set_os(node_list->compute_nodes[c], strdup(node_get_os(new_node)));
+            node_set_arch(node_list->compute_nodes[c], strdup(node_get_arch(new_node)));
+            node_set_msg_fd(node_list->compute_nodes[c], node_get_msg_fd(new_node));
+            node_set_last_ping(node_list->compute_nodes[c], node_get_last_ping(new_node));
             return;
         }
     }
