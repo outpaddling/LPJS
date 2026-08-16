@@ -21,8 +21,6 @@ struct node
     // size_t will suffice even if head node is 32-bit (2^32-1 MiB)
     size_t          phys_MiB;
     size_t          phys_MiB_used;
-    bool            auto_processors;    // Processors are auto-detected
-    bool            auto_MiB;           // MiB is auto-detected
     int             zfs;                // 0 or 1
     char            *os;
     char            *arch;
