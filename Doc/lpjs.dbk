@@ -219,22 +219,23 @@ compute compute002.mydomain pmem=8GiB processors=4
             </para>
             
             <para>
-            Jobs can be submitted from any node with the same version of
-            LPJS and the shared munge key installed.
+            Jobs can be submitted, monitored, and controlled from any
+            computer with a compatible version of
+            LPJS and an appropriate configuration.
             </para>
             
             <note>
             <para>
-            It need not even be running LPJS daemons, but it
-            does require a configuration file listing the head node, a
+            A computer need not even be running LPJS daemons, but it
+            does require an LPJS configuration file listing the head node, a
             running munge daemon, and the same munge key as the other
             nodes.
             </para>
             
             <para>
-            Hence, other computers on the network
-            can act as submit nodes, even if they are not part of the
-            cluster/grid.
+            Computers configured to interact with an LPJS cluster/grid
+            without running LPJS daemons are called "UI" (user interface)
+            nodes.
             </para>
             </note>
         </section>
