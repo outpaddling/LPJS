@@ -33,7 +33,7 @@ package manager to
 install common software on all of your nodes, whether running BSD,
 Linux, macOS, or any other POSIX platform.
 The dreckly package manager is portable to virtually all POSIX-compatible
-systems and provide one of the largest package collections among existing
+systems and provides one of the largest package collections among existing
 package managers.  Hence, dreckly enables the use of multiple
 operating
 systems running identical versions of numerous software applications.
